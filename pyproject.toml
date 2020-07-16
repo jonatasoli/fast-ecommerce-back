@@ -18,8 +18,12 @@ pep8 = "^1.7.1"
 passlib = "^1.7.2"
 pyjwt = "^1.7.1"
 python-dotenv = "^0.13.0"
-dynaconf = "^2.2.3"
 requests = "^2.23.0"
+tortoise-orm = "^0.16.13"
+asyncpg = "^0.20.1"
+aiosqlite = "^0.13.0"
+loguru = "^0.5.1"
+dynaconf = "^3.0.0"
 
 [tool.poetry.dev-dependencies]
 pep8 = "^1.7.1"
