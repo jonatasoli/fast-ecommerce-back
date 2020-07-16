@@ -6,9 +6,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from dynaconf import settings
-from app.ext.database import SessionLocal, Base
+from .ext.database import SessionLocal, Base
 from app.main import app
-from app.endpoints.deps import get_db
+from .endpoints.deps import get_db
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
