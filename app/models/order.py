@@ -10,6 +10,7 @@ from ext.database import Base
 class Product(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String)
+    uri = Column(String)
     price = Column(Integer)
     direct_sales = Column(Boolean, default=False)
     upsell = Column(ARRAY(Integer), nullable=True)
