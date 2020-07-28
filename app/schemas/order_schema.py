@@ -5,10 +5,13 @@ from datetime import datetime
 
 class ProductSchema(BaseModel):
     name: str
+    uri: str
     price: int
     direct_sales: Optional[bool] = None
     upsell: Optional[list] = None
 
+    class Config:
+        orm_mode = True
 
 class ProductResponseSchema(ProductSchema):
     id: int

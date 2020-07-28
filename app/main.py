@@ -4,6 +4,7 @@ import sys
 from fastapi import FastAPI
 from endpoints.v1.users import user
 from endpoints.v1.payment import payment
+from endpoints.v1.direct_sales import direct_sales
 
 from dynaconf import settings
 from loguru import logger
@@ -35,9 +36,8 @@ logging.getLogger("uvicorn.access").handlers = [InterceptHandler()]
 
 app.include_router(user)
 app.include_router(payment)
-
-@app.get('/')
-async def index():
-    return {"Real": "Python"}
-
+app.include_router(
+        direct_sales,
+        prefix="/direct-sales",
+        responses={404: {"description": "Not found"}})
 
