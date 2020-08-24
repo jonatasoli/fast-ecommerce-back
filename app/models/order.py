@@ -14,6 +14,8 @@ class Product(Base):
     price = Column(Integer)
     direct_sales = Column(Boolean, default=False)
     upsell = Column(ARRAY(Integer), nullable=True)
+    description = Column(String)
+    image_path = Column(String)
 
 
 class Invoice(Base):

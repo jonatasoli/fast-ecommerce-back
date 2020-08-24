@@ -1,8 +1,10 @@
 from fastapi import Header, APIRouter, Depends
+from starlette.requests import Request
 from sqlalchemy.orm import Session
+from loguru import logger
 
 from schemas.payment_schema import CreditCardPayment, SlipPayment
-from schemas.order_schema import ProductSchema
+from schemas.order_schema import ProductSchema, CheckoutReceive, CheckoutSchema
 from domains import domain_payment 
 from domains import domain_order
 from endpoints import deps
@@ -26,9 +28,24 @@ async def get_upsell_products(id):
 
 
 @direct_sales.post('/checkout', status_code=201)
-async def checkout():
+def checkout(
+                *,
+                db: Session = Depends(deps.get_db),
+                data: CheckoutReceive
+        ):
     try:
-        return True
+        checkout_data = data.dict().get('transaction')
+        affiliate = data.dict().get('affiliate')
+        cupom = data.dict().get('cupom')
+        from loguru import logger
+        logger.info(checkout_data)
+        checkout = domain_payment.process_checkout(
+                db=db,
+                checkout_data=checkout_data,
+                affiliate=affiliate,
+                cupom=cupom)
+        # import ipdb; ipdb.set_trace()
+        return checkout
     except Exception as e:
         raise e
 
