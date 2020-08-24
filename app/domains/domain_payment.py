@@ -41,12 +41,13 @@ def slip_payment(db: Session, payment: SlipPayment):
         headers = {'Content-Type': 'application/json'}
         r = requests.post(settings.PAYMENT_GATEWAY_URL, data=payment.json(), headers=headers)
         r = r.json()
+        logger.info(f"RESPONSE ------------{r}")
     except Exception as e:
         raise e
     return {"user": "usuario", "status": r.get('status')}
 
 
-def process_checkout(db: Session, checkout_data: CheckoutSchema):
+def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None, cupom=None):
     try:
         """
         1 - checar usuário/cadastra usuário
@@ -68,6 +69,7 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema):
                 db=db,
                 checkout_data=checkout_data,
                 user=_user)
+        logger.info(f"SHOPPING-CART--------------{checkout_data.shopping_cart}---------------")
         _order = process_order(
                 db=db,
                 shopping_cart=checkout_data.shopping_cart[0].get("itens"),
@@ -94,8 +96,11 @@ def check_user(db: Session, checkout_data: CheckoutSchema):
         _name = checkout_data.name
         _document = checkout_data.document
         _phone = checkout_data.phone
+        logger.info(f"DOCUMENT -----------------{_document}")
 
         _user = check_existent_user(db=db, email=_user_email, document=_document, password=_password)
+        logger.info("----------------USER----------------")
+        logger.info(_user)
         if not _user:
             _sign_up = SignUp(
                     name= _name,
@@ -235,7 +240,9 @@ def process_payment(
         db.refresh(db_payment)
         db.refresh(db_transaction)
 
-        if checkout_data.payment_method == "credit_card":
+        logger.info(f"PAYMENT_METHOD-----------------{checkout_data.payment_method}")
+        if checkout_data.payment_method == "credit-card":
+            logger.info("------------CREDIT CARD--------------")
             _payment = CreditCardPayment(
                     api_key= settings.GATEWAY_API,
                     amount= db_payment.amount,

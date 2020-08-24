@@ -9,6 +9,8 @@ class ProductSchema(BaseModel):
     price: int
     direct_sales: Optional[bool] = None
     upsell: Optional[list] = None
+    description: str
+    image_path: str
 
     class Config:
         orm_mode = True
@@ -62,6 +64,12 @@ class CheckoutSchema(BaseModel):
     credit_card_cvv: Optional[str]
     credit_card_validate: Optional[str]
     installments: Optional[int]
+
+
+class CheckoutReceive(BaseModel):
+    transaction: dict
+    affiliate: str
+    cupom: str
 
 
 class CheckoutResponseSchema(BaseModel):

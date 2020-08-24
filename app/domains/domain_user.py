@@ -1,3 +1,5 @@
+from loguru import logger
+
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
@@ -9,6 +11,7 @@ from constants import DocumentType, Roles
 
 def create_user(db: Session, obj_in: SignUp):
     try:
+        logger.info(obj_in)
 
         db_user = User(
                 name=obj_in.name,
@@ -23,6 +26,7 @@ def create_user(db: Session, obj_in: SignUp):
                 update_password_on_next_login=False
                 )
         db.add(db_user)
+        logger.info(db_user)
         db.commit()
         db.refresh(db_user)
         return db_user
@@ -35,10 +39,11 @@ def check_existent_user(db: Session, email, document, password):
         db_user = db.query(User).filter_by(document=document).first()
         if not password:
             raise Exception('User not password')
-        if db_user and db_user.verify_password(password.get_secret_value()):
-            return db_user
-        else:
-            return None
+        # if db_user and db_user.verify_password(password.get_secret_value()):
+        #     return db_user
+        logger.info("---------DB_USER-----------")
+        logger.info(f"DB_USER -> {db_user}")
+        return db_user
     except Exception as e:
         raise e
 
