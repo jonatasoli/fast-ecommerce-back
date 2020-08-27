@@ -23,6 +23,7 @@ from dynaconf import settings
 def credit_card_payment(db: Session, payment: CreditCardPayment):
     try:
         headers = {'Content-Type': 'application/json'}
+        logger.debug(f"{payment.json()}")
         r = requests.post(settings.PAYMENT_GATEWAY_URL, data=payment.json(), headers=headers)
         r = r.json()
         logger.error(f"response error {r.get('errors')}")
@@ -69,10 +70,10 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
                 db=db,
                 checkout_data=checkout_data,
                 user=_user)
-        logger.info(f"SHOPPING-CART--------------{checkout_data.shopping_cart}---------------")
+        logger.info(f"SHIPPING--------------{_shipping_address}---------------")
         _order = process_order(
                 db=db,
-                shopping_cart=checkout_data.shopping_cart[0].get("itens"),
+                shopping_cart=checkout_data.get('shopping_cart')[0].get("itens"),
                 user=_user)
         _payment = process_payment(
                 db=db,
@@ -83,7 +84,12 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
                 payment_address=_payment_address)
         if "paid" in _payment.values():
             update_payment_status(db=db, payment_data=_payment, order=_order)
-        return {'token': _payment.get("token"), "order_id": _order.id, "name": _user.name}
+        return {
+                'token': _payment.get("token"),
+                "order_id": _order.id,
+                "name": _user.name,
+                "payment_status": 'PAGAMENTO REALIZADO' if _payment.get('status') == 'paid' else ''
+                }
 
     except Exception as e:
         raise e
@@ -91,11 +97,12 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
 
 def check_user(db: Session, checkout_data: CheckoutSchema):
     try:
-        _user_email = checkout_data.mail
-        _password = checkout_data.password
-        _name = checkout_data.name
-        _document = checkout_data.document
-        _phone = checkout_data.phone
+        # import ipdb; ipdb.set_trace()
+        _user_email = checkout_data.get('mail')
+        _password = checkout_data.get('password')
+        _name = checkout_data.get('name')
+        _document = checkout_data.get('document')
+        _phone = checkout_data.get('phone')
         logger.info(f"DOCUMENT -----------------{_document}")
 
         _user = check_existent_user(db=db, email=_user_email, document=_document, password=_password)
@@ -175,10 +182,10 @@ def process_payment(
         payment_address):
     try:
         user_id = user.id
-        _shopping_cart = checkout_data.shopping_cart
-        _total_amount = _shopping_cart[0].get("total_amount")
-        _payment_method = checkout_data.payment_method
-        _installments = checkout_data.installments
+        _shopping_cart = checkout_data.get('shopping_cart')
+        _total_amount = float(_shopping_cart[0].get("total_amount"))
+        _payment_method = checkout_data.get('payment_method')
+        _installments = checkout_data.get('installments')
         _customer = {
                 "external_id": str(user.id),
                 "name": user.name,
@@ -197,6 +204,8 @@ def process_payment(
             "name": user.name,
             "address": payment_address.to_json()
                 }
+        logger.debug("--------- SHIPPING ----------")
+        logger.debug(f"SHIPPING      {shipping_address.to_json()}")
         _shipping = {
             "name": user.name,
             "fee": 1000,
@@ -204,10 +213,11 @@ def process_payment(
             "expedited": "true",
             "address": shipping_address.to_json()
                 }
+        logger.error(f"{_shipping}")
     
         db_payment = Payment(
                 user_id=user_id,
-                amount=_total_amount,
+                amount=int(_total_amount)*100,
                 status="pending",
                 payment_method=_payment_method,
                 payment_gateway="PagarMe",
@@ -218,6 +228,7 @@ def process_payment(
 
         _items = [] 
         for cart in _shopping_cart[0].get("itens"):
+            logger.debug(cart)
             db_transaction = Transaction(
                     user_id=user_id,
                     amount=cart.get("amount"),
@@ -240,21 +251,22 @@ def process_payment(
         db.refresh(db_payment)
         db.refresh(db_transaction)
 
-        logger.info(f"PAYMENT_METHOD-----------------{checkout_data.payment_method}")
-        if checkout_data.payment_method == "credit-card":
+        if checkout_data.get('payment_method') == "credit-card":
             logger.info("------------CREDIT CARD--------------")
             _payment = CreditCardPayment(
                     api_key= settings.GATEWAY_API,
                     amount= db_payment.amount,
-                    card_number= checkout_data.credit_card_number,
-                    card_cvv= checkout_data.credit_card_cvv,
-                    card_expiration_date= checkout_data.credit_card_validate,
-                    card_holder_name= checkout_data.credit_card_name,
+                    card_number= checkout_data.get('credit_card_number'),
+                    card_cvv= checkout_data.get('credit_card_cvv'),
+                    card_expiration_date= checkout_data.get('credit_card_validate'),
+                    card_holder_name= checkout_data.get('credit_card_name'),
                     customer= _customer,
                     billing= _billing,
                     shipping= _shipping,
                     items= _items
                     )
+            logger.error("CREDIT CARD RESPONSE")
+            logger.debug(f"{_payment}")
             return credit_card_payment(db=db, payment=_payment)
         else:
             _payment = {

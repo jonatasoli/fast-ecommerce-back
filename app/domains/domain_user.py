@@ -67,22 +67,21 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
     try:
         _address = db.query(Address).filter(and_(
             Address.user_id==user.id,
-            Address.zipcode==checkout_data.zip_code,
-            Address.street_number==checkout_data.address_number,
-            Address.address_complement==checkout_data.address_complement,
+            Address.zipcode==checkout_data.get('zip_code'),
+            Address.street_number==checkout_data.get('address_number'),
+            Address.address_complement==checkout_data.get('address_complement'),
             Address.category=='billing')
             ).first()
-
         if not _address:
             db_payment_address = Address(
                     user_id=user.id,
-                    country=checkout_data.country,
-                    city=checkout_data.city,
-                    state=checkout_data.state,
-                    neighborhood=checkout_data.neighborhood,
-                    street=checkout_data.address,
-                    street_number=checkout_data.address_number,
-                    zipcode=checkout_data.zip_code,
+                    country=checkout_data.get('country'),
+                    city=checkout_data.get('city'),
+                    state=checkout_data.get('state'),
+                    neighborhood=checkout_data.get('neighborhood'),
+                    street=checkout_data.get('address'),
+                    street_number=checkout_data.get('address_number'),
+                    zipcode=checkout_data.get('zip_code'),
                     type_address='house',
                     category='billing'
                     )
@@ -98,28 +97,58 @@ def register_shipping_address(db: Session, checkout_data: CheckoutSchema, user):
     try:
         _address = db.query(Address).filter(and_(
             Address.user_id==user.id,
-            Address.zipcode==checkout_data.ship_zip,
-            Address.street_number==checkout_data.ship_number,
-            Address.address_complement==checkout_data.ship_address_complement,
+            Address.zipcode==checkout_data.get('ship_zip'),
+            Address.street_number==checkout_data.get('ship_number'),
+            Address.address_complement==checkout_data.get('ship_address_complement'),
             Address.category=='shipping')
             ).first()
 
         if not _address:
             db_shipping_address = Address(
                     user_id=user.id,
-                    country=checkout_data.ship_country,
-                    city=checkout_data.ship_city,
-                    state=checkout_data.ship_state,
-                    neighborhood=checkout_data.ship_neighborhood,
-                    street=checkout_data.ship_address,
-                    street_number=checkout_data.ship_number,
-                    zipcode=checkout_data.ship_zip,
+                    country=checkout_data.get('ship_country'),
+                    city=checkout_data.get('ship_city'),
+                    state=checkout_data.get('ship_state'),
+                    neighborhood=checkout_data.get('ship_neighborhood'),
+                    street=checkout_data.get('ship_address'),
+                    street_number=checkout_data.get('ship_number'),
+                    zipcode=checkout_data.get('ship_zip'),
                     type_address='house',
                     category='shipping'
                     )
             db.add(db_shipping_address)
             db.commit()
             _address=db_shipping_address
+
+        if checkout_data.get('shipping_is_payment'):
+            logger.debug(f"{checkout_data}")
+            if not checkout_data.get('ship_zip'):
+                _address = db.query(Address).filter(and_(
+                    Address.user_id==user.id,
+                    Address.zipcode==checkout_data.get('zip_code'),
+                    Address.street_number==checkout_data.get('address_number'),
+                    Address.address_complement==checkout_data.get('address_complement'),
+                    Address.category=='billing')
+                    ).first()
+            if not _address:
+                db_shipping_address = Address(
+                        user_id=user.id,
+                        country=checkout_data.get('country'),
+                        city=checkout_data.get('city'),
+                        state=checkout_data.get('state'),
+                        neighborhood=checkout_data.get('neighborhood'),
+                        street=checkout_data.get('address'),
+                        street_number=checkout_data.get('address_number'),
+                        zipcode=checkout_data.get('zip_code'),
+                        type_address='house',
+                        category='shipping'
+                        )
+                db.add(db_shipping_address)
+                db.commit()
+                _address=db_shipping_address
+
+        logger.debug("INFO")
+        logger.error(f"{_address}")
         return _address
     except Exception as e:
         raise e
