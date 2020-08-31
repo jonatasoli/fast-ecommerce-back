@@ -1,9 +1,10 @@
 import pytest
+from sqlalchemy.orm import Session
 from domains import domain_payment 
 from loguru import logger
 
 
-def test_payment_process_credit_card(db):
+def test_payment_process_credit_card(db: Session):
     checkout_data = {
             "document": "34826669895",
             "mail": "contato@jonatasoliveira.me",

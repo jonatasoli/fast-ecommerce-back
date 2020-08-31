@@ -269,6 +269,7 @@ def process_payment(
             logger.debug(f"{_payment}")
             return credit_card_payment(db=db, payment=_payment)
         else:
+            # TODO aplicar a transação de boleto.
             _payment = {
                     "amount": db_payment.amount,
                     "api_key": settings.GATEWAY_API
