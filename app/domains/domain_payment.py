@@ -1,6 +1,7 @@
 import requests
+import json
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from loguru import logger
 
@@ -32,6 +33,7 @@ def credit_card_payment(db: Session, payment: CreditCardPayment):
                "token": r.get("acquirer_id"),
                "status": r.get('status'),
                "authorization_code": r.get("authorization_code"),
+               "payment_method": "credit-card",
                "errors": r.get("errors")}
     except Exception as e:
         raise e
@@ -43,9 +45,17 @@ def slip_payment(db: Session, payment: SlipPayment):
         r = requests.post(settings.PAYMENT_GATEWAY_URL, data=payment.json(), headers=headers)
         r = r.json()
         logger.info(f"RESPONSE ------------{r}")
+        return {
+               "user": "usuario",
+               "token": r.get("acquirer_id"),
+               "status": r.get('status'),
+               "authorization_code": r.get("authorization_code"),
+               "payment_method": "slip-payment",
+               "boleto_url":  r.get("boleto_url"),
+               "boleto_barcode": r.get("boleto_barcode"),
+               "errors": r.get("errors")}
     except Exception as e:
         raise e
-    return {"user": "usuario", "status": r.get('status')}
 
 
 def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None, cupom=None):
@@ -84,12 +94,25 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
                 payment_address=_payment_address)
         if "paid" in _payment.values():
             update_payment_status(db=db, payment_data=_payment, order=_order)
-        return {
+        if "credit-card" in _payment.values():
+            _payment_response = {
                 'token': _payment.get("token"),
                 "order_id": _order.id,
                 "name": _user.name,
-                "payment_status": 'PAGAMENTO REALIZADO' if _payment.get('status') == 'paid' else ''
+                "payment_status": 'PAGAMENTO REALIZADO' if _payment.get('status') == 'paid' else '',
+                "errors": _payment.get("errors")
                 }
+        else:
+            _payment_response = {
+                'token': _payment.get("token"),
+                "order_id": _order.id,
+                "name": _user.name,
+                "boleto_url":  _payment.get("boleto_url"),
+                "boleto_barcode": _payment.get("boleto_barcode"),
+                "errors": _payment.get("errors")
+                    }
+        logger.debug(_payment_response)
+        return _payment_response
 
     except Exception as e:
         raise e
@@ -197,7 +220,7 @@ def process_payment(
                         "type": "cpf",
                         "number": user.document
                     }],
-                "phone_numbers": [user.phone],
+                "phone_numbers": ["+55" + user.phone],
                 "birthday": user.birth_date if user.birth_date else "1965-01-01",
                 }
         _billing = {
@@ -221,7 +244,7 @@ def process_payment(
                 status="pending",
                 payment_method=_payment_method,
                 payment_gateway="PagarMe",
-                installments=_installments
+                installments=_installments if _installments else 1
                 )
         db.add(db_payment)
         db.commit()
@@ -260,6 +283,7 @@ def process_payment(
                     card_cvv= checkout_data.get('credit_card_cvv'),
                     card_expiration_date= checkout_data.get('credit_card_validate'),
                     card_holder_name= checkout_data.get('credit_card_name'),
+                    installments= _installments,
                     customer= _customer,
                     billing= _billing,
                     shipping= _shipping,
@@ -269,12 +293,26 @@ def process_payment(
             logger.debug(f"{_payment}")
             return credit_card_payment(db=db, payment=_payment)
         else:
-            # TODO aplicar a transação de boleto.
-            _payment = {
-                    "amount": db_payment.amount,
-                    "api_key": settings.GATEWAY_API
-                    }
-            slip_payment(db=db, payment=_payment )
+            _slip_expire = datetime.now() + timedelta(days=3)
+            _payment = SlipPayment(
+                    amount= db_payment.amount,
+                    api_key= settings.GATEWAY_API,
+                    payment_method= "boleto",
+                    customer= _customer,
+                    type= "individual",
+                    country= "br",
+                    # postback_url= "api.graciellegatto.com.br/payment-postback",
+                    boleto_expiration_date= _slip_expire.strftime("%Y/%m/%d"),
+                    email= _customer.get("email"),
+                    name= _customer.get("name"),
+                    documents= [
+                        {
+                            "type":  "cpf",
+                            "number": user.document 
+                        }
+                        ]
+                    )
+            return slip_payment(db=db, payment=_payment )
 
 
     except Exception as e:
