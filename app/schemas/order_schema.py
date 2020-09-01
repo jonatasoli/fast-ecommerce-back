@@ -68,8 +68,8 @@ class CheckoutSchema(BaseModel):
 
 class CheckoutReceive(BaseModel):
     transaction: dict
-    affiliate: str
-    cupom: str
+    affiliate: Optional[str]
+    cupom: Optional[str]
 
 
 class CheckoutResponseSchema(BaseModel):
