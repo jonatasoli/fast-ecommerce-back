@@ -11,6 +11,9 @@ class ProductSchema(BaseModel):
     upsell: Optional[list] = None
     description: str
     image_path: str
+    installments_config: Optional[int]
+    installments_list: Optional[list]
+
 
     class Config:
         orm_mode = True
