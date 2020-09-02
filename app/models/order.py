@@ -1,5 +1,6 @@
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
+from sqlalchemy.types import JSON
 from sqlalchemy.dialects.postgresql import ARRAY
 from passlib.hash import pbkdf2_sha512
 
@@ -16,6 +17,8 @@ class Product(Base):
     upsell = Column(ARRAY(Integer), nullable=True)
     description = Column(String)
     image_path = Column(String)
+    installments_config = Column(Integer, nullable=True)
+    installments_list = Column(ARRAY(JSON), nullable=True)
 
 
 class Invoice(Base):

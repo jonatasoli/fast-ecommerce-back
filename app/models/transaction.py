@@ -1,5 +1,6 @@
 from sqlalchemy.orm import backref, relationship
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String,\
+        ForeignKey, DateTime, Boolean, Numeric
 from passlib.hash import pbkdf2_sha512
 
 from constants import DocumentType
@@ -35,3 +36,10 @@ class Payment(Base):
     processed    = Column(Boolean, default=False, server_default='0', nullable=False)
     processed_at = Column(DateTime, nullable=True)
     
+
+class CreditCardFeeConfig(Base):
+    id = Column(Integer, nullable=False, primary_key=True)
+    min_installment_with_fee = Column(Integer)
+    mx_installments = Column(Integer)
+    fee = Column(Numeric)
+
