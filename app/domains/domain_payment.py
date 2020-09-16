@@ -3,6 +3,8 @@ import json
 
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
+
 from loguru import logger
 
 from schemas.payment_schema import CreditCardPayment, SlipPayment
@@ -11,7 +13,7 @@ from schemas.order_schema import ProductSchema, InvoiceSchema, \
 from schemas.user_schema import SignUp
 
 from models.order import Product, Invoice, InvoiceItems
-from models.transaction import Transaction, Payment
+from models.transaction import Transaction, Payment, CreditCardFeeConfig
 from domains.domain_user import create_user, check_existent_user, \
     register_payment_address, register_shipping_address
 
@@ -209,6 +211,18 @@ def process_payment(
         _total_amount = float(_shopping_cart[0].get("total_amount"))
         _payment_method = checkout_data.get('payment_method')
         _installments = checkout_data.get('installments')
+
+        _config_installments = db.query(CreditCardFeeConfig)\
+            .filter_by(active_date<=datetimenow())\
+            .order_by(desc(CreditCardFeeConfig.active_date))\
+            .first()
+        if _installments > 12:
+            raise Exception("O número máximo de parcelas é 12") 
+        elif _installments >= _config_installments.min_installment_with_fee:
+            _total_amount = _total_amount * ((1+_config_installments.fee) ** _installments)
+        
+        # db_transaction = db.query(Transaction).filter_by(invoice=order.id).first()
+
         _customer = {
                 "external_id": str(user.id),
                 "name": user.name,
@@ -231,7 +245,7 @@ def process_payment(
         logger.debug(f"SHIPPING      {shipping_address.to_json()}")
         _shipping = {
             "name": user.name,
-            "fee": 1000,
+            "fee": int(_total_amount)*100,
             "delivery_date": datetime.now().strftime("%Y-%m-%d"),
             "expedited": "true",
             "address": shipping_address.to_json()

@@ -2,6 +2,8 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy import Column, Integer, String,\
         ForeignKey, DateTime, Boolean, Numeric
 from passlib.hash import pbkdf2_sha512
+from datetime import datetime
+from sqlalchemy.sql import func
 
 from constants import DocumentType
 from ext.database import Base
@@ -42,4 +44,6 @@ class CreditCardFeeConfig(Base):
     min_installment_with_fee = Column(Integer)
     mx_installments = Column(Integer)
     fee = Column(Numeric)
+    active_date = Column(DateTime, default=func.now(),
+            server_default=func.now())
 

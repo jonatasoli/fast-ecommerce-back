@@ -4,6 +4,7 @@ from domains import domain_payment
 from loguru import logger
 
 
+@pytest.mark.skip(reason="refactoring test")
 def test_payment_process_credit_card(db: Session):
     checkout_data = {
             "document": "34826669895",
