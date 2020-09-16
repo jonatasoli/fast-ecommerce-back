@@ -1,15 +1,27 @@
 import pytest
+# from sqlalchemy.orm import Session
+from loguru import logger
+from fastapi.testclient import TestClient
+
+# from app.conftest import override_get_db
+from dynaconf import settings
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+
+from app.main import app
+from app.endpoints.deps import get_db
 
 
-def test_signup(test_client, db) -> None:
+def test_signup(t_client) -> None:
+
     signup_data = {
             "name": "Jonatas Luiz de Oliveira",
-            "mail": "contato@jonatasoliveira.me",
+            "mail": "contato@jonatasoliveira.com",
             "password": "asdasd",
             "document": "12345678910",
             "phone": "11912345678"
             }
-    r = test_client.post("/signup", json=signup_data)
+    r = t_client.post("/signup", json=signup_data)
 
     response = r.json()
     assert r.status_code == 201
@@ -19,30 +31,24 @@ def test_signup(test_client, db) -> None:
             }
 
     
-def test_read_main(test_client):
-    response = test_client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"Real": "Python"}
-
-
-def test_login(test_client) -> None:
+def test_login(t_client) -> None:
     login_data = {
         "document": "12345678910",
         "password": "asdasd"
     }
-    r = test_client.post("/login", json=login_data)
+    r = t_client.post("/login", json=login_data)
     response = r.json()
     assert r.status_code == 200
     assert response == {'message': 'asdasd'}
 
 
-def test_invalid_signup(test_client) -> None:
+def test_invalid_signup(t_client) -> None:
     signup_data = {
             "name": "Jonatas Luiz de Oliveira",
             "mail": "contato@jonatasoliveira.me",
             "password": "asdasd",
             }
-    r = test_client.post("/signup", json=signup_data)
+    r = t_client.post("/signup", json=signup_data)
 
     response = r.json()
     assert r.status_code == 422
@@ -55,3 +61,6 @@ def test_invalid_signup(test_client) -> None:
 #     result = r.json()
 #     assert r.status_code == 200
 #     assert "email" in result
+
+if __name__ == "__main__":
+    signup()

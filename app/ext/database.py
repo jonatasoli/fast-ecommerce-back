@@ -5,12 +5,21 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from dynaconf import settings
 
-SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+from loguru import logger
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_engine():
+    SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+    )
+    return engine
+
+def get_session():
+    _engine = get_engine()
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+    return SessionLocal
 
 
 @as_declarative()
