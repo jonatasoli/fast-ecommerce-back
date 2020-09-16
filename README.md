@@ -48,6 +48,16 @@ alembic upgrade head
 uvicorn main:app --reload --host 0.0.0.0 --port 7777
 ````
 
+## Tests
+
+* Create postgres database "test"
+* Enter in app directory
+* Run tests
+````
+python -m pytest
+````
+
+
 ## Technologies
 + [PostgreSql](https://www.postgresql.org/)
 + [FastApi](https://fastapi.tiangolo.com/)
