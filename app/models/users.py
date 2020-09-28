@@ -1,6 +1,7 @@
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from passlib.hash import pbkdf2_sha512
+from loguru import logger
 
 from constants import DocumentType
 from ext.database import Base
@@ -71,6 +72,7 @@ class User(Base):
 
         self.update_email_on_next_login = update_email_on_next_login
         self.update_password_on_next_login = update_password_on_next_login
+        logger.info(f"A senha é {password}")
         if password is not None:
             self.gen_hash(password)
 
@@ -79,3 +81,31 @@ class User(Base):
 
     def verify_password(self, password):
         return pbkdf2_sha512.verify(password, self.password)
+
+
+class Address(Base):
+    id = Column(Integer, nullable=False, primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    user = relationship("User", foreign_keys=[user_id], backref="payments",
+            uselist=False)
+    type_address=Column(String)
+    category=Column(String)
+    country = Column(String(58))
+    city = Column(String(58))
+    state = Column(String(58))
+    neighborhood = Column(String(58))
+    street = Column(String)
+    street_number = Column(String)
+    address_complement = Column(String)
+    zipcode = Column(String)
+
+    def to_json(self):
+        return {
+                "country": self.country,
+                "city": self.city,
+                "state": self.state,
+                "neighborhood": self.neighborhood,
+                "street": self.street,
+                "street_number": self.street_number,
+                "zipcode": self.zipcode
+                }

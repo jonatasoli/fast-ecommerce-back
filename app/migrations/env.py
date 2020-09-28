@@ -13,8 +13,8 @@ sys.path.insert(0, str(folder))
 
 from dynaconf import settings
 
-from app.ext import base
-from app.ext.base import Base
+from ext import base
+from ext.base import Base
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
