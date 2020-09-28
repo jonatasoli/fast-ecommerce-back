@@ -21,3 +21,16 @@ class LoginResponse(BaseModel):
 class SignUpResponse(BaseModel):
     name: str
     message: str
+
+
+class AddressSchema(BaseModel):
+    country: str
+    state: str
+    city: str
+    neighborhood: str
+    street: str
+    street_number: str
+    zipcode:  str
+    complement: str
+    type_address: str
+    category: str

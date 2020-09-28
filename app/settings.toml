@@ -1,0 +1,9 @@
+[default]
+REDIS_HOST="localhost"
+SECRET_KEY="NOT_SECURE_SECRET_KEY"
+CONFIRMATION_KEY="NOT_SECURE_CONFIRMATION_KEY"
+LOG_LEVEL="DEBUG"
+LOG_BACKTRACE=true
+
+[testing]
+DATABASE_URL="postgresql://partyoudbuser:partyou123@localhost/test"
