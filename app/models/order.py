@@ -26,7 +26,8 @@ class Invoice(Base):
     customer_id = Column(Integer, ForeignKey("user.id"))
     customer = relationship("User", backref=backref("invoice", uselist=False), foreign_keys=[customer_id])
     invoice_date = Column(DateTime)
-    invoice_items_id = Column(Integer)
+    tracking_number = Column(Integer, nullable=True)
+    payment_id = Column(Integer, nullable=True)
 
 
 class InvoiceItems(Base):
@@ -36,4 +37,13 @@ class InvoiceItems(Base):
     product_id = Column(Integer, ForeignKey("product.id"))
     product = relationship("Product", backref=backref("product", uselist=False), foreign_keys=[product_id])
     quantity = Column(Integer)
+
+
+class OrderStatusSteps(Base):
+    id = Column(Integer, nullable=False, primary_key=True)
+    order_id = Column(Integer)
+    status = Column(String)
+    last_updated = Column(DateTime)
+    sending = Column(Boolean)
+    active = Column(Boolean)
 
