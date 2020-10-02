@@ -36,6 +36,8 @@ def override_get_db():
 @pytest.fixture(scope="session")
 def db() -> Generator:
     _engine = get_engine()
+    Base.metadata.drop_all(bind=_engine)
+    Base.metadata.create_all(bind=_engine)
     logger.info("-----GENERATE DB------")
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
     yield TestingSessionLocal()
