@@ -52,15 +52,6 @@ def test_invalid_signup(t_client) -> None:
 
     response = r.json()
     assert r.status_code == 422
-# def test_use_access_token(
-#     client: TestClient, superuser_token_headers: Dict[str, str]
-# ) -> None:
-#     r = client.post(
-#         f"{settings.API_V1_STR}/login/test-token", headers=superuser_token_headers,
-#     )
-#     result = r.json()
-#     assert r.status_code == 200
-#     assert "email" in result
 
-if __name__ == "__main__":
-    signup()
+# # if __name__ == "__main__":
+# #     signup()

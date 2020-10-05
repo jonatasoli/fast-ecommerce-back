@@ -23,8 +23,6 @@ def set_test_settings():
 def override_get_db():
     try:
         _engine = get_engine()
-        Base.metadata.drop_all(bind=_engine)
-        Base.metadata.create_all(bind=_engine)
         logger.info(f"----- ADD DB {Base.metadata}-------")
         TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
         db = TestingSessionLocal() 
