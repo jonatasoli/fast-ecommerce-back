@@ -4,6 +4,7 @@ SECRET_KEY="NOT_SECURE_SECRET_KEY"
 CONFIRMATION_KEY="NOT_SECURE_CONFIRMATION_KEY"
 LOG_LEVEL="DEBUG"
 LOG_BACKTRACE=true
+DATABASE_URL="postgresql://partyoudbuser:partyou123@localhost/ecommerce"
 
 [testing]
 DATABASE_URL="postgresql://partyoudbuser:partyou123@localhost/test"

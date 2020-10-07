@@ -24,7 +24,7 @@ class Product(Base):
 class Invoice(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     customer_id = Column(Integer, ForeignKey("user.id"))
-    customer = relationship("User", backref=backref("invoice", uselist=False), foreign_keys=[customer_id])
+   #customer = relationship("User", backref=backref("invoice", uselist=False), foreign_keys=[customer_id])
     invoice_date = Column(DateTime)
     tracking_number = Column(Integer, nullable=True)
     payment_id = Column(Integer, nullable=True)
