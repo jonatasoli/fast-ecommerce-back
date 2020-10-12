@@ -12,9 +12,12 @@ from endpoints import deps
 direct_sales = APIRouter()
 
 @direct_sales.get('/product/{uri}', status_code=200)
-async def get_product(uri):
+async def get_product(
+        *,
+        db: Session = Depends(deps.get_db),
+        uri):
     try:
-        return domain_order.get_product(uri)
+        return domain_order.get_product(db, uri)
     except Exception as e:
         raise e
 
