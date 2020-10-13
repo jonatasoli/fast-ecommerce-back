@@ -52,4 +52,3 @@ def t_client(override_get_db) -> Generator:
     logger.info(f"{ settings.current_env }")
     with TestClient(app) as c:
         yield c
-

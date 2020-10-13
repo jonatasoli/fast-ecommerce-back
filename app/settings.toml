@@ -4,6 +4,7 @@ SECRET_KEY="NOT_SECURE_SECRET_KEY"
 CONFIRMATION_KEY="NOT_SECURE_CONFIRMATION_KEY"
 LOG_LEVEL="DEBUG"
 LOG_BACKTRACE=true
+API_MAIL_URL ="http://localhost:7777"
 
 [testing]
 DATABASE_URL="postgresql://partyoudbuser:partyou123@localhost/test"
