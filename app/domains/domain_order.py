@@ -1,13 +1,11 @@
 from sqlalchemy.orm import Session
 from loguru import logger
-from endpoints.deps import get_db
 
 from schemas.order_schema import ProductSchema
 
 from models.order import Product
 
-def get_product(uri):
-    db = get_db 
+def get_product(db : Session, uri):
     return db.query(Product).filter(Product.uri == uri).first()
 
 
