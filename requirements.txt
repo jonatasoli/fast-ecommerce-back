@@ -36,9 +36,8 @@ chardet==3.0.4 \
 click==7.1.2 \
     --hash=sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc \
     --hash=sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a
-colorama==0.4.3; python_version >= "3.4" and sys_platform == "win32" or sys_platform == "win32" \
-    --hash=sha256:7d73d2a99753107a36ac6b455ee49046802e59d9d076ef8e47b61499fa29afff \
-    --hash=sha256:e96da0d330793e2cb9485e9ddfd918d456036c7149416295932478192f4436a1
+colorama==0.4.4; python_version >= "3.4" and sys_platform == "win32" or sys_platform == "win32" \
+    --hash=sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2
 databases==0.3.2 \
     --hash=sha256:ee8dcece15a86359ef06414a6afcc15da15f5d078dc09af2e3a5f9dbfee4dce9 \
     --hash=sha256:78b758884ca585b81272af1de697e0c8a3034de92bdd08e9ac47436ef0cdca56
