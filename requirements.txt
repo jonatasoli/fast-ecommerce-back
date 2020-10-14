@@ -42,9 +42,9 @@ colorama==0.4.3; python_version >= "3.4" and sys_platform == "win32" or sys_plat
 databases==0.3.2 \
     --hash=sha256:ee8dcece15a86359ef06414a6afcc15da15f5d078dc09af2e3a5f9dbfee4dce9 \
     --hash=sha256:78b758884ca585b81272af1de697e0c8a3034de92bdd08e9ac47436ef0cdca56
-dynaconf==3.0.0 \
-    --hash=sha256:000b64b9f58d33591fe2716b28b5177bffd5db6f11b9c52fbab580d7f655c343 \
-    --hash=sha256:b5fb3d1b07a78e6166228bb07b4dea2d101de55e1679d119403a2593e337e273
+dynaconf==3.1.2 \
+    --hash=sha256:808adfe964f10695846dbf8dad7632e47fc3bc38860fd1887ed57dddffc4eff2 \
+    --hash=sha256:9b34ab2f811a81755f5eb4beac77a69e1e0887528c7e37fc4bc83fed52dcf502
 fastapi==0.55.1 \
     --hash=sha256:b1a96ea772f10cd0235eb09d6e282b1f5e6135dad5121ed80d6beb8fa932e075 \
     --hash=sha256:912bc1a1b187146fd74dd45e17ea10aede3d962c921142c412458e911c50dc4c
