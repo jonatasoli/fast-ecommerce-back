@@ -1,11 +1,9 @@
 # Fast Ecommerce
-ApiRest in development
+## ApiRest in development
 
-<p>
- <a href="#pre-requirements">Pre-requirements</a> •
- <a href="#install">Install</a> • 
- <a href="#technologies">Technologies</a> 
-</p
+ [Pre-requirements](#pre-requirements)
+ [Install](#install) 
+ [Technologies](#technologies) 
 
 ## Pre-requirements
 + PostgreSQL
