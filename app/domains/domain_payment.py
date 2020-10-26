@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from fastapi import HTTPException
 
 from loguru import logger
 
@@ -117,7 +118,8 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
         return _payment_response
 
     except Exception as e:
-        raise e
+        logger.error(e)
+        raise HTTPException(status_code=206, detail="Erro ao processar o pagamento verifique os dados e tente novamente") 
 
 
 def check_user(db: Session, checkout_data: CheckoutSchema):

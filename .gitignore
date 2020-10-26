@@ -134,6 +134,11 @@ dmypy.json
 .secrets.*
 .secrets
 
-# Vium
+# Vim
 .vim
 .vim/*
+
+# VSCode
+.vscode
+.vscode/
+.vscode/*
