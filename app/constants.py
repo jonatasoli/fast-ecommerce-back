@@ -6,8 +6,8 @@ class DocumentType(enum.Enum):
 
 
 class Roles(enum.Enum):
-    ADMIN = 'ADMIN'
-    USER = 'USER'
+    ADMIN =  1
+    USER = 2
 
 
 class StepsInvoice(enum.Enum):

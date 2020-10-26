@@ -12,6 +12,7 @@ from constants import DocumentType, Roles
 def create_user(db: Session, obj_in: SignUp):
     try:
         logger.info(obj_in)
+        logger.debug(Roles.USER.value)
 
         db_user = User(
                 name=obj_in.name,
@@ -31,6 +32,7 @@ def create_user(db: Session, obj_in: SignUp):
         db.refresh(db_user)
         return db_user
     except Exception as e:
+        logger.error(e)
         raise e
 
 
@@ -150,5 +152,39 @@ def register_shipping_address(db: Session, checkout_data: CheckoutSchema, user):
         logger.debug("INFO")
         logger.error(f"{_address}")
         return _address
+    except Exception as e:
+        raise e
+
+
+def address_by_postal_code(zipcode_data):
+    try:
+
+        postal_code = zipcode_data.get("postal_code")
+
+        if not postal_code:
+            return jsonify({"message": "Cep inválido"}), 400
+
+        viacep_url = f"https://viacep.com.br/ws/{postal_code}/json/"
+        status_code = requests.get(viacep_url).status_code
+
+        if status_code != 200:
+            return jsonify({"message": "Cep inválido"}), 400
+
+        response = requests.get(viacep_url).json()
+
+        if response.get("erro"):
+            return jsonify({"message": "Cep inválido"}), 400
+
+        address = { 
+                "street": response.get('logradouro'),
+                "city":response.get('localidade'),
+                "neighborhood":response.get('bairro'),
+                "state":response.get('uf'),
+                "country":COUNTRY_CODE.brazil.value,
+                "zip_code":postal_code
+        }
+
+        return address
+
     except Exception as e:
         raise e
