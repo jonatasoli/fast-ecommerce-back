@@ -24,6 +24,7 @@ asyncpg = "^0.20.1"
 aiosqlite = "^0.13.0"
 loguru = "^0.5.1"
 dynaconf = "^3.0.0"
+mail-service = "^1.0.5"
 
 [tool.poetry.dev-dependencies]
 pep8 = "^1.7.1"
