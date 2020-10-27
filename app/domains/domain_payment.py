@@ -9,11 +9,11 @@ from fastapi import HTTPException
 from loguru import logger
 
 from schemas.payment_schema import CreditCardPayment, SlipPayment
-from schemas.order_schema import ProductSchema, InvoiceSchema, \
-    InvoiceItemsSchema, CheckoutSchema
+from schemas.order_schema import ProductSchema, OrderSchema, \
+    OrderItemsSchema, CheckoutSchema
 from schemas.user_schema import SignUp
 
-from models.order import Product, Invoice, InvoiceItems
+from models.order import Product, Order, OrderItems
 from models.transaction import Transaction, Payment, CreditCardFeeConfig
 from domains.domain_user import create_user, check_existent_user, \
     register_payment_address, register_shipping_address
@@ -177,23 +177,23 @@ def create_product(db: Session, product: ProductSchema):
 
 def process_order(db: Session, shopping_cart, user):
     try:
-        db_invoice = Invoice(
+        db_order = Order(
                 customer_id=user.id,
-                invoice_date=datetime.now()
+                order_date=datetime.now()
                 )
-        db.add(db_invoice)
+        db.add(db_order)
         db.commit()
         for cart in shopping_cart:
-            db_item = InvoiceItems(
-                    invoice_id = db_invoice.id,
+            db_item = OrderItems(
+                    order_id = db_order.id,
                     product_id = cart.get("product_id"),
                     quantity = cart.get("qty")
                     )
             db.add(db_item)
             db.commit()
-            db.refresh(db_invoice)
+            db.refresh(db_order)
         db.refresh(db_item)
-        return db_invoice
+        return db_order
 
     except Exception as e:
         db.rollback()
@@ -223,8 +223,6 @@ def process_payment(
         elif _installments >= _config_installments.min_installment_with_fee:
             _total_amount = _total_amount * ((1+_config_installments.fee) ** _installments)
         
-        # db_transaction = db.query(Transaction).filter_by(invoice=order.id).first()
-
         _customer = {
                 "external_id": str(user.id),
                 "name": user.name,
@@ -271,7 +269,7 @@ def process_payment(
             db_transaction = Transaction(
                     user_id=user_id,
                     amount=cart.get("amount"),
-                    invoice=order.id,
+                    order_id=order.id,
                     qty=cart.get("qty"),
                     payment_id=db_payment.id,
                     status="pending",
@@ -352,7 +350,7 @@ def postback_payment(db: Session, payment_data, order):
 
 def update_payment_status(db:Session, payment_data, order):
     try:
-        db_transaction = db.query(Transaction).filter_by(invoice=order.id).first()
+        db_transaction = db.query(Transaction).filter_by(order_id=order.id).first()
         db_transaction.status = 'paid'
 
         db_payment = db.query(Payment).filter_by(id=db_transaction.payment_id).first()

@@ -21,21 +21,20 @@ class Product(Base):
     installments_list = Column(ARRAY(JSON), nullable=True)
 
 
-class Invoice(Base):
+class Order(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     customer_id = Column(Integer, ForeignKey("user.id"))
-   #customer = relationship("User", backref=backref("invoice", uselist=False), foreign_keys=[customer_id])
-    invoice_date = Column(DateTime)
+    order_date = Column(DateTime)
     tracking_number = Column(Integer, nullable=True)
     payment_id = Column(Integer, nullable=True)
 
 
-class InvoiceItems(Base):
+class OrderItems(Base):
     id = Column(Integer, nullable=False, primary_key=True)
-    invoice_id = Column(Integer, ForeignKey("invoice.id"))
-    invoice = relationship("Invoice", backref=backref("invoice_items", uselist=False), foreign_keys=[invoice_id])
+    order_id = Column(Integer, ForeignKey("order.id"))
+    order = relationship("Order", backref=backref("order_items", uselist=False), cascade="all,delete", foreign_keys=[order_id])
     product_id = Column(Integer, ForeignKey("product.id"))
-    product = relationship("Product", backref=backref("product", uselist=False), foreign_keys=[product_id])
+    product = relationship("Product", backref=backref("product", uselist=False), cascade="all,delete", foreign_keys=[product_id])
     quantity = Column(Integer)
 
 

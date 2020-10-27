@@ -22,16 +22,16 @@ class ProductResponseSchema(ProductSchema):
     id: int
 
 
-class InvoiceSchema(BaseModel):
+class OrderSchema(BaseModel):
     id: int
     customer_id: int
-    invoice_date: datetime
-    invoice_items_id: int
+    order_date: datetime
+    order_items_id: int
 
 
-class InvoiceItemsSchema(BaseModel):
+class OrderItemsSchema(BaseModel):
     id: int
-    invoice_id: int
+    order_id: int
     product_id: int
     quantity: int
 

@@ -86,7 +86,7 @@ class User(Base):
 class Address(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship("User", foreign_keys=[user_id], backref="payments",
+    user = relationship("User", foreign_keys=[user_id], backref="payments", cascade="all,delete",
             uselist=False)
     type_address=Column(String)
     category=Column(String)
