@@ -12,10 +12,10 @@ from ext.database import Base
 class Transaction(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship("User", foreign_keys=[user_id], backref="transaction",
+    user = relationship("User", foreign_keys=[user_id], backref="transaction", cascade="all,delete",
             uselist=False)
     amount = Column(Integer)
-    invoice = Column(Integer)
+    order_id = Column(Integer)
     qty = Column(Integer)
     payment_id = Column(Integer)
     status = Column(String)
@@ -27,7 +27,7 @@ class Transaction(Base):
 class Payment(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship("User", foreign_keys=[user_id], backref="payment", uselist=False)
+    user = relationship("User", foreign_keys=[user_id], backref="payment", cascade="all,delete", uselist=False)
     amount = Column(Integer)
     token = Column(String(25), nullable=True)
     status = Column(String)
