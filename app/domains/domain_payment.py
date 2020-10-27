@@ -2,6 +2,7 @@ import requests
 import json
 
 from datetime import datetime, timedelta
+from decimal import Decimal
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from fastapi import HTTPException
@@ -94,7 +95,9 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
                 user=_user,
                 order=_order,
                 shipping_address=_shipping_address,
-                payment_address=_payment_address)
+                payment_address=_payment_address,
+                affiliate=affiliate,
+                cupom=cupom)
         if "paid" in _payment.values():
             update_payment_status(db=db, payment_data=_payment, order=_order)
         if "credit-card" in _payment.values():
@@ -206,23 +209,30 @@ def process_payment(
         user,
         order,
         shipping_address,
-        payment_address):
+        payment_address,
+        affiliate,
+        cupom):
     try:
         user_id = user.id
         _shopping_cart = checkout_data.get('shopping_cart')
-        _total_amount = float(_shopping_cart[0].get("total_amount"))
+        _total_amount = Decimal(_shopping_cart[0].get("total_amount"))
         _payment_method = checkout_data.get('payment_method')
-        _installments = checkout_data.get('installments')
+        _installments = int(checkout_data.get('installments'))
+        _affiliate = affiliate
+        _cupom = cupom
+        # TODO refactor config instalments to many products
+        _product_id = checkout_data['shopping_cart'][0]['itens'][0]['product_id']
+        _product_config = db.query(Product).filter_by(id=int(_product_id)).first()
 
         _config_installments = db.query(CreditCardFeeConfig)\
-            .filter_by(active_date<=datetimenow())\
-            .order_by(desc(CreditCardFeeConfig.active_date))\
+            .filter_by(id=_product_config.installments_config)\
             .first()
         if _installments > 12:
             raise Exception("O número máximo de parcelas é 12") 
         elif _installments >= _config_installments.min_installment_with_fee:
             _total_amount = _total_amount * ((1+_config_installments.fee) ** _installments)
-        
+        _total_amount = _total_amount /100
+
         _customer = {
                 "external_id": str(user.id),
                 "name": user.name,
@@ -274,7 +284,7 @@ def process_payment(
                     payment_id=db_payment.id,
                     status="pending",
                     product_id=cart.get("product_id"),
-                    affiliate=cart.get("affiliate"),
+                    affiliate=_affiliate,
                     )
             _items.append({
                 "id": str(cart.get("product_id")),
