@@ -1,7 +1,19 @@
+import pytest
+from loguru import logger
+
 from models.users import User
+from schemas.user_schema import SignUp
+from constants import DocumentType, Roles
 
 
 def test_add_user(db):
+    obj_in = SignUp( 
+            name = "User Test",
+            document = "12345678901",
+            mail = "email@email.com",
+            phone = "11-987654321",
+            password = "asdasd"
+            )
     db_user = User(
             name=obj_in.name,
             document_type=DocumentType.CPF.value,
@@ -20,4 +32,4 @@ def test_add_user(db):
     db.refresh(db_user)
     
     assert db_user.id == 1
-    assert db_user.role == "USER"
+    assert db_user.role == 2
