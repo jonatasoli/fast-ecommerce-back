@@ -127,7 +127,6 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
 
 def check_user(db: Session, checkout_data: CheckoutSchema):
     try:
-        # import ipdb; ipdb.set_trace()
         _user_email = checkout_data.get('mail')
         _password = checkout_data.get('password')
         _name = checkout_data.get('name')
@@ -217,7 +216,11 @@ def process_payment(
         _shopping_cart = checkout_data.get('shopping_cart')
         _total_amount = Decimal(_shopping_cart[0].get("total_amount"))
         _payment_method = checkout_data.get('payment_method')
-        _installments = int(checkout_data.get('installments'))
+        _installments = checkout_data.get('installments')
+        if _installments:
+            _installments = int(_installments)
+        else:
+            _installments = 1
         _affiliate = affiliate
         _cupom = cupom
         # TODO refactor config instalments to many products
