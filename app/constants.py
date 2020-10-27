@@ -10,7 +10,7 @@ class Roles(enum.Enum):
     USER = 2
 
 
-class StepsInvoice(enum.Enum):
+class StepsOrder(enum.Enum):
     PAYMENT_PENDING = 'PAYMENT_PENDING'
     ORDER_CANCELLED = 'ORDER_CANCELLED'
     PAYMENT_ACCEPT = 'PAYMENT_ACCEPT'

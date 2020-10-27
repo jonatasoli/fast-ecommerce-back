@@ -105,23 +105,6 @@ def register_shipping_address(db: Session, checkout_data: CheckoutSchema, user):
             Address.category=='shipping')
             ).first()
 
-        if not _address:
-            db_shipping_address = Address(
-                    user_id=user.id,
-                    country=checkout_data.get('ship_country'),
-                    city=checkout_data.get('ship_city'),
-                    state=checkout_data.get('ship_state'),
-                    neighborhood=checkout_data.get('ship_neighborhood'),
-                    street=checkout_data.get('ship_address'),
-                    street_number=checkout_data.get('ship_number'),
-                    zipcode=checkout_data.get('ship_zip'),
-                    type_address='house',
-                    category='shipping'
-                    )
-            db.add(db_shipping_address)
-            db.commit()
-            _address=db_shipping_address
-
         if checkout_data.get('shipping_is_payment'):
             logger.debug(f"{checkout_data}")
             if not checkout_data.get('ship_zip'):
@@ -148,6 +131,25 @@ def register_shipping_address(db: Session, checkout_data: CheckoutSchema, user):
                 db.add(db_shipping_address)
                 db.commit()
                 _address=db_shipping_address
+        else:
+
+            if not _address:
+                db_shipping_address = Address(
+                        user_id=user.id,
+                        country=checkout_data.get('ship_country'),
+                        city=checkout_data.get('ship_city'),
+                        state=checkout_data.get('ship_state'),
+                        neighborhood=checkout_data.get('ship_neighborhood'),
+                        street=checkout_data.get('ship_address'),
+                        street_number=checkout_data.get('ship_number'),
+                        zipcode=checkout_data.get('ship_zip'),
+                        type_address='house',
+                        category='shipping'
+                        )
+                db.add(db_shipping_address)
+                db.commit()
+                _address=db_shipping_address
+
 
         logger.debug("INFO")
         logger.error(f"{_address}")
