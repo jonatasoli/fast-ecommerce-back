@@ -25,7 +25,7 @@ class User(Base):
                               nullable=True)
     password = Column(String)
 
-    role_id = Column(Integer, ForeignKey("role.id"))
+    role_id = Column(Integer)
 
     status = Column(String(20), default="deactivated")
 
@@ -85,9 +85,7 @@ class User(Base):
 
 class Address(Base):
     id = Column(Integer, nullable=False, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship("User", foreign_keys=[user_id], backref="payments",
-            uselist=False)
+    user_id = Column(Integer)
     type_address=Column(String)
     category=Column(String)
     country = Column(String(58))
