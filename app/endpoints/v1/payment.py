@@ -53,6 +53,7 @@ def checkout(
     gerar um postback -> capturar status posteriores
     mandar e-mail
     """
+    logger.debug(f"CAPTURAR - {checkout_data}")
     checkout = domain_payment.process_checkout(
             db=db,
             checkout_data=checkout_data)
