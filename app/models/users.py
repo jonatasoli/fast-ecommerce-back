@@ -25,7 +25,7 @@ class User(Base):
                               nullable=True)
     password = Column(String)
 
-    role_id = Column(Integer, ForeignKey("role.id"))
+    role_id = Column(Integer)
 
     status = Column(String(20), default="deactivated")
 
