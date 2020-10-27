@@ -231,7 +231,6 @@ def process_payment(
             raise Exception("O número máximo de parcelas é 12") 
         elif _installments >= _config_installments.min_installment_with_fee:
             _total_amount = _total_amount * ((1+_config_installments.fee) ** _installments)
-        _total_amount = _total_amount /100
 
         _customer = {
                 "external_id": str(user.id),
