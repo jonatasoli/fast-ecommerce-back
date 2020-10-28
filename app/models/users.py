@@ -96,6 +96,7 @@ class Address(Base):
     street_number = Column(String)
     address_complement = Column(String)
     zipcode = Column(String)
+    uuid = Column(String)
 
     def to_json(self):
         return {
