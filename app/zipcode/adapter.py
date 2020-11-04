@@ -1,0 +1,65 @@
+from bs4 import BeautifulSoup
+
+class Adapter:
+    def xml_find_zipcode(cep):
+        body = '''<x:Envelope
+        xmlns:x="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:cli="http://cliente.bean.master.sigep.bsb.correios.com.br/">
+        <x:Header/>
+         <x:Body>
+            <cli:consultaCEP>
+                <cep>'''+cep+'''</cep>
+            </cli:consultaCEP>
+        </x:Body>
+        </x:Envelope>'''
+        return body
+
+    def xmltojson_consultacep(xml):
+        soup = BeautifulSoup(xml, "xml")
+        data = {
+            'bairro':soup.bairro.text,
+            'cep':soup.cep.text,
+            'cidade':soup.cidade.text,
+            'complemento2':soup.complemento2.text,
+            'end':soup.end.text,
+            'uf':soup.uf.text,
+            'unidadePostagem': []
+        }
+        return data
+    
+    def xmltojson_shipping(xml, name):
+        soup = BeautifulSoup(xml, "xml")
+        if not soup.MsgErro.text:  
+            data = {
+                'serviço': name,
+                'frete':soup.Valor.text,
+                'prazo':soup.PrazoEntrega.text
+            }
+            return data
+        return ({"message": "CEP invalido"})
+
+    def body_shipping(cod_service,zip_code_source, zip_code_target, weigth, length, heigth, width, diameter):
+        body = '''<x:Envelope
+        xmlns:x="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:tem="http://tempuri.org/">
+        <x:Header/>
+        <x:Body>
+            <tem:CalcPrecoPrazo>
+                <tem:nCdEmpresa></tem:nCdEmpresa>
+                <tem:sDsSenha></tem:sDsSenha>
+                <tem:nCdServico>'''+cod_service+'''</tem:nCdServico>
+                <tem:sCepOrigem>'''+zip_code_source+'''</tem:sCepOrigem>
+                <tem:sCepDestino>'''+zip_code_target+'''</tem:sCepDestino>
+                <tem:nVlPeso>'''+weigth+'''</tem:nVlPeso>
+                <tem:nCdFormato>3</tem:nCdFormato>
+                <tem:nVlComprimento>'''+length+'''</tem:nVlComprimento>
+                <tem:nVlAltura>'''+heigth+'''</tem:nVlAltura>
+                <tem:nVlLargura>'''+width+'''</tem:nVlLargura>
+                <tem:nVlDiametro>'''+diameter+'''</tem:nVlDiametro>
+                <tem:sCdMaoPropria>n</tem:sCdMaoPropria>
+                <tem:nVlValorDeclarado>0</tem:nVlValorDeclarado>
+                <tem:sCdAvisoRecebimento>n</tem:sCdAvisoRecebimento>
+            </tem:CalcPrecoPrazo>
+        </x:Body>
+        </x:Envelope>'''
+        return body
