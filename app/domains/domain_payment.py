@@ -24,6 +24,18 @@ from constants import DocumentType, Roles
 from dynaconf import settings
 
 
+def create_installment_config(db: Session, config_data):
+    db_config = CreditCardFeeConfig(
+            active_date = datetime.now(),
+            fee=Decimal(config_data.fee),
+            min_installment_with_fee=config_data.min_installment,
+            mx_installments=config_data.max_installment
+            )
+    db.add(db_config)
+    db.commit()
+    return db_config
+
+
 
 def credit_card_payment(db: Session, payment: CreditCardPayment):
     try:
@@ -121,7 +133,7 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
         return _payment_response
 
     except Exception as e:
-        logger.error(e)
+        logger.error(f"----- ERROR PAYMENT {e} ")
         raise HTTPException(status_code=206, detail="Erro ao processar o pagamento verifique os dados e tente novamente") 
 
 
@@ -170,9 +182,9 @@ def create_product(db: Session, product: ProductSchema):
                 )
         db.add(db_product)
         db.commit()
-        db.refresh(db_product)
         return db_product
     except Exception as e:
+        logger.debug(f"PRODUCT ERROR ---- {e}")
         db.rollback()
         raise e
 

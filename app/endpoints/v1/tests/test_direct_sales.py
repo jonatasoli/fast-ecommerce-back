@@ -6,9 +6,10 @@ from app.main import app
 from app.endpoints.deps import get_db
 
 
-
+from app.schemas.order_schema import ProductSchema
+from domains.domain_order import create_product
 transacton_with_shipping = {
-        'document': '12345678799',
+        'document': '22941297090',
         'mail': 'mail@jonatasoliveira.me',
         'password': 'asdasd',
         'phone': '12345678901',
@@ -46,6 +47,68 @@ transacton_with_shipping = {
         }
 
 
+@pytest.mark.skip
+def test_create_product_(db_models): #TODO Fix product ENDPOINT
+    db_product = ProductSchema(
+            description = "Test Product",
+            direct_sales = None,
+            installments_config=1,
+            name="Teste",
+            price=10000,
+            upsell=None,
+            uri="/test",
+            installments_list={
+                {"name": "1", "value": "R$100,00"},
+                {"name": "2", "value": "R$50,00"},
+                {"name": "3", "value": "R$33,00"},
+                {"name": "4", "value": "R$25,00"},
+                {"name": "5", "value": "R$20,00"}
+                }
+            )
+    db.add(db_product)
+    db.commit()
+    assert db_product.id == 1
+
+
+def test_create_config(t_client):
+    _config = {
+            "fee": "0.0599",
+            "min_installment": 3,
+            "max_installment": 12
+            }
+
+    r = t_client.post("/create-config", json=_config)
+    response = r.json()
+    assert r.status_code == 201
+    assert response.get('fee') == "0.0599"
+
+
+def test_create_product(t_client):
+    product = {
+            "description":"Test Product",
+            "direct_sales":None,
+            "installments_config":1,
+            "name":"Test",
+            "price":10000,
+            "upsell":None,
+            "uri":"/test",
+            "image_path":"https://i.pinimg.com/originals/e4/34/2a/e4342a4e0e968344b75cf50cf1936c09.jpg",
+            "installments_list":[
+            {"name": "1", "value": "R$100,00"},
+            {"name": "2", "value": "R$50,00"},
+            {"name": "3", "value": "R$33,00"},
+            {"name": "4", "value": "R$25,00"},
+            {"name": "5", "value": "R$20,00"}
+        ]
+    }
+
+
+    r = t_client.post("/direct-sales/create-product", json=product)
+    response = r.json()
+    assert r.status_code == 201
+    assert response.get('name') == "Test"
+
+
 def test_payment(t_client):
     data = { "transaction": transacton_with_shipping,
              "affiliate": "xyz",
@@ -53,5 +116,6 @@ def test_payment(t_client):
             }
     r = t_client.post("/direct-sales/checkout", json=data)
     response = r.json()
-    assert r.status_code == 200
-    assert response == {'message': 'asdasd'}
+    assert r.status_code == 201
+    assert response.get('order_id') == 1
+    assert response.get('payment_status') == "PAGAMENTO REALIZADO"

@@ -6,7 +6,7 @@ from schemas.user_schema import SignUp
 from constants import DocumentType, Roles
 
 
-def test_add_user(db):
+def test_add_user(db_models):
     obj_in = SignUp( 
             name = "User Test",
             document = "12345678901",
@@ -26,10 +26,9 @@ def test_add_user(db):
             update_email_on_next_login=False,
             update_password_on_next_login=False
             )
-    db.add(db_user)
+    db_models.add(db_user)
     logger.info(db_user)
-    db.commit()
-    db.refresh(db_user)
+    db_models.commit()
     
-    assert db_user.id == 1
+    assert db_user.id == 2
     assert db_user.role == 2
