@@ -1,4 +1,5 @@
 from pydantic import BaseModel, SecretStr
+from typing import Optional
 
 
 class Login(BaseModel):
@@ -12,6 +13,26 @@ class SignUp(BaseModel):
     password: SecretStr
     document: str
     phone: str
+
+
+class User(SignUp):
+    ...
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class FakeUser(BaseModel):
+    username: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    disabled: Optional[bool] = None
+
+
+class UserInDB(FakeUser):
+    hashed_password: str
 
 
 class LoginResponse(BaseModel):
