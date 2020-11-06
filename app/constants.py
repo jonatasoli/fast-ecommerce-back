@@ -8,6 +8,7 @@ class DocumentType(enum.Enum):
 class Roles(enum.Enum):
     ADMIN =  1
     USER = 2
+    PARTNER = 3
 
 
 class StepsOrder(enum.Enum):
