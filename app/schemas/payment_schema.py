@@ -26,3 +26,22 @@ class SlipPayment(BaseModel):
     email: str
     name: str
     documents: list
+
+
+class ConfigCreditCard(BaseModel):
+    fee: str
+    min_installment: int
+    max_installment: int
+
+    class Config:
+        orm_mode = True
+
+
+class ConfigCreditCardResponse(BaseModel):
+    id: int
+    fee: str
+    min_installment_with_fee: int
+    mx_installments: int
+
+    class Config:
+        orm_mode = True

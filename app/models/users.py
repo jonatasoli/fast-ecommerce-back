@@ -28,6 +28,8 @@ class User(Base):
     role_id = Column(Integer)
 
     status = Column(String(20), default="deactivated")
+    uuid = Column(String, nullable=True)
+    franchise_id = Column(Integer, default=1)
 
     update_email_on_next_login = Column(Boolean, default=False, server_default='0')
     update_password_on_next_login = Column(Boolean, default=False, server_default='0')
@@ -35,6 +37,7 @@ class User(Base):
     def to_app_json(self, expand=False):
         return {
             'id': self.id,
+            'uuid': self.uuid,
             'name': self.name,
             'picture_id': self.picture_id,
             'profile_picture': self.user_profile_picture(),

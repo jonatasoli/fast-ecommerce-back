@@ -1,7 +1,8 @@
 from fastapi import Header, APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from schemas.payment_schema import CreditCardPayment, SlipPayment
+from schemas.payment_schema import CreditCardPayment, SlipPayment,\
+        ConfigCreditCard, ConfigCreditCardResponse
 from schemas.order_schema import ProductSchema, CheckoutSchema, ProductResponseSchema
 from domains import domain_payment 
 from endpoints import deps
@@ -37,8 +38,17 @@ def create_product(
         product: ProductSchema
         ):
     product = domain_payment.create_product(db, product=product)
-    return product
+    return ProductSchema.from_orm(product)
 
+
+@payment.post('/create-config', status_code=201)
+def create_config(
+        *,
+        db: Session = Depends(deps.get_db),
+        config_data: ConfigCreditCard
+        ):
+    _config = domain_payment.create_installment_config(db, config_data=config_data)
+    return ConfigCreditCardResponse.from_orm(_config)
 
 @payment.post('/checkout', status_code=201)
 def checkout(
