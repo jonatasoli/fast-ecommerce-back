@@ -3,7 +3,7 @@ from datetime import datetime
 from constants import StepsOrder 
 
 
-def test_order_status_steps(db):
+def test_order_status_steps(db_models):
     db_steps = OrderStatusSteps(
             order_id=1,
             status=StepsOrder.PAYMENT_PENDING.value,
@@ -11,7 +11,7 @@ def test_order_status_steps(db):
             sending=False,
             active=True
             )
-    db.add(db_steps)
-    db.commit()
+    db_models.add(db_steps)
+    db_models.commit()
     assert db_steps.id == 1
 
