@@ -59,4 +59,5 @@ async def create_product(
                 db: Session = Depends(deps.get_db),
                 product_data: ProductSchema
                 ):
-    return domain_order.create_product(db=db, product_data=product_data)
+    product = domain_order.create_product(db=db, product_data=product_data)
+    return ProductSchema.from_orm(product)

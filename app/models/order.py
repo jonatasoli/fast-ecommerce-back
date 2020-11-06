@@ -13,6 +13,7 @@ class Product(Base):
     name = Column(String)
     uri = Column(String)
     price = Column(Integer)
+    active = Column(Boolean, default=True, server_default='0')
     direct_sales = Column(Boolean, default=False)
     upsell = Column(ARRAY(Integer), nullable=True)
     description = Column(String)
