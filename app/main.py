@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from endpoints.v1.users import user
 from endpoints.v1.payment import payment
 from endpoints.v1.direct_sales import direct_sales
+from endpoints.v1.shipping import shipping
 
 from dynaconf import settings
 from loguru import logger
@@ -54,4 +55,5 @@ app.include_router(
         direct_sales,
         prefix="/direct-sales",
         responses={404: {"description": "Not found"}})
+app.include_router(shipping)
 
