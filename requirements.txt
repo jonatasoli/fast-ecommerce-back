@@ -116,9 +116,9 @@ databases==0.3.2 \
 dynaconf==3.1.2 \
     --hash=sha256:808adfe964f10695846dbf8dad7632e47fc3bc38860fd1887ed57dddffc4eff2 \
     --hash=sha256:9b34ab2f811a81755f5eb4beac77a69e1e0887528c7e37fc4bc83fed52dcf502
-ecdsa==0.14.1 \
-    --hash=sha256:e108a5fe92c67639abae3260e43561af914e7fd0d27bae6d2ec1312ae7934dfe \
-    --hash=sha256:64c613005f13efec6541bb0a33290d0d03c27abab5f15fbab20fb0ee162bdd8e
+ecdsa==0.16.0 \
+    --hash=sha256:494c6a853e9ed2e9be33d160b41d47afc50a6629b993d2b9c5ad7bb226add892 \
+    --hash=sha256:ca359c971594dceebf334f3d623dae43163ab161c7d09f28cae70a86df26eb7a
 fastapi==0.61.1 \
     --hash=sha256:6cc31bb555dd8ca956d1d227477d661e4ac012337242a41d36214ffbda78bfe9 \
     --hash=sha256:61ed73b4304413a2ea618d1b95ea866ee386e0e62dd8659c4f5059286f4a39c2
