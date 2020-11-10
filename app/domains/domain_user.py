@@ -11,22 +11,12 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 
-from schemas.user_schema import SignUp, Login, AddressSchema, Token,\
-        UserInDB
+from schemas.user_schema import SignUp, AddressSchema, Token,\
+        UserInDB, UserSchema
 from schemas.order_schema import CheckoutSchema
 from models.users import User, Address
 from constants import DocumentType, Roles
 
-
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    }
-}
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -73,13 +63,13 @@ def check_existent_user(db: Session, email, document, password):
         raise e
 
 
-def authenticate(db: Session, user: Login):
+def get_user(db: Session, username: str, password: str):
     try:
 
-        db_user = db.query(User).filter_by(document=user.document).first()
-        if not user.password:
+        db_user = db.query(User).filter_by(document=username).first()
+        if not password:
             raise Exception('User not password')
-        if db_user and db_user.verify_password(user.password.get_secret_value()):
+        if db_user and db_user.verify_password(password):
             return db_user
         else:
             raise Exception(f'User not finded {user.document}, {user.password}')
@@ -96,19 +86,15 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(db, username: str, password: str):
+    user = get_user(db, username, password)
+    user_dict = UserSchema.from_orm(user).dict()
+
+    user = UserInDB(**user_dict)
+    logger.debug(f"{user} ")
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
-        return False
     return user
-
-
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
