@@ -29,6 +29,7 @@ python-jose = {version = "^3.2.0", extras = ["cryptography"]}
 python-multipart = "^0.0.5"
 bcrypt = "^3.2.0"
 beautifulsoup4 = "^4.9.3"
+lxml = "^4.6.1"
 
 [tool.poetry.dev-dependencies]
 pep8 = "^1.7.1"
