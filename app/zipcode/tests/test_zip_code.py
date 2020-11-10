@@ -18,7 +18,7 @@ def test_calculate_shipping():
     shipping = shipping.calculate_shipping()
     assert next(shipping) == {
         'frete':'35,40',
-        'prazo':'14',
+        'prazo':'12',
         'serviço':'PAC'
     }
 
