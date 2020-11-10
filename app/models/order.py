@@ -8,7 +8,6 @@ from passlib.hash import pbkdf2_sha512
 from constants import DocumentType
 from ext.database import Base
 
-
 class Product(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String)
