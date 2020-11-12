@@ -2,6 +2,7 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.types import JSON
 from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.types import Numeric
 from passlib.hash import pbkdf2_sha512
 
 from constants import DocumentType
@@ -20,6 +21,13 @@ class Product(Base):
     image_path = Column(String)
     installments_config = Column(Integer, nullable=True)
     installments_list = Column(ARRAY(JSON), nullable=True)
+
+
+class Cupons(Base):
+    id = Column(Integer, nullable=False, primary_key=True)
+    cupon_uuid = Column(String)
+    cupon_name = Column(String)
+    cupon_fee = Column(Numeric(10,2))
 
 
 class Order(Base):
