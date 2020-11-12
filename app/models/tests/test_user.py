@@ -30,5 +30,5 @@ def test_add_user(db_models):
     logger.info(db_user)
     db_models.commit()
     
-    assert db_user.id == 2
+    assert db_user.id == 1
     assert db_user.role == 2
