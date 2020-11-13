@@ -6,8 +6,11 @@ LOG_LEVEL="DEBUG"
 LOG_BACKTRACE=true
 API_MAIL_URL ="http://localhost:7777"
 ZIP_CODE_SOURCE =""
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+ALGORITHM = "HS256"
 
 
 [testing]
 DATABASE_URL="postgresql://partyoudbuser:partyou123@localhost/test"
 API_MAIL_URL="https://testapi.com/"
+ACCESS_TOKEN_EXPIRE_MINUTES=15
