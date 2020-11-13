@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+import lxml
 
 class Adapter:
     def xml_find_zipcode(cep):
@@ -15,7 +16,7 @@ class Adapter:
         return body
 
     def xmltojson_consultacep(xml):
-        soup = BeautifulSoup(xml, "xml")
+        soup = BeautifulSoup(xml, "lxml")
         data = {
             'bairro':soup.bairro.text,
             'cep':soup.cep.text,
