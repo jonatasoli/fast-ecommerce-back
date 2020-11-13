@@ -8,6 +8,7 @@ from app.endpoints.deps import get_db
 
 from app.schemas.order_schema import ProductSchema
 from domains.domain_order import create_product
+from domains.domain_order import create_order
 transacton_with_shipping = {
         'document': '22941297090',
         'mail': 'mail@jonatasoliveira.me',
