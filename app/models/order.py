@@ -8,7 +8,6 @@ from passlib.hash import pbkdf2_sha512
 from constants import DocumentType
 from ext.database import Base
 
-
 class Product(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String)
@@ -28,6 +27,8 @@ class Cupons(Base):
     cupon_uuid = Column(String)
     cupon_name = Column(String)
     cupon_fee = Column(Numeric(10,2))
+    qty = Column(Integer)
+    active = Column(Boolean)
 
 
 class Order(Base):
