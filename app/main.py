@@ -8,6 +8,7 @@ from endpoints.v1.users import user
 from endpoints.v1.payment import payment
 from endpoints.v1.direct_sales import direct_sales
 from endpoints.v1.shipping import shipping
+from endpoints.v1.order import order
 
 from dynaconf import settings
 from loguru import logger
@@ -56,4 +57,5 @@ app.include_router(
         prefix="/direct-sales",
         responses={404: {"description": "Not found"}})
 app.include_router(shipping)
+app.include_router(order)
 

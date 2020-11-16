@@ -1,4 +1,4 @@
-from schemas.user_schema import User
+from schemas.user_schema import UserSchema
 
 
 
