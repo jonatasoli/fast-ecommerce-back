@@ -28,6 +28,8 @@ class OrderSchema(BaseModel):
     # order_items_id: int
     tracking_number: int
     payment_id: int
+    order_status: str
+    last_updated: datetime
 
 
 class OrderFullResponse(BaseModel):

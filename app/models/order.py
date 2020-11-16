@@ -35,6 +35,8 @@ class Order(Base):
     order_date = Column(DateTime)
     tracking_number = Column(Integer, nullable=True)
     payment_id = Column(Integer, nullable=True)
+    order_status = Column(String)
+    last_updated = Column(DateTime)
 
 
 class OrderItems(Base):

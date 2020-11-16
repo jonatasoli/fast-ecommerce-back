@@ -4,6 +4,7 @@ from loguru import logger
 from schemas.order_schema import ProductSchema, OrderSchema, OrderFullResponse
 
 from models.order import Product, Order, OrderItems
+from models.transaction import Payment
 from models.users import User
 
 def get_product(db : Session, uri):
@@ -65,3 +66,12 @@ def create_order(db: Session, order_data: OrderSchema):
     db.commit()
     db.refresh(db_order)
     return db_order
+
+
+def mydecoretor(func):
+    def order_status(*args, **kwargs, db: Session):
+        orders = db.query(Order)
+        orderState = [{
+            "Order_id": order.id, 
+            "Payment_id":order.payment_id} for order in orders]
+    return order_status
