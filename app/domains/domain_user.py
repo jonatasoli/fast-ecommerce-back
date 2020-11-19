@@ -45,6 +45,7 @@ def create_user(db: Session, obj_in: SignUp):
         db.commit()
         return db_user
     except Exception as e:
+        db.rollback()
         logger.error(e)
         raise e
 
@@ -178,6 +179,7 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
             _address=db_payment_address
         return _address
     except Exception as e:
+        db.rollback()
         raise e
 
 
@@ -241,6 +243,7 @@ def register_shipping_address(db: Session, checkout_data: CheckoutSchema, user):
         logger.error(f"{_address}")
         return _address
     except Exception as e:
+        db.rollback()
         raise e
 
 
