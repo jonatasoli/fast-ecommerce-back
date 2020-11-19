@@ -9,11 +9,50 @@ from app.endpoints.deps import get_db
 from app.schemas.order_schema import ProductSchema
 from domains.domain_order import create_product
 from domains.domain_order import create_order
+
 transacton_with_shipping = {
         'document': '22941297090',
         'mail': 'mail@jonatasoliveira.me',
         'password': 'asdasd',
         'phone': '12345678901',
+        'name': 'Jonatas L Oliveira',
+        'address': 'Rua XZ',
+        'address_number': '160',
+        'address_complement': 'Apto 444',
+        'neighborhood': 'Narnia',
+        'city': 'São Paulo',
+        'state': 'São Paulo',
+        'country': 'br',
+        'zip_code': '18120000',
+        'shipping_is_payment': True,
+        'ship_name': '',
+        'ship_address': '',
+        'ship_address_number': '',
+        'ship_address_complement': '',
+        'ship_neighborhood': '',
+        'ship_city': '',
+        'ship_state': 'São Paulo',
+        'ship_country': 'br',
+        'ship_zip_code': '',
+        'payment_method': 'credit-card',
+        'shopping_cart': [
+            {
+                'total_amount': '2000.00',
+                'installments': 5,
+                'itens': [{'amount': 100000, 'qty': 1, 'product_id': 1, 'product_name': 'course01', 'tangible': True}]
+                }],
+        'credit_card_name': 'Jonatas L Oliveira',
+        'credit_card_number': '5401641103018656',
+        'credit_card_cvv': '123', 
+        'credit_card_validate': '1220',
+        'installments': 5
+        }
+
+transacton_with_shipping_and_document_error = {
+        'document': '10987654321',
+        'mail': 'mail2@jonatasoliveira.me',
+        'password': 'asdasd',
+        'phone': '12345678910',
         'name': 'Jonatas L Oliveira',
         'address': 'Rua XZ',
         'address_number': '160',
@@ -113,10 +152,22 @@ def test_create_product(t_client):
 def test_payment(t_client):
     data = { "transaction": transacton_with_shipping,
              "affiliate": "xyz",
-             "cupom": ""
+             "cupom": "disconunt"
             }
     r = t_client.post("/direct-sales/checkout", json=data)
     response = r.json()
     assert r.status_code == 201
     assert response.get('order_id') == 1
     assert response.get('payment_status') == "PAGAMENTO REALIZADO"
+
+
+def test_payment_with_document_error(t_client):
+    data = { "transaction": transacton_with_shipping_and_document_error,
+             "affiliate": "xyz",
+             "cupom": ""
+            }
+    r = t_client.post("/direct-sales/checkout", json=data)
+    response = r.json()
+    assert r.status_code == 201
+    assert response.get('order_id') == 2
+    assert response.get('errors')[0].get('message') == "Invalid CPF"
