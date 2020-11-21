@@ -133,6 +133,9 @@ def test_create_product(t_client):
             "upsell":None,
             "uri":"/test",
             "image_path":"https://i.pinimg.com/originals/e4/34/2a/e4342a4e0e968344b75cf50cf1936c09.jpg",
+            "quantity": 100,
+            "discount": 100,
+            "category_id": 1,
             "installments_list":[
             {"name": "1", "value": "R$100,00"},
             {"name": "2", "value": "R$50,00"},
