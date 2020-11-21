@@ -23,6 +23,6 @@ def test_send_mail(t_client):
             data=mail_data.json()
             )
 
-    resp.status_code == 201
+    assert resp.status_code == 201
     logger.debug(f"JSON --- {resp.json()}")
-    resp.json().get("message") == "Mail Sended"
+    assert resp.json().get("message") == "Mail Sended"
