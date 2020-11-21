@@ -76,17 +76,6 @@ def slip_payment(db: Session, payment: SlipPayment):
 
 def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None, cupom=None):
     try:
-        """
-        1 - checar usuário/cadastra usuário
-        2 - cadastra end de cobrança
-        3 - cadastra end de entrega
-        4 - Criar o invoice
-        5 - Criar os items do invoice
-        6 - Cadastra a transação
-        7 - Cadastra o pagamento
-        8 - Retorna -> id do gateway - id da order - nome do user
-        9 - enviar o e-mail do postback
-        """
         _user = check_user(db=db, checkout_data=checkout_data)
         _payment_address = register_payment_address(
                 db=db,
@@ -130,9 +119,11 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
                 "errors": _payment.get("errors")
                     }
         logger.debug(_payment_response)
+        db.commit()
         return _payment_response
 
     except Exception as e:
+        db.rollback()
         logger.error(f"----- ERROR PAYMENT {e} ")
         raise HTTPException(status_code=206, detail="Erro ao processar o pagamento verifique os dados e tente novamente") 
 
@@ -181,11 +172,10 @@ def create_product(db: Session, product: ProductSchema):
                 upsell=_upsell
                 )
         db.add(db_product)
-        db.commit()
+        db.refresh()
         return db_product
     except Exception as e:
         logger.debug(f"PRODUCT ERROR ---- {e}")
-        db.rollback()
         raise e
 
 
@@ -196,7 +186,6 @@ def process_order(db: Session, shopping_cart, user):
                 order_date=datetime.now()
                 )
         db.add(db_order)
-        db.commit()
         for cart in shopping_cart:
             db_item = OrderItems(
                     order_id = db_order.id,
@@ -204,9 +193,7 @@ def process_order(db: Session, shopping_cart, user):
                     quantity = cart.get("qty")
                     )
             db.add(db_item)
-            db.commit()
-            db.refresh(db_order)
-        db.refresh(db_item)
+        db.commit()
         return db_order
 
     except Exception as e:
@@ -309,8 +296,6 @@ def process_payment(
                 })
             db.add(db_transaction)
         db.commit()
-        db.refresh(db_payment)
-        db.refresh(db_transaction)
 
         if checkout_data.get('payment_method') == "credit-card":
             logger.info("------------CREDIT CARD--------------")
@@ -354,7 +339,6 @@ def process_payment(
 
 
     except Exception as e:
-        db.rollback()
         raise e
 
 
@@ -385,7 +369,8 @@ def update_payment_status(db:Session, payment_data, order):
         db_payment.status='paid'
         db.add(db_transaction)
         db.add(db_payment)
-        db.commit()
+        db.refresh(db_transaction)
+        db.refresh(db_payment)
         # send_payment_mail(db=db, user=_user, payment=_payment)
 
     except Exception as e:

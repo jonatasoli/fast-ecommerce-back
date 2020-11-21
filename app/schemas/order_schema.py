@@ -12,7 +12,9 @@ class ProductSchema(BaseModel):
     image_path: str
     installments_config: Optional[int]
     installments_list: Optional[list]
-
+    category_id: int
+    discount: Optional[int]
+    quantity: Optional[int]
 
     class Config:
         orm_mode = True
@@ -20,6 +22,32 @@ class ProductSchema(BaseModel):
 class ProductResponseSchema(ProductSchema):
     id: int
 
+
+class ProductInDB(BaseModel):
+    name: str
+    uri: str
+    price: int
+    direct_sales: Optional[bool] = None
+    upsell: Optional[list] = None
+    description: str
+    image_path: str
+    installments_config: Optional[int]
+    installments_list: Optional[list]
+    category_id: int
+    discount: Optional[int]
+    quantity: Optional[int]
+    showcase: bool
+    show_discount: bool
+
+    class Config:
+        orm_mode = True
+
+
+class ListProducts(BaseModel):
+    products: List[ProductInDB]
+
+    class Config:
+        orm_mode = True
 
 class OrderSchema(BaseModel):
     id: int

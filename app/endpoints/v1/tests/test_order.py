@@ -13,7 +13,7 @@ from domains.domain_order import create_order
 
 def test_create_order(t_client):
     order = {
-        "id": 2,
+        "id": 100,
         "customer_id": 1,
         "order_date": "2020-11-11 17:01:01",
         "tracking_number": 2341231,
@@ -22,7 +22,7 @@ def test_create_order(t_client):
     r = t_client.post("/order/create_order", json=order)
     response = r.json()
     assert r.status_code == 200
-    assert response.get("id") == 2
+    assert response.get("id") == 100
     
 
 def test_put_order(t_client):
