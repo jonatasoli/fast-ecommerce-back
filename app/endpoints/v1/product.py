@@ -3,6 +3,7 @@ from fastapi import Header, APIRouter, Depends
 from domains import domain_order
 from schemas.order_schema import OrderSchema, OrderFullResponse, ProductSchema
 from endpoints.deps import get_db
+from loguru import logger
 
 product = APIRouter()
 
@@ -15,4 +16,5 @@ async def get_showcase(
     try:
         return domain_order.get_showcase(db)
     except Exception as e:
+        logger.error(f"Erro em obter os produtos - { e }")
         raise e
