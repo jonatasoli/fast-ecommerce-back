@@ -21,7 +21,7 @@ def test_signup(t_client) -> None:
             "document": "12345678910",
             "phone": "11912345678"
             }
-    r = t_client.post("/signup", json=signup_data)
+    r = t_client.post("/user/signup", json=signup_data)
 
     response = r.json()
     assert r.status_code == 201
@@ -37,7 +37,7 @@ def test_invalid_signup(t_client) -> None:
             "mail": "contato@jonatasoliveira.me",
             "password": "asdasd",
             }
-    r = t_client.post("/signup", json=signup_data)
+    r = t_client.post("/user/signup", json=signup_data)
 
     response = r.json()
     assert r.status_code == 422
@@ -52,7 +52,7 @@ def test_signup_new(t_client) -> None:
             "document": "12345678911",
             "phone": "11912345678"
             }
-    r = t_client.post("/signup", json=signup_data)
+    r = t_client.post("/user/signup", json=signup_data)
 
     response = r.json()
     assert r.status_code == 201
@@ -68,16 +68,9 @@ def test_request_token(t_client):
           "password": "secret",
           }
     r = t_client.post(
-            "/token",
+            "/user/token",
             data)
     response = r.json()
 
     assert response.get('token_type') == 'bearer'
     assert r.status_code == 200
-
-    # data =  {
-    #       "username": "johndoe",
-    #       "email": "johndoe@example.com",
-    #       "full_name": "John Doe",
-    #       "disabled": false
-    #       }
