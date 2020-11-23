@@ -20,7 +20,7 @@ class StepsOrder(enum.Enum):
     IN_TRANSIT = 'IN_TRANSIT'
     DELIVERED_ORDER = 'DELIVERED_ORDER'
 
-class OrderSatus(enum.Enum):
+class OrderStatus(enum.Enum):
     PAYMENT_PENDING = 'PAYMENT_PENDING'
     PAYMENT_PAID = 'PAYMENT_PAID'
     PAYMENT_CANCELLED = 'PAYMENT_CANCELLED'
