@@ -20,6 +20,11 @@ class Product(Base):
     image_path = Column(String)
     installments_config = Column(Integer, nullable=True)
     installments_list = Column(ARRAY(JSON), nullable=True)
+    discount = Column(Integer, nullable=True)
+    category_id = Column(Integer, default=1, server_default="1")
+    quantity = Column(Integer, server_default="9999")
+    showcase = Column(Boolean, default=False, server_default='0')
+    show_discount = Column(Boolean, default=False, server_default='0')
 
 
 class Cupons(Base):
@@ -27,6 +32,8 @@ class Cupons(Base):
     cupon_uuid = Column(String)
     cupon_name = Column(String)
     cupon_fee = Column(Numeric(10,2))
+    qty = Column(Integer)
+    active = Column(Boolean)
 
 
 class Order(Base):

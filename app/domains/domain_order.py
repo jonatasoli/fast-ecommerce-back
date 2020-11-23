@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from loguru import logger
 
-from schemas.order_schema import ProductSchema, OrderSchema, OrderFullResponse
+from schemas.order_schema import ProductSchema, OrderSchema, OrderFullResponse, ProductInDB, ListProducts
 
 from models.order import Product, Order, OrderItems
 from models.transaction import Payment
@@ -16,6 +16,19 @@ def create_product(db: Session, product_data: ProductSchema):
     db.add(db_product)
     db.commit()
     return db_product
+
+
+def get_showcase(db:Session):
+    showcases = db.query(Product).all()
+    products = []
+
+    for showcase in showcases:
+        products.append(ProductInDB.from_orm(showcase))
+    
+    if showcases:
+        return { "products": products}
+    return { "products": []}
+
 
 
 def get_order(db: Session, id):
@@ -66,6 +79,7 @@ def create_order(db: Session, order_data: OrderSchema):
     db.commit()
     db.refresh(db_order)
     return db_order
+<<<<<<< HEAD
 
 
 def mydecoretor(func):
@@ -75,3 +89,5 @@ def mydecoretor(func):
             "Order_id": order.id, 
             "Payment_id":order.payment_id} for order in orders]
     return order_status
+=======
+>>>>>>> upstream/staging
