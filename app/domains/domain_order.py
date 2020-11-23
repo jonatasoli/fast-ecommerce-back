@@ -79,7 +79,6 @@ def create_order(db: Session, order_data: OrderSchema):
     db.commit()
     db.refresh(db_order)
     return db_order
-<<<<<<< HEAD
 
 
 def mydecoretor(func):
@@ -89,5 +88,3 @@ def mydecoretor(func):
             "Order_id": order.id, 
             "Payment_id":order.payment_id} for order in orders]
     return order_status
-=======
->>>>>>> upstream/staging
