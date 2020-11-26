@@ -38,6 +38,10 @@ class ProductInDB(BaseModel):
     quantity: Optional[int]
     showcase: bool
     show_discount: bool
+    heigth: int
+    width: int
+    weigth: int
+    depthe: int
 
     class Config:
         orm_mode = True
