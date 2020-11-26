@@ -22,7 +22,7 @@ def create_product(db: Session, product_data: ProductSchema):
 
 
 def get_showcase(db:Session):
-    showcases = db.query(Product).all()
+    showcases = db.query(Product).filter_by(showcase=True).all()
     products = []
 
     for showcase in showcases:
@@ -38,24 +38,26 @@ def get_installments(db: Session, cart):
     _product_id = _cart['cart'][0]['product_id']
     _product_config = db.query(Product).filter_by(id=int(_product_id)).first()
     _total_amount = 0
+    _total_amount_fee = 0
     _installments = []
 
     for item in _cart['cart']:
         _total_amount += (item['amount'] * item['qty'])
 
+    logger.debug(f"Total da soma {_total_amount}")
     for n in range(1,13):
-        _installment = (_total_amount/n)/100
-        _installments.append({"name": f"{n} x R${_installment}", "value": f"{n}"})
+        if n <= 3:
+            _installment = (_total_amount/n)/100
+            _installments.append({"name": f"{n} x R${round(_installment, 2)}", "value": f"{n}"})
+            logger.debug(f"Parcela sem juros {_installment}")
+        else: 
+            _total_amount_fee = _total_amount * (1+ 0.0199) ** n
+            _installment = (_total_amount_fee/n)/100
+            _installments.append({"name": f"{n} x R${round(_installment, 2)}", "value": f"{n}"})
+            logger.debug(f"Parcela com juros {_installment}")
 
-
+    logger.debug(f"array de parcelas {_installments}")
     return _installments
-    # _config_installments = db.query(CreditCardFeeConfig)\
-    #     .filter_by(id=_product_config.installments_config)\
-    #     .first()
-    # if _installments > 12:
-    #     raise Exception("O número máximo de parcelas é 12") 
-    # elif _installments >= _config_installments.min_installment_with_fee:
-    #     _total_amount = _total_amount * ((1+_config_installments.fee) ** _installments)
 
 
 def get_product_by_id(db: Session, id):

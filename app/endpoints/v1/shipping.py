@@ -20,4 +20,4 @@ def zip_code_adress(shipping_data: Shipping):
 def zip_code_shipping(shipping_data: ShippingCalc):
     from loguru import logger
     logger.debug(shipping_data)
-    return { "shipping": 1000}
+    return { "shipping": 2000}
