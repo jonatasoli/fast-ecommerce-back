@@ -30,6 +30,7 @@ class Payment(Base):
     user = relationship("User", foreign_keys=[user_id], backref="payment", cascade="all,delete", uselist=False)
     amount = Column(Integer)
     token = Column(String(25), nullable=True)
+    gateway_id = Column(Integer)
     status = Column(String)
     authorization = Column(String, nullable=True)
     payment_method = Column(String)
@@ -37,6 +38,7 @@ class Payment(Base):
     installments = Column(Integer, default=1)
     processed    = Column(Boolean, default=False, server_default='0', nullable=False)
     processed_at = Column(DateTime, nullable=True)
+    
     
 
 class CreditCardFeeConfig(Base):
