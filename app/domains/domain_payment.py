@@ -179,7 +179,7 @@ def create_product(db: Session, product: ProductSchema):
                 upsell=_upsell
                 )
         db.add(db_product)
-        db.refresh()
+        db.commit()
         return db_product
     except Exception as e:
         logger.debug(f"PRODUCT ERROR ---- {e}")
