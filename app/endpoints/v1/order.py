@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import Header, APIRouter, Depends
 from domains import domain_order
-from schemas.order_schema import OrderSchema, OrderFullResponse, OrderStatusSchema
+from schemas.order_schema import OrderSchema, OrderFullResponse
 from models.order import Order
 from models.transaction import Payment
 from endpoints.deps import get_db
