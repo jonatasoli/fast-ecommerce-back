@@ -24,6 +24,7 @@ class ProductResponseSchema(ProductSchema):
 
 
 class ProductInDB(BaseModel):
+    id: int
     name: str
     uri: str
     price: int
@@ -48,6 +49,11 @@ class ListProducts(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class InstallmentSchema(BaseModel):
+    cart: list
+
 
 class OrderSchema(BaseModel):
     id: int
