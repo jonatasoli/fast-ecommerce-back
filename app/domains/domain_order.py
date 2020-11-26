@@ -38,15 +38,20 @@ def get_installments(db: Session, cart):
     _product_id = _cart['cart'][0]['product_id']
     _product_config = db.query(Product).filter_by(id=int(_product_id)).first()
     _total_amount = 0
+    _total_amount_fee = 0
     _installments = []
 
     for item in _cart['cart']:
         _total_amount += (item['amount'] * item['qty'])
 
     for n in range(1,13):
-        _installment = (_total_amount/n)/100
-        _installments.append({"name": f"{n} x R${_installment}", "value": f"{n}"})
-
+        if n <= 3:
+            _installment = (_total_amount/n)/100
+            _installments.append({"name": f"{n} x R${_installment}", "value": f"{n}"})
+        else: 
+            _total_amount_fee = _total_amount * (1+ 0.0199) ** n
+            _installment = (_total_amount_fee/n)/100
+            _installments.append({"name": f"{n} x R${_installment}", "value": f"{n}"})
 
     return _installments
     # _config_installments = db.query(CreditCardFeeConfig)\
