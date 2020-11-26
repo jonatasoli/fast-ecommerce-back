@@ -82,17 +82,3 @@ def create_order(db: Session, order_data: OrderSchema):
     db.commit()
     db.refresh(db_order)
     return db_order
-
-
-# def mydecoretor(func):
-#     def order_status(*args, **kwargs):
-#         orders = Session.query(Order).filter(Order.id == id)
-#         for order in orders:
-#             orderState ={
-#                 "order_id": order.id,
-#                 "payment_id": order.payment_id, 
-#                 "order_status": order.order_status}
-#             return requests.post('/update-payment-and-order-status', data=order_states)
-            
-            
-            
