@@ -4,7 +4,11 @@ from loguru import logger
 from schemas.order_schema import ProductSchema, OrderSchema, OrderFullResponse, ProductInDB, ListProducts
 
 from models.order import Product, Order, OrderItems
+from models.transaction import Payment
 from models.users import User
+from loguru import logger
+import requests
+import json
 
 def get_product(db : Session, uri):
     return db.query(Product).filter(Product.uri == uri).first()
@@ -28,6 +32,35 @@ def get_showcase(db:Session):
         return { "products": products}
     return { "products": []}
 
+
+def get_installments(db: Session, cart):
+    _cart = cart.dict()
+    _product_id = _cart['cart'][0]['product_id']
+    _product_config = db.query(Product).filter_by(id=int(_product_id)).first()
+    _total_amount = 0
+    _installments = []
+
+    for item in _cart['cart']:
+        _total_amount += (item['amount'] * item['qty'])
+
+    for n in range(1,13):
+        _installment = (_total_amount/n)/100
+        _installments.append({"name": f"{n} x R${_installment}", "value": f"{n}"})
+
+
+    return _installments
+    # _config_installments = db.query(CreditCardFeeConfig)\
+    #     .filter_by(id=_product_config.installments_config)\
+    #     .first()
+    # if _installments > 12:
+    #     raise Exception("O número máximo de parcelas é 12") 
+    # elif _installments >= _config_installments.min_installment_with_fee:
+    #     _total_amount = _total_amount * ((1+_config_installments.fee) ** _installments)
+
+
+def get_product_by_id(db: Session, id):
+    product = db.query(Product).filter_by(id=id).first()
+    return ProductInDB.from_orm(product)
 
 
 def get_order(db: Session, id):

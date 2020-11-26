@@ -7,3 +7,8 @@ class Shipping(BaseModel):
     heigth: str
     width:  str
     diameter: str
+
+
+class ShippingCalc(BaseModel):
+    shipping: str
+    cart: list
