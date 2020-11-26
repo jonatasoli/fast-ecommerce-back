@@ -7,6 +7,8 @@ from schemas.order_schema import ProductSchema, CheckoutSchema, ProductResponseS
 from domains import domain_payment 
 from endpoints import deps
 
+from loguru import logger
+
 payment = APIRouter()
 
 

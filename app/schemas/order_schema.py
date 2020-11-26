@@ -121,3 +121,9 @@ class CheckoutResponseSchema(BaseModel):
     order_id: int
     name: str
     slip_payment: Optional[str]
+
+
+class OrderStatusSchema(BaseModel):
+    order_id: int
+    payment_id: int
+    order_status: str
