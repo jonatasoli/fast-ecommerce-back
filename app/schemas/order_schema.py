@@ -24,6 +24,7 @@ class ProductResponseSchema(ProductSchema):
 
 
 class ProductInDB(BaseModel):
+    id: int
     name: str
     uri: str
     price: int
@@ -38,6 +39,10 @@ class ProductInDB(BaseModel):
     quantity: Optional[int]
     showcase: bool
     show_discount: bool
+    heigth: Optional[int]
+    width: Optional[int]
+    weigth: Optional[int]
+    depthe: Optional[int]
 
     class Config:
         orm_mode = True
@@ -49,6 +54,11 @@ class ListProducts(BaseModel):
     class Config:
         orm_mode = True
 
+
+class InstallmentSchema(BaseModel):
+    cart: list
+
+
 class OrderSchema(BaseModel):
     id: int
     customer_id: int
@@ -56,6 +66,8 @@ class OrderSchema(BaseModel):
     # order_items_id: int
     tracking_number: int
     payment_id: int
+    order_status: str
+    last_updated: datetime
 
 
 class OrderFullResponse(BaseModel):
@@ -119,3 +131,4 @@ class CheckoutResponseSchema(BaseModel):
     order_id: int
     name: str
     slip_payment: Optional[str]
+    
