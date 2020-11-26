@@ -25,6 +25,10 @@ class Product(Base):
     quantity = Column(Integer, server_default="9999")
     showcase = Column(Boolean, default=False, server_default='0')
     show_discount = Column(Boolean, default=False, server_default='0')
+    heigth= Column(Integer, nullable=True)
+    width= Column(Integer, nullable=True)
+    weigth= Column(Integer, nullable=True)
+    depthe= Column(Integer, nullable=True)
 
 
 class Cupons(Base):
@@ -42,6 +46,8 @@ class Order(Base):
     order_date = Column(DateTime)
     tracking_number = Column(Integer, nullable=True)
     payment_id = Column(Integer, nullable=True)
+    order_status = Column(String)
+    last_updated = Column(DateTime)
 
 
 class OrderItems(Base):

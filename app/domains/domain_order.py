@@ -4,7 +4,11 @@ from loguru import logger
 from schemas.order_schema import ProductSchema, OrderSchema, OrderFullResponse, ProductInDB, ListProducts
 
 from models.order import Product, Order, OrderItems
+from models.transaction import Payment
 from models.users import User
+from loguru import logger
+import requests
+import json
 
 def get_product(db : Session, uri):
     return db.query(Product).filter(Product.uri == uri).first()

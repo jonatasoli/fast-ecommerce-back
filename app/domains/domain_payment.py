@@ -1,3 +1,4 @@
+
 import requests
 import json
 
@@ -48,7 +49,8 @@ def credit_card_payment(db: Session, payment: CreditCardPayment):
                "user": "usuario",
                "token": r.get("acquirer_id"),
                "status": r.get('status'),
-               "authorization_code": r.get("authorization_code"),
+               "authorization_code": r.get('authorization_code'),
+               "gateway_id": r.get("id"),
                "payment_method": "credit-card",
                "errors": r.get("errors")}
     except Exception as e:
@@ -90,6 +92,7 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
                 db=db,
                 shopping_cart=checkout_data.get('shopping_cart')[0].get("itens"),
                 user=_user)
+        logger.info(_order)
         _payment = process_payment(
                 db=db,
                 checkout_data=checkout_data,
@@ -99,6 +102,8 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
                 payment_address=_payment_address,
                 affiliate=affiliate,
                 cupom=cupom)
+        if "pending" or "paid" in _payment.values():
+            update_gateway_id(db=db, payment_data=_payment, order=_order)
         if "paid" in _payment.values():
             update_payment_status(db=db, payment_data=_payment, order=_order)
         if "credit-card" in _payment.values():
@@ -136,6 +141,7 @@ def check_user(db: Session, checkout_data: CheckoutSchema):
         _document = checkout_data.get('document')
         _phone = checkout_data.get('phone')
         logger.info(f"DOCUMENT -----------------{_document}")
+        
 
         _user = check_existent_user(db=db, email=_user_email, document=_document, password=_password)
         logger.info("----------------USER----------------")
@@ -183,8 +189,9 @@ def process_order(db: Session, shopping_cart, user):
     try:
         db_order = Order(
                 customer_id=user.id,
-                order_date=datetime.now()
-                )
+                order_date=datetime.now(),
+                order_status = 'pending',
+                payment_id = 1)
         db.add(db_order)
         for cart in shopping_cart:
             db_item = OrderItems(
@@ -355,6 +362,17 @@ def postback_payment(db: Session, payment_data, order):
     except Exception as e:
         raise e
 
+def update_gateway_id(db:Session, payment_data, order):
+    try:
+        db_transaction = db.query(Transaction).filter_by(order_id=order.id).first()
+        db_payment = db.query(Payment).filter_by(id=db_transaction.payment_id).first()
+
+        db_payment.gateway_id=payment_data.get("gateway_id")
+        db.add(db_payment)
+        db.commit()
+
+    except Exception as e:
+        raise e
 
 def update_payment_status(db:Session, payment_data, order):
     try:
@@ -366,6 +384,7 @@ def update_payment_status(db:Session, payment_data, order):
         db_payment.processed_at=datetime.now()
         db_payment.token=payment_data.get("token")
         db_payment.authorization=payment_data.get("authorization_code")
+        db_payment.gateway_id=payment_data.get("gateway_id")
         db_payment.status='paid'
         db.add(db_transaction)
         db.add(db_payment)
