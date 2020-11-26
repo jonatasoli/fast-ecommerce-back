@@ -1,8 +1,17 @@
 from sqlalchemy.orm import Session
 from fastapi import Header, APIRouter, Depends
 from domains import domain_order
-from schemas.order_schema import OrderSchema, OrderFullResponse
+from schemas.order_schema import OrderSchema, OrderFullResponse, OrderStatusSchema
+from models.order import Order
+from models.transaction import Payment
 from endpoints.deps import get_db
+from constants import OrderStatus
+from gateway.payment_gateway import return_transaction
+from loguru import logger
+from job_service.service import get_session
+
+import requests
+import json
 
 order = APIRouter()
 
@@ -45,3 +54,47 @@ async def create_order(
                 ):
     return domain_order.create_order(db=db, order_data=order_data)
 
+
+@order.post('/update-payment-and-order-status', status_code=200)
+def order_status():
+    db = get_session()
+    orders = db.query(Order).filter(Order.id.isnot(None))
+    for order in orders:
+        return {
+            "order_id": order.id,
+            "payment_id": order.payment_id, 
+            "order_status": order.order_status}
+
+
+def check_status_pedding():
+    data = order_status()
+    logger.debug(data)
+    if data.get('order_status') == 'pending':
+        return 'pending'
+        
+
+def status_pending():
+    data = order_status()
+    logger.debug(data)
+    db = get_session()
+    payment = db.query(Payment).filter_by(id= data.get('payment_id')).first()
+    return return_transaction(payment.gateway_id)
+
+
+def status_paid():
+    gateway = status_pending()
+    data = order_status()
+    logger.debug(gateway.get('status'))
+    if gateway.get('status') == 'paid' and data.get('order_status') == 'pending':
+        logger.debug(data)
+        data['order_status'] = OrderStatus.PAYMENT_PAID.value
+        logger.debug(data)
+        return data
+
+
+def alternate_status(status):
+    order_status = {
+        'pending' : status_pending,
+        'paid': status_paid
+    }
+    return order_status[status]   

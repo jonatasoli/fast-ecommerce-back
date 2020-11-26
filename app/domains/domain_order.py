@@ -6,6 +6,9 @@ from schemas.order_schema import ProductSchema, OrderSchema, OrderFullResponse, 
 from models.order import Product, Order, OrderItems
 from models.transaction import Payment
 from models.users import User
+from loguru import logger
+import requests
+import json
 
 def get_product(db : Session, uri):
     return db.query(Product).filter(Product.uri == uri).first()
@@ -81,10 +84,15 @@ def create_order(db: Session, order_data: OrderSchema):
     return db_order
 
 
-def mydecoretor(func):
-    def order_status(*args, **kwargs, db: Session):
-        orders = db.query(Order)
-        orderState = [{
-            "Order_id": order.id, 
-            "Payment_id":order.payment_id} for order in orders]
-    return order_status
+# def mydecoretor(func):
+#     def order_status(*args, **kwargs):
+#         orders = Session.query(Order).filter(Order.id == id)
+#         for order in orders:
+#             orderState ={
+#                 "order_id": order.id,
+#                 "payment_id": order.payment_id, 
+#                 "order_status": order.order_status}
+#             return requests.post('/update-payment-and-order-status', data=order_states)
+            
+            
+            
