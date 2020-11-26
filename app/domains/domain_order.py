@@ -48,12 +48,12 @@ def get_installments(db: Session, cart):
     for n in range(1,13):
         if n <= 3:
             _installment = (_total_amount/n)/100
-            _installments.append({"name": f"{n} x R${_installment}", "value": f"{n}"})
+            _installments.append({"name": f"{n} x R${round(_installment, 2)}", "value": f"{n}"})
             logger.debug(f"Parcela sem juros {_installment}")
         else: 
             _total_amount_fee = _total_amount * (1+ 0.0199) ** n
             _installment = (_total_amount_fee/n)/100
-            _installments.append({"name": f"{n} x R${_installment}", "value": f"{n}"})
+            _installments.append({"name": f"{n} x R${round(_installment, 2)}", "value": f"{n}"})
             logger.debug(f"Parcela com juros {_installment}")
 
     logger.debug(f"array de parcelas {_installments}")
