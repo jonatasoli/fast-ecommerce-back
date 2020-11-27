@@ -4,12 +4,16 @@ from schemas.shipping_schema import Shipping, ShippingCalc
 from domains import domain_shipping 
 from endpoints.deps import get_db
 
+from loguru import logger
+
 shipping = APIRouter()
 
-@shipping.post('/zip_code/shipping', status_code= 200)
-def zip_code_shipping(shipping_data: Shipping):
-    shipping = domain_shipping.shipping_zip_code(shipping=shipping_data)
-    return shipping
+# @shipping.post('/zip_code/shipping', status_code= 200)
+# def zip_code_shipping(shipping = Shipping):
+
+#     shipping = domain_shipping.shipping_zip_code(db=db, cart=cart)
+#     logger.debug(shipping)
+#     return shipping
 
 @shipping.post('/zip_code/adress', status_code=200)
 def zip_code_adress(shipping_data: Shipping):
@@ -17,7 +21,10 @@ def zip_code_adress(shipping_data: Shipping):
     return adress
 
 @shipping.post('/zip_code/shipping/calc', status_code=200)
-def zip_code_shipping(shipping_data: ShippingCalc):
+def zip_code_shipping(
+    *,
+    db: Session = Depends(get_db),
+    shipping_data: ShippingCalc):
     from loguru import logger
     logger.debug(shipping_data)
-    return { "shipping": 2000}
+    return domain_shipping.shipping_zip_code(db=db, shipping_data=shipping_data)
