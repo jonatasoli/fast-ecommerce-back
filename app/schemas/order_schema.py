@@ -15,6 +15,10 @@ class ProductSchema(BaseModel):
     category_id: int
     discount: Optional[int]
     quantity: Optional[int]
+    heigth: Optional[int]
+    width: Optional[int]
+    weigth: Optional[int]
+    depthe: Optional[int]
 
     class Config:
         orm_mode = True
