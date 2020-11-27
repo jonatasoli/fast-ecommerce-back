@@ -1,5 +1,6 @@
 import requests
 from .adapter import Adapter
+from loguru import logger
 
 class CorreiosWsld:
     def correios_zip_code():
@@ -24,22 +25,22 @@ class FindZipCode:
         return ({"message": "Cep inválido"})
 
 class CalculateShipping:
-    def __init__(self,zip_code_source,zip_code_target, weigth, length, heigth, width, diameter):
+    def __init__(self,zip_code_source,zip_code_target, weigth, length, heigth, width):
         self.zip_code_source = zip_code_source
         self.zip_code_target = zip_code_target
         self.weigth = weigth
         self.length = length
         self.heigth = heigth
         self.width = width
-        self.diameter = diameter
 
     def calculate_shipping(self, url=CorreiosWsld.correios_shipping()):
         services = ['4510', '4014']
         for service in services:
             headers ={'content-type': 'text/xml; charset=utf-8'}
-            body = Adapter.body_shipping(service, self.zip_code_source , self.zip_code_target, self.weigth, self.length, self.heigth, self.width, self.diameter)
+            body = Adapter.body_shipping(service, self.zip_code_source , self.zip_code_target, self.weigth, self.length, self.heigth, self.width)
             response = requests.post(url, headers=headers, data=body)
             content = response.content
+            logger.debug(content)
             if ('4510' == service):
                 name = 'PAC'  
             if ('4014' == service):

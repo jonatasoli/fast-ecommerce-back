@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 import lxml
 
+from loguru import logger
+
 class Adapter:
     def xml_find_zipcode(cep):
         body = '''<x:Envelope
@@ -29,17 +31,16 @@ class Adapter:
         return data
     
     def xmltojson_shipping(xml, name):
-        soup = BeautifulSoup(xml, "xml")
-        if not soup.MsgErro.text:  
-            data = {
-                'serviço': name,
-                'frete':soup.Valor.text,
-                'prazo':soup.PrazoEntrega.text
+        soup = BeautifulSoup(xml, "xml") 
+        data = {
+            'serviço': name,
+            'frete':soup.Valor.text,
+            'prazo':soup.PrazoEntrega.text
             }
-            return data
-        return ({"message": "CEP invalido"})
+        return data
+        
 
-    def body_shipping(cod_service,zip_code_source, zip_code_target, weigth, length, heigth, width, diameter):
+    def body_shipping(cod_service,zip_code_source, zip_code_target, weigth, length, heigth, width):
         body = '''<x:Envelope
         xmlns:x="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:tem="http://tempuri.org/">
@@ -52,15 +53,16 @@ class Adapter:
                 <tem:sCepOrigem>'''+zip_code_source+'''</tem:sCepOrigem>
                 <tem:sCepDestino>'''+zip_code_target+'''</tem:sCepDestino>
                 <tem:nVlPeso>'''+weigth+'''</tem:nVlPeso>
-                <tem:nCdFormato>3</tem:nCdFormato>
+                <tem:nCdFormato>1</tem:nCdFormato>
                 <tem:nVlComprimento>'''+length+'''</tem:nVlComprimento>
                 <tem:nVlAltura>'''+heigth+'''</tem:nVlAltura>
                 <tem:nVlLargura>'''+width+'''</tem:nVlLargura>
-                <tem:nVlDiametro>'''+diameter+'''</tem:nVlDiametro>
+                <tem:nVlDiametro>2</tem:nVlDiametro>
                 <tem:sCdMaoPropria>n</tem:sCdMaoPropria>
                 <tem:nVlValorDeclarado>0</tem:nVlValorDeclarado>
                 <tem:sCdAvisoRecebimento>n</tem:sCdAvisoRecebimento>
             </tem:CalcPrecoPrazo>
         </x:Body>
         </x:Envelope>'''
+        logger.debug(body)
         return body
