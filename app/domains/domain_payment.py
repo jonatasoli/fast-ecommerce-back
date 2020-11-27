@@ -71,6 +71,7 @@ def slip_payment(db: Session, payment: SlipPayment):
                "payment_method": "slip-payment",
                "boleto_url":  r.get("boleto_url"),
                "boleto_barcode": r.get("boleto_barcode"),
+               "gateway_id": r.get("id"),
                "errors": r.get("errors")}
     except Exception as e:
         raise e
@@ -130,7 +131,7 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
     except Exception as e:
         db.rollback()
         logger.error(f"----- ERROR PAYMENT {e} ")
-        raise HTTPException(status_code=206, detail="Erro ao processar o pagamento verifique os dados e tente novamente") 
+        raise HTTPException(status_code=206, detail=f"Erro ao processar o pagamento verifique os dados ou veja o motivo a seguir -> Motivo {e}") 
 
 
 def check_user(db: Session, checkout_data: CheckoutSchema):
@@ -178,7 +179,7 @@ def create_product(db: Session, product: ProductSchema):
                 upsell=_upsell
                 )
         db.add(db_product)
-        db.refresh()
+        db.commit()
         return db_product
     except Exception as e:
         logger.debug(f"PRODUCT ERROR ---- {e}")
@@ -304,6 +305,15 @@ def process_payment(
             db.add(db_transaction)
         db.commit()
 
+        for item in _items:
+            _product_decrease = db.query(Product).filter_by(id=item.get("id")).first()
+            _qty_decrease = int(item.get("quantity"))
+            _product_decrease.quantity -= _qty_decrease
+            if _product_decrease.quantity < 0:
+                raise Exception('Produto esgotado')
+            else:
+                db.add(_product_decrease)
+
         if checkout_data.get('payment_method') == "credit-card":
             logger.info("------------CREDIT CARD--------------")
             _payment = CreditCardPayment(
@@ -368,6 +378,8 @@ def update_gateway_id(db:Session, payment_data, order):
         db_payment = db.query(Payment).filter_by(id=db_transaction.payment_id).first()
 
         db_payment.gateway_id=payment_data.get("gateway_id")
+        order.payment_id = payment_data.get("gateway_id")
+        order.order_status =payment_data.get("status")
         db.add(db_payment)
         db.commit()
 
