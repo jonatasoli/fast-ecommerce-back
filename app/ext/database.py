@@ -13,7 +13,7 @@ def get_engine():
 
     engine = create_engine(
         SQLALCHEMY_DATABASE_URL,
-        pool_size=20, 
+        pool_size=10, 
         max_overflow=0
     )
     return engine
