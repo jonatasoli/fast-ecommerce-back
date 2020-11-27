@@ -7,7 +7,7 @@ from app.main import app
 from app.endpoints.deps import get_db
 
 
-from app.schemas.order_schema import ProductSchema, OrderStatusSchema
+from app.schemas.order_schema import ProductSchema
 from domains.domain_order import create_order
 
 from endpoints.v1.order import status_pending, status_paid, order_status, check_status_pedding
