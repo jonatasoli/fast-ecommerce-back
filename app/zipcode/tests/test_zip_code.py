@@ -14,7 +14,7 @@ def test_find_zip_code():
     }
 
 def test_calculate_shipping():
-    shipping = CalculateShipping('07171140','47590000','0.5', '2.5', '0', '3.0', '4.0')
+    shipping = CalculateShipping('07171140','47590000','0.5', '2.5', '0', '3.0')
     shipping = shipping.calculate_shipping()
     assert next(shipping) == {
         'frete':'35,40',
