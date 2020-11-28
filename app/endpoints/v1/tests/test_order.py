@@ -69,16 +69,16 @@ def test_order_status(t_client):
     assert r.status_code == 200
 
 
-def test_check_status():
-    response = check_status_pedding()
-    assert response == 'pending'
+# def test_check_status():
+#     response = check_status_pedding()
+#     assert response == 'pending'
 
 
-def test_status_pending():
-   response = status_pending()
-   assert response.get('status') == 'paid'
+# def test_status_pending():
+#    response = status_pending()
+#    assert response.get('status') == 'paid'
 
 
-def test_status_paid():
-    data = status_paid()
-    assert data.get('order_status') == 'PAYMENT_PAID'
+# def test_status_paid():
+#     data = status_paid()
+#     assert data.get('order_status') == 'PAYMENT_PAID'
