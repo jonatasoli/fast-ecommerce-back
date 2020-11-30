@@ -8,6 +8,7 @@ from passlib.hash import pbkdf2_sha512
 from constants import DocumentType
 from ext.database import Base
 
+from models.users import User
 class Product(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String)
@@ -43,6 +44,8 @@ class Cupons(Base):
 class Order(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     customer_id = Column(Integer, ForeignKey("user.id"))
+    user = relationship("User", foreign_keys=[customer_id], backref="Order", cascade="all,delete",
+            uselist=False)
     order_date = Column(DateTime)
     tracking_number = Column(Integer, nullable=True)
     payment_id = Column(Integer, nullable=True)
