@@ -28,3 +28,11 @@ def order_status():
         db.commit()
         if len(status):
             cont += 1
+
+def main():
+    order_status()
+
+
+if __name__ == "__main__":
+    main()
+
