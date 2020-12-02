@@ -106,6 +106,7 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
 
         if _order.order_status == 'pending':
             update_gateway_id(db=db, payment_data=_payment, order=_order)
+        if _order.order_status == 'pending' or _order.order_status != 'pending':
             update_payment_status(db=db, payment_data=_payment, order=_order)
         if "credit-card" in _payment.values():
             _payment_response = {
