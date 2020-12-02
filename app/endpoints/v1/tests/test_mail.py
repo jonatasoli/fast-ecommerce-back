@@ -7,7 +7,7 @@ from unittest import mock
 
 mail = {'from': {'email': 'from@email.com'}, 'subject': 'Seu pedido está a caminho!', 'personalizations': [{'to': [{'email': 'to@mail.com'}]}], 'content': [{'type': 'text/plain', 'value': 'email-templates/build/mail_tracking_number.html'}, {'type': 'text/html', 'value': 'email-templates/build/mail_tracking_number.html'}]}
 
-
+@pytest.mark.skip
 @mock.patch('domains.domain_mail.send_mail', return_value=mail)
 def test_send_mail(t_client):
     mail_data = MailTrackingNumber(

@@ -57,7 +57,7 @@ class Adapter:
                 <tem:nVlComprimento>'''+length+'''</tem:nVlComprimento>
                 <tem:nVlAltura>'''+heigth+'''</tem:nVlAltura>
                 <tem:nVlLargura>'''+width+'''</tem:nVlLargura>
-                <tem:nVlDiametro>2</tem:nVlDiametro>
+                <tem:nVlDiametro>0</tem:nVlDiametro>
                 <tem:sCdMaoPropria>n</tem:sCdMaoPropria>
                 <tem:nVlValorDeclarado>0</tem:nVlValorDeclarado>
                 <tem:sCdAvisoRecebimento>n</tem:sCdAvisoRecebimento>
