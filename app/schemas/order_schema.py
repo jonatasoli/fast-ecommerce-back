@@ -18,7 +18,7 @@ class ProductSchema(BaseModel):
     heigth: Optional[int]
     width: Optional[int]
     weigth: Optional[int]
-    depthe: Optional[int]
+    length: Optional[int]
 
     class Config:
         orm_mode = True
@@ -46,7 +46,7 @@ class ProductInDB(BaseModel):
     heigth: Optional[int]
     width: Optional[int]
     weigth: Optional[int]
-    depthe: Optional[int]
+    length: Optional[int]
 
     class Config:
         orm_mode = True
