@@ -2,19 +2,18 @@ import requests
 from .adapter import Adapter
 from loguru import logger
 
-class CorreiosWsld:
-    def correios_zip_code():
-        url = 'https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
-        return url
-    def correios_shipping():
-        url = 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx?wsdl'
-        return url
+def correios_zip_code():
+    url = 'https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
+    return url
+def correios_shipping():
+    url = 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx?wsdl'
+    return url
 
 class FindZipCode:
     def __init__(self, zip_code_target):
         self.zip_code_target = zip_code_target
 
-    def find_zip_code_target(self,url=CorreiosWsld.correios_zip_code()):
+    def find_zip_code_target(self,url=correios_zip_code()):
         headers = {'content-type': 'text/xml; charset=utf-8'}
         body = Adapter.xml_find_zipcode(self.zip_code_target)
         response = requests.post(url, headers=headers, data=body)
@@ -33,7 +32,7 @@ class CalculateShipping:
         self.heigth = heigth
         self.width = width
 
-    def calculate_shipping(self, url=CorreiosWsld.correios_shipping()):
+    def calculate_shipping(self, url=correios_shipping()):
         services = ['4510', '4014']
         for service in services:
             headers ={'content-type': 'text/xml; charset=utf-8'}

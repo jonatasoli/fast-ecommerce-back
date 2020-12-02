@@ -26,10 +26,10 @@ class Product(Base):
     quantity = Column(Integer, server_default="9999")
     showcase = Column(Boolean, default=False, server_default='0')
     show_discount = Column(Boolean, default=False, server_default='0')
-    heigth= Column(Integer, nullable=True)
-    width= Column(Integer, nullable=True)
-    weigth= Column(Integer, nullable=True)
-    depthe= Column(Integer, nullable=True)
+    heigth= Column(Numeric(5,3), nullable=True)
+    width= Column(Numeric(5,3), nullable=True)
+    weigth= Column(Numeric(5,3), nullable=True)
+    length= Column(Numeric(5,3), nullable=True)
 
 
 class Cupons(Base):
@@ -47,7 +47,7 @@ class Order(Base):
     user = relationship("User", foreign_keys=[customer_id], backref="Order", cascade="all,delete",
             uselist=False)
     order_date = Column(DateTime)
-    tracking_number = Column(Integer, nullable=True)
+    tracking_number = Column(String, nullable=True)
     payment_id = Column(Integer, nullable=True)
     order_status = Column(String)
     last_updated = Column(DateTime)
