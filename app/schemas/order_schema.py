@@ -136,3 +136,24 @@ class CheckoutResponseSchema(BaseModel):
     name: str
     slip_payment: Optional[str]
     
+
+class CategorySchema(BaseModel):
+    id: int
+    name: str
+    path: str
+
+
+class CategoryInDB(BaseModel):
+    id: int
+    name: str
+    path: str
+
+    class Config:
+        orm_mode = True
+
+
+class ListCategory(BaseModel):
+    category: List[CategoryInDB]
+
+    class Config:
+        orm_mode = True

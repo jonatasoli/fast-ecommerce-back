@@ -70,3 +70,8 @@ class OrderStatusSteps(Base):
     sending = Column(Boolean)
     active = Column(Boolean)
 
+class Category(Base):
+    id= Column(Integer, nullable=False, primary_key=True)
+    name= Column(String)
+    path= Column(String)
+
