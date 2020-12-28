@@ -1,9 +1,10 @@
 from sqlalchemy.orm import Session
 from loguru import logger
 
-from schemas.order_schema import ProductSchema, OrderSchema, OrderFullResponse, ProductInDB, ListProducts
+from schemas.order_schema import ProductSchema, OrderSchema, OrderFullResponse,\
+     ProductInDB, ListProducts, CategorySchema, CategoryInDB
 
-from models.order import Product, Order, OrderItems
+from models.order import Product, Order, OrderItems, Category
 from models.transaction import Payment
 from models.users import User
 from loguru import logger
@@ -113,3 +114,25 @@ def create_order(db: Session, order_data: OrderSchema):
     db.commit()
     db.refresh(db_order)
     return db_order
+
+
+def get_category(db: Session):
+    categorys = db.query(Category).all()
+    category_list=[]
+
+    for category in categorys:
+        category_list.append(CategoryInDB.from_orm(category))
+    return {"category": category_list } 
+        
+
+
+def get_products_category(db:Session, id):
+    products = db.query(Product).filter_by(active=True, category_id=id).all()
+    products_category = []
+
+    for product in products:
+        products_category.append(product)
+
+    if products:
+        return { "products": products_category}
+    return { "products": []}
