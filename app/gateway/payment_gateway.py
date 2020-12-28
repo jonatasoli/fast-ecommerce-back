@@ -5,7 +5,7 @@ from dynaconf import settings
 
 def return_transaction(gateway_id):
     try:
-        headers = {'Content-Type': 'application/json'}
+        headers = {'Content-Type': 'application/json', "date_created": "2017-08-15T16:14:58.903Z"}
         data = {
             "api_key": settings.GATEWAY_API
         }

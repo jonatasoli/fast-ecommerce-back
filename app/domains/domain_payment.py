@@ -103,9 +103,10 @@ def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None,
                 payment_address=_payment_address,
                 affiliate=affiliate,
                 cupom=cupom)
-        if "pending" or "paid" in _payment.values():
+
+        if _order.order_status == 'pending':
             update_gateway_id(db=db, payment_data=_payment, order=_order)
-        if "paid" in _payment.values():
+        if _order.order_status == 'pending' or _order.order_status != 'pending':
             update_payment_status(db=db, payment_data=_payment, order=_order)
         if "credit-card" in _payment.values():
             _payment_response = {
@@ -191,8 +192,7 @@ def process_order(db: Session, shopping_cart, user):
         db_order = Order(
                 customer_id=user.id,
                 order_date=datetime.now(),
-                order_status = 'pending',
-                payment_id = 1)
+                order_status = 'pending')
         db.add(db_order)
         for cart in shopping_cart:
             db_item = OrderItems(
@@ -368,7 +368,7 @@ def send_payment_mail(db: Session, user, payment):
 
 def postback_payment(db: Session, payment_data, order):
     try:
-        return update_payment_status(db=db, payment_data=payment_data)
+        return update_payment_status(db=db, payment_data=payment_data, order=order)
     except Exception as e:
         raise e
 
@@ -379,7 +379,6 @@ def update_gateway_id(db:Session, payment_data, order):
 
         db_payment.gateway_id=payment_data.get("gateway_id")
         order.payment_id = payment_data.get("gateway_id")
-        order.order_status =payment_data.get("status")
         db.add(db_payment)
         db.commit()
 
@@ -389,17 +388,17 @@ def update_gateway_id(db:Session, payment_data, order):
 def update_payment_status(db:Session, payment_data, order):
     try:
         db_transaction = db.query(Transaction).filter_by(order_id=order.id).first()
-        db_transaction.status = 'paid'
+        db_transaction.status = payment_data.get("status")
 
         db_payment = db.query(Payment).filter_by(id=db_transaction.payment_id).first()
         db_payment.processed=True
         db_payment.processed_at=datetime.now()
         db_payment.token=payment_data.get("token")
         db_payment.authorization=payment_data.get("authorization_code")
-        db_payment.gateway_id=payment_data.get("gateway_id")
-        db_payment.status='paid'
+        db_payment.status=payment_data.get("status")
         db.add(db_transaction)
         db.add(db_payment)
+        db.commit()
         db.refresh(db_transaction)
         db.refresh(db_payment)
         # send_payment_mail(db=db, user=_user, payment=_payment)

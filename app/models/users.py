@@ -100,6 +100,7 @@ class Address(Base):
     address_complement = Column(String)
     zipcode = Column(String)
     uuid = Column(String)
+    active = Column(Boolean, default=False)
 
     def to_json(self):
         return {
