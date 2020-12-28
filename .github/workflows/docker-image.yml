@@ -1,24 +1,35 @@
-name: Docker Image CI
+name: Tests Action
 
 on:
-  release:
-    types: [published]
   push:
-    tags:
-      - 'v*'
+    branches:
+      - master
+      - staging
+  pull_request:
+    branches:
+      - master
+      - staging
 
 jobs:
-  update:
+  container-job:
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Get release version
-      id: get_version
-      run: echo ::set-env name=RELEASE_VERSION::$(echo ${GITHUB_REF:10})
-    - name: Publish to Registry
-      uses: elgohr/Publish-Docker-Github-Action@master
-      with:
-        name: jonatasoli/fast-ecommerce-api
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
-        tags: "latest,${{ env.RELEASE_VERSION }}"  
+
+    container:
+      image: node:10.16-jessie
+
+    services:
+      postgres:
+        image: postgres:11
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server

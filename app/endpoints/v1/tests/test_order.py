@@ -19,7 +19,7 @@ def test_create_order(t_client):
         "id": 3,
         "customer_id": 1,
         "order_date": "2020-11-11 17:01:01",
-        "tracking_number": 2341231,
+        "tracking_number": "2341231",
         "payment_id":1,
         "last_updated":"2020-11-11 17:01:01",
         "order_status":"pending"
