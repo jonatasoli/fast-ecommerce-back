@@ -18,7 +18,7 @@ class ProductSchema(BaseModel):
     heigth: Optional[int]
     width: Optional[int]
     weigth: Optional[int]
-    depthe: Optional[int]
+    length: Optional[int]
 
     class Config:
         orm_mode = True
@@ -46,7 +46,7 @@ class ProductInDB(BaseModel):
     heigth: Optional[int]
     width: Optional[int]
     weigth: Optional[int]
-    depthe: Optional[int]
+    length: Optional[int]
 
     class Config:
         orm_mode = True
@@ -136,3 +136,24 @@ class CheckoutResponseSchema(BaseModel):
     name: str
     slip_payment: Optional[str]
     
+
+class CategorySchema(BaseModel):
+    id: int
+    name: str
+    path: str
+
+
+class CategoryInDB(BaseModel):
+    id: int
+    name: str
+    path: str
+
+    class Config:
+        orm_mode = True
+
+
+class ListCategory(BaseModel):
+    category: List[CategoryInDB]
+
+    class Config:
+        orm_mode = True
