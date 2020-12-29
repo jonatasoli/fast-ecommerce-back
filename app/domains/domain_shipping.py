@@ -24,7 +24,7 @@ def shipping_zip_code(db: Session, shipping_data: ShippingCalc):
                 _height += product.heigth if product.heigth else 1
                 _weight += product.weigth if product.weigth else 1
                 _width += product.width if product.width else 1
-                _length += product.depthe if product.depthe else 1
+                _length += product.length if product.length else 1
 
             _height = 1 if _height < 1 else _height
             _height = 99 if _height > 99 else _height
