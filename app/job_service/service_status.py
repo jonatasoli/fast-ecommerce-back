@@ -9,7 +9,7 @@ from loguru import logger
 db=get_session()
 payment_id = []
 status_pagarme = []
-orders = db.query(Order).filter(Order.order_status is not 'paid').filter(Order.order_status is not 'refused').all()
+orders = db.query(Order).filter(~Order.order_status.in_(['paid', 'refused'])).all()
 
 
 def order_status():
