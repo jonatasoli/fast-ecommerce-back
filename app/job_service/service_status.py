@@ -24,8 +24,7 @@ def order_status():
             logger.debug(f"---- ID {gateway_id} ----")
             db_order.order_status = gateway_id.get('status')
         db.commit()
-        if len(status):
-            cont += 1
+        cont += 1
     logger.debug(f"Foram processados {cont} pedidos")
 
 def main():
