@@ -15,7 +15,7 @@ orders = db.query(Order).filter(Order.order_status is not 'paid').filter(Order.o
 def order_status():
     cont = 0
     for status in orders:
-        gateway_id = return_transaction(status.gateway_id)
+        gateway_id = return_transaction(status.payment_id)
         db_order = db.query(Order).filter(Order.payment_id == status.gateway_id).first()
         if db_order.payment_id == 0:
             db_order.order_status = 'refused'
@@ -24,8 +24,7 @@ def order_status():
             logger.debug(f"---- ID {gateway_id} ----")
             db_order.order_status = gateway_id.get('status')
         db.commit()
-        if len(status):
-            cont += 1
+        cont += 1
     logger.debug(f"Foram processados {cont} pedidos")
 
 def main():
