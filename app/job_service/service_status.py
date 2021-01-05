@@ -16,11 +16,11 @@ def order_status():
     cont = 0
     for status in orders:
         gateway_id = return_transaction(status.payment_id)
-        db_order = db.query(Order).filter(Order.payment_id == status.gateway_id).first()
+        db_order = db.query(Order).filter(Order.payment_id == status.payment_id).first()
         if db_order.payment_id == 0:
             db_order.order_status = 'refused'
         else:
-            logger.debug(f"------- ID STATUS {status.gateway_id}-----------")
+            logger.debug(f"------- ID STATUS {status.payment_id}-----------")
             logger.debug(f"---- ID {gateway_id} ----")
             db_order.order_status = gateway_id.get('status')
         db.commit()
