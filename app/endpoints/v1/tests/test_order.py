@@ -55,7 +55,7 @@ def test_get_order_user_id(t_client):
     r = t_client.get("/order/user/1")
     response = r.json()
     assert r.status_code == 200
-    assert response.get("name") == "User Test"
+    assert response.get("name") == "Jonatas L Oliveira"
 
 
 def test_order_status(t_client):
