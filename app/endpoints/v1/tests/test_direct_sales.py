@@ -42,9 +42,9 @@ transacton_with_shipping = {
                 'itens': [{'amount': 100000, 'qty': 1, 'product_id': 1, 'product_name': 'course01', 'tangible': True}]
                 }],
         'credit_card_name': 'Jonatas L Oliveira',
-        'credit_card_number': '5401641103018656',
-        'credit_card_cvv': '123', 
-        'credit_card_validate': '1220',
+        'credit_card_number': '5286455462496746',
+        'credit_card_cvv': '798', 
+        'credit_card_validate': '0822',
         'installments': 5
         }
 
