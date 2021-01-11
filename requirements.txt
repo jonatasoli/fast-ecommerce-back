@@ -305,8 +305,8 @@ pydantic==1.7.2 \
 pyjwt==1.7.1 \
     --hash=sha256:5c6eca3c2940464d106b99ba83b00c6add741c9becaec087fb7ccdefea71350e \
     --hash=sha256:8d59a976fb773f3e6a39c85636357c4f0e242707394cadadd9814f5cbaa20e96
-pypika==0.44.0 \
-    --hash=sha256:3d49f12d2b9f08054d8bedf7ce6e8e900ac3dd8274fc23746ece9d124e29b7e5
+pypika==0.47.2 \
+    --hash=sha256:c040854fe3e2ac2f0cefba42dfd97f056a133fd781e2ac871259395dfa52ef2f
 python-dateutil==2.8.1 \
     --hash=sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c \
     --hash=sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a
