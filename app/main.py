@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from endpoints.v1.users import user
-from endpoints.v1.payment import payment
+from payment.endpoint import payment
 from endpoints.v1.direct_sales import direct_sales
 from endpoints.v1.shipping import shipping
 from endpoints.v1.order import order
