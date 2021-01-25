@@ -30,27 +30,27 @@ async def get_upsell_products(id):
         raise e
 
 
-# @direct_sales.post('/checkout', status_code=201)
-# def checkout(
-#                 *,
-#                 db: Session = Depends(deps.get_db),
-#                 data: CheckoutReceive
-#         ):
-#     try:
-#         checkout_data = data.dict().get('transaction')
-#         affiliate = data.dict().get('affiliate')
-#         cupom = data.dict().get('cupom')
-#         from loguru import logger
-#         logger.info(checkout_data)
-#         checkout = domain_payment.process_checkout(
-#                 db=db,
-#                 checkout_data=checkout_data,
-#                 affiliate=affiliate,
-#                 cupom=cupom)
-#         # import ipdb; ipdb.set_trace()
-#         return checkout
-#     except Exception as e:
-#         raise e
+@direct_sales.post('/checkout', status_code=201)
+def checkout(
+                *,
+                db: Session = Depends(deps.get_db),
+                data: CheckoutReceive
+        ):
+    try:
+        checkout_data = data.dict().get('transaction')
+        affiliate = data.dict().get('affiliate')
+        cupom = data.dict().get('cupom')
+        from loguru import logger
+        logger.info(checkout_data)
+        checkout = domain_payment.process_checkout(
+                db=db,
+                checkout_data=checkout_data,
+                affiliate=affiliate,
+                cupom=cupom)
+        # import ipdb; ipdb.set_trace()
+        return checkout
+    except Exception as e:
+        raise e
 
 
 @direct_sales.post('/create-product', status_code=201)

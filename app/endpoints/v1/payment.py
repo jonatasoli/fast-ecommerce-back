@@ -1,13 +1,13 @@
-from fastapi import Header, APIRouter, Depends
-from sqlalchemy.orm import Session
+# from fastapi import Header, APIRouter, Depends
+# from sqlalchemy.orm import Session
 
-from schemas.payment_schema import CreditCardPayment, SlipPayment,\
-        ConfigCreditCard, ConfigCreditCardResponse
-from schemas.order_schema import ProductSchema, CheckoutSchema, ProductResponseSchema
-from domains import domain_payment 
-from .endpoints import deps
+# from schemas.payment_schema import CreditCardPayment, SlipPayment,\
+#         ConfigCreditCard, ConfigCreditCardResponse
+# from schemas.order_schema import ProductSchema, CheckoutSchema, ProductResponseSchema
+# from domains import domain_payment 
+# from endpoints import deps
 
-from loguru import logger
+# from loguru import logger
 
 # payment = APIRouter()
 
@@ -33,14 +33,14 @@ from loguru import logger
 #     return payment
 
 
-@payment.post('/create-product', status_code=201)
-def create_product(
-        *,
-        db: Session = Depends(deps.get_db),
-        product: ProductSchema
-        ):
-    product = domain_payment.create_product(db, product=product)
-    return ProductSchema.from_orm(product)
+# @payment.post('/create-product', status_code=201)
+# def create_product(
+#         *,
+#         db: Session = Depends(deps.get_db),
+#         product: ProductSchema
+#         ):
+#     product = domain_payment.create_product(db, product=product)
+#     return ProductSchema.from_orm(product)
 
 
 # @payment.post('/create-config', status_code=201)
@@ -70,4 +70,3 @@ def create_product(
 #             db=db,
 #             checkout_data=checkout_data)
 #     return checkout
-

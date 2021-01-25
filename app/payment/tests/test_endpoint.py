@@ -2,16 +2,16 @@ import pytest
 from loguru import logger
 from fastapi.testclient import TestClient
 
-from app.main import app
-from app.endpoints.deps import get_db
+from main import app
+from endpoints.deps import get_db
 
 
-from app.schemas.order_schema import ProductSchema
+from schemas.order_schema import ProductSchema
 from domains.domain_order import create_product
 from domains.domain_order import create_order
 
 transacton_with_shipping = {
-        'document': '22941297090',
+        'document': '86187785088',
         'mail': 'mail@jonatasoliveira.me',
         'password': 'asdasd',
         'phone': '12345678901',
@@ -109,7 +109,7 @@ def test_create_product_(db_models): #TODO Fix product ENDPOINT
     db.commit()
     assert db_product.id == 1
 
-
+@pytest.mark.first
 def test_create_config(t_client):
     _config = {
             "fee": "0.0599",
@@ -122,7 +122,7 @@ def test_create_config(t_client):
     assert r.status_code == 201
     assert response.get('fee') == "0.0599"
 
-
+@pytest.mark.second
 def test_create_product(t_client):
     product = {
             "description":"Test Product",
@@ -146,12 +146,12 @@ def test_create_product(t_client):
     }
 
 
-    r = t_client.post("direct-sales/create-product", json=product)
+    r = t_client.post("/create-product", json=product)
     response = r.json()
     assert r.status_code == 201
     assert response.get('name') == "Test"
 
-
+@pytest.mark.third 
 def test_payment(t_client):
     data = { "transaction": transacton_with_shipping,
              "affiliate": "xyz",
@@ -163,7 +163,7 @@ def test_payment(t_client):
     assert response.get('order_id') == 1
     assert response.get('payment_status') == "PAGAMENTO REALIZADO"
 
-
+@pytest.mark.fourth
 def test_payment_with_document_error(t_client):
     data = { "transaction": transacton_with_shipping_and_document_error,
              "affiliate": "xyz",
