@@ -30,7 +30,19 @@ class SlipPayment(BaseModel):
     documents: list
 
 
-class ConfigCreditCard(BaseModel):
+class ResponseGateway(BaseModel):
+    user: str
+    token: Optional[str]
+    status: Optional[str]
+    authorization_code: Optional[str]
+    gateway_id: Optional[int]
+    payment_method: Optional[str]
+    boleto_url: Optional[str]
+    boleto_barcode: Optional[str]
+    errors: Optional[list]
+
+    
+class ConfigCreditCardInDB(BaseModel):
     fee: str
     min_installment: int
     max_installment: int

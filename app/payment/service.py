@@ -2,36 +2,19 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from decimal import Decimal
 from dynaconf import settings
+from domains.domain_user import register_payment_address, register_shipping_address
+from payment.repositories import Product, DecreaseProduct, CreateTransaction\
+ ,GetCreditCardConfig, CreateTransaction, CreatePayment, QueryPayment,\
+     UpdateStatus
 
-from .repositories import Product, DecreaseProduct, CreateTransaction\
- ,GetCreditCardConfig, CreateTransaction, CreatePayment
-
-from domains.domain_user import register_shipping_address, register_payment_address\
-, check_existent_user, create_user
-from .schema import CheckoutSchema, CreditCardPayment, SlipPayment
+from payment.adapter import AdapterUser
+from payment.schema import CheckoutSchema, CreditCardPayment, SlipPayment
 from schemas.user_schema import SignUp
-from models.transaction import CreditCardFeeConfig
+from models.transaction import CreditCardFeeConfig, Transaction, Payment
 from models.order import Order, OrderItems
-from .gateway import CreditCardGateway, SlipPaymentGateway
+from payment.gateway import credit_card_payment, slip_payment
 from schemas.order_schema import ProductSchema
 from loguru import logger
-
-
-class CreditCardConfig:
-    def __init__(self, db: Session, config_data):
-        self.db = db
-        self.config_data = config_data
-
-    def create_installment_config(self):
-        db_config = CreditCardFeeConfig(
-            active_date = datetime.now(),
-            fee=Decimal(self.config_data.fee),
-            min_installment_with_fee=self.config_data.min_installment,
-            mx_installments=self.config_data.max_installment
-            )
-        self.db.add(db_config)
-        self.db.commit()
-        return db_config
 
 
 class User:
@@ -44,38 +27,19 @@ class User:
         self._document = checkout_data.get('document')
         self._phone = checkout_data.get('phone')
 
-
-    def check_user(self):
+    def user(self):
         try:
-            logger.info(f"DOCUMENT -----------------{self._document}")
-            
-            _user = check_existent_user(db=self.db, email=self._user_email, document=self._document, password=self._password)
-            logger.info("----------------USER----------------")
-            logger.info(_user)
-            if not _user:
-                return self.user_create()
+            _user = AdapterUser(
+                db= self.db,
+                _user_email = self._user_email,
+                _password = self._password,
+                _name = self._name,
+                _document = self._document,
+                _phone = self._phone).check_user()
             return _user
         except Exception as e:
             raise e
-    
-
-    def user_create(self):
-        try:
-            _sign_up = SignUp(
-                    name= self._name,
-                    mail= self._user_email,
-                    password= self._password,
-                    document= self._document,
-                    phone= self._phone
-                    )
-            _user = create_user(
-                    db=self.db,
-                    obj_in=_sign_up
-                    )
-            return _user
-        except Exception as e:
-            raise e
-
+        
 
 class Adress:
     def __init__(self, db: Session, checkout_data: CheckoutSchema, user):
@@ -103,51 +67,38 @@ class Adress:
 
 
 class Product:
-    def create_product(db: Session, product: ProductSchema):
-        try:
-            if not product.upsell:
-                    _upsell = None
-            elif None in product.upsell:
-                _upsell = None
-            else:
-                _upsell = product.upsell
-            db_product = Product(db, product, _upsell).post_product()
-            return db_product
-        except Exception as e:
-            logger.debug(f"PRODUCT ERROR ---- {e}")
-            raise e
-    
+    def __init__(self, db:Session, item):
+        self.db = db
+        self.item = item 
 
-    def decrease():
-        _product_decrease = DecreaseProduct.decrease_product()
-        _qty_decrease = int(item.get("quantity"))
+
+    def decrease(self):
+        _product_decrease = DecreaseProduct(db=self.db, item= self.item).decrease_product()
+        _qty_decrease = int(self.item.get("quantity"))
+        _product_decrease.quantity -= _qty_decrease
         if _product_decrease.quantity < 0:
             raise Exception('Produto esgotado')
         else:
-            db.add(_product_decrease)
+            self.db.add(_product_decrease)
     
 
 class ShoppingCart:
-    def __init__(self, db: Session, checkout_data: CheckoutSchema, user, affiliate, order):
+    def __init__(self, db: Session, checkout_data: CheckoutSchema, user):
         self.db = db
         self.checkout_data = checkout_data
         self.user = user
-        self._affiliate = affiliate
-        self.order = order
         self._shopping_cart = self.checkout_data.get("shopping_cart")
-    
+        
+
+    def cart(self):
+        for cart in self._shopping_cart[0].get("itens"):
+            return cart
+
 
     def add_items(self):
         _items = []
         for cart in self._shopping_cart[0].get("itens"):
             logger.debug(cart)
-            # db_transaction = CreateTransaction(
-            #     user_id=self.user.id, 
-            #     cart=cart, 
-            #     order=self.order, 
-            #     affiliate=self._affiliate, 
-            #     db_payment=self.db_payment
-            # ).create_transaction()
             _items.append({
                 "id": str(cart.get("product_id")),
                 "title": cart.get("product_name"),
@@ -155,10 +106,10 @@ class ShoppingCart:
                 "quantity": cart.get("qty"),
                 "tangible": str(cart.get("tangible"))
             })
-            # self.db.add(db_transaction)
-            # self.db.commit()
+            for item in _items:
+                Product(db=self.db, item=item).decrease()
             return _items
-    
+
 
     def installments(self):
         _total_amount = Decimal(self._shopping_cart[0].get("total_amount"))
@@ -172,14 +123,15 @@ class ShoppingCart:
         if _installments > 12:
             raise Exception("O número máximo de parcelas é 12")
         elif _installments >= _config_installments.min_installment_with_fee:
-            _total_amount = _total_amount * ((1+ _config_installments.fee) ** _installments)
+            _total_amount = _total_amount * ((1+ Decimal(_config_installments.fee)) ** _installments)
         return _installments
 
 
 class ProcessOrder:
-    def __init__(self, db: Session, shopping_cart, user, payment_address, shipping_address):
+    def __init__(self, db: Session, checkout_data: CheckoutSchema, user, payment_address, shipping_address):
         self.db = db
-        self.shopping_cart = shopping_cart
+        self.checkout_data = checkout_data
+        self.shopping_cart = self.checkout_data.get('shopping_cart')
         self.user = user
         self.payment_address = payment_address
         self.shipping_address = shipping_address
@@ -193,7 +145,7 @@ class ProcessOrder:
                 order_status = 'pending')
             self.db.add(db_order)
 
-            for cart in self.shopping_cart:
+            for cart in self.shopping_cart[0].get('itens'):
                 db_item = OrderItems(
                     order_id = db_order.id,
                     product_id = cart.get("product_id"),
@@ -235,48 +187,75 @@ class ProcessOrder:
 
 
     def shipping(self):
-        _total_amount =self.shopping_cart[0].get("total_amount")
-
+        _total_amount = Decimal(self.shopping_cart[0].get('total_amount'))
         _shipping = {
         "name": self.user.name,
-        "fee": _total_amount,
+        "fee": int(_total_amount)*100,
         "delivery_date": datetime.now().strftime("%Y-%m-%d"),
         "expedited": "true",
         "address": self.shipping_address.to_json()
             }
+        logger.debug(_shipping)
         logger.error(f"{_shipping}")
-        return _shipping 
+        return _shipping
 
+class ProcessTransaction:
+    def __init__(self, db:Session, user, order, payment_id, affiliate, cart, _items):
+        self.db=db
+        self.user = user
+        self.order = order
+        self.payment_id = payment_id
+        self.affiliate = affiliate
+        self.cart = cart
+        self._items = _items
 
-class Payment:
-    def __init__(self, db: Session, checkout_data: CheckoutSchema, user, affiliate, order):
+    def transaction(self):
+        db_transaction = CreateTransaction(
+                user_id=self.user.id, 
+                cart=self.cart, 
+                order=self.order, 
+                payment_id=self.payment_id,
+                affiliate=self.affiliate
+                ).create_transaction()
+        return db_transaction
+    
+    def transaction_for_item(self):
+        for item in self._items:
+            db_transaction = self.transaction()
+            self.db.add(db_transaction)
+            self.db.commit()
+
+class ProcessPayment:
+    def __init__(self, db: Session, checkout_data: CheckoutSchema, user, affiliate, order, _customer, _billing, _shipping, shopping_cart):
         self.db = db
         self.checkout_data = checkout_data
         self.user = user
         self.affiliate = affiliate
         self.order = order
-        self.shopping_cart = ShoppingCart(db=db,checkout_data=checkout_data,user=self.user, affiliate=self.affiliate, order=self.order)
+        self.shopping_cart = shopping_cart
         self._installments = self.shopping_cart.installments()
         self._items = self.shopping_cart.add_items()
-        self._customer = self.order.customer()
-        self._billing = self.order.billing()
-        self._shipping = self.order.shipping()
+        self._customer = _customer
+        self._billing = _billing
+        self._shipping = _shipping
+ 
 
     def db_payment(self):
         db_payment = CreatePayment(
             user_id=self.user.id,
-            _total_amount= Decimal(self._shopping_cart[0].get("total_amount")),
             _installments= self._installments,
             _payment_method= self.checkout_data.get('payment_method'),
             db= self.db ).create_payment()
         return db_payment
     
+
     def process_payment(self):
+        self.db_payment()
         if self.checkout_data.get('payment_method') == 'credit-card':
             return self.payment_credit_card()
         else:
             return self.payment_slip()
-
+       
     
     def payment_credit_card(self):
         _payment = CreditCardPayment(
@@ -294,11 +273,10 @@ class Payment:
         )
         logger.error("CREDIT CARD RESPONSE")
         logger.debug(f"{_payment}")
-        response = CreditCardGateway(db=self.db, payment=_payment).credit_card()
-        return response
-        
+        return credit_card_payment(db=self.db, payment=_payment)
+    
 
-    def payment_slip():
+    def payment_slip(self):
         _slip_expire = datetime.now() + timedelta(days=3)
         _payment = SlipPayment(
                 amount= 100,
@@ -319,31 +297,41 @@ class Payment:
                     ]
                 )
         
-        return SlipPaymentGateway(db=self.db, payment=_payment).slip_payment()
+        return slip_payment(db=self.db, payment=_payment)
 
 
 class Checkout:
-    def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None):
+    def process_checkout(db: Session, checkout_data: CheckoutSchema, affiliate=None, cupom=None):
         try:
-            _user = User(db=db, checkout_data=checkout_data).check_user()
+            _user = User(db=db, checkout_data=checkout_data).user()
             _adress = Adress(db=db, checkout_data=checkout_data, user=_user)
-            _payment_address = Adress(db=db, checkout_data=checkout_data, user=_user).payment_address()
-            _shipping_address = Adress(db=db, checkout_data=checkout_data, user=_user).shipping_address()
-            _order = ProcessOrder(
-                db=db, 
+            _payment_address = register_payment_address(db=db, checkout_data=checkout_data, user=_user)
+            _shipping_address = register_shipping_address(db=db, checkout_data=checkout_data, user=_user)
+            order = ProcessOrder(
+                db=db,
+                checkout_data=checkout_data,
                 user=_user,
-                shopping_cart=checkout_data.get('shopping_cart')[0].get("itens"),
                 payment_address=_payment_address,
                 shipping_address=_shipping_address)
-
-            _payment = Payment(
+            _order = order.process_order()
+            _shopping_cart = ShoppingCart(db=db, checkout_data=checkout_data, user=_user)
+            payment = ProcessPayment(
                 db=db, 
                 checkout_data=checkout_data, 
                 user= _user,
                 affiliate= affiliate,
-                order= _order
-                ).process_payment()
+                order= _order,
+                _customer= order.customer(),
+                _billing=order.billing(),
+                _shipping=order.shipping(),
+                shopping_cart= _shopping_cart
+                )
+            _payment = payment.process_payment()
 
+            _transaction = ProcessTransaction(db=db, user=_user, order=_order, affiliate=affiliate, payment_id=payment.db_payment().id, cart=_shopping_cart.cart(), _items=_shopping_cart.add_items())
+            _transaction.transaction_for_item()
+            if _order.order_status == 'pending':
+                UpdateStatus.update_payment_status(db=db, payment_data=_payment, order= _order)
             if "credit-card" in _payment.values():
                 _payment_response = {
                     'token': _payment.get("token"),
@@ -368,7 +356,8 @@ class Checkout:
         except Exception as e:
             # db.rollback()
             logger.error(f"----- ERROR PAYMENT {e} ")
-            raise HTTPException(status_code=206, detail=f"Erro ao processar o pagamento verifique os dados ou veja o motivo a seguir -> Motivo {e}")
+            raise e
+
 
 class Email:
     def email():

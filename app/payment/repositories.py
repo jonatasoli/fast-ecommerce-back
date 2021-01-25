@@ -1,45 +1,37 @@
+from fastapi import Depends
+from decimal import Decimal
+from sqlalchemy.orm import Session
 from models.order import Product
 from models.transaction import Transaction, Payment, CreditCardFeeConfig
-
-
-class CreateProduct:
-    def __init__(self, db, product, _upsell):
-        self.db= db
-        self.product = product
-        self._upsell = _upsell
-
-
-    def post_product(self):
-        db_product = Product(
-                name=self.product.name,
-                price=self.product.price,
-                direct_sales=self.product.direct_sales,
-                upsell=self._upsell
-                )
-        self.db.add(db_product)
-        self.db.commit()
-        return db_product
+from payment.schema import ConfigCreditCardInDB, ConfigCreditCardResponse
+from payment.adapter import Database
+from endpoints import deps
+from datetime import datetime
 
 
 class DecreaseProduct:
-    def decrease_product():
-        _product_decrease = db.query(Product).filter_by(id=item.get("id")).first()
+    def __init__(self, db, item):
+        self.db = db
+        self.item = item
+
+
+    def decrease_product(self):
+        _product_decrease = self.db.query(Product).filter_by(id=self.item.get("id")).first()
         return _product_decrease
 
 
 class CreatePayment:
-    def __init__(self, user_id, _total_amount, _payment_method, _installments, db):
+    def __init__(self, user_id, _payment_method, _installments, db):
         self.user_id = user_id
-        self._total_amount = _total_amount
         self._payment_method = _payment_method
         self._installments = _installments
         self.db = db
 
 
-    def create_payment():
+    def create_payment(self):
         db_payment = Payment(
                 user_id=self.user_id,
-                amount=int(self._total_amount)*100,
+                amount=100,
                 status="pending",
                 payment_method=self._payment_method,
                 payment_gateway="PagarMe",
@@ -50,14 +42,22 @@ class CreatePayment:
         return db_payment
 
 
+class QueryPayment:
+    def __init__(self, db):
+        self.db = db 
+
+    def query(self):
+        db_payment = self.db.query(Payment).first()
+        return db_payment
+
+
 class CreateTransaction:
-    def __init__(self, user_id, cart, order, _affiliate, db_payment):
+    def __init__(self, user_id, cart, order, affiliate, payment_id):
         self.user_id = user_id
         self.cart = cart 
         self.order = order 
-        self._affiliate = _affiliate
-        self.db_payment = db_payment
-
+        self.affiliate = affiliate
+        self.payment_id = payment_id
 
     def create_transaction(self):
         db_transaction = Transaction(
@@ -65,16 +65,16 @@ class CreateTransaction:
             amount= self.cart.get("amount"),
             order_id=self.order.id,
             qty= self.cart.get("qty"),
-            payment_id=self.db_payment.id,
+            payment_id=self.payment_id,
             status= "pending",
             product_id=self.cart.get("product_id"),
-            affiliate= self._affiliate,
+            affiliate= self.affiliate,
         )
         return db_transaction
 
 
 class GetCreditCardConfig:
-    def __init__(self, db, _product_id):
+    def __init__(self, db: Session, _product_id):
         self.db = db
         self._product_id = _product_id
 
@@ -85,4 +85,50 @@ class GetCreditCardConfig:
         _config_installments = self.db.query(CreditCardFeeConfig)\
             .filter_by(id=_product_config.installments_config)\
             .first()
-        return _config_installments
+        return ConfigCreditCardResponse.from_orm(_config_installments)
+
+
+class CreditCardConfig:
+    def __init__(self, config_data):
+        self.config_data = config_data
+
+
+    def create_installment_config(self):
+        db_config = CreateCreditConfig(config_data=self.config_data).create_credit()
+        return db_config
+
+
+class CreateCreditConfig:
+    def __init__(self,config_data):
+        self.config_data = config_data
+
+    def create_credit(self):
+        db = Database.get_db()
+        db_config = CreditCardFeeConfig(
+            active_date = datetime.now(),
+            fee=Decimal(self.config_data.fee),
+            min_installment_with_fee=self.config_data.min_installment,
+            mx_installments=self.config_data.max_installment
+            )
+        db.add(db_config)
+        db.commit()
+        return db_config
+
+
+class UpdateStatus:
+    def update_payment_status(db:Session, payment_data, order):
+        db_transaction = db.query(Transaction).filter_by(order_id=order.id).first()
+        db_transaction.status = payment_data.get("status")
+
+        db_payment = db.query(Payment).filter_by(id=db_transaction.payment_id).first()
+        db_payment.processed=True
+        db_payment.processed_at=datetime.now()
+        db_payment.gateway_id = payment_data.get("gateway_id")
+        db_payment.token=payment_data.get("token")
+        db_payment.authorization=payment_data.get("authorization_code")
+        db_payment.status=payment_data.get("status")
+        db.add(db_transaction)
+        db.add(db_payment)
+        db.commit()
+        db.refresh(db_transaction)
+        db.refresh(db_payment)

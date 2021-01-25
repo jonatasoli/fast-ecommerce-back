@@ -1,57 +1,47 @@
 from sqlalchemy.orm import Session
-from .schema import CreditCardPayment, SlipPayment
-from dynaconf import settings
+from payment.schema import CreditCardPayment, SlipPayment, ResponseGateway
 from loguru import logger
+from dynaconf import settings
 import json
 import requests
 
 
-class CreditCardGateway:
-    def __init__(self, db: Session, payment: CreditCardPayment):
-        self.db = db
-        self.payment = payment
+def credit_card_payment(db: Session, payment: CreditCardPayment):
+    try:
+        headers = {'Content-Type': 'application/json'}
+        logger.debug(f"{payment.json()}")
+        r = requests.post(settings.PAYMENT_GATEWAY_URL, data=payment.json(), headers=headers)
+        r = r.json()
+        logger.error(f"response error {r.get('errors')}")
+        response = ResponseGateway(
+            user= "usuario",
+            token= r.get('acquirer_id'),
+            status= r.get('status'),
+            authorization_code=r.get('authorization_code'),
+            gateway_id= r.get('id'),
+            payment_method= "credit-card",
+            errors= r.get('errors')).dict()
+        return response
+    except Exception as e:
+        raise e
 
 
-    def credit_card(self):
-        try:
-            headers = {'Content-Type': 'application/json'}
-            r = requests.post(settings.PAYMENT_GATEWAY_URL, data=self.payment.json(), headers=headers)
-            logger.error(f"response error {r.get('errors')}")
-            logger.info(f"RESPONSE ------------{r}")
-            r = r.json()
-            return {
-                "user": "usuario",
-                "token": r.get("acquirer_id"),
-                "status": r.get('status'),
-                "authorization_code": r.get('authorization_code'),
-                "gateway_id": r.get("id"),
-                "payment_method": "credit-card",
-                "errors": r.get("errors")}
-        except Exception as e:
-            raise e
-
-
-class SlipPaymentGateway:
-    def __init__(self, db: Session, payment: SlipPayment):
-        self.db= db
-        self.payment = payment
-
-
-    def slip_payment(self):
-        try:
-            headers = {'Content-Type': 'application/json'}
-            r = requests.post(settings.PAYMENT_GATEWAY_URL, data=self.payment.json(), headers=headers)
-            r = r.json()
-            logger.info(f"RESPONSE ------------{r}")
-            return {
-                "user": "usuario",
-                "token": r.get("acquirer_id"),
-                "status": r.get('status'),
-                "authorization_code": r.get("authorization_code"),
-                "payment_method": "slip-payment",
-                "boleto_url":  r.get("boleto_url"),
-                "boleto_barcode": r.get("boleto_barcode"),
-                "gateway_id": r.get("id"),
-                "errors": r.get("errors")}
-        except Exception as e:
-            raise e
+def slip_payment(db: Session, payment: SlipPayment):
+    try:
+        headers = {'Content-Type': 'application/json'}
+        r = requests.post(settings.PAYMENT_GATEWAY_URL, data=payment.json(), headers=headers)
+        r = r.json()
+        logger.info(f"RESPONSE ------------{r}")
+        response = ResponseGateway(
+            user= "usuario",
+            token= r.get('acquirer_id'),
+            status= r.get('status'),
+            authorization_code=r.get('authorization_code'),
+            gateway_id= r.get('id'),
+            payment_method= "slip-payment",
+            boleto_url=r.get('boleto_url'),
+            boleto_barcode=r.get('boletor_barcode'),
+            errors=r.get('errors')).dict()
+        return response
+    except Exception as e:
+        raise e
