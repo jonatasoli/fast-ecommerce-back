@@ -46,11 +46,12 @@ def checkout(
         cupom = data.dict().get('cupom')
         from loguru import logger
         logger.info(checkout_data)
-        checkout = Checkout.process_checkout(
+        checkout = Checkout(
             db=db,
             checkout_data=checkout_data,
             affiliate=affiliate,
-            cupom=cupom)
+            cupom=cupom
+        ).process_checkout()
         # import ipdb; ipdb.set_trace()
         return checkout
     except Exception as e:
@@ -79,10 +80,9 @@ def create_config(
 @payment.post('/gateway-payment-credit-card', status_code=201)
 async def payment_credit_card(
         *,
-        db: Session = Depends(deps.get_db),
         payment_data: CreditCardPayment
         ):
-    payment = gateway.credit_card_payment(db, payment=payment_data)
+    payment = gateway.credit_card_payment(payment=payment_data)
     return payment
 
 
@@ -90,8 +90,7 @@ async def payment_credit_card(
 @payment.post('/gateway-payment-bank-slip', status_code=201)
 def payment_bank_slip(
         *,
-        db: Session = Depends(deps.get_db),
         payment_data: SlipPayment
         ):
-    payment = gateway.slip_payment(db, payment=payment_data)
+    payment = gateway.slip_payment(payment=payment_data)
     return payment
