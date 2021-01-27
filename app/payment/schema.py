@@ -29,6 +29,14 @@ class SlipPayment(BaseModel):
     name: str
     documents: list
 
+class PaymentResponse(BaseModel):
+    token: Optional[str]
+    order_id: int
+    name: str
+    payment_status: Optional[str]
+    boleto_url: Optional[str]
+    boleto_barcode: Optional[str]
+    errors: Optional[list]
 
 class ResponseGateway(BaseModel):
     user: str
@@ -115,7 +123,7 @@ class ListProducts(BaseModel):
 
     class Config:
         orm_mode = True
-
+        
 
 class InstallmentSchema(BaseModel):
     cart: list
@@ -136,8 +144,11 @@ class OrderFullResponse(BaseModel):
     id: int
     customer_id: int
     order_date: datetime
-    tracking_number: int
-    payment_id: int 
+    tracking_number: Optional[int]
+    payment_id: Optional[int]
+    order_status: str
+    last_updated: Optional[datetime]
+
 
     class Config:
         orm_mode = True

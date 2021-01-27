@@ -6,7 +6,7 @@ import json
 import requests
 
 
-def credit_card_payment(db: Session, payment: CreditCardPayment):
+def credit_card_payment(payment: CreditCardPayment):
     try:
         headers = {'Content-Type': 'application/json'}
         logger.debug(f"{payment.json()}")
@@ -26,7 +26,7 @@ def credit_card_payment(db: Session, payment: CreditCardPayment):
         raise e
 
 
-def slip_payment(db: Session, payment: SlipPayment):
+def slip_payment(payment: SlipPayment):
     try:
         headers = {'Content-Type': 'application/json'}
         r = requests.post(settings.PAYMENT_GATEWAY_URL, data=payment.json(), headers=headers)

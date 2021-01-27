@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from endpoints.v1.users import user
 from payment.endpoint import payment
-# from endpoints.v1.direct_sales import direct_sales
 from endpoints.v1.shipping import shipping
 from endpoints.v1.order import order
 from endpoints.v1.mail import mail
@@ -56,10 +55,6 @@ app.include_router(
         user,
         prefix="/user")
 app.include_router(payment)
-# app.include_router(
-#         direct_sales,
-#         prefix="/direct-sales",
-#         responses={404: {"description": "Not found"}})
 app.include_router(shipping)
 app.include_router(order)
 app.include_router(
