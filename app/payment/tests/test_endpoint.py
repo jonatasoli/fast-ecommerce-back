@@ -10,18 +10,21 @@ from schemas.order_schema import ProductSchema
 from domains.domain_order import create_product
 from domains.domain_order import create_order
 
+name = 'Jonatas L Oliveira'
+city = 'São Paulo'
+
 transacton_with_shipping = {
         'document': '86187785088',
         'mail': 'mail@jonatasoliveira.me',
         'password': 'asdasd',
         'phone': '12345678901',
-        'name': 'Jonatas L Oliveira',
+        'name': name,
         'address': 'Rua XZ',
         'address_number': '160',
         'address_complement': 'Apto 444',
         'neighborhood': 'Narnia',
-        'city': 'São Paulo',
-        'state': 'São Paulo',
+        'city': city,
+        'state': city,
         'country': 'br',
         'zip_code': '18120000',
         'shipping_is_payment': True,
@@ -31,7 +34,7 @@ transacton_with_shipping = {
         'ship_address_complement': '',
         'ship_neighborhood': '',
         'ship_city': '',
-        'ship_state': 'São Paulo',
+        'ship_state': city,
         'ship_country': 'br',
         'ship_zip_code': '',
         'payment_method': 'credit-card',
@@ -54,13 +57,13 @@ transacton_with_shipping_and_document_error = {
         'mail': 'mail2@jonatasoliveira.me',
         'password': 'asdasd',
         'phone': '12345678910',
-        'name': 'Jonatas L Oliveira',
+        'name': name,
         'address': 'Rua XZ',
         'address_number': '160',
         'address_complement': 'Apto 444',
         'neighborhood': 'Narnia',
-        'city': 'São Paulo',
-        'state': 'São Paulo',
+        'city': city,
+        'state': city,
         'country': 'br',
         'zip_code': '18120000',
         'shipping_is_payment': True,
@@ -70,7 +73,7 @@ transacton_with_shipping_and_document_error = {
         'ship_address_complement': '',
         'ship_neighborhood': '',
         'ship_city': '',
-        'ship_state': 'São Paulo',
+        'ship_state': city,
         'ship_country': 'br',
         'ship_zip_code': '',
         'payment_method': 'credit-card',
@@ -80,7 +83,7 @@ transacton_with_shipping_and_document_error = {
                 'installments': 5,
                 'itens': [{'amount': 100000, 'qty': 1, 'product_id': 1, 'product_name': 'course01', 'tangible': True}]
                 }],
-        'credit_card_name': 'Jonatas L Oliveira',
+        'credit_card_name': name,
         'credit_card_number': '5401641103018656',
         'credit_card_cvv': '123', 
         'credit_card_validate': '1220',
@@ -161,7 +164,7 @@ def test_payment(t_client):
     r = t_client.post("/checkout", json=data)
     response = r.json()
     assert r.status_code == 201
-    assert response.get('order_id') == 1
+    assert response.get('order_id') == 2
     assert response.get('payment_status') == "PAGAMENTO REALIZADO"
 
 @pytest.mark.fourth

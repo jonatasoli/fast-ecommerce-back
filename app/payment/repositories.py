@@ -10,6 +10,10 @@ from datetime import datetime
 from loguru import logger
 
 
+def rollback():
+    db= Database.get_db()
+    db.rollback()
+
 class ProductDB:
     def __init__(self,item):
         self.db = Database.get_db()
@@ -51,7 +55,6 @@ class OrderDB:
         db.add(db_item)
         db.commit()
     
-
 class CreatePayment:
     def __init__(self, user_id, _payment_method, _installments):
         self.user_id = user_id
@@ -153,18 +156,23 @@ class CreateCreditConfig:
 
 
 class UpdateStatus:
-    def update_payment_status(db:Session, payment_data, order):
-        db_transactions = db.query(Transaction).filter_by(order_id=order.id).all()
+    def __init__(self, payment_data, order):
+        self.payment_data = payment_data
+        self.order = order
+
+    def update_payment_status(self):
+        db= Database.get_db()
+        db_transactions = db.query(Transaction).filter_by(order_id=self.order.id).all()
         for db_transaction in db_transactions:
-            db_transaction.status = payment_data.get("status")
+            db_transaction.status = self.payment_data.get("status")
 
             db_payment = db.query(Payment).filter_by(id=db_transaction.payment_id).first()
             db_payment.processed=True
             db_payment.processed_at=datetime.now()
-            db_payment.gateway_id = payment_data.get("gateway_id")
-            db_payment.token=payment_data.get("token")
-            db_payment.authorization=payment_data.get("authorization_code")
-            db_payment.status=payment_data.get("status")
+            db_payment.gateway_id = self.payment_data.get("gateway_id")
+            db_payment.token=self.payment_data.get("token")
+            db_payment.authorization=self.payment_data.get("authorization_code")
+            db_payment.status=self.payment_data.get("status")
             db.add(db_transaction)
             db.add(db_payment)
             db.commit()
