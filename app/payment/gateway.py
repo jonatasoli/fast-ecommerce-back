@@ -23,6 +23,7 @@ def credit_card_payment(payment: CreditCardPayment):
             errors= r.get('errors')).dict()
         return response
     except Exception as e:
+        logger.error('Erro ao retornar gateway {e}')
         raise e
 
 
@@ -44,4 +45,5 @@ def slip_payment(payment: SlipPayment):
             errors=r.get('errors')).dict()
         return response
     except Exception as e:
+        logger.error('Erro ao retornar gateway {e}')
         raise e

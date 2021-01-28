@@ -5,7 +5,7 @@ from dynaconf import settings
 from domains.domain_user import register_payment_address, register_shipping_address
 from payment.repositories import ProductDB, CreateTransaction\
  ,GetCreditCardConfig, CreateTransaction, CreatePayment, QueryPayment,\
-     UpdateStatus, OrderDB
+     UpdateStatus, OrderDB, rollback
 from payment.adapter import AdapterUser
 from payment.schema import CheckoutSchema, CreditCardPayment, SlipPayment,\
     PaymentResponse
@@ -24,42 +24,14 @@ class User:
         self._phone = checkout_data.get('phone')
 
     def user(self):
-        try:
-            _user = AdapterUser(
-                db= self.db,
-                _user_email = self._user_email,
-                _password = self._password,
-                _name = self._name,
-                _document = self._document,
-                _phone = self._phone).check_user()
-            return _user
-        except Exception as e:
-            raise e
-        
-
-class Adress:
-    def __init__(self, db: Session, checkout_data: CheckoutSchema, user):
-        self.db = db
-        self.checkout_data = checkout_data
-        self.user = user
-
-
-    def payment_address(self):
-        _payment_address = register_payment_address(
-            db=self.db,
-            checkout_data=self.checkout_data,
-            user=self.user
-        )
-        return _payment_address
-
-
-    def shipping_address(self):
-        _shipping_address = register_shipping_address(
-            db=self.db,
-            checkout_data=self.checkout_data,
-            user=self.user
-        )
-        return _shipping_address
+        _user = AdapterUser(
+            db= self.db,
+            _user_email = self._user_email,
+            _password = self._password,
+            _name = self._name,
+            _document = self._document,
+            _phone = self._phone).check_user()
+        return _user
 
 
 class Product:
@@ -73,7 +45,7 @@ class Product:
         _qty_decrease = int(self.item.get("quantity"))
         _product_decrease.quantity -= _qty_decrease
         if _product_decrease.quantity < 0:
-            raise Exception('Produto esgotado')
+            raise TypeError('Produto esgotado')
         else:
             _product.add_product(_product_decrease)
     
@@ -111,7 +83,7 @@ class ShoppingCart:
         else:
             _installments = 1
         if _installments > 12:
-            raise Exception("O número máximo de parcelas é 12")
+            raise TypeError("O número máximo de parcelas é 12")
         elif _installments >= _config_installments.min_installment_with_fee:
             _total_amount = _total_amount * ((1+ Decimal(_config_installments.fee)) ** _installments)
         return _installments
@@ -175,7 +147,6 @@ class ProcessPayment:
                 customer= self._customer,
                 type= "individual",
                 country= "br",
-                # postback_url= "api.graciellegatto.com.br/payment-postback",
                 boleto_expiration_date= _slip_expire.strftime("%Y/%m/%d"),
                 email= self._customer.get("email"),
                 name= self._customer.get("name"),
@@ -201,13 +172,13 @@ class ProcessOrder:
 
     def process_order(self):
         try:
-            orderDB = OrderDB(user_id=self.user.id)
-            db_order = orderDB.create_order()
+            order_db = OrderDB(user_id=self.user.id)
+            db_order = order_db.create_order()
             for cart in self.shopping_cart[0].get('itens'):
-                orderDB.create_order_items(db_order.id, cart)
+                order_db.create_order_items(db_order.id, cart)
             return db_order
         except Exception as e:
-            # self.db.rollback()
+            logger.erro('Erro ao criar pedido {e}')
             raise e
 
     
@@ -284,7 +255,6 @@ class Checkout:
     def process_checkout(self):
         try:
             _user = User(db=self.db, checkout_data=self.checkout_data).user()
-            _adress = Adress(db=self.db, checkout_data=self.checkout_data, user=_user)
             _payment_address = register_payment_address(db=self.db, checkout_data=self.checkout_data, user=_user)
             _shipping_address = register_shipping_address(db=self.db, checkout_data=self.checkout_data, user=_user)
             order = ProcessOrder(
@@ -302,7 +272,7 @@ class Checkout:
                 _shipping= order.shipping(),
                 _customer= order.customer())
             _payment = payment.process_payment()
-            _transaction = ProcessTransaction(
+            ProcessTransaction(
                 checkout_data= self.checkout_data,
                 user = _user,
                 order= _order,
@@ -310,7 +280,7 @@ class Checkout:
                 affiliate= self.affiliate).transaction()
 
             if _order.order_status == 'pending' or _order.order_status != 'pending':
-                UpdateStatus.update_payment_status(db=self.db, payment_data=_payment, order= _order)
+                UpdateStatus(payment_data=_payment, order= _order).update_payment_status()
             if "credit-card" in _payment.values():
                 _payment_response = PaymentResponse(
                     token= _payment.get("token"),
@@ -333,6 +303,6 @@ class Checkout:
             return _payment_response
 
         except Exception as e:
-            # db.rollback()
+            rollback()
             logger.error(f"----- ERROR PAYMENT {e} ")
             raise e

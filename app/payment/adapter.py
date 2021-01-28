@@ -25,6 +25,7 @@ class AdapterUser:
                 return self.user_create()
             return _user
         except Exception as e:
+            logger.error('Erro ao criar usuário {e}')
             raise e
 
     def user_create(self):
@@ -45,7 +46,7 @@ class AdapterUser:
 
 class Database:
     def get_db():
-        SessionLocal = get_session()
-        db = SessionLocal()
+        session_local = get_session()
+        db = session_local()
         return db
 

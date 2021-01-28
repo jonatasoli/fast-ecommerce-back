@@ -13,6 +13,8 @@ from payment.service import Checkout
 from domains import domain_order
 from endpoints import deps
 
+from loguru import logger
+
 payment = APIRouter()
 
 @payment.get('/product/{uri}', status_code=200)
@@ -23,6 +25,7 @@ async def get_product(
     try:
         return domain_order.get_product(db, uri)
     except Exception as e:
+        logger.erro('Erro ao retornar produto {e}')
         raise e
 
 
@@ -31,6 +34,7 @@ async def get_upsell_products(id):
     try:
         return True
     except Exception as e:
+        logger.error('Erro ao retornar upsell {e}')
         raise e
 
 
@@ -40,22 +44,18 @@ def checkout(
                 db: Session = Depends(deps.get_db),
                 data: CheckoutReceive
         ):
-    try:
-        checkout_data = data.dict().get('transaction')
-        affiliate = data.dict().get('affiliate')
-        cupom = data.dict().get('cupom')
-        from loguru import logger
-        logger.info(checkout_data)
-        checkout = Checkout(
-            db=db,
-            checkout_data=checkout_data,
-            affiliate=affiliate,
-            cupom=cupom
-        ).process_checkout()
-        # import ipdb; ipdb.set_trace()
-        return checkout
-    except Exception as e:
-        raise e
+    checkout_data = data.dict().get('transaction')
+    affiliate = data.dict().get('affiliate')
+    cupom = data.dict().get('cupom')
+    from loguru import logger
+    logger.info(checkout_data)
+    checkout = Checkout(
+        db=db,
+        checkout_data=checkout_data,
+        affiliate=affiliate,
+        cupom=cupom
+    ).process_checkout()
+    return checkout
 
 
 @payment.post('/create-product', status_code=201)
