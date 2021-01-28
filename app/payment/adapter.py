@@ -44,9 +44,9 @@ class AdapterUser:
         logger.info(_user)
         return _user
 
-class Database:
-    def get_db():
-        session_local = get_session()
-        db = session_local()
-        return db
+
+def get_db():
+    session_local = get_session()
+    db = session_local()
+    return db
 
