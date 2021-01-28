@@ -5,18 +5,18 @@ from models.order import Product, Order, OrderItems
 from models.transaction import Transaction, Payment, CreditCardFeeConfig
 from payment.schema import ConfigCreditCardInDB, ConfigCreditCardResponse\
     , OrderFullResponse, ProductInDB
-from payment.adapter import Database
+from payment.adapter import get_db
 from datetime import datetime
 from loguru import logger
 
 
 def rollback():
-    db= Database.get_db()
+    db= get_db()
     db.rollback()
 
 class ProductDB:
     def __init__(self,item):
-        self.db = Database.get_db()
+        self.db = get_db()
         self.item = item
 
 
@@ -35,7 +35,7 @@ class OrderDB:
         self.user_id = user_id
 
     def create_order(self):
-        db = Database.get_db()
+        db = get_db()
         db_order = Order(
             customer_id= self.user_id,
             order_date= datetime.now(),
@@ -46,7 +46,7 @@ class OrderDB:
       
     
     def create_order_items(self, db_order, cart):
-        db = Database.get_db()
+        db = get_db()
         db_item = OrderItems(
                 order_id = db_order,
                 product_id = cart.get("product_id"),
@@ -60,7 +60,7 @@ class CreatePayment:
         self.user_id = user_id
         self._payment_method = _payment_method
         self._installments = _installments
-        self.db = Database.get_db()
+        self.db = get_db()
 
 
     def create_payment(self):
@@ -88,7 +88,7 @@ class QueryPayment:
 
 class CreateTransaction:
     def __init__(self,user_id, cart, order, affiliate, payment_id):
-        self.db = Database.get_db()
+        self.db = get_db()
         self.user_id = user_id
         self.cart = cart 
         self.order = order 
@@ -113,7 +113,7 @@ class CreateTransaction:
 
 class GetCreditCardConfig:
     def __init__(self, _product_id):
-        self.db = Database.get_db()
+        self.db = get_db()
         self._product_id = _product_id
 
 
@@ -143,7 +143,7 @@ class CreateCreditConfig:
 
 
     def create_credit(self):
-        db = Database.get_db()
+        db = get_db()
         db_config = CreditCardFeeConfig(
             active_date = datetime.now(),
             fee=Decimal(self.config_data.fee),
@@ -161,7 +161,7 @@ class UpdateStatus:
         self.order = order
 
     def update_payment_status(self):
-        db= Database.get_db()
+        db= get_db()
         db_transactions = db.query(Transaction).filter_by(order_id=self.order.id).all()
         for db_transaction in db_transactions:
             db_transaction.status = self.payment_data.get("status")

@@ -164,7 +164,7 @@ def test_payment(t_client):
     r = t_client.post("/checkout", json=data)
     response = r.json()
     assert r.status_code == 201
-    assert response.get('order_id') == 2
+    assert response.get('order_id') == 1
     assert response.get('payment_status') == "PAGAMENTO REALIZADO"
 
 @pytest.mark.fourth
