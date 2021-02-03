@@ -2,26 +2,29 @@ import pytest
 from loguru import logger
 from fastapi.testclient import TestClient
 
-from app.main import app
-from app.endpoints.deps import get_db
+from main import app
+from endpoints.deps import get_db
 
 
-from app.schemas.order_schema import ProductSchema
+from schemas.order_schema import ProductSchema
 from domains.domain_order import create_product
 from domains.domain_order import create_order
 
+name = 'Jonatas L Oliveira'
+city = 'São Paulo'
+
 transacton_with_shipping = {
-        'document': '22941297090',
+        'document': '86187785088',
         'mail': 'mail@jonatasoliveira.me',
         'password': 'asdasd',
         'phone': '12345678901',
-        'name': 'Jonatas L Oliveira',
+        'name': name,
         'address': 'Rua XZ',
         'address_number': '160',
         'address_complement': 'Apto 444',
         'neighborhood': 'Narnia',
-        'city': 'São Paulo',
-        'state': 'São Paulo',
+        'city': city,
+        'state': city,
         'country': 'br',
         'zip_code': '18120000',
         'shipping_is_payment': True,
@@ -31,7 +34,7 @@ transacton_with_shipping = {
         'ship_address_complement': '',
         'ship_neighborhood': '',
         'ship_city': '',
-        'ship_state': 'São Paulo',
+        'ship_state': city,
         'ship_country': 'br',
         'ship_zip_code': '',
         'payment_method': 'credit-card',
@@ -39,7 +42,8 @@ transacton_with_shipping = {
             {
                 'total_amount': '2000.00',
                 'installments': 5,
-                'itens': [{'amount': 100000, 'qty': 1, 'product_id': 1, 'product_name': 'course01', 'tangible': True}]
+                'itens': [{'amount': 100000, 'qty': 1, 'product_id': 1, 'product_name': 'course01', 'tangible': True},
+                {'amount': 100000, 'qty': 1, 'product_id': 1, 'product_name': 'course01', 'tangible': True}]
                 }],
         'credit_card_name': 'Jonatas L Oliveira',
         'credit_card_number': '5286455462496746',
@@ -53,13 +57,13 @@ transacton_with_shipping_and_document_error = {
         'mail': 'mail2@jonatasoliveira.me',
         'password': 'asdasd',
         'phone': '12345678910',
-        'name': 'Jonatas L Oliveira',
+        'name': name,
         'address': 'Rua XZ',
         'address_number': '160',
         'address_complement': 'Apto 444',
         'neighborhood': 'Narnia',
-        'city': 'São Paulo',
-        'state': 'São Paulo',
+        'city': city,
+        'state': city,
         'country': 'br',
         'zip_code': '18120000',
         'shipping_is_payment': True,
@@ -69,7 +73,7 @@ transacton_with_shipping_and_document_error = {
         'ship_address_complement': '',
         'ship_neighborhood': '',
         'ship_city': '',
-        'ship_state': 'São Paulo',
+        'ship_state': city,
         'ship_country': 'br',
         'ship_zip_code': '',
         'payment_method': 'credit-card',
@@ -79,7 +83,7 @@ transacton_with_shipping_and_document_error = {
                 'installments': 5,
                 'itens': [{'amount': 100000, 'qty': 1, 'product_id': 1, 'product_name': 'course01', 'tangible': True}]
                 }],
-        'credit_card_name': 'Jonatas L Oliveira',
+        'credit_card_name': name,
         'credit_card_number': '5401641103018656',
         'credit_card_cvv': '123', 
         'credit_card_validate': '1220',
@@ -109,7 +113,7 @@ def test_create_product_(db_models): #TODO Fix product ENDPOINT
     db.commit()
     assert db_product.id == 1
 
-@pytest.mark.skip
+@pytest.mark.first
 def test_create_config(t_client):
     _config = {
             "fee": "0.0599",
@@ -122,7 +126,7 @@ def test_create_config(t_client):
     assert r.status_code == 201
     assert response.get('fee') == "0.0599"
 
-@pytest.mark.skip
+@pytest.mark.second
 def test_create_product(t_client):
     product = {
             "description":"Test Product",
@@ -146,30 +150,30 @@ def test_create_product(t_client):
     }
 
 
-    r = t_client.post("/direct-sales/create-product", json=product)
+    r = t_client.post("/create-product", json=product)
     response = r.json()
     assert r.status_code == 201
     assert response.get('name') == "Test"
 
-@pytest.mark.skip
+@pytest.mark.third 
 def test_payment(t_client):
     data = { "transaction": transacton_with_shipping,
              "affiliate": "xyz",
              "cupom": "disconunt"
             }
-    r = t_client.post("/direct-sales/checkout", json=data)
+    r = t_client.post("/checkout", json=data)
     response = r.json()
     assert r.status_code == 201
     assert response.get('order_id') == 1
     assert response.get('payment_status') == "PAGAMENTO REALIZADO"
 
-@pytest.mark.skip
+@pytest.mark.fourth
 def test_payment_with_document_error(t_client):
     data = { "transaction": transacton_with_shipping_and_document_error,
              "affiliate": "xyz",
              "cupom": ""
             }
-    r = t_client.post("/direct-sales/checkout", json=data)
+    r = t_client.post("/checkout", json=data)
     response = r.json()
     assert r.status_code == 201
     assert response.get('order_id') == 2
