@@ -29,7 +29,7 @@ python-jose = {version = "^3.2.0", extras = ["cryptography"]}
 python-multipart = "^0.0.5"
 bcrypt = "^3.2.0"
 beautifulsoup4 = "^4.9.3"
-lxml = "^4.6.1"
+lxml = "^4.6.2"
 Jinja2 = "^2.11.2"
 sendgrid = "^6.4.7"
 
