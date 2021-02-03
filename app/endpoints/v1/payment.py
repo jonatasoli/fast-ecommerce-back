@@ -70,4 +70,3 @@ def checkout(
             db=db,
             checkout_data=checkout_data)
     return checkout
-
