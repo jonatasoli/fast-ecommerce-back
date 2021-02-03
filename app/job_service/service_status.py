@@ -1,7 +1,6 @@
-from models.order import Order
+from app.models.order import Order
 from job_service.service import get_session
 from sqlalchemy.orm import Session
-from models.order import Order
 from gateway.payment_gateway import return_transaction
 from loguru import logger
 
