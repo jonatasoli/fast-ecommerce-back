@@ -9,6 +9,7 @@ from constants import DocumentType
 from ext.database import Base
 
 from models.users import User
+
 class Product(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String)
