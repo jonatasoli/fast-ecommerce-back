@@ -3,11 +3,11 @@ import pytest
 from loguru import logger
 from fastapi.testclient import TestClient
 
-from app.main import app
-from app.endpoints.deps import get_db
+from main import app
+from endpoints.deps import get_db
 
 
-from app.schemas.order_schema import ProductSchema
+from schemas.order_schema import ProductSchema
 from domains.domain_order import create_order
 
 from endpoints.v1.order import status_pending, status_paid, order_status, check_status_pedding
@@ -55,7 +55,7 @@ def test_get_order_user_id(t_client):
     r = t_client.get("/order/user/1")
     response = r.json()
     assert r.status_code == 200
-    assert response.get("name") == "User Test"
+    assert response.get("name") == "Jonatas L Oliveira"
 
 
 def test_order_status(t_client):
