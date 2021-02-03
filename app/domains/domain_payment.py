@@ -347,6 +347,7 @@ def process_payment(
                     name= _customer.get("name"),
                     documents= [
                         {
+                            
                             "type":  "cpf",
                             "number": user.document 
                         }
