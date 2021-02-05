@@ -28,8 +28,9 @@ asyncpg==0.20.1; python_full_version >= "3.5.0" \
     --hash=sha256:e39aac2b3a2f839ce65aa255ce416de899c58b7d38d601d24ca35558e13b48e3 \
     --hash=sha256:2af6a5a705accd36e13292ea43d08c20b15e52d684beb522cb3a7d3c9c8f3f48 \
     --hash=sha256:394bf19bdddbba07a38cd6fb526ebf66e120444d6b3097332b78efd5b26495b0
-autopep8==1.5.4 \
-    --hash=sha256:d21d3901cb0da6ebd1e83fc9b0dfbde8b46afc2ede4fe32fbda0c7c6118ca094
+autopep8==1.5.5 \
+    --hash=sha256:9e136c472c475f4ee4978b51a88a494bfcd4e3ed17950a44a988d9e434837bea \
+    --hash=sha256:cae4bc0fb616408191af41d062d7ec7ef8679c7f27b068875ca3a9e2878d5443
 bcrypt==3.2.0; python_version >= "3.6" \
     --hash=sha256:c95d4cbebffafcdd28bd28bb4e25b31c50f6da605c81ffd9ad8a3d1b2ab7b1b6 \
     --hash=sha256:63d4e3ff96188e5898779b6057878fecf3f11cfe6ec3b313ea09955d587ec7a7 \
