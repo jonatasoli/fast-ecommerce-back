@@ -2,7 +2,7 @@ from pydantic import BaseModel, SecretStr
 
 
 class CreditCardPayment(BaseModel):
-    api_key: str 
+    api_key: str
     amount: int
     card_number: str
     card_cvv: str

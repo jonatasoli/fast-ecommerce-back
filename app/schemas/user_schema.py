@@ -44,7 +44,7 @@ class AddressSchema(BaseModel):
     neighborhood: str
     street: str
     street_number: str
-    zipcode:  str
+    zipcode: str
     complement: str
     type_address: str
     category: str
