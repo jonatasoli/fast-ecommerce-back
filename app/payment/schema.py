@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class CreditCardPayment(BaseModel):
-    api_key: str 
+    api_key: str
     amount: int
     card_number: str
     card_cvv: str
@@ -29,6 +29,7 @@ class SlipPayment(BaseModel):
     name: str
     documents: list
 
+
 class PaymentResponse(BaseModel):
     token: Optional[str]
     order_id: int
@@ -37,6 +38,7 @@ class PaymentResponse(BaseModel):
     boleto_url: Optional[str]
     boleto_barcode: Optional[str]
     errors: Optional[list]
+
 
 class ResponseGateway(BaseModel):
     user: str
@@ -49,7 +51,7 @@ class ResponseGateway(BaseModel):
     boleto_barcode: Optional[str]
     errors: Optional[list]
 
-    
+
 class ConfigCreditCardInDB(BaseModel):
     fee: str
     min_installment: int
@@ -67,6 +69,7 @@ class ConfigCreditCardResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class ProductSchema(BaseModel):
     name: str
@@ -88,6 +91,7 @@ class ProductSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class ProductResponseSchema(ProductSchema):
     id: int
@@ -123,7 +127,7 @@ class ListProducts(BaseModel):
 
     class Config:
         orm_mode = True
-        
+
 
 class InstallmentSchema(BaseModel):
     cart: list
@@ -149,9 +153,9 @@ class OrderFullResponse(BaseModel):
     order_status: str
     last_updated: Optional[datetime]
 
-
     class Config:
         orm_mode = True
+
 
 class OrderItemsSchema(BaseModel):
     id: int
@@ -161,7 +165,7 @@ class OrderItemsSchema(BaseModel):
 
 
 class CheckoutSchema(BaseModel):
-    mail: str 
+    mail: str
     document: str
     phone: str
     password: SecretStr
@@ -204,7 +208,7 @@ class CheckoutResponseSchema(BaseModel):
     order_id: int
     name: str
     slip_payment: Optional[str]
-    
+
 
 class CategorySchema(BaseModel):
     id: int

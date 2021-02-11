@@ -40,27 +40,20 @@ logging.getLogger().handlers = [InterceptHandler()]
 
 # logging properties are defined in config.py
 logger.start(
-        sys.stdout,
-        colorize=True,
-        level=settings.LOG_LEVEL,
-        format="{time} {level} {message}",
-        backtrace=settings.LOG_BACKTRACE,
-        enqueue=True,
-        diagnose=True
-        )
+    sys.stdout,
+    colorize=True,
+    level=settings.LOG_LEVEL,
+    format="{time} {level} {message}",
+    backtrace=settings.LOG_BACKTRACE,
+    enqueue=True,
+    diagnose=True,
+)
 
 logging.getLogger("uvicorn.access").handlers = [InterceptHandler()]
 
-app.include_router(
-        user,
-        prefix="/user")
+app.include_router(user, prefix="/user")
 app.include_router(payment)
 app.include_router(shipping)
 app.include_router(order)
-app.include_router(
-        mail,
-        prefix="/mail")
-app.include_router(
-        product,
-        prefix="/product")
-
+app.include_router(mail, prefix="/mail")
+app.include_router(product, prefix="/product")

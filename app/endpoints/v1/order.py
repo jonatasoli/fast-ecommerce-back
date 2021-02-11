@@ -15,86 +15,81 @@ import json
 
 order = APIRouter()
 
-@order.get('/order/{id}', status_code=200)
-async def get_order(
-        *,
-        db: Session = Depends(get_db),
-        id):
+
+@order.get("/order/{id}", status_code=200)
+async def get_order(*, db: Session = Depends(get_db), id):
     try:
         return domain_order.get_order(db, id)
     except Exception as e:
         raise e
 
-@order.get('/order/user/{id}', status_code=200)
-async def get_order_users_id(
-        *,
-        db: Session = Depends(get_db),
-        id):
+
+@order.get("/order/user/{id}", status_code=200)
+async def get_order_users_id(*, db: Session = Depends(get_db), id):
     try:
         return domain_order.get_order_users(db, id)
     except Exception as e:
         raise e
 
-@order.put('/order/{id}', status_code= 200)
+
+@order.put("/order/{id}", status_code=200)
 async def put_order(
-        *,
-        db: Session = Depends(get_db),
-        value: OrderFullResponse,
-        id):
+    *, db: Session = Depends(get_db), value: OrderFullResponse, id
+):
     try:
         return domain_order.put_order(db, value, id)
     except Exception as e:
         raise e
 
-@order.post('/order/create_order', status_code= 200)
+
+@order.post("/order/create_order", status_code=200)
 async def create_order(
-                *,
-                db: Session = Depends(get_db),
-                order_data: OrderSchema
-                ):
+    *, db: Session = Depends(get_db), order_data: OrderSchema
+):
     return domain_order.create_order(db=db, order_data=order_data)
 
 
-@order.post('/update-payment-and-order-status', status_code=200)
+@order.post("/update-payment-and-order-status", status_code=200)
 def order_status():
     db = get_session()
     orders = db.query(Order).filter(Order.id.isnot(None))
     for order in orders:
         return {
             "order_id": order.id,
-            "payment_id": order.payment_id, 
-            "order_status": order.order_status}
+            "payment_id": order.payment_id,
+            "order_status": order.order_status,
+        }
 
 
 def check_status_pedding():
     data = order_status()
     logger.debug(data)
-    if data.get('order_status') == 'pending':
-        return 'pending'
-        
+    if data.get("order_status") == "pending":
+        return "pending"
+
 
 def status_pending():
     data = order_status()
     logger.debug(data)
     db = get_session()
-    payment = db.query(Payment).filter_by(id= data.get('payment_id')).first()
+    payment = db.query(Payment).filter_by(id=data.get("payment_id")).first()
     return return_transaction(payment.gateway_id)
 
 
 def status_paid():
     gateway = status_pending()
     data = order_status()
-    logger.debug(gateway.get('status'))
-    if gateway.get('status') == 'paid' and data.get('order_status') == 'pending':
+    logger.debug(gateway.get("status"))
+    if (
+        gateway.get("status") == "paid"
+        and data.get("order_status") == "pending"
+    ):
         logger.debug(data)
-        data['order_status'] = OrderStatus.PAYMENT_PAID.value
+        data["order_status"] = OrderStatus.PAYMENT_PAID.value
         logger.debug(data)
         return data
 
 
 def alternate_status(status):
-    order_status = {
-        'pending' : status_pending,
-        'paid': status_paid
-    }
-    return order_status[status]   
+    order_status = {"pending": status_pending, "paid": status_paid}
+    return order_status[status]
