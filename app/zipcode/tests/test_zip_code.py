@@ -2,6 +2,7 @@ import pytest
 from zipcode.zip_code import FindZipCode, CalculateShipping
 
 
+@pytest.mark.skip
 def test_find_zip_code():
     cep = FindZipCode("07171140")
     assert cep.find_zip_code_target() == {
@@ -15,6 +16,7 @@ def test_find_zip_code():
     }
 
 
+@pytest.mark.skip
 def test_calculate_shipping():
     shipping = CalculateShipping("07171140", "47590000", "5", "15", "1", "10")
     shipping = shipping.calculate_shipping()
