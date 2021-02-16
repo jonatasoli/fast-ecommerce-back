@@ -1,6 +1,13 @@
 from sqlalchemy.orm import backref, relationship
-from sqlalchemy import Column, Integer, String,\
-        ForeignKey, DateTime, Boolean, Numeric
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    ForeignKey,
+    DateTime,
+    Boolean,
+    Numeric,
+)
 from passlib.hash import pbkdf2_sha512
 from datetime import datetime
 from sqlalchemy.sql import func
@@ -12,8 +19,13 @@ from ext.database import Base
 class Transaction(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship("User", foreign_keys=[user_id], backref="transaction", cascade="all,delete",
-            uselist=False)
+    user = relationship(
+        "User",
+        foreign_keys=[user_id],
+        backref="transaction",
+        cascade="all,delete",
+        uselist=False,
+    )
     amount = Column(Integer)
     order_id = Column(Integer)
     qty = Column(Integer)
@@ -27,7 +39,13 @@ class Transaction(Base):
 class Payment(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship("User", foreign_keys=[user_id], backref="payment", cascade="all,delete", uselist=False)
+    user = relationship(
+        "User",
+        foreign_keys=[user_id],
+        backref="payment",
+        cascade="all,delete",
+        uselist=False,
+    )
     amount = Column(Integer)
     token = Column(String(25), nullable=True)
     gateway_id = Column(Integer)
@@ -36,16 +54,17 @@ class Payment(Base):
     payment_method = Column(String)
     payment_gateway = Column(String)
     installments = Column(Integer, default=1)
-    processed    = Column(Boolean, default=False, server_default='0', nullable=False)
+    processed = Column(
+        Boolean, default=False, server_default="0", nullable=False
+    )
     processed_at = Column(DateTime, nullable=True)
-    
-    
+
 
 class CreditCardFeeConfig(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     min_installment_with_fee = Column(Integer)
     mx_installments = Column(Integer)
     fee = Column(Numeric)
-    active_date = Column(DateTime, default=func.now(),
-            server_default=func.now())
-
+    active_date = Column(
+        DateTime, default=func.now(), server_default=func.now()
+    )

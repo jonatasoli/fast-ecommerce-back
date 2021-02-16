@@ -16,3 +16,5 @@ ZIP_CODE_SOURCE =""
 DATABASE_URL="postgresql://partyoudbuser:partyou123@localhost/test"
 API_MAIL_URL="https://testapi.com/"
 ACCESS_TOKEN_EXPIRE_MINUTES=15
+LOG_LEVEL="DEBUG"
+LOG_BACKTRACE=true
