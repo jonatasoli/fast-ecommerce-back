@@ -1,6 +1,4 @@
 from ext.database import get_session
-from dynaconf import settings
-from loguru import logger
 
 
 def get_db():

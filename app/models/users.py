@@ -1,10 +1,13 @@
-from sqlalchemy.orm import backref, relationship
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
-from passlib.hash import pbkdf2_sha512
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from loguru import logger
 
 from constants import DocumentType
 from ext.database import Base
+
+from passlib.context import CryptContext
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class User(Base):
@@ -12,7 +15,12 @@ class User(Base):
     name = Column(String(512))
 
     # picture_id = Column(String(512), ForeignKey("uploaded_image.id"))
-    # picture = relationship("UploadedImage", backref=backref("user", uselist=False), foreign_keys=[picture_id],
+    # picture = relationship(
+    #   "UploadedImage",
+    #   backref=backref(
+    #       "user",
+    #       uselist=False
+    #   ), foreign_keys=[picture_id],
     # uselist=False)
 
     document = Column(String(32), unique=True)
@@ -58,7 +66,7 @@ class User(Base):
             "email": self.email,
             "phone": self.phone,
             "user_timezone": self.user_timezone,
-            "role": self.role,
+            "role_id": self.role_id,
             "status": self.status,
             "terms_and_conditions_id": self.terms_and_conditions_id,
         }
@@ -72,7 +80,7 @@ class User(Base):
         email=None,
         phone=None,
         password=None,
-        role=None,
+        role_id=None,
         update_email_on_next_login=False,
         update_password_on_next_login=False,
     ):
@@ -83,7 +91,7 @@ class User(Base):
         self.birth_date = birth_date
         self.email = email
         self.phone = phone
-        self.role = role
+        self.role_id = role_id
 
         self.update_email_on_next_login = update_email_on_next_login
         self.update_password_on_next_login = update_password_on_next_login
@@ -92,10 +100,10 @@ class User(Base):
             self.gen_hash(password)
 
     def gen_hash(self, password):
-        self.password = pbkdf2_sha512.hash(password)
+        self.password = pwd_context.hash(password)
 
     def verify_password(self, password):
-        return pbkdf2_sha512.verify(password, self.password)
+        return pwd_context.verify(password, self.password)
 
 
 class Address(Base):
