@@ -12,11 +12,10 @@ def get_engine():
     SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
     engine = create_engine(
-        SQLALCHEMY_DATABASE_URL,
-        pool_size=10, 
-        max_overflow=0
+        SQLALCHEMY_DATABASE_URL, pool_size=10, max_overflow=0
     )
     return engine
+
 
 def get_session():
     _engine = get_engine()

@@ -15,6 +15,7 @@ class UserSchema(BaseModel):
     password: str
     document: str
     phone: str
+    role_id: int
     email: Optional[str] = None
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
@@ -26,10 +27,12 @@ class UserSchema(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    role: str
 
 
 class UserInDB(UserSchema):
     password: str
+    role_id: int
 
 
 class SignUpResponse(BaseModel):
@@ -44,7 +47,7 @@ class AddressSchema(BaseModel):
     neighborhood: str
     street: str
     street_number: str
-    zipcode:  str
+    zipcode: str
     complement: str
     type_address: str
     category: str

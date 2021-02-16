@@ -7,12 +7,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.engine import reflection
 from sqlalchemy.schema import (
-        MetaData,
-        Table,
-        DropTable,
-        ForeignKeyConstraint,
-        DropConstraint,
-        )
+    MetaData,
+    Table,
+    DropTable,
+    ForeignKeyConstraint,
+    DropConstraint,
+)
 
 import sys
 from os.path import dirname as d
@@ -45,7 +45,7 @@ def clean_db():
 
 def db_DropEverything():
     _engine = get_engine()
-    conn=_engine.connect()
+    conn = _engine.connect()
 
     # the transaction only applies if the DB supports
     # transactional DDL, i.e. Postgresql, MS SQL Server
@@ -54,7 +54,7 @@ def db_DropEverything():
     inspector = reflection.Inspector.from_engine(_engine)
 
     # gather all data first before dropping anything.
-    # some DBs lock after things have been dropped in 
+    # some DBs lock after things have been dropped in
     # a transaction.
     metadata = MetaData()
 
@@ -64,12 +64,10 @@ def db_DropEverything():
     for table_name in inspector.get_table_names():
         fks = []
         for fk in inspector.get_foreign_keys(table_name):
-            if not fk['name']:
+            if not fk["name"]:
                 continue
-            fks.append(
-                ForeignKeyConstraint((),(),name=fk['name'])
-                )
-        t = Table(table_name,metadata,*fks)
+            fks.append(ForeignKeyConstraint((), (), name=fk["name"]))
+        t = Table(table_name, metadata, *fks)
         tbs.append(t)
         all_fks.extend(fks)
 
@@ -87,8 +85,10 @@ def override_get_db():
     try:
         _engine = get_engine()
         logger.info(f"----- ADD DB {Base.metadata}-------")
-        TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
-        db = TestingSessionLocal() 
+        TestingSessionLocal = sessionmaker(
+            autocommit=False, autoflush=False, bind=_engine
+        )
+        db = TestingSessionLocal()
         yield db
     finally:
         db.close()
@@ -99,7 +99,9 @@ def db() -> Generator:
     _engine = get_engine()
     logger.info("-----GENERATE DB------")
     _engine = get_engine()
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=_engine
+    )
     yield TestingSessionLocal()
 
 
@@ -108,12 +110,14 @@ def db_models(clean_db) -> Generator:
     _engine = get_engine()
     logger.info("-----GENERATE DB------")
     _engine = get_engine()
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=_engine
+    )
     yield TestingSessionLocal()
+
 
 @pytest.fixture(scope="session")
 def t_client(clean_db, override_get_db) -> Generator:
-
     def _get_db_override():
         return override_get_db
 

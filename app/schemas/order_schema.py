@@ -2,6 +2,7 @@ from pydantic import BaseModel, SecretStr
 from typing import List, Optional
 from datetime import datetime
 
+
 class ProductSchema(BaseModel):
     name: str
     uri: str
@@ -22,6 +23,7 @@ class ProductSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class ProductResponseSchema(ProductSchema):
     id: int
@@ -79,10 +81,11 @@ class OrderFullResponse(BaseModel):
     customer_id: int
     order_date: datetime
     tracking_number: int
-    payment_id: int 
+    payment_id: int
 
     class Config:
         orm_mode = True
+
 
 class OrderItemsSchema(BaseModel):
     id: int
@@ -92,7 +95,7 @@ class OrderItemsSchema(BaseModel):
 
 
 class CheckoutSchema(BaseModel):
-    mail: str 
+    mail: str
     document: str
     phone: str
     password: SecretStr
@@ -135,7 +138,7 @@ class CheckoutResponseSchema(BaseModel):
     order_id: int
     name: str
     slip_payment: Optional[str]
-    
+
 
 class CategorySchema(BaseModel):
     id: int

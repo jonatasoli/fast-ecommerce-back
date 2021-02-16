@@ -15,4 +15,3 @@ class User(Base):
     description = Column(String)
     franshisee_name = Column(String)
     franshisee_id = Column(Integer)
-
