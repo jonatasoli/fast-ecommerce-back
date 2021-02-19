@@ -22,7 +22,7 @@ from loguru import logger
 payment = APIRouter()
 
 
-@payment.get("/product/{uri}", status_code=200)
+@payment.get("/product/category/{uri}", status_code=200)
 async def get_product(*, db: Session = Depends(deps.get_db), uri):
     try:
         return domain_order.get_product(db, uri)
