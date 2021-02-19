@@ -24,7 +24,7 @@ async def get_showcase(*, db: Session = Depends(get_db)):
 
 
 @product.get("/{id}", status_code=200)
-async def get_product_id(*, db: Session = Depends(get_db), id):
+async def get_product_id(id: int, db: Session = Depends(get_db)):
     try:
         return domain_order.get_product_by_id(db, id)
     except Exception as e:
