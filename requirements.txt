@@ -1,6 +1,6 @@
-aiosqlite==0.13.0; python_version >= "3.6" \
-    --hash=sha256:50688c40632ae249f986ab3ae2c66a45c0535b84a5d4aae0e0be572b5fed6909 \
-    --hash=sha256:6e92961ae9e606b43b05e29b129e346b29e400fcbd63e3c0c564d89230257645
+aiosqlite==0.17.0; python_version >= "3.6" \
+    --hash=sha256:6c49dc6d3405929b1d08eeccc72306d3677503cc5e5e43771efc1e00232e8231 \
+    --hash=sha256:f0e6acc24bc4864149267ac82fb46dfb3be4455f99fe21df82609cc6e6baee51
 alembic==1.5.4; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0") \
     --hash=sha256:e871118b6174681f7e9a9ea67cfcae954c6d18e05b49c6b17f662d2530c76bf5
 asyncpg==0.20.1; python_full_version >= "3.5.0" \
