@@ -9,6 +9,7 @@ from schemas.order_schema import (
     ListProducts,
     CategorySchema,
     CategoryInDB,
+    ProductFullResponse
 )
 
 from models.order import Product, Order, OrderItems, Category
@@ -28,6 +29,14 @@ def create_product(db: Session, product_data: ProductSchema):
     db.add(db_product)
     db.commit()
     return db_product
+
+
+def put_product(db: Session, id, product_data: ProductFullResponse):
+    product = db.query(Product).filter(Product.id == id)
+    product = product.update(product_data)
+    logger.debug(product)
+    db.commit()
+    return {**product_data.dict()}
 
 
 def get_showcase(db: Session):
@@ -160,4 +169,15 @@ def get_products_category(db: Session, id):
 
     if products:
         return {"products": products_category}
+    return {"products": []}
+
+def get_product_all(db: Session):
+    products = db.query(Product).all()
+    products_list = []
+
+    for product in products:
+        products_list.append(ProductInDB.from_orm(product))
+
+    if products:
+        return {"products": products_list}
     return {"products": []}
