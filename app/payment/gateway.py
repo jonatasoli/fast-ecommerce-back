@@ -36,6 +36,8 @@ def credit_card_payment(payment: CreditCardPayment):
 def slip_payment(payment: SlipPayment):
     try:
         headers = {"Content-Type": "application/json"}
+        logger.debug(f"------------ {payment.json()} ----- PAYMENTJSON")
+        logger.debug(f"{settings.PAYMENT_GATEWAY_URL}transactions")
         r = requests.post(
             f"{settings.PAYMENT_GATEWAY_URL}transactions",
             json=payment.json(),
