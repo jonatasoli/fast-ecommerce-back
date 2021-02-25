@@ -24,10 +24,10 @@ async def get_showcase(*, db: Session = Depends(get_db)):
         raise e
 
 
-@product.get("/{id}", status_code=200)
-async def get_product_id(id: int, db: Session = Depends(get_db)):
+@product.get("/{uri}", status_code=200)
+async def get_product_uri(uri: str, db: Session = Depends(get_db)):
     try:
-        return domain_order.get_product_by_id(db, id)
+        return domain_order.get_product(db, uri)
     except Exception as e:
         logger.error(f"Erro em obter os produto - { e }")
         raise e

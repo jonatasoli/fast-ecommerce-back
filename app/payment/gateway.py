@@ -10,6 +10,7 @@ def credit_card_payment(payment: CreditCardPayment):
     try:
         headers = {"Content-Type": "application/json"}
         logger.debug(f"----- DICT {payment.dict()} ------------")
+        logger.debug(f"{settings.PAYMENT_GATEWAY_URL}transactions")
         r = requests.post(
             f"{settings.PAYMENT_GATEWAY_URL}transactions",
             json=payment.dict(),

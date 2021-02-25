@@ -46,6 +46,7 @@ def checkout(*, db: Session = Depends(deps.get_db), data: CheckoutReceive):
     affiliate = data.dict().get("affiliate")
     cupom = data.dict().get("cupom")
     logger.info(checkout_data)
+    logger.info(affiliate)
     checkout = Checkout(
         db=db, checkout_data=checkout_data, affiliate=affiliate, cupom=cupom
     ).process_checkout()
