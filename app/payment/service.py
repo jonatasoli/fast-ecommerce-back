@@ -137,11 +137,11 @@ class ProcessPayment:
         return db_payment
 
     def process_payment(self):
-        db_payment = self.db_payment()
+        _db_payment = self.db_payment()
         if self.checkout_data.get("payment_method") == "credit-card":
-            return self.payment_credit_card(db_payment)
+            return self.payment_credit_card(_db_payment)
         else:
-            return self.payment_slip(db_payment)
+            return self.payment_slip(_db_payment)
 
     def payment_credit_card(self, db_payment):
         try:
@@ -170,7 +170,7 @@ class ProcessPayment:
     def payment_slip(self, db_payment):
         _slip_expire = datetime.now() + timedelta(days=3)
         _payment = SlipPayment(
-            amount=db_payment.amout,
+            amount=db_payment.amount,
             api_key=settings.GATEWAY_API,
             payment_method="boleto",
             customer=self._customer,

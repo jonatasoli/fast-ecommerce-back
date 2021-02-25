@@ -18,7 +18,7 @@ class CreditCardPayment(BaseModel):
 
 
 class SlipPayment(BaseModel):
-    amount: int
+    amount: str
     api_key: str
     customer: dict
     type: str
