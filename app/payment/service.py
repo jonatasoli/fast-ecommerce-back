@@ -277,8 +277,8 @@ class Checkout:
     ):
         self.db = db
         self.checkout_data = checkout_data
-        self.affiliate = None
-        self.cupom = None
+        self.affiliate = affiliate
+        self.cupom = cupom
 
     def process_checkout(self):
         try:
