@@ -129,8 +129,10 @@ class ProcessPayment:
         self._shipping = _shipping
 
     def db_payment(self):
+        _shopping_cart = self.checkout_data.get("shopping_cart")
         db_payment = CreatePayment(
             user_id=self.user.id,
+            _total_amount= Decimal(_shopping_cart[0].get("total_amount")),
             _installments=self._installments,
             _payment_method=self.checkout_data.get("payment_method"),
         ).create_payment()
@@ -170,7 +172,7 @@ class ProcessPayment:
     def payment_slip(self, db_payment):
         _slip_expire = datetime.now() + timedelta(days=3)
         _payment = SlipPayment(
-            amount=db_payment.amout,
+            amount=db_payment.amount,
             api_key=settings.GATEWAY_API,
             payment_method="boleto",
             customer=self._customer,

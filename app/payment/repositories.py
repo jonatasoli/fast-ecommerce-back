@@ -62,8 +62,9 @@ class OrderDB:
 
 
 class CreatePayment:
-    def __init__(self, user_id, _payment_method, _installments):
+    def __init__(self, user_id, _payment_method, _installments, _total_amount):
         self.user_id = user_id
+        self._total_amount = _total_amount
         self._payment_method = _payment_method
         self._installments = _installments
         self.db = get_db()
@@ -71,7 +72,7 @@ class CreatePayment:
     def create_payment(self):
         db_payment = Payment(
             user_id=self.user_id,
-            amount=100,
+            amount= int(self._total_amount)* 100,
             status="pending",
             payment_method=self._payment_method,
             payment_gateway="PagarMe",
