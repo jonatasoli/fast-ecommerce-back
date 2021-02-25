@@ -14,6 +14,9 @@ from endpoints.v1.product import product
 from dynaconf import settings
 from loguru import logger
 
+import sentry_sdk
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
+
 
 class InterceptHandler(logging.Handler):
     def emit(self, record):
@@ -26,6 +29,13 @@ app = FastAPI()
 origins = [
     "*",
 ]
+
+sentry_sdk.init(
+    "https://f8ca28ef3c3a4b54aac3a61c963a043b@o281685.ingest.sentry.io/5651868",
+    traces_sample_rate=1.0
+)
+
+app.add_middleware(SentryAsgiMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
