@@ -28,6 +28,28 @@ class ProductSchema(BaseModel):
 class ProductResponseSchema(ProductSchema):
     id: int
 
+class ProductFullResponse(BaseModel):
+    name: str
+    uri: str
+    price: int
+    direct_sales: Optional[bool] = None
+    upsell: Optional[list] = None
+    description: str
+    image_path: str
+    installments_config: Optional[int]
+    installments_list: Optional[list]
+    category_id: int
+    discount: Optional[int]
+    quantity: Optional[int]
+    showcase: bool
+    show_discount: Optional[bool]
+    heigth: Optional[int]
+    width: Optional[int]
+    weigth: Optional[int]
+    length: Optional[int]
+
+    class Config:
+        orm_mode = True
 
 class ProductInDB(BaseModel):
     id: int
@@ -44,7 +66,7 @@ class ProductInDB(BaseModel):
     discount: Optional[int]
     quantity: Optional[int]
     showcase: bool
-    show_discount: bool
+    show_discount: Optional[bool]
     heigth: Optional[int]
     width: Optional[int]
     weigth: Optional[int]
