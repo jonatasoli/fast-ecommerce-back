@@ -10,13 +10,13 @@ def credit_card_payment(payment: CreditCardPayment):
     try:
         headers = {"Content-Type": "application/json"}
         logger.debug(f"----- DICT {payment.dict()} ------------")
-        logger.debug(f"{settings.PAYMENT_GATEWAY_URL}transactions")
+        logger.debug(f"{settings.PAYMENT_GATEWAY_URL}")
         r = requests.post(
-            f"{settings.PAYMENT_GATEWAY_URL}transactions",
+            f"{settings.PAYMENT_GATEWAY_URL}",
             json=payment.dict(),
             headers=headers,
         )
-        logger.error(f"----- request {r} --------")
+        logger.error(f"----- request {r.content} --------")
         r = r.json()
         logger.error(f"response error {r.get('errors')}")
         response = ResponseGateway(
@@ -30,7 +30,7 @@ def credit_card_payment(payment: CreditCardPayment):
         ).dict()
         return response
     except Exception as e:
-        logger.error("Erro ao retornar gateway {e}")
+        logger.error(f"Erro ao retornar gateway {e}")
         raise e
 
 
@@ -38,9 +38,9 @@ def slip_payment(payment: SlipPayment):
     try:
         headers = {"Content-Type": "application/json"}
         logger.debug(f"------------ {payment.json()} ----- PAYMENTJSON")
-        logger.debug(f"{settings.PAYMENT_GATEWAY_URL}transactions")
+        logger.debug(f"{settings.PAYMENT_GATEWAY_URL}")
         r = requests.post(
-            f"{settings.PAYMENT_GATEWAY_URL}transactions",
+            f"{settings.PAYMENT_GATEWAY_URL}",
             json=payment.dict(),
             headers=headers,
         )
