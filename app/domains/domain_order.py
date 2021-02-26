@@ -38,6 +38,11 @@ def put_product(db: Session, id, product_data: ProductFullResponse):
     db.commit()
     return {**product_data.dict()}
 
+def delete_product(db: Session, id):
+    db.query(Product).filter(Product.id == id).delete()
+    db.commit()
+    return {"Produto excluido"}
+
 
 def get_showcase(db: Session):
     showcases = db.query(Product).filter_by(showcase=True).all()

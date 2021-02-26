@@ -139,11 +139,11 @@ class ProcessPayment:
         return db_payment
 
     def process_payment(self):
-        db_payment = self.db_payment()
+        _db_payment = self.db_payment()
         if self.checkout_data.get("payment_method") == "credit-card":
-            return self.payment_credit_card(db_payment)
+            return self.payment_credit_card(_db_payment)
         else:
-            return self.payment_slip(db_payment)
+            return self.payment_slip(_db_payment)
 
     def payment_credit_card(self, db_payment):
         try:
@@ -279,8 +279,8 @@ class Checkout:
     ):
         self.db = db
         self.checkout_data = checkout_data
-        self.affiliate = None
-        self.cupom = None
+        self.affiliate = affiliate
+        self.cupom = cupom
 
     def process_checkout(self):
         try:
