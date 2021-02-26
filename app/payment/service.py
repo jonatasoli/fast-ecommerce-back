@@ -162,8 +162,7 @@ class ProcessPayment:
             )
             logger.error("CREDIT CARD RESPONSE")
             logger.debug(f"{_payment}")
-            tt = credit_card_payment(payment=_payment)
-            return tt
+            return credit_card_payment(payment=_payment)
         except Exception as e:
             raise e
 
