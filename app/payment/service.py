@@ -129,8 +129,10 @@ class ProcessPayment:
         self._shipping = _shipping
 
     def db_payment(self):
+        _shopping_cart = self.checkout_data.get("shopping_cart")
         db_payment = CreatePayment(
             user_id=self.user.id,
+            _total_amount= Decimal(_shopping_cart[0].get("total_amount")),
             _installments=self._installments,
             _payment_method=self.checkout_data.get("payment_method"),
         ).create_payment()
