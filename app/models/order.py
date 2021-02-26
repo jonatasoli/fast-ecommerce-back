@@ -26,7 +26,7 @@ class Product(Base):
     discount = Column(Integer, nullable=True)
     category_id = Column(Integer, default=1, server_default="1")
     quantity = Column(Integer, server_default="9999")
-    showcase = Column(Boolean, default=False, server_default="0")
+    showcase = Column(Boolean, default=True, server_default="0")
     show_discount = Column(Boolean, default=False, server_default="0")
     heigth = Column(Numeric(5, 3), nullable=True)
     width = Column(Numeric(5, 3), nullable=True)

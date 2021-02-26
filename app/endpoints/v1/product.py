@@ -60,6 +60,14 @@ async def put_product(
         raise e
 
 
+@product.delete("/delete/{id}", status_code= 200)
+async def delete_product(id:int, db: Session = Depends(get_db)):
+    try:
+        return domain_order.delete_product(db, id)
+    except Exception as e:
+        raise e
+
+
 @product.get("/category/all", status_code=200)
 async def get_category(*, db: Session = Depends(get_db)):
     try:
