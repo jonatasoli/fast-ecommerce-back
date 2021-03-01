@@ -58,8 +58,8 @@ class ProductInDB(BaseModel):
     price: int
     direct_sales: Optional[bool] = None
     upsell: Optional[list] = None
-    description: str
-    image_path: str
+    description: Optional[str]
+    image_path: Optional[str]
     installments_config: Optional[int]
     installments_list: Optional[list]
     category_id: int
@@ -105,6 +105,13 @@ class OrderFullResponse(BaseModel):
     tracking_number: int
     payment_id: int
 
+    class Config:
+        orm_mode = True
+
+        
+class OrdersPaidFullResponse(BaseModel):
+    id: int
+    
     class Config:
         orm_mode = True
 
