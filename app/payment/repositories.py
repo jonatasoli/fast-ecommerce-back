@@ -169,11 +169,12 @@ class UpdateStatus:
         self.order = order
 
     def update_payment_status(self):
-        db = get_db()
-        db_transactions = (
-            db.query(Transaction).filter_by(order_id=self.order.id).all()
-        )
-        for db_transaction in db_transactions:
+        try:
+            db = get_db()
+            db_transaction = (
+                db.query(Transaction).filter_by(order_id=self.order.id).first()
+            )
+        
             db_transaction.status = self.payment_data.get("status")
 
             db_payment = (
@@ -181,9 +182,15 @@ class UpdateStatus:
                 .filter_by(id=db_transaction.payment_id)
                 .first()
             )
+            db_order = (
+                db.query(Order).
+                filter_by(id=db_transaction.order_id).first()
+            )
             db_payment.processed = True
             db_payment.processed_at = datetime.now()
             db_payment.gateway_id = self.payment_data.get("gateway_id")
+            db_order.payment_id = self.payment_data.get("gateway_id")
+            
             db_payment.token = self.payment_data.get("token")
             db_payment.authorization = self.payment_data.get(
                 "authorization_code"
@@ -191,6 +198,11 @@ class UpdateStatus:
             db_payment.status = self.payment_data.get("status")
             db.add(db_transaction)
             db.add(db_payment)
+            db.add(db_order)
             db.commit()
             db.refresh(db_transaction)
             db.refresh(db_payment)
+            db.refresh(db_order)
+        except Exception as e:
+            logger.error(e)
+            raise e
