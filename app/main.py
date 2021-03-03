@@ -49,6 +49,7 @@ app.add_middleware(
 logging.getLogger().handlers = [InterceptHandler()]
 
 # logging properties are defined in config.py
+logger.remove()
 logger.add(
     sys.stdout,
     colorize=True,
