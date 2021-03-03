@@ -29,9 +29,7 @@ class FindZipCode:
 
 
 class CalculateShipping:
-    def __init__(
-        self, zip_code_source, zip_code_target, weigth, length, heigth, width
-    ):
+    def __init__(self, zip_code_source, zip_code_target, weigth, length, heigth, width):
         self.zip_code_source = zip_code_source
         self.zip_code_target = zip_code_target
         self.weigth = weigth

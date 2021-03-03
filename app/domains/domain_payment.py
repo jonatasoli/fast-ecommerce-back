@@ -250,12 +250,8 @@ def process_payment(
         _affiliate = affiliate
         _cupom = cupom
         # TODO refactor config instalments to many products
-        _product_id = checkout_data["shopping_cart"][0]["itens"][0][
-            "product_id"
-        ]
-        _product_config = (
-            db.query(Product).filter_by(id=int(_product_id)).first()
-        )
+        _product_id = checkout_data["shopping_cart"][0]["itens"][0]["product_id"]
+        _product_config = db.query(Product).filter_by(id=int(_product_id)).first()
 
         _config_installments = (
             db.query(CreditCardFeeConfig)
@@ -328,9 +324,7 @@ def process_payment(
         db.commit()
 
         for item in _items:
-            _product_decrease = (
-                db.query(Product).filter_by(id=item.get("id")).first()
-            )
+            _product_decrease = db.query(Product).filter_by(id=item.get("id")).first()
             _qty_decrease = int(item.get("quantity"))
             _product_decrease.quantity -= _qty_decrease
             if _product_decrease.quantity < 0:
@@ -386,21 +380,15 @@ def send_payment_mail(db: Session, user, payment):
 
 def postback_payment(db: Session, payment_data, order):
     try:
-        return update_payment_status(
-            db=db, payment_data=payment_data, order=order
-        )
+        return update_payment_status(db=db, payment_data=payment_data, order=order)
     except Exception as e:
         raise e
 
 
 def update_gateway_id(db: Session, payment_data, order):
     try:
-        db_transaction = (
-            db.query(Transaction).filter_by(order_id=order.id).first()
-        )
-        db_payment = (
-            db.query(Payment).filter_by(id=db_transaction.payment_id).first()
-        )
+        db_transaction = db.query(Transaction).filter_by(order_id=order.id).first()
+        db_payment = db.query(Payment).filter_by(id=db_transaction.payment_id).first()
 
         db_payment.gateway_id = payment_data.get("gateway_id")
         order.payment_id = payment_data.get("gateway_id")
@@ -413,14 +401,10 @@ def update_gateway_id(db: Session, payment_data, order):
 
 def update_payment_status(db: Session, payment_data, order):
     try:
-        db_transaction = (
-            db.query(Transaction).filter_by(order_id=order.id).first()
-        )
+        db_transaction = db.query(Transaction).filter_by(order_id=order.id).first()
         db_transaction.status = payment_data.get("status")
 
-        db_payment = (
-            db.query(Payment).filter_by(id=db_transaction.payment_id).first()
-        )
+        db_payment = db.query(Payment).filter_by(id=db_transaction.payment_id).first()
         db_payment.processed = True
         db_payment.processed_at = datetime.now()
         db_payment.token = payment_data.get("token")

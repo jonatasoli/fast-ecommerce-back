@@ -22,9 +22,7 @@ def upgrade():
         "product",
         sa.Column("active", sa.Boolean(), server_default="0", nullable=True),
     )
-    op.add_column(
-        "user", sa.Column("franchise_id", sa.Integer(), nullable=True)
-    )
+    op.add_column("user", sa.Column("franchise_id", sa.Integer(), nullable=True))
     op.add_column("user", sa.Column("uuid", sa.String(), nullable=True))
     # ### end Alembic commands ###
 

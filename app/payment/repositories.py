@@ -72,7 +72,7 @@ class CreatePayment:
     def create_payment(self):
         db_payment = Payment(
             user_id=self.user_id,
-            amount= int(self._total_amount)* 100,
+            amount=int(self._total_amount) * 100,
             status="pending",
             payment_method=self._payment_method,
             payment_gateway="PagarMe",
@@ -140,9 +140,7 @@ class CreditCardConfig:
         self.config_data = config_data
 
     def create_installment_config(self):
-        db_config = CreateCreditConfig(
-            config_data=self.config_data
-        ).create_credit()
+        db_config = CreateCreditConfig(config_data=self.config_data).create_credit()
         return db_config
 
 
@@ -174,27 +172,20 @@ class UpdateStatus:
             db_transaction = (
                 db.query(Transaction).filter_by(order_id=self.order.id).first()
             )
-        
+
             db_transaction.status = self.payment_data.get("status")
 
             db_payment = (
-                db.query(Payment)
-                .filter_by(id=db_transaction.payment_id)
-                .first()
+                db.query(Payment).filter_by(id=db_transaction.payment_id).first()
             )
-            db_order = (
-                db.query(Order).
-                filter_by(id=db_transaction.order_id).first()
-            )
+            db_order = db.query(Order).filter_by(id=db_transaction.order_id).first()
             db_payment.processed = True
             db_payment.processed_at = datetime.now()
             db_payment.gateway_id = self.payment_data.get("gateway_id")
             db_order.payment_id = self.payment_data.get("gateway_id")
-            
+
             db_payment.token = self.payment_data.get("token")
-            db_payment.authorization = self.payment_data.get(
-                "authorization_code"
-            )
+            db_payment.authorization = self.payment_data.get("authorization_code")
             db_payment.status = self.payment_data.get("status")
             db.add(db_transaction)
             db.add(db_payment)
