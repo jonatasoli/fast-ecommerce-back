@@ -1,4 +1,4 @@
-from app.models.order import Order
+from models.order import Order
 from job_service.service import get_session
 from sqlalchemy.orm import Session
 from gateway.payment_gateway import return_transaction
@@ -8,20 +8,14 @@ from loguru import logger
 db = get_session()
 payment_id = []
 status_pagarme = []
-orders = (
-    db.query(Order).filter(~Order.order_status.in_(["paid", "refused"])).all()
-)
+orders = db.query(Order).filter(~Order.order_status.in_(["paid", "refused"])).all()
 
 
 def order_status():
     cont = 0
     for status in orders:
         gateway_id = return_transaction(status.payment_id)
-        db_order = (
-            db.query(Order)
-            .filter(Order.payment_id == status.payment_id)
-            .first()
-        )
+        db_order = db.query(Order).filter(Order.payment_id == status.payment_id).first()
         if db_order.payment_id == 0:
             db_order.order_status = "refused"
         else:

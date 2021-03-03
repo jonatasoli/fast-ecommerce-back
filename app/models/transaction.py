@@ -54,9 +54,7 @@ class Payment(Base):
     payment_method = Column(String)
     payment_gateway = Column(String)
     installments = Column(Integer, default=1)
-    processed = Column(
-        Boolean, default=False, server_default="0", nullable=False
-    )
+    processed = Column(Boolean, default=False, server_default="0", nullable=False)
     processed_at = Column(DateTime, nullable=True)
 
 
@@ -65,6 +63,4 @@ class CreditCardFeeConfig(Base):
     min_installment_with_fee = Column(Integer)
     mx_installments = Column(Integer)
     fee = Column(Numeric)
-    active_date = Column(
-        DateTime, default=func.now(), server_default=func.now()
-    )
+    active_date = Column(DateTime, default=func.now(), server_default=func.now())

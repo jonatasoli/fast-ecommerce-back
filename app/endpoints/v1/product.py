@@ -7,7 +7,7 @@ from schemas.order_schema import (
     ProductSchema,
     InstallmentSchema,
     CategorySchema,
-    ProductFullResponse
+    ProductFullResponse,
 )
 from endpoints.deps import get_db
 from loguru import logger
@@ -43,26 +43,26 @@ async def get_products_all(db: Session = Depends(get_db)):
 
 
 @product.post("/cart/installments", status_code=200)
-async def get_installments(
-    *, db: Session = Depends(get_db), cart: InstallmentSchema
-):
+async def get_installments(*, db: Session = Depends(get_db), cart: InstallmentSchema):
     try:
         return domain_order.get_installments(db, cart=cart)
     except Exception as e:
         logger.error(f"Erro ao coletar o parcelamento - {e}")
         raise e
 
+
 @product.put("/update/{id}", status_code=200)
 async def put_product(
-    id:int, value: ProductFullResponse, db: Session = Depends(get_db)):
+    id: int, value: ProductFullResponse, db: Session = Depends(get_db)
+):
     try:
         return domain_order.put_product(db, id, value)
     except Exception as e:
         raise e
 
 
-@product.delete("/delete/{id}", status_code= 200)
-async def delete_product(id:int, db: Session = Depends(get_db)):
+@product.delete("/delete/{id}", status_code=200)
+async def delete_product(id: int, db: Session = Depends(get_db)):
     try:
         return domain_order.delete_product(db, id)
     except Exception as e:

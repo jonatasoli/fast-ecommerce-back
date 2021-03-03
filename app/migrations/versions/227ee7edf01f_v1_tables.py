@@ -69,9 +69,7 @@ def upgrade():
         sa.Column("description", sa.String(), nullable=True),
         sa.Column("image_path", sa.String(), nullable=True),
         sa.Column("installments_config", sa.Integer(), nullable=True),
-        sa.Column(
-            "installments_list", postgresql.ARRAY(sa.JSON()), nullable=True
-        ),
+        sa.Column("installments_list", postgresql.ARRAY(sa.JSON()), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -159,9 +157,7 @@ def upgrade():
         sa.Column("payment_method", sa.String(), nullable=True),
         sa.Column("payment_gateway", sa.String(), nullable=True),
         sa.Column("installments", sa.Integer(), nullable=True),
-        sa.Column(
-            "processed", sa.Boolean(), server_default="0", nullable=False
-        ),
+        sa.Column("processed", sa.Boolean(), server_default="0", nullable=False),
         sa.Column("processed_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
             ["user_id"],

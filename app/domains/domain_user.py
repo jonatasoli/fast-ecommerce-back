@@ -31,7 +31,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="access_token")
 
 
 class COUNTRY_CODE(enum.Enum):
-    brazil = 'brazil'
+    brazil = "brazil"
 
 
 def create_user(db: Session, obj_in: SignUp):
@@ -84,9 +84,7 @@ def get_user(db: Session, document: str, password: str):
         if db_user and db_user.verify_password(password):
             return db_user
         else:
-            raise Exception(
-                f"User not finded {db_user.document}, {db_user.password}"
-            )
+            raise Exception(f"User not finded {db_user.document}, {db_user.password}")
 
     except Exception as e:
         raise e
@@ -126,9 +124,7 @@ def get_current_user(
     )
     try:
         payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         document: str = payload.get("sub")
         if document is None:
@@ -154,10 +150,7 @@ def _get_user(db: Session, document: str):
 
 def check_token(f):
     @wraps(f)
-    def check_jwt(
-        *args,
-        **kwargs
-    ):
+    def check_jwt(*args, **kwargs):
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -165,9 +158,9 @@ def check_token(f):
         )
         try:
             payload = jwt.decode(
-                kwargs.get('token', None),
+                kwargs.get("token", None),
                 settings.SECRET_KEY,
-                algorithms=[settings.ALGORITHM]
+                algorithms=[settings.ALGORITHM],
             )
             _user_credentials: str = payload.get("sub")
             if not payload or _user_credentials is None:
@@ -175,6 +168,7 @@ def check_token(f):
         except JWTError:
             raise credentials_exception
         return f(*args, **kwargs)
+
     return check_jwt
 
 
@@ -191,8 +185,7 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
                 and_(
                     Address.user_id == user.id,
                     Address.zipcode == checkout_data.get("zip_code"),
-                    Address.street_number
-                    == checkout_data.get("address_number"),
+                    Address.street_number == checkout_data.get("address_number"),
                     Address.address_complement
                     == checkout_data.get("address_complement"),
                     Address.category == "billing",
@@ -222,11 +215,7 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
         raise e
 
 
-def register_shipping_address(
-    db: Session,
-    checkout_data: CheckoutSchema,
-    user
-):
+def register_shipping_address(db: Session, checkout_data: CheckoutSchema, user):
     try:
         _address = (
             db.query(Address)
@@ -235,9 +224,8 @@ def register_shipping_address(
                     Address.user_id == user.id,
                     Address.zipcode == checkout_data.get("ship_zip"),
                     Address.street_number == checkout_data.get("ship_number"),
-                    Address.address_complement == checkout_data.get(
-                        "ship_address_complement"
-                    ),
+                    Address.address_complement
+                    == checkout_data.get("ship_address_complement"),
                     Address.category == "shipping",
                 )
             )
@@ -313,7 +301,8 @@ def address_by_postal_code(zipcode_data):
         if not postal_code:
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                details={"message": "Cep inválido"})
+                details={"message": "Cep inválido"},
+            )
 
         viacep_url = f"https://viacep.com.br/ws/{postal_code}/json/"
         status_code = httpx.get(viacep_url).status_code
@@ -321,14 +310,16 @@ def address_by_postal_code(zipcode_data):
         if status_code != 200:
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={"message": "Cep inválido"})
+                detail={"message": "Cep inválido"},
+            )
 
         response = httpx.get(viacep_url).json()
 
         if response.get("erro"):
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                details={"message": "Cep inválido"})
+                details={"message": "Cep inválido"},
+            )
 
         address = {
             "street": response.get("logradouro"),

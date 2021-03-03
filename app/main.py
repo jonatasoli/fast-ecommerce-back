@@ -32,7 +32,7 @@ origins = [
 
 sentry_sdk.init(
     "https://f8ca28ef3c3a4b54aac3a61c963a043b@o281685.ingest.sentry.io/5651868",
-    traces_sample_rate=1.0
+    traces_sample_rate=1.0,
 )
 
 app.add_middleware(SentryAsgiMiddleware)

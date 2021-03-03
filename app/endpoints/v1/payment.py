@@ -29,35 +29,25 @@ async def payment_credit_card(
 
 
 @payment.post("/gateway-payment-bank-slip", status_code=201)
-def payment_bank_slip(
-    *, db: Session = Depends(deps.get_db), payment_data: SlipPayment
-):
+def payment_bank_slip(*, db: Session = Depends(deps.get_db), payment_data: SlipPayment):
     payment = domain_payment.slip_payment(db, payment=payment_data)
     return payment
 
 
 @payment.post("/create-product", status_code=201)
-def create_product(
-    *, db: Session = Depends(deps.get_db), product: ProductSchema
-):
+def create_product(*, db: Session = Depends(deps.get_db), product: ProductSchema):
     product = domain_payment.create_product(db, product=product)
     return ProductSchema.from_orm(product)
 
 
 @payment.post("/create-config", status_code=201)
-def create_config(
-    *, db: Session = Depends(deps.get_db), config_data: ConfigCreditCard
-):
-    _config = domain_payment.create_installment_config(
-        db, config_data=config_data
-    )
+def create_config(*, db: Session = Depends(deps.get_db), config_data: ConfigCreditCard):
+    _config = domain_payment.create_installment_config(db, config_data=config_data)
     return ConfigCreditCardResponse.from_orm(_config)
 
 
 @payment.post("/checkout", status_code=201)
-def checkout(
-    *, db: Session = Depends(deps.get_db), checkout_data: CheckoutSchema
-):
+def checkout(*, db: Session = Depends(deps.get_db), checkout_data: CheckoutSchema):
     """
     Receber todos os dados -> user_id + list of products_ids
     buscar ou gerar customer
@@ -67,7 +57,5 @@ def checkout(
     mandar e-mail
     """
     logger.debug(f"CAPTURAR - {checkout_data}")
-    checkout = domain_payment.process_checkout(
-        db=db, checkout_data=checkout_data
-    )
+    checkout = domain_payment.process_checkout(db=db, checkout_data=checkout_data)
     return checkout
