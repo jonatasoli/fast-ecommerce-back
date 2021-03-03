@@ -99,9 +99,7 @@ def db() -> Generator:
     _engine = get_engine()
     logger.info("-----GENERATE DB------")
     _engine = get_engine()
-    TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=_engine
-    )
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
     yield TestingSessionLocal()
 
 
@@ -110,9 +108,7 @@ def db_models(clean_db) -> Generator:
     _engine = get_engine()
     logger.info("-----GENERATE DB------")
     _engine = get_engine()
-    TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=_engine
-    )
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
     yield TestingSessionLocal()
 
 

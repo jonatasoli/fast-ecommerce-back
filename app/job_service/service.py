@@ -25,9 +25,7 @@ def post_order_status(url):
 
 def process():
     session = get_session()
-    result = session.query(OrderStatusSteps).filter_by(
-        active=True, sending=False
-    )
+    result = session.query(OrderStatusSteps).filter_by(active=True, sending=False)
     result_list = [{"Order_id": row.id, "Status": row.status} for row in result]
     logger.debug(f"SETTINGS ------ {settings.API_MAIL_URL}")
     url = post_order_status(settings.API_MAIL_URL)

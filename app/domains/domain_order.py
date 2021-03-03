@@ -9,7 +9,7 @@ from schemas.order_schema import (
     ListProducts,
     CategorySchema,
     CategoryInDB,
-    ProductFullResponse
+    ProductFullResponse,
 )
 
 from models.order import Product, Order, OrderItems, Category
@@ -37,6 +37,7 @@ def put_product(db: Session, id, product_data: ProductFullResponse):
     logger.debug(product)
     db.commit()
     return {**product_data.dict()}
+
 
 def delete_product(db: Session, id):
     db.query(Product).filter(Product.id == id).delete()
@@ -94,14 +95,10 @@ def get_product_by_id(db: Session, id):
 
 def get_order(db: Session, id):
     users = (
-        db.query(User)
-        .join(Order, Order.customer_id == User.id)
-        .filter(Order.id == id)
+        db.query(User).join(Order, Order.customer_id == User.id).filter(Order.id == id)
     )
     orders = (
-        db.query(Order)
-        .join(User, Order.customer_id == User.id)
-        .filter(Order.id == id)
+        db.query(Order).join(User, Order.customer_id == User.id).filter(Order.id == id)
     )
     for user in users:
         orderObject = {"name": user.name, "order": []}
@@ -119,14 +116,10 @@ def get_order(db: Session, id):
 
 def get_order_users(db: Session, id):
     users = (
-        db.query(User)
-        .join(Order, Order.customer_id == User.id)
-        .filter(User.id == id)
+        db.query(User).join(Order, Order.customer_id == User.id).filter(User.id == id)
     )
     orders = (
-        db.query(Order)
-        .join(User, Order.customer_id == User.id)
-        .filter(User.id == id)
+        db.query(Order).join(User, Order.customer_id == User.id).filter(User.id == id)
     )
     for user in users:
         orderObject = {"name": user.name, "orders": []}
@@ -175,6 +168,7 @@ def get_products_category(db: Session, id):
     if products:
         return {"products": products_category}
     return {"products": []}
+
 
 def get_product_all(db: Session):
     products = db.query(Product).all()

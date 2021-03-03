@@ -132,7 +132,7 @@ class ProcessPayment:
         _shopping_cart = self.checkout_data.get("shopping_cart")
         db_payment = CreatePayment(
             user_id=self.user.id,
-            _total_amount= Decimal(_shopping_cart[0].get("total_amount")),
+            _total_amount=Decimal(_shopping_cart[0].get("total_amount")),
             _installments=self._installments,
             _payment_method=self.checkout_data.get("payment_method"),
         ).create_payment()
@@ -152,9 +152,7 @@ class ProcessPayment:
                 amount=db_payment.amount,
                 card_number=self.checkout_data.get("credit_card_number"),
                 card_cvv=self.checkout_data.get("credit_card_cvv"),
-                card_expiration_date=self.checkout_data.get(
-                    "credit_card_validate"
-                ),
+                card_expiration_date=self.checkout_data.get("credit_card_validate"),
                 card_holder_name=self.checkout_data.get("credit_card_name"),
                 installments=self._installments,
                 customer=self._customer,
@@ -222,9 +220,7 @@ class ProcessOrder:
             "email": self.user.email,
             "documents": [{"type": "cpf", "number": self.user.document}],
             "phone_numbers": ["+55" + self.user.phone],
-            "birthday": self.user.birth_date
-            if self.user.birth_date
-            else "1965-01-01",
+            "birthday": self.user.birth_date if self.user.birth_date else "1965-01-01",
         }
         return _customer
 
@@ -273,9 +269,7 @@ class ProcessTransaction:
 
 
 class Checkout:
-    def __init__(
-        self, db: Session, checkout_data: CheckoutSchema, affiliate, cupom
-    ):
+    def __init__(self, db: Session, checkout_data: CheckoutSchema, affiliate, cupom):
         self.db = db
         self.checkout_data = checkout_data
         self.affiliate = affiliate
@@ -315,10 +309,7 @@ class Checkout:
                 affiliate=self.affiliate,
             ).transaction()
 
-            if (
-                _order.order_status == "pending"
-                or _order.order_status != "pending"
-            ):
+            if _order.order_status == "pending" or _order.order_status != "pending":
                 UpdateStatus(
                     payment_data=_payment, order=_order
                 ).update_payment_status()
