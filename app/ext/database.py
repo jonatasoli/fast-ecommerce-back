@@ -11,9 +11,7 @@ from loguru import logger
 def get_engine():
     SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
-    engine = create_engine(
-        SQLALCHEMY_DATABASE_URL, pool_size=10, max_overflow=0
-    )
+    engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_size=10, max_overflow=0)
     return engine
 
 

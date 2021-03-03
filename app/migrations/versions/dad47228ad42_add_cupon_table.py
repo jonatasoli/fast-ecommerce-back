@@ -23,9 +23,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("cupon_uuid", sa.String(), nullable=True),
         sa.Column("cupon_name", sa.String(), nullable=True),
-        sa.Column(
-            "cupon_fee", sa.Numeric(precision=10, scale=2), nullable=True
-        ),
+        sa.Column("cupon_fee", sa.Numeric(precision=10, scale=2), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
     # ### end Alembic commands ###

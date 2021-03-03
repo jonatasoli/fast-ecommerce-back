@@ -23,9 +23,7 @@ def zip_code_adress(shipping_data: Shipping):
 
 
 @shipping.post("/zip_code/shipping/calc", status_code=200)
-def zip_code_shipping(
-    *, db: Session = Depends(get_db), shipping_data: ShippingCalc
-):
+def zip_code_shipping(*, db: Session = Depends(get_db), shipping_data: ShippingCalc):
     from loguru import logger
 
     logger.debug(shipping_data)

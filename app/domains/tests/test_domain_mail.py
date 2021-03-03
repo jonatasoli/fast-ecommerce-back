@@ -33,9 +33,7 @@ def test_send_to_mail_gateway(mocker, monkeypatch):
         tracking_number="BR00001L2",
     )
     mail_template = "<html><body><h1>Mail</h1></body></html>"
-    mocker.patch(
-        "domains.domain_mail.get_mail_template", return_value=mail_template
-    )
+    mocker.patch("domains.domain_mail.get_mail_template", return_value=mail_template)
     # monkeypatch.setattr(domain_mail, 'open_mail_template', mail_template)
     # monkeypatch.setattr(domain_mail, 'send_mail', True)
 

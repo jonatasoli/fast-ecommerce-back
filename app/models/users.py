@@ -47,12 +47,8 @@ class User(Base):
     uuid = Column(String, nullable=True)
     franchise_id = Column(Integer, default=1)
 
-    update_email_on_next_login = Column(
-        Boolean, default=False, server_default="0"
-    )
-    update_password_on_next_login = Column(
-        Boolean, default=False, server_default="0"
-    )
+    update_email_on_next_login = Column(Boolean, default=False, server_default="0")
+    update_password_on_next_login = Column(Boolean, default=False, server_default="0")
 
     def to_app_json(self, expand=False):
         return {

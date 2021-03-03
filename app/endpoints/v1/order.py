@@ -33,9 +33,7 @@ async def get_order_users_id(*, db: Session = Depends(get_db), id):
 
 
 @order.put("/order/{id}", status_code=200)
-async def put_order(
-    *, db: Session = Depends(get_db), value: OrderFullResponse, id
-):
+async def put_order(*, db: Session = Depends(get_db), value: OrderFullResponse, id):
     try:
         return domain_order.put_order(db, value, id)
     except Exception as e:
@@ -43,9 +41,7 @@ async def put_order(
 
 
 @order.post("/order/create_order", status_code=200)
-async def create_order(
-    *, db: Session = Depends(get_db), order_data: OrderSchema
-):
+async def create_order(*, db: Session = Depends(get_db), order_data: OrderSchema):
     return domain_order.create_order(db=db, order_data=order_data)
 
 
@@ -80,10 +76,7 @@ def status_paid():
     gateway = status_pending()
     data = order_status()
     logger.debug(gateway.get("status"))
-    if (
-        gateway.get("status") == "paid"
-        and data.get("order_status") == "pending"
-    ):
+    if gateway.get("status") == "paid" and data.get("order_status") == "pending":
         logger.debug(data)
         data["order_status"] = OrderStatus.PAYMENT_PAID.value
         logger.debug(data)
