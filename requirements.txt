@@ -107,9 +107,9 @@ cryptography==3.4.6; python_version >= "3.6" \
 databases==0.3.2; python_version >= "3.6" \
     --hash=sha256:ee8dcece15a86359ef06414a6afcc15da15f5d078dc09af2e3a5f9dbfee4dce9 \
     --hash=sha256:78b758884ca585b81272af1de697e0c8a3034de92bdd08e9ac47436ef0cdca56
-dynaconf==3.1.2 \
-    --hash=sha256:808adfe964f10695846dbf8dad7632e47fc3bc38860fd1887ed57dddffc4eff2 \
-    --hash=sha256:9b34ab2f811a81755f5eb4beac77a69e1e0887528c7e37fc4bc83fed52dcf502
+dynaconf==3.1.3 \
+    --hash=sha256:03fac8249b518975f362cd9cc3a23e8cab29b52d64ed57a970854322d6ffafc5 \
+    --hash=sha256:2f4d86086d98ea2ce2d99435c91bc707d7b5c28f6bf6288e23ca4f93043c2c8b
 ecdsa==0.14.1; python_version >= "2.6" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" \
     --hash=sha256:e108a5fe92c67639abae3260e43561af914e7fd0d27bae6d2ec1312ae7934dfe \
     --hash=sha256:64c613005f13efec6541bb0a33290d0d03c27abab5f15fbab20fb0ee162bdd8e
