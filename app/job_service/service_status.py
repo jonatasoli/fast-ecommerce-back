@@ -2,6 +2,7 @@ from models.order import Order
 from job_service.service import get_session
 from sqlalchemy.orm import Session
 from gateway.payment_gateway import return_transaction
+from datetime import datetime
 from loguru import logger
 
 
@@ -22,6 +23,7 @@ def order_status():
             logger.debug(f"------- ID STATUS {status.payment_id}-----------")
             logger.debug(f"---- ID {gateway_id} ----")
             db_order.order_status = gateway_id.get("status")
+            db_order.last_updated = datetime.now()
         db.commit()
         cont += 1
     logger.debug(f"Foram processados {cont} pedidos")
