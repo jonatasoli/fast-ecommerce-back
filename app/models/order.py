@@ -54,7 +54,7 @@ class Order(Base):
         uselist=False,
     )
     order_date = Column(DateTime)
-    tracking_number = Column(String, nullable=True)
+    # tracking_number = Column(String, nullable=True)
     payment_id = Column(Integer, nullable=True)
     order_status = Column(String)
     last_updated = Column(DateTime)
