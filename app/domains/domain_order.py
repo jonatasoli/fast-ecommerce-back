@@ -1,5 +1,8 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import case, literal_column, cast, Date
+from sqlalchemy.sql import func, compiler
 from loguru import logger
+from sqlalchemy.dialects import postgresql
 
 from schemas.order_schema import (
     ProductSchema,
@@ -10,11 +13,15 @@ from schemas.order_schema import (
     CategorySchema,
     CategoryInDB,
     ProductFullResponse,
+    OrdersPaidFullResponse,
+    ProductsResponseOrder,
+    OrderCl,
+    ProductsCl
 )
 
 from models.order import Product, Order, OrderItems, Category
-from models.transaction import Payment
-from models.users import User
+from models.transaction import Payment, Transaction
+from models.users import User, Address
 from loguru import logger
 import requests
 import json
@@ -93,6 +100,88 @@ def get_product_by_id(db: Session, id):
     return ProductInDB.from_orm(product)
 
 
+def get_orders_paid(db: Session, date_now):
+
+    orders = db.query(
+        Transaction.payment_id, 
+        Order.tracking_number,
+        User.name.label('user_name'),
+        User.document,
+        Address.type_address,
+        Address.category,
+        Address.country,
+        Address.city,
+        Address.state,
+        Address.neighborhood,
+        Address.street,
+        Address.street_number,
+        Address.address_complement,
+        Address.zipcode,
+        Transaction.affiliate,
+        Payment.amount
+        )\
+    .join(Order, Transaction.order_id == Order.id)\
+    .join(Product, Transaction.product_id == Product.id)\
+    .join(User, Transaction.user_id == User.id)\
+    .join(Address, User.id == Address.user_id)\
+    .join(Payment, Payment.id == Transaction.payment_id)\
+        .filter(
+            Order.order_status == 'paid',
+            User.id == Address.user_id,
+            Address.category == 'shipping',
+            cast(Order.last_updated, Date) == date_now ).distinct().all()
+
+    order_list = []
+    product_list = []
+
+    for order in orders:
+        products = db.query(
+            Product.name.label('product_name'),
+            Product.price,
+            Transaction.qty,
+            Transaction.payment_id,
+            Transaction.order_id
+            )\
+            .join(Product, Transaction.product_id == Product.id)\
+            .filter(Transaction.payment_id == order.payment_id)
+        for product in products:
+            product_all = ProductsCl(
+                product_name= product.product_name,
+                price = product.price,
+                qty = product.qty,
+                payment_id = product.payment_id)
+            product_list.append(product_all)
+            print(product_list)
+            a = [x for x in product_list if order.payment_id == product.payment_id]
+            product_list = []
+            
+            orders_all = OrderCl(
+                payment_id=order.payment_id,
+                tracking_number= order.tracking_number,
+                user_name= order.user_name,
+                document= order.document,
+                type_address= order.type_address,
+                category= order.category,
+                country = order.country,
+                city = order.city,
+                state= order.state,
+                neighborhood= order.neighborhood,
+                street= order.street,
+                street_number= order.street_number,
+                address_complement= order.address_complement,
+                zipcode= order.zipcode,
+                affiliate= order.affiliate,
+                amount= order.amount,
+                products= a)
+    
+            order_list.append(OrdersPaidFullResponse.from_orm(orders_all))
+        
+    if orders:
+        return {"orders": order_list}
+    return {"orders": []}
+    
+    
+
 def get_order(db: Session, id):
     users = (
         db.query(User).join(Order, Order.customer_id == User.id).filter(Order.id == id)
@@ -158,6 +247,7 @@ def get_category(db: Session):
     return {"category": category_list}
 
 
+
 def get_products_category(db: Session, id):
     products = db.query(Product).filter_by(active=True, category_id=id).all()
     products_category = []
@@ -166,8 +256,8 @@ def get_products_category(db: Session, id):
         products_category.append(product)
 
     if products:
-        return {"products": products_category}
-    return {"products": []}
+        return {"product": products_category}
+    return {"product": []}
 
 
 def get_product_all(db: Session):

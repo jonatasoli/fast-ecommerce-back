@@ -155,7 +155,7 @@ class OrderFullResponse(BaseModel):
 
     class Config:
         orm_mode = True
-
+        
 
 class OrderItemsSchema(BaseModel):
     id: int
