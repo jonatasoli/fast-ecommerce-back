@@ -1,8 +1,9 @@
 aiosqlite==0.13.0; python_version >= "3.6" \
     --hash=sha256:50688c40632ae249f986ab3ae2c66a45c0535b84a5d4aae0e0be572b5fed6909 \
     --hash=sha256:6e92961ae9e606b43b05e29b129e346b29e400fcbd63e3c0c564d89230257645
-alembic==1.5.4; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0") \
-    --hash=sha256:e871118b6174681f7e9a9ea67cfcae954c6d18e05b49c6b17f662d2530c76bf5
+alembic==1.5.7; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0") \
+    --hash=sha256:66bbb0e7d6277b007dfe7e27237093c79b76cf4f94e6fbd0f7af6f9409546fe6 \
+    --hash=sha256:f33d561f3ce2ca390f1c87ff3849cd7d97bb93bae9c91357727263498e10028f
 asyncpg==0.20.1; python_full_version >= "3.5.0" \
     --hash=sha256:f7184689177eeb5a11fa1b2baf3f6f2e26bfd7a85acf4de1a3adbd0867d7c0e2 \
     --hash=sha256:f0c9719ac00615f097fe91082b785bce36dbf02a5ec4115ede0ebfd2cd9500cb \
