@@ -69,10 +69,11 @@ async def delete_product(id: int, db: Session = Depends(get_db)):
 
 
 @product.get("/category/all", status_code=200)
-async def get_category(*, db: Session = Depends(get_db)):
+async def get_categorys(db: Session = Depends(get_db)):
     try:
-        return domain_order.get_category(db)
+        return domain_order.get_category()
     except Exception as e:
+        logger.error(f"Erro em obter categoria - { e }")
         raise e
 
 
