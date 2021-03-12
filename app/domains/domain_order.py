@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import case, literal_column, cast, Date
+from sqlalchemy import case, literal_column, cast, Date, true, false
 from sqlalchemy.sql import func, compiler
 from loguru import logger
 from sqlalchemy.dialects import postgresql
@@ -16,7 +16,8 @@ from schemas.order_schema import (
     OrdersPaidFullResponse,
     ProductsResponseOrder,
     OrderCl,
-    ProductsCl
+    ProductsCl,
+    AffiliateCl
 )
 
 from models.order import Product, Order, OrderItems, Category
@@ -103,6 +104,7 @@ def get_product_by_id(db: Session, id):
 def get_orders_paid(db: Session, date_now):
 
     orders = db.query(
+        Transaction.id,
         Transaction.payment_id, 
         Order.tracking_number,
         User.name.label('user_name'),
@@ -135,6 +137,15 @@ def get_orders_paid(db: Session, date_now):
     product_list = []
 
     for order in orders:
+        affiliate = None
+        if order.affiliate != None:
+            affiliates = db.query(User.name)\
+                .filter(
+                    order.affiliate == User.uuid, 
+                    Transaction.payment_id == order.payment_id).first()
+            for affil in affiliates:
+                affiliate = affil
+        
         products = db.query(
             Product.name.label('product_name'),
             Product.price,
@@ -143,39 +154,40 @@ def get_orders_paid(db: Session, date_now):
             Transaction.order_id
             )\
             .join(Product, Transaction.product_id == Product.id)\
-            .filter(Transaction.payment_id == order.payment_id)
+            .filter(Transaction.id == order.id)
         for product in products:
             product_all = ProductsCl(
                 product_name= product.product_name,
                 price = product.price,
                 qty = product.qty,
                 payment_id = product.payment_id)
-            product_list.append(product_all)
-            print(product_list)
-            a = [x for x in product_list if order.payment_id == product.payment_id]
-            product_list = []
+        product_list.append(product_all)
             
-            orders_all = OrderCl(
-                payment_id=order.payment_id,
-                tracking_number= order.tracking_number,
-                user_name= order.user_name,
-                document= order.document,
-                type_address= order.type_address,
-                category= order.category,
-                country = order.country,
-                city = order.city,
-                state= order.state,
-                neighborhood= order.neighborhood,
-                street= order.street,
-                street_number= order.street_number,
-                address_complement= order.address_complement,
-                zipcode= order.zipcode,
-                affiliate= order.affiliate,
-                amount= order.amount,
-                products= a)
+        products = [x for x in product_list if order.payment_id == product.payment_id]
+        product_list = []
+           
+        orders_all = OrderCl(
+            id= order.id,
+            payment_id=order.payment_id,
+            tracking_number= order.tracking_number,
+            user_name= order.user_name,
+            document= order.document,
+            type_address= order.type_address,
+            category= order.category,
+            country = order.country,
+            city = order.city,
+            state= order.state,
+            neighborhood= order.neighborhood,
+            street= order.street,
+            street_number= order.street_number,
+            address_complement= order.address_complement,
+            zipcode= order.zipcode,
+            user_affiliate= affiliate,
+            amount= order.amount,
+            products= products)
     
-            order_list.append(OrdersPaidFullResponse.from_orm(orders_all))
-        
+        order_list.append(OrdersPaidFullResponse.from_orm(orders_all))
+        print(affiliate)    
     if orders:
         return {"orders": order_list}
     return {"orders": []}
