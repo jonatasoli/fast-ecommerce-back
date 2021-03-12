@@ -118,16 +118,19 @@ class ProductsCl:
         self.price = price
         self.qty = qty
         self.payment_id = payment_id
-       
+
+class AffiliateCl:
+    def __init__(self, user_affiliate: str):
+        self.user_affiliate = user_affiliate       
 
 class OrderCl:
-    def __init__(self, payment_id: int, tracking_number: str,
+    def __init__(self,id: int, payment_id: int, tracking_number: str,
     user_name: str, document: int, type_address: str,
     category: str, country: str, city: str, state: str,
     neighborhood: str, street: str, street_number: int,
-    address_complement: str, zipcode: int, affiliate: str,
+    address_complement: str, zipcode: int, user_affiliate: str,
     amount: int, products: list):
-
+        self.id = id
         self.payment_id = payment_id
         self.tracking_number = tracking_number
         self.user_name = user_name
@@ -142,7 +145,7 @@ class OrderCl:
         self.street_number = street_number 
         self.address_complement = address_complement 
         self.zipcode = zipcode 
-        self.affiliate = affiliate 
+        self.user_affiliate = user_affiliate 
         self.amount = amount 
         self.products = products
 
@@ -154,9 +157,15 @@ class ProductsResponseOrder(BaseModel):
 
     class Config:
         orm_mode= True
-       
+
+class AffiliateResponse(BaseModel):
+    user_affiliate: str
+
+    class Config:
+        orm_mode: True       
 
 class OrdersPaidFullResponse(BaseModel):
+    id: int
     payment_id: int
     tracking_number: Optional[int]
     user_name:str
@@ -171,7 +180,7 @@ class OrdersPaidFullResponse(BaseModel):
     street_number: int
     address_complement: Optional[str]
     zipcode: int
-    affiliate: Optional[str]
+    user_affiliate: Optional[str]
     amount: int
     products: list
 
