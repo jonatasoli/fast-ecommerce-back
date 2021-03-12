@@ -1,5 +1,5 @@
 from pydantic import BaseModel, SecretStr
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime
 
 
@@ -36,7 +36,7 @@ class ProductFullResponse(BaseModel):
     price: int
     direct_sales: Optional[bool] = None
     upsell: Optional[list] = None
-    description: str
+    description: Optional[str]
     image_path: Optional[str]
     installments_config: Optional[int]
     installments_list: Optional[list]
@@ -112,12 +112,81 @@ class OrderFullResponse(BaseModel):
         orm_mode = True
 
 
+class ProductsCl:
+    def __init__(self, product_name: str, price: int, qty: int, payment_id: int):
+        self.product_name = product_name
+        self.price = price
+        self.qty = qty
+        self.payment_id = payment_id
+
+class AffiliateCl:
+    def __init__(self, user_affiliate: str):
+        self.user_affiliate = user_affiliate       
+
+class OrderCl:
+    def __init__(self,id: int, payment_id: int, tracking_number: str,
+    user_name: str, document: int, type_address: str,
+    category: str, country: str, city: str, state: str,
+    neighborhood: str, street: str, street_number: int,
+    address_complement: str, zipcode: int, user_affiliate: str,
+    amount: int, products: list):
+        self.id = id
+        self.payment_id = payment_id
+        self.tracking_number = tracking_number
+        self.user_name = user_name
+        self.document = document
+        self.type_address = type_address
+        self.category = category 
+        self.country = country 
+        self.city = city
+        self.state = state 
+        self.neighborhood = neighborhood 
+        self.street = street 
+        self.street_number = street_number 
+        self.address_complement = address_complement 
+        self.zipcode = zipcode 
+        self.user_affiliate = user_affiliate 
+        self.amount = amount 
+        self.products = products
+
+class ProductsResponseOrder(BaseModel):
+    product_name: str
+    price: int
+    qty: int
+    payment_id: int
+
+    class Config:
+        orm_mode= True
+
+class AffiliateResponse(BaseModel):
+    user_affiliate: str
+
+    class Config:
+        orm_mode: True       
+
 class OrdersPaidFullResponse(BaseModel):
     id: int
+    payment_id: int
+    tracking_number: Optional[int]
+    user_name:str
+    document: int
+    type_address: str
+    category: str
+    country: str
+    city: str
+    state: str
+    neighborhood: str
+    street: str
+    street_number: int
+    address_complement: Optional[str]
+    zipcode: int
+    user_affiliate: Optional[str]
+    amount: int
+    products: list
 
     class Config:
         orm_mode = True
-
+    
 
 class OrderItemsSchema(BaseModel):
     id: int
@@ -179,9 +248,7 @@ class CategorySchema(BaseModel):
 
 
 class CategoryInDB(BaseModel):
-    id: int
     name: str
-    path: str
 
     class Config:
         orm_mode = True
