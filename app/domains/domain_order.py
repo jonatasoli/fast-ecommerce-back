@@ -17,7 +17,7 @@ from schemas.order_schema import (
     ProductsResponseOrder,
     OrderCl,
     ProductsCl,
-    AffiliateCl
+    TrackingFullResponse
 )
 
 from models.order import Product, Order, OrderItems, Category
@@ -105,6 +105,7 @@ def get_orders_paid(db: Session, date_now):
 
     orders = db.query(
         Transaction.id,
+        Transaction.order_id,
         Transaction.payment_id, 
         Order.tracking_number,
         User.name.label('user_name'),
@@ -169,6 +170,7 @@ def get_orders_paid(db: Session, date_now):
         orders_all = OrderCl(
             id= order.id,
             payment_id=order.payment_id,
+            order_id = order.order_id,
             tracking_number= order.tracking_number,
             user_name= order.user_name,
             document= order.document,
@@ -187,7 +189,7 @@ def get_orders_paid(db: Session, date_now):
             products= products)
     
         order_list.append(OrdersPaidFullResponse.from_orm(orders_all))
-        print(affiliate)    
+            
     if orders:
         return {"orders": order_list}
     return {"orders": []}
@@ -241,6 +243,11 @@ def put_order(db: Session, order_data: OrderFullResponse, id):
     order = order.update(order_data)
     return {**order_data.dict()}
 
+def put_trancking_number(db: Session, data: TrackingFullResponse, id):
+    order = db.query(Order).filter(Order.id == id)
+    order = order.update(data)
+    db.commit()
+    return {**data.dict()}
 
 def create_order(db: Session, order_data: OrderSchema):
     db_order = Order(**order_data.dict())

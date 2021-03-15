@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import Header, APIRouter, Depends
 from domains import domain_order
-from schemas.order_schema import OrderSchema, OrderFullResponse
+from schemas.order_schema import OrderSchema, OrderFullResponse, TrackingFullResponse
 from models.order import Order
 from models.transaction import Payment
 from endpoints.deps import get_db
@@ -43,6 +43,14 @@ async def get_orders_paid(date_now: str, db: Session = Depends(get_db)):
 async def put_order(*, db: Session = Depends(get_db), value: OrderFullResponse, id):
     try:
         return domain_order.put_order(db, value, id)
+    except Exception as e:
+        raise e
+
+
+@order.put("/tracking_number/{id}", status_code=200)
+async def put_trancking_number(id: int, value: TrackingFullResponse, db: Session = Depends(get_db), ):
+    try:
+        return domain_order.put_trancking_number(db, value, id)
     except Exception as e:
         raise e
 
