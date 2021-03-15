@@ -95,7 +95,7 @@ class OrderSchema(BaseModel):
     customer_id: int
     order_date: datetime
     # order_items_id: int
-    tracking_number: int
+    tracking_number: str
     payment_id: int
     order_status: str
     last_updated: datetime
@@ -105,11 +105,14 @@ class OrderFullResponse(BaseModel):
     id: int
     customer_id: int
     order_date: datetime
-    tracking_number: int
+    tracking_number: str
     payment_id: int
 
     class Config:
         orm_mode = True
+
+class TrackingFullResponse(BaseModel):
+    tracking_number: str
 
 
 class ProductsCl:
@@ -117,14 +120,10 @@ class ProductsCl:
         self.product_name = product_name
         self.price = price
         self.qty = qty
-        self.payment_id = payment_id
-
-class AffiliateCl:
-    def __init__(self, user_affiliate: str):
-        self.user_affiliate = user_affiliate       
+        self.payment_id = payment_id    
 
 class OrderCl:
-    def __init__(self,id: int, payment_id: int, tracking_number: str,
+    def __init__(self,id: int, payment_id: int, order_id: int, tracking_number: str,
     user_name: str, document: int, type_address: str,
     category: str, country: str, city: str, state: str,
     neighborhood: str, street: str, street_number: int,
@@ -132,6 +131,7 @@ class OrderCl:
     amount: int, products: list):
         self.id = id
         self.payment_id = payment_id
+        self.order_id = order_id
         self.tracking_number = tracking_number
         self.user_name = user_name
         self.document = document
@@ -156,18 +156,13 @@ class ProductsResponseOrder(BaseModel):
     payment_id: int
 
     class Config:
-        orm_mode= True
-
-class AffiliateResponse(BaseModel):
-    user_affiliate: str
-
-    class Config:
-        orm_mode: True       
+        orm_mode= True       
 
 class OrdersPaidFullResponse(BaseModel):
     id: int
     payment_id: int
-    tracking_number: Optional[int]
+    order_id: int
+    tracking_number: Optional[str]
     user_name:str
     document: int
     type_address: str
