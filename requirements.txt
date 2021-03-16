@@ -31,9 +31,9 @@ atomicwrites==1.4.0; python_version >= "3.5" and python_full_version < "3.0.0" a
 attrs==20.3.0; python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.5" \
     --hash=sha256:31b2eced602aa8423c2aea9c76a724617ed67cf9513173fd3a4f03e3a929c7e6 \
     --hash=sha256:832aa3cde19744e49938b91fea06d69ecb9e649c93ba974535d08ad92164f700
-autopep8==1.5.5 \
-    --hash=sha256:9e136c472c475f4ee4978b51a88a494bfcd4e3ed17950a44a988d9e434837bea \
-    --hash=sha256:cae4bc0fb616408191af41d062d7ec7ef8679c7f27b068875ca3a9e2878d5443
+autopep8==1.5.6 \
+    --hash=sha256:5454e6e9a3d02aae38f866eec0d9a7de4ab9f93c10a273fb0340f3d6d09f7514 \
+    --hash=sha256:f01b06a6808bc31698db907761e5890eb2295e287af53f6693b39ce55454034a
 bcrypt==3.2.0; python_version >= "3.6" \
     --hash=sha256:c95d4cbebffafcdd28bd28bb4e25b31c50f6da605c81ffd9ad8a3d1b2ab7b1b6 \
     --hash=sha256:63d4e3ff96188e5898779b6057878fecf3f11cfe6ec3b313ea09955d587ec7a7 \
