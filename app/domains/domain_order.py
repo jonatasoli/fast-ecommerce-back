@@ -101,23 +101,13 @@ def get_product_by_id(db: Session, id):
 
 
 def get_orders_paid(db: Session, date_now):
-
     orders = db.query(
         Transaction.order_id,
         Transaction.payment_id, 
         Order.tracking_number,
+        User.id.label("user_id"),
         User.name.label('user_name'),
         User.document,
-        Address.type_address,
-        Address.category,
-        Address.country,
-        Address.city,
-        Address.state,
-        Address.neighborhood,
-        Address.street,
-        Address.street_number,
-        Address.address_complement,
-        Address.zipcode,
         Transaction.affiliate,
         Payment.amount,
         Payment.gateway_id.label('id_pagarme'),
@@ -126,18 +116,32 @@ def get_orders_paid(db: Session, date_now):
     .join(Order, Transaction.order_id == Order.id)\
     .join(Product, Transaction.product_id == Product.id)\
     .join(User, Transaction.user_id == User.id)\
-    .join(Address, User.id == Address.user_id)\
     .join(Payment, Payment.id == Transaction.payment_id)\
         .filter(
             Order.order_status == 'paid',
-            User.id == Address.user_id,
-            Address.category == 'shipping',
             cast(Order.last_updated, Date) == date_now ).distinct().all()
 
     order_list = []
     product_list = []
 
     for order in orders:
+        address = db.query(
+            Address.user_id,
+            Address.type_address,
+            Address.category,
+            Address.country,
+            Address.city,
+            Address.state,
+            Address.neighborhood,
+            Address.street,
+            Address.street_number,
+            Address.address_complement,
+            Address.zipcode,
+        ).filter(
+            Address.category == 'shipping',
+            Address.user_id == order.user_id).first()
+        
+
         affiliate = None
         if order.affiliate != None:
             affiliates = db.query(User.name)\
@@ -177,16 +181,16 @@ def get_orders_paid(db: Session, date_now):
             tracking_number= order.tracking_number,
             user_name= order.user_name,
             document= order.document,
-            type_address= order.type_address,
-            category= order.category,
-            country = order.country,
-            city = order.city,
-            state= order.state,
-            neighborhood= order.neighborhood,
-            street= order.street,
-            street_number= order.street_number,
-            address_complement= order.address_complement,
-            zipcode= order.zipcode,
+            type_address= address.type_address,
+            category= address.category,
+            country = address.country,
+            city = address.city,
+            state= address.state,
+            neighborhood= address.neighborhood,
+            street= address.street,
+            street_number= address.street_number,
+            address_complement= address.address_complement,
+            zipcode= address.zipcode,
             user_affiliate= affiliate,
             amount= order.amount,
             products= prods)
