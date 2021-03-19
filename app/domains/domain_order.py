@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import case, literal_column, cast, Date, true, false
 from sqlalchemy.sql import func, compiler
 from loguru import logger
-from sqlalchemy.dialects import postgresql
+from collections import defaultdict
 
 from schemas.order_schema import (
     ProductSchema,
@@ -16,7 +16,6 @@ from schemas.order_schema import (
     OrdersPaidFullResponse,
     ProductsResponseOrder,
     OrderCl,
-    ProductsCl,
     TrackingFullResponse
 )
 
@@ -104,7 +103,6 @@ def get_product_by_id(db: Session, id):
 def get_orders_paid(db: Session, date_now):
 
     orders = db.query(
-        Transaction.id,
         Transaction.order_id,
         Transaction.payment_id, 
         Order.tracking_number,
@@ -121,7 +119,9 @@ def get_orders_paid(db: Session, date_now):
         Address.address_complement,
         Address.zipcode,
         Transaction.affiliate,
-        Payment.amount
+        Payment.amount,
+        Payment.gateway_id.label('id_pagarme'),
+        Order.order_status.label('status')
         )\
     .join(Order, Transaction.order_id == Order.id)\
     .join(Product, Transaction.product_id == Product.id)\
@@ -155,21 +155,24 @@ def get_orders_paid(db: Session, date_now):
             Transaction.order_id
             )\
             .join(Product, Transaction.product_id == Product.id)\
-            .filter(Transaction.id == order.id)
+            .filter(Transaction.payment_id == order.payment_id)
         for product in products:
-            product_all = ProductsCl(
-                product_name= product.product_name,
-                price = product.price,
-                qty = product.qty,
-                payment_id = product.payment_id)
-        product_list.append(product_all)
-            
-        products = [x for x in product_list if order.payment_id == product.payment_id]
-        product_list = []
-           
+            product_all = ProductsResponseOrder.from_orm(product)
+            product_list.append(product_all)
+        
+        product_grouped = defaultdict(list)
+       
+
+        for item in product_list:
+            if item.payment_id == order.payment_id:
+                product_grouped[item.payment_id].append(item)
+        prods = []
+        prods = product_grouped.pop(item.payment_id)
+        
         orders_all = OrderCl(
-            id= order.id,
             payment_id=order.payment_id,
+            id_pagarme = order.id_pagarme,
+            status = order.status,
             order_id = order.order_id,
             tracking_number= order.tracking_number,
             user_name= order.user_name,
@@ -186,12 +189,12 @@ def get_orders_paid(db: Session, date_now):
             zipcode= order.zipcode,
             user_affiliate= affiliate,
             amount= order.amount,
-            products= products)
-    
+            products= prods)
+
         order_list.append(OrdersPaidFullResponse.from_orm(orders_all))
             
     if orders:
-        return {"orders": order_list}
+        return {"orders":order_list}
     return {"orders": []}
     
     

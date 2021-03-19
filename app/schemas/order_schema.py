@@ -114,23 +114,17 @@ class OrderFullResponse(BaseModel):
 class TrackingFullResponse(BaseModel):
     tracking_number: str
 
-
-class ProductsCl:
-    def __init__(self, product_name: str, price: int, qty: int, payment_id: int):
-        self.product_name = product_name
-        self.price = price
-        self.qty = qty
-        self.payment_id = payment_id    
-
 class OrderCl:
-    def __init__(self,id: int, payment_id: int, order_id: int, tracking_number: str,
-    user_name: str, document: int, type_address: str,
-    category: str, country: str, city: str, state: str,
-    neighborhood: str, street: str, street_number: int,
-    address_complement: str, zipcode: int, user_affiliate: str,
+    def __init__(self, payment_id: int,id_pagarme: str, status: str ,
+    order_id: int, tracking_number: str,user_name: str, 
+    document: int, type_address: str, category: str, 
+    country: str, city: str, state: str,  neighborhood: str, 
+    street: str, street_number: int, address_complement: str, 
+    zipcode: int, user_affiliate: str,
     amount: int, products: list):
-        self.id = id
         self.payment_id = payment_id
+        self.id_pagarme = id_pagarme
+        self.status = status
         self.order_id = order_id
         self.tracking_number = tracking_number
         self.user_name = user_name
@@ -159,8 +153,9 @@ class ProductsResponseOrder(BaseModel):
         orm_mode= True       
 
 class OrdersPaidFullResponse(BaseModel):
-    id: int
     payment_id: int
+    id_pagarme: int
+    status: str
     order_id: int
     tracking_number: Optional[str]
     user_name:str
@@ -174,7 +169,7 @@ class OrdersPaidFullResponse(BaseModel):
     street: str
     street_number: int
     address_complement: Optional[str]
-    zipcode: int
+    zipcode: str
     user_affiliate: Optional[str]
     amount: int
     products: list
