@@ -17,7 +17,7 @@ def send_mail_tracking_number(db, mail_data: MailTrackingNumber):
         company=settings.COMPANY,
     )
     sended = send_mail(
-        from_email=mail_data.mail_from,
+        from_email=settings.EMAIL_FROM,
         to_emails=mail_data.mail_to,
         subject="Seu pedido está a caminho!",
         plain_text_content=str(template),

@@ -116,7 +116,7 @@ class TrackingFullResponse(BaseModel):
 
 class OrderCl:
     def __init__(self, payment_id: int,id_pagarme: str, status: str ,
-    order_id: int, tracking_number: str,user_name: str, 
+    order_id: int, tracking_number: str,user_name: str, email: str,
     document: int, type_address: str, category: str, 
     country: str, city: str, state: str,  neighborhood: str, 
     street: str, street_number: int, address_complement: str, 
@@ -128,6 +128,7 @@ class OrderCl:
         self.order_id = order_id
         self.tracking_number = tracking_number
         self.user_name = user_name
+        self.email = email
         self.document = document
         self.type_address = type_address
         self.category = category 
@@ -158,7 +159,8 @@ class OrdersPaidFullResponse(BaseModel):
     status: str
     order_id: int
     tracking_number: Optional[str]
-    user_name:str
+    user_name: str
+    email: str
     document: int
     type_address: str
     category: str
