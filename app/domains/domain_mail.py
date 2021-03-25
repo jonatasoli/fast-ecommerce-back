@@ -1,16 +1,16 @@
-from schemas.mail_schema import MailTrackingNumber
+from schemas.mail_schema import MailTrackingNumber, MailFormCourses
 from jinja2 import FileSystemLoader, Environment
 from fastapi.responses import HTMLResponse
 from dynaconf import settings
 from mail_service.sendmail import SendMail, send_mail_sendgrid
 from loguru import logger
 
-file_loader = FileSystemLoader("email-templates/build")
+file_loader = FileSystemLoader("email-templates")
 env = Environment(loader=file_loader)
 
 
 def send_mail_tracking_number(db, mail_data: MailTrackingNumber):
-    template = get_mail_template(
+    template = get_mail_template_tracking(
         mail_template="mail_tracking_number",
         order_id=mail_data.order_id,
         tracking_number=mail_data.tracking_number,
@@ -30,8 +30,34 @@ def send_mail_tracking_number(db, mail_data: MailTrackingNumber):
     return False
 
 
-def get_mail_template(mail_template, **kwargs):
+def get_mail_template_tracking(mail_template, **kwargs):
     return env.get_template("mail_tracking_number.html").render(**kwargs)
+
+
+def send_mail_form_courses(db, mail_data:MailFormCourses):
+    template = get_mail_template_courses(
+        mail_template= "mail_form_courses",
+        name= mail_data.name,
+        email= mail_data.email,
+        phone= mail_data.phone,
+        option= mail_data.option
+    )
+    sended = send_mail(
+        from_email=settings.EMAIL_FROM,
+        to_emails="thaismartins1999@gmail.com",
+        subject="Contato!",
+        plain_text_content=str(template),
+        html_content=template,
+        send_mail=send_mail_sendgrid,
+    )
+    logger.debug(template)
+    if sended:
+        return True
+    return False
+
+
+def get_mail_template_courses(mail_template, **kwargs):
+    return env.get_template("mail_form_courses.html").render(**kwargs)
 
 
 def send_mail(
