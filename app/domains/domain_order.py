@@ -1,5 +1,6 @@
+from datetime import date
 from sqlalchemy.orm import Session
-from sqlalchemy import case, literal_column, cast, Date, true, false
+from sqlalchemy import literal_column, cast, Date, between
 from sqlalchemy.sql import func, compiler
 from loguru import logger
 from collections import defaultdict
@@ -100,7 +101,11 @@ def get_product_by_id(db: Session, id):
     return ProductInDB.from_orm(product)
 
 
-def get_orders_paid(db: Session, date_now):
+def get_orders_paid(db: Session, dates):
+    new_date = json.loads(dates)
+    date_end = {'date_end': new_date.get('date_start')}
+    if 'date_end' not in new_date.keys():
+        new_date.update(date_end)
     orders = db.query(
         Transaction.order_id,
         Transaction.payment_id, 
@@ -120,7 +125,9 @@ def get_orders_paid(db: Session, date_now):
     .join(Payment, Payment.id == Transaction.payment_id)\
         .filter(
             Order.order_status == 'paid',
-            cast(Order.last_updated, Date) == date_now ).distinct().all()
+            cast(Order.last_updated, Date).between(
+                new_date.get('date_start'), new_date.get('date_end')
+            )).distinct().all()
 
     order_list = []
     product_list = []
@@ -198,7 +205,7 @@ def get_orders_paid(db: Session, date_now):
             products= prods)
 
         order_list.append(OrdersPaidFullResponse.from_orm(orders_all))
-            
+    print(new_date)    
     if orders:
         return {"orders":order_list}
     return {"orders": []}
