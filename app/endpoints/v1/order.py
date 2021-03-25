@@ -31,10 +31,10 @@ async def get_order_users_id(*, db: Session = Depends(get_db), id):
     except Exception as e:
         raise e
 
-@order.get("/orders/paid/{date_now}", status_code=200)
-async def get_orders_paid(date_now: str, db: Session = Depends(get_db)):
+@order.get("/orders/paid/{dates}", status_code=200)
+async def get_orders_paid(dates, db: Session = Depends(get_db)):
     try:
-        return domain_order.get_orders_paid(db, date_now)
+        return domain_order.get_orders_paid(db, dates)
     except Exception as e:
         raise e
     
