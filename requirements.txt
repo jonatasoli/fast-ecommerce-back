@@ -104,9 +104,9 @@ cryptography==3.4.6; python_version >= "3.6" \
     --hash=sha256:df186fcbf86dc1ce56305becb8434e4b6b7504bc724b71ad7a3239e0c9d14ef2 \
     --hash=sha256:66b57a9ca4b3221d51b237094b0303843b914b7d5afd4349970bb26518e350b0 \
     --hash=sha256:2d32223e5b0ee02943f32b19245b61a62db83a882f0e76cc564e1cec60d48f87
-databases==0.3.2; python_version >= "3.6" \
-    --hash=sha256:ee8dcece15a86359ef06414a6afcc15da15f5d078dc09af2e3a5f9dbfee4dce9 \
-    --hash=sha256:78b758884ca585b81272af1de697e0c8a3034de92bdd08e9ac47436ef0cdca56
+databases==0.4.3; python_version >= "3.6" \
+    --hash=sha256:1521db7f6d3c581ff81b3552e130b27a13aefea2a57295e65738081831137afc \
+    --hash=sha256:f82b02c28fdddf7ffe7ee1945f5abef44d687ba97b9a1c81492c7f035d4c90e6
 dynaconf==3.1.2 \
     --hash=sha256:808adfe964f10695846dbf8dad7632e47fc3bc38860fd1887ed57dddffc4eff2 \
     --hash=sha256:9b34ab2f811a81755f5eb4beac77a69e1e0887528c7e37fc4bc83fed52dcf502
