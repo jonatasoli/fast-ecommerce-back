@@ -11,4 +11,5 @@ class MailFormCourses(BaseModel):
     name: str
     email: str
     phone: str
+    course: str
     option: str
