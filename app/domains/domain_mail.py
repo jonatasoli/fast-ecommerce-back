@@ -40,11 +40,12 @@ def send_mail_form_courses(db, mail_data:MailFormCourses):
         name= mail_data.name,
         email= mail_data.email,
         phone= mail_data.phone,
+        course= mail_data.course,
         option= mail_data.option
     )
     sended = send_mail(
         from_email=settings.EMAIL_FROM,
-        to_emails="thaismartins1999@gmail.com",
+        to_emails="relacionamento@graciellegatto.com.br",
         subject="Contato!",
         plain_text_content=str(template),
         html_content=template,
