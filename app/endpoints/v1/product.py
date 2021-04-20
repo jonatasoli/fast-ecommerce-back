@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
-from fastapi import Header, APIRouter, Depends
+from fastapi import Header, APIRouter, Depends, File, UploadFile
 from domains import domain_order
+from ext import optimize_image
 from schemas.order_schema import (
     OrderSchema,
     OrderFullResponse,
@@ -14,6 +15,12 @@ from loguru import logger
 
 product = APIRouter()
 
+@product.post('/upload-image', status_code=200)
+async def upload_image(image: UploadFile = File(...)):
+    try:
+        return  optimize_image.optimize_image(image)
+    except Exception as e:
+        raise e
 
 @product.get("/showcase/all", status_code=200)
 async def get_showcase(*, db: Session = Depends(get_db)):
