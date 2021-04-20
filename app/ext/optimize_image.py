@@ -7,9 +7,10 @@ def optimize_image(image):
     size = (300, 300)
     img = Image.open(image.file)
     img = img.resize(size)
-    img.save(f'./static/{image.filename}')
     if settings.ENVIRONMENT == 'development': 
+        img.save(f'./static/{image.filename}')
         return f'http://localhost:7777/static/{image.filename}'
     else:
+        img.save(f'{image.filename}')
         send_image_spaces(image.filename)
         return f'https://fastecommerce.nyc3.digitaloceanspaces.com/{image.filename}'
