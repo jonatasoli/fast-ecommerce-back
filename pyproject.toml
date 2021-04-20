@@ -36,6 +36,10 @@ psycopg2-binary = "^2.8.6"
 importlib-metadata = "^3.3.0"
 typing-extensions = "^3.7.4.3"
 sentry-sdk = "^0.20.3"
+cloudinary = "^1.25.0"
+Pillow = "^8.2.0"
+aiofiles = "^0.6.0"
+boto3 = "^1.17.53"
 
 [tool.poetry.dev-dependencies]
 pep8 = "^1.7.1"
