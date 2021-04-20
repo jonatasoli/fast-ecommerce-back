@@ -11,6 +11,6 @@ def send_image_spaces(image_name):
                             aws_secret_access_key= settings.AWS_SECRET_ACCESS_KEY)
 
     client.upload_file(f'{image_name}',  # Path to local file
-                    'fastecommerce',  # Name of Space
+                    'gattorosa',  # Name of Space
                     f'{image_name}', 
                     ExtraArgs={'ACL': 'public-read'})  # Name for remote file

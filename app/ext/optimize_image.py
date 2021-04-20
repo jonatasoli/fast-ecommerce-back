@@ -13,4 +13,4 @@ def optimize_image(image):
     else:
         img.save(f'{image.filename}')
         send_image_spaces(image.filename)
-        return f'https://fastecommerce.nyc3.digitaloceanspaces.com/{image.filename}'
+        return f'https://gattorosa.nyc3.digitaloceanspaces.com/{image.filename}'
