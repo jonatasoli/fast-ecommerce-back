@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from loguru import logger
 
 from constants import DocumentType
@@ -128,3 +128,9 @@ class Address(Base):
             "street_number": self.street_number,
             "zipcode": self.zipcode,
         }
+
+class UserResetPassword(Base):
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    token = Column(String)
+    used_token = Column(Boolean, default=False)
