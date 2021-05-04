@@ -27,7 +27,7 @@ async def get_product(*, db: Session = Depends(deps.get_db), uri):
     try:
         return domain_order.get_product(db, uri)
     except Exception as e:
-        logger.erro("Erro ao retornar produto {e}")
+        logger.error("Erro ao retornar produto {e}")
         raise e
 
 

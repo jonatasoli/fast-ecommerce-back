@@ -4,9 +4,9 @@ from typing import Optional
 
 class SignUp(BaseModel):
     name: str
-    mail: str
+    email: str
     password: SecretStr
-    document: str
+    username: str
     phone: str
 
 
@@ -51,3 +51,8 @@ class AddressSchema(BaseModel):
     complement: str
     type_address: str
     category: str
+
+
+class UserResponseResetPassword(BaseModel):
+    document: str
+    password: str

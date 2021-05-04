@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from typing import List, Optional
 from loguru import logger
 
-from schemas.user_schema import SignUp, SignUpResponse, Token
+from schemas.user_schema import SignUp, SignUpResponse, Token, UserResponseResetPassword
 from domains import domain_user
 from domains.domain_user import check_token
 from endpoints.deps import get_db
@@ -68,3 +68,18 @@ async def login_for_access_token(
 
     response = {"access_token": access_token, "token_type": "bearer", "role": role}
     return response
+
+
+@user.get("/user/{document}", status_code=200)
+async def get_user(document: str, db: Session = Depends(get_db)):
+    return domain_user.get_user_login(db, document)
+
+
+@user.post("/request-reset-password", status_code=200)
+async def request_reset_password(document: str, db: Session = Depends(get_db)):
+    return domain_user.save_token_reset_password(db, document)
+
+
+@user.put("/reset-password", status_code=200)
+async def reset_password(response_model: UserResponseResetPassword, db: Session = Depends(get_db)):
+    return domain_user.reset_password(db, data=response_model)
