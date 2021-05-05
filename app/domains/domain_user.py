@@ -18,10 +18,11 @@ from schemas.user_schema import (
     SignUp,
     UserInDB,
     UserSchema,
+    UserResponseResetPassword
 )
 from ext.database import get_session
 from schemas.order_schema import CheckoutSchema
-from models.users import User, Address
+from models.users import User, Address, UserResetPassword
 from models.role import Role
 from constants import DocumentType, Roles
 
@@ -42,9 +43,9 @@ def create_user(db: Session, obj_in: SignUp):
         db_user = User(
             name=obj_in.name,
             document_type=DocumentType.CPF.value,
-            document=obj_in.document,
+            document=obj_in.username,
             birth_date=None,
-            email=obj_in.mail,
+            email=obj_in.email,
             phone=obj_in.phone,
             password=obj_in.password.get_secret_value(),
             role_id=Roles.USER.value,
@@ -334,3 +335,34 @@ def address_by_postal_code(zipcode_data):
 
     except Exception as e:
         raise e
+
+
+def get_user_login(db: Session, document:str):
+    user = db.query(User).filter_by(document = document).first()
+    return UserSchema.from_orm(user)
+
+
+
+def save_token_reset_password(db: Session, document:str):
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    _token = create_access_token(
+        data={"sub": document}, expires_delta=access_token_expires
+    )
+    _user = db.query(User).filter_by(document = document).first()
+    db_reset = UserResetPassword(
+        user_id = _user.id,
+        token =_token
+    )
+    db.add(db_reset)
+    db.commit()
+    return db_reset
+
+
+def reset_password(db: Session, data: UserResponseResetPassword):
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    _user = db.query(User).filter_by(document = data.document).first()
+    _used_token = db.query(UserResetPassword).filter_by(user_id= _user.id).first()
+    _used_token.used_token = True
+    _user.password = pwd_context.hash(data.password)
+    db.commit()
+    return "Senha alterada"
