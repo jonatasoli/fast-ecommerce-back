@@ -10,7 +10,7 @@ class ProductSchema(BaseModel):
     direct_sales: Optional[bool] = None
     upsell: Optional[list] = None
     description: str
-    image_path: str
+    image_path: Optional[str]
     installments_config: Optional[int]
     installments_list: Optional[list]
     category_id: int
@@ -156,7 +156,7 @@ class ProductsResponseOrder(BaseModel):
 class OrdersPaidFullResponse(BaseModel):
     payment_id: int
     id_pagarme: int
-    status: str
+    status: Optional[str]
     order_id: int
     tracking_number: Optional[str]
     user_name: str
