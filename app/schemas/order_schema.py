@@ -1,6 +1,6 @@
 from pydantic import BaseModel, SecretStr
 from typing import List, Optional, Dict
-from datetime import datetime
+from datetime import datetime, date
 
 
 class ProductSchema(BaseModel):
@@ -116,8 +116,8 @@ class TrackingFullResponse(BaseModel):
 
 class OrderCl:
     def __init__(self, payment_id: int,id_pagarme: str, status: str ,
-    order_id: int, tracking_number: str,user_name: str, email: str,
-    document: int, type_address: str, category: str, 
+    order_id: int, tracking_number: str, order_date: str, user_name: str, 
+    email: str, phone: str,  document: int, type_address: str, category: str, 
     country: str, city: str, state: str,  neighborhood: str, 
     street: str, street_number: int, address_complement: str, 
     zipcode: int, user_affiliate: str,
@@ -127,8 +127,10 @@ class OrderCl:
         self.status = status
         self.order_id = order_id
         self.tracking_number = tracking_number
+        self.order_date = order_date
         self.user_name = user_name
         self.email = email
+        self.phone = phone
         self.document = document
         self.type_address = type_address
         self.category = category 
@@ -155,12 +157,14 @@ class ProductsResponseOrder(BaseModel):
 
 class OrdersPaidFullResponse(BaseModel):
     payment_id: int
-    id_pagarme: int
+    id_pagarme: Optional[int]
     status: Optional[str]
     order_id: int
     tracking_number: Optional[str]
+    order_date: str
     user_name: str
     email: str
+    phone: Optional[str]
     document: int
     type_address: str
     category: str
