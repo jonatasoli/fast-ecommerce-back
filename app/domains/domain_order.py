@@ -101,18 +101,25 @@ def get_product_by_id(db: Session, id):
     return ProductInDB.from_orm(product)
 
 
-def get_orders_paid(db: Session, dates):
+def get_orders_paid(db: Session, dates, status):
     new_date = json.loads(dates)
     date_end = {'date_end': new_date.get('date_start')}
+    table_date = Order.last_updated
     if 'date_end' not in new_date.keys():
         new_date.update(date_end)
+    if status == "null":
+        status = None
+        table_date = Order.order_date
+
     orders = db.query(
         Transaction.order_id,
         Transaction.payment_id, 
         Order.tracking_number,
+        Order.order_date,
         User.id.label("user_id"),
         User.name.label('user_name'),
         User.email,
+        User.phone,
         User.document,
         Transaction.affiliate,
         Payment.amount,
@@ -124,14 +131,14 @@ def get_orders_paid(db: Session, dates):
     .join(User, Transaction.user_id == User.id)\
     .join(Payment, Payment.id == Transaction.payment_id)\
         .filter(
-            Order.order_status == 'paid',
-            cast(Order.last_updated, Date).between(
+            Order.order_status == status,
+            cast(Order.order_date, Date).between(
                 new_date.get('date_start'), new_date.get('date_end')
             )).distinct().all()
-
+    print(status)
     order_list = []
     product_list = []
-
+    print(orders)
     for order in orders:
         address = db.query(
             Address.user_id,
@@ -161,7 +168,7 @@ def get_orders_paid(db: Session, dates):
         
         products = db.query(
             Product.name.label('product_name'),
-            Product.price,
+            Transaction.amount.label('price'),
             Transaction.qty,
             Transaction.payment_id,
             Transaction.order_id
@@ -180,15 +187,16 @@ def get_orders_paid(db: Session, dates):
                 product_grouped[item.payment_id].append(item)
         prods = []
         prods = product_grouped.pop(item.payment_id)
-        
         orders_all = OrderCl(
             payment_id=order.payment_id,
             id_pagarme = order.id_pagarme,
             status = order.status,
             order_id = order.order_id,
             tracking_number= order.tracking_number,
+            order_date= order.order_date.date().strftime('%d-%m-%y'),
             user_name= order.user_name,
             email = order.email,
+            phone = order.phone,
             document= order.document,
             type_address= address.type_address,
             category= address.category,
