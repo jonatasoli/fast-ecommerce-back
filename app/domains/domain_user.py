@@ -43,9 +43,9 @@ def create_user(db: Session, obj_in: SignUp):
         db_user = User(
             name=obj_in.name,
             document_type=DocumentType.CPF.value,
-            document=obj_in.username,
+            document=obj_in.document,
             birth_date=None,
-            email=obj_in.email,
+            email=obj_in.mail,
             phone=obj_in.phone,
             password=obj_in.password.get_secret_value(),
             role_id=Roles.USER.value,
