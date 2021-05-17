@@ -4,9 +4,9 @@ from typing import Optional
 
 class SignUp(BaseModel):
     name: str
-    email: str
+    mail: str
     password: SecretStr
-    username: str
+    document: str
     phone: str
 
 
