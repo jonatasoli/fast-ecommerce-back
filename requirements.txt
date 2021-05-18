@@ -148,9 +148,9 @@ idna==2.10; python_version >= "3.6" and python_full_version < "3.0.0" or python_
 importlib-metadata==3.4.0; python_version >= "3.6" \
     --hash=sha256:ace61d5fc652dc280e7b6b4ff732a9c2d40db2c0f92bc6cb74e07b73d53a1771 \
     --hash=sha256:fa5daa4477a7414ae34e95942e4dd07f62adf589143c875c133c1e53c4eff38d
-jinja2==2.11.3; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0") \
-    --hash=sha256:03e47ad063331dd6a3f04a43eddca8a966a26ba0c5b7207a9a9e4e08f1b29419 \
-    --hash=sha256:a6d58433de0ae800347cab1fa3043cebbabe8baa9d29e668f1c768cb87a333c6
+jinja2==3.0.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0") \
+    --hash=sha256:1f06f2da51e7b56b8f238affdd6b4e2c61e39598a378cc49345bc1bd42a978a4 \
+    --hash=sha256:703f484b47a6af502e743c9122595cc812b0271f661722403114f71a79d0f5a4
 jmespath==0.10.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" \
     --hash=sha256:cdf6525904cc597730141d61b36f2e4b8ecc257c420fa2f4549bac2c2d0cb72f \
     --hash=sha256:b85d0567b8666149a93172712e68920734333c0ce7e89b78b3e987f71e5ed4f9
