@@ -66,7 +66,6 @@ async def put_product(
     except Exception as e:
         raise e
 
-
 @product.delete("/delete/{id}", status_code=200)
 async def delete_product(id: int, db: Session = Depends(get_db)):
     try:
@@ -74,19 +73,18 @@ async def delete_product(id: int, db: Session = Depends(get_db)):
     except Exception as e:
         raise e
 
-
-@product.get("/category/all", status_code=200)
+@product.get("/all/categorys", status_code=200)
 async def get_categorys(db: Session = Depends(get_db)):
     try:
-        return domain_order.get_category()
+        return domain_order.get_category(db)
     except Exception as e:
-        logger.error(f"Erro em obter categoria - { e }")
+        logger.error(f"Erro em obter as categorias - { e }")
         raise e
 
 
-@product.get("/category/{id}", status_code=200)
-async def get_product_category(*, db: Session = Depends(get_db), id):
+@product.get("/category/products/{path}", status_code=200)
+async def get_product_category(path:str, db: Session = Depends(get_db)):
     try:
-        return domain_order.get_products_category(db, id)
+        return domain_order.get_products_category(db, path)
     except Exception as e:
         raise e

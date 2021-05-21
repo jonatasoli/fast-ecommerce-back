@@ -244,7 +244,10 @@ class CategorySchema(BaseModel):
 
 
 class CategoryInDB(BaseModel):
+    id: int
     name: str
+    path: str
+
 
     class Config:
         orm_mode = True
