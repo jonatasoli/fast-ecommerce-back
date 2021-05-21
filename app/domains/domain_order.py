@@ -291,8 +291,11 @@ def get_category(db: Session):
 
 
 
-def get_products_category(db: Session, id):
-    products = db.query(Product).filter_by(active=True, category_id=id).all()
+def get_products_category(db: Session, path):
+    category = db.query(Category).filter(Category.path == path).first()
+    print(category.path, category.id)
+    products = db.query(Product).filter(Product.showcase == True, 
+    Product.category_id == category.id).all()
     products_category = []
 
     for product in products:
