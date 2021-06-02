@@ -15,10 +15,18 @@ from loguru import logger
 
 product = APIRouter()
 
-@product.post('/upload-image', status_code=200)
-async def upload_image(image: UploadFile = File(...)):
+@product.post('/upload-image/{product_id}', status_code=200)
+async def upload_image(product_id: int,db: Session = Depends(get_db),image: UploadFile = File(...)):
     try:
-        return  optimize_image.optimize_image(image)
+        return  domain_order.upload_image(db, product_id, image)
+    except Exception as e:
+        raise e
+
+
+@product.post('/upload-image-gallery/', status_code=200)
+async def upload_image_gallery(product_id:int, db: Session = Depends(get_db),imageGallery: UploadFile = File(...)):
+    try:
+        return domain_order.upload_image_gallery(product_id,db, imageGallery)
     except Exception as e:
         raise e
 
@@ -28,6 +36,22 @@ async def get_showcase(*, db: Session = Depends(get_db)):
         return domain_order.get_showcase(db)
     except Exception as e:
         logger.error(f"Erro em obter os produtos - { e }")
+        raise e
+
+
+@product.get("/images/gallery/{uri}", status_code=200)
+async def get_images_gallery(uri: str, db: Session = Depends(get_db)):
+    try:
+        return domain_order.get_images_gallery(db, uri)
+    except Exception as e:
+        raise e
+
+
+@product.delete("/delete/image-gallery/{id}", status_code=200)
+async def delete_image(id: int, db: Session = Depends(get_db)):
+    try:
+        return domain_order.delete_image_gallery(id, db)
+    except Exception as e:
         raise e
 
 

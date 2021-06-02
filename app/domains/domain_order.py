@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import literal_column, cast, Date, between
 from sqlalchemy.sql import func, compiler
 from loguru import logger
+from ext import optimize_image
 from collections import defaultdict
 
 from schemas.order_schema import (
@@ -17,10 +18,11 @@ from schemas.order_schema import (
     OrdersPaidFullResponse,
     ProductsResponseOrder,
     OrderCl,
-    TrackingFullResponse
+    TrackingFullResponse,
+    ImageGalleryResponse
 )
 
-from models.order import Product, Order, OrderItems, Category
+from models.order import Product, Order, OrderItems, Category, ImageGallery
 from models.transaction import Payment, Transaction
 from models.users import User, Address
 from loguru import logger
@@ -51,6 +53,42 @@ def delete_product(db: Session, id):
     db.query(Product).filter(Product.id == id).delete()
     db.commit()
     return {"Produto excluido"}
+
+
+def upload_image(db: Session, product_id, image):
+    image_path = optimize_image.optimize_image(image)
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    db_product.image_path = image_path
+    db.commit()
+    return image_path
+
+
+def upload_image_gallery(product_id, db: Session, imageGallery):
+    image_path = optimize_image.optimize_image(imageGallery)
+    db_image_gallery = ImageGallery(url= image_path, product_id= product_id)
+    db.add(db_image_gallery)
+    db.commit()
+    return image_path
+
+
+def delete_image_gallery(id: int, db: Session):
+    db.query(ImageGallery).filter(ImageGallery.id == id).delete()
+    db.commit()
+    return "Imagem excluida"
+
+
+def get_images_gallery(db: Session, uri):
+    product_id = db.query(Product).filter(Product.uri == uri).first()
+    images = db.query(ImageGallery).filter(ImageGallery.product_id == product_id.id).all()
+    images_list = []
+
+    for image in images:
+        images_list.append(ImageGalleryResponse.from_orm(image))
+    
+    if images:
+        return {"images": images_list}
+    return {"images": []}
+
 
 
 def get_showcase(db: Session):
