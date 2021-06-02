@@ -253,6 +253,14 @@ class CategoryInDB(BaseModel):
         orm_mode = True
 
 
+class ImageGalleryResponse(BaseModel):
+    id: int
+    url: str
+
+    class Config:
+        orm_mode = True
+
+
 class ListCategory(BaseModel):
     category: List[CategoryInDB]
 

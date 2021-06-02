@@ -92,3 +92,10 @@ class Category(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String)
     path = Column(String)
+
+
+class ImageGallery(Base):
+    id = Column(Integer, nullable=False, primary_key=True)
+    url = Column(String)
+    product_id = Column(Integer)
+
