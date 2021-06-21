@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
+from endpoints.v1.direct_sales import direct_sales
 from endpoints.v1.users import user
 from payment.endpoint import payment
 from endpoints.v1.shipping import shipping
@@ -66,6 +67,10 @@ logger.add(
 logging.getLogger("uvicorn.access").handlers = [InterceptHandler()]
 
 app.include_router(user, prefix="/user")
+app.include_router(
+        direct_sales,
+        prefix="/direct-sales",
+        responses={404: {"description": "Not found"}})
 app.include_router(payment)
 app.include_router(shipping)
 app.include_router(order)
