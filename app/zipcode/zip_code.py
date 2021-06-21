@@ -39,6 +39,7 @@ class CalculateShipping:
 
     def calculate_shipping(self, url=correios_shipping()):
         services = ["4510", "4014"]
+        shipping_list = []
         for service in services:
             headers = {"content-type": "text/xml; charset=utf-8"}
             body = Adapter.body_shipping(
@@ -57,4 +58,7 @@ class CalculateShipping:
                 name = "PAC"
             if "4014" == service:
                 name = "SEDEX"
-            yield Adapter.xmltojson_shipping(content, name)
+            result = Adapter.xmltojson_shipping(content, name)
+            result["frete"] = int((result["frete"].replace(",", "")))
+            shipping_list.append(result)
+        return shipping_list

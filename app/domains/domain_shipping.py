@@ -48,11 +48,9 @@ def shipping_zip_code(db: Session, shipping_data: ShippingCalc):
             )
             shipping = shipping.calculate_shipping()
             logger.debug(f"SHPPING RESULT {shipping} ")
-            shipping = next(shipping)
-            logger.debug(f"RESULTADO {shipping['frete']}")
-            if int((shipping["frete"].replace(",", ""))) == 0:
+            if shipping == []:
                 return {"shipping": -2}
-            return {"shipping": int((shipping["frete"].replace(",", "")))}
+            return {"shipping": shipping}
     except Exception as e:
         logger.error("Erro no calculo do frete {e}")
         return {"shipping": -2}
