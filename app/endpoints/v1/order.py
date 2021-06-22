@@ -9,9 +9,9 @@ from constants import OrderStatus
 from gateway.payment_gateway import return_transaction
 from loguru import logger
 from job_service.service import get_session
+from typing import Optional
+from datetime import date
 
-import requests
-import json
 
 order = APIRouter()
 
@@ -31,10 +31,10 @@ async def get_order_users_id(*, db: Session = Depends(get_db), id):
     except Exception as e:
         raise e
 
-@order.get("/orders/{dates}", status_code=200)
-async def get_orders_paid(dates, status, db: Session = Depends(get_db)):
+@order.get("/orders", status_code=200)
+async def get_orders_paid(dates: Optional[str] =None, status: Optional[str]=None, user_id: Optional[int]=None, db: Session = Depends(get_db)):
     try:
-        return domain_order.get_orders_paid(db, dates, status)
+        return domain_order.get_orders_paid(db, dates, status, user_id)
     except Exception as e:
         raise e
     
