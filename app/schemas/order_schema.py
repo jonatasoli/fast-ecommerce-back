@@ -148,7 +148,7 @@ class OrderCl:
 
 class ProductsResponseOrder(BaseModel):
     product_name: str
-    image_path: str
+    image_path: Optional[str]
     price: int
     qty: int
     payment_id: int
