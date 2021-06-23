@@ -163,7 +163,8 @@ def get_orders_paid(db: Session, dates= None, status=None, user_id= None):
         Transaction.affiliate,
         Payment.amount,
         Payment.gateway_id.label('id_pagarme'),
-        Order.order_status.label('status')
+        Order.order_status.label('status'),
+        Order.checked,
         )\
     .join(Order, Transaction.order_id == Order.id)\
     .join(Product, Transaction.product_id == Product.id)\
@@ -250,6 +251,7 @@ def get_orders_paid(db: Session, dates= None, status=None, user_id= None):
             zipcode= address.zipcode,
             user_affiliate= affiliate,
             amount= order.amount,
+            checked= order.checked,
             products= prods)
 
         order_list.append(OrdersPaidFullResponse.from_orm(orders_all))   
@@ -311,6 +313,14 @@ def put_trancking_number(db: Session, data: TrackingFullResponse, id):
     order = order.update(data)
     db.commit()
     return {**data.dict()}
+
+
+def checked_order(db: Session, id, check):
+    db_order = db.query(Order).filter(Order.id == id).first()
+    db_order.checked = check
+    db.commit()
+    return db_order
+
 
 def create_order(db: Session, order_data: OrderSchema):
     db_order = Order(**order_data.dict())
