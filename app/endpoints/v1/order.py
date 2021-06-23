@@ -54,6 +54,13 @@ async def put_trancking_number(id: int, value: TrackingFullResponse, db: Session
     except Exception as e:
         raise e
 
+@order.post("/check_order/{id}", status_code=200)
+async def put_trancking_number(id: int, check: bool, db: Session = Depends(get_db)):
+    try:
+        return domain_order.checked_order(db, id, check)
+    except Exception as e:
+        raise e
+
 
 @order.post("/order/create_order", status_code=200)
 async def create_order(*, db: Session = Depends(get_db), order_data: OrderSchema):
