@@ -58,6 +58,7 @@ class Order(Base):
     payment_id = Column(Integer, nullable=True)
     order_status = Column(String)
     last_updated = Column(DateTime)
+    checked = Column(Boolean, default=False)
 
 
 class OrderItems(Base):

@@ -121,7 +121,7 @@ class OrderCl:
     country: str, city: str, state: str,  neighborhood: str, 
     street: str, street_number: int, address_complement: str, 
     zipcode: int, user_affiliate: str,
-    amount: int, products: list):
+    amount: int, checked:bool, products: list):
         self.payment_id = payment_id
         self.id_pagarme = id_pagarme
         self.status = status
@@ -144,6 +144,7 @@ class OrderCl:
         self.zipcode = zipcode 
         self.user_affiliate = user_affiliate 
         self.amount = amount 
+        self.checked = checked
         self.products = products
 
 class ProductsResponseOrder(BaseModel):
@@ -179,6 +180,7 @@ class OrdersPaidFullResponse(BaseModel):
     zipcode: str
     user_affiliate: Optional[str]
     amount: int
+    checked: Optional[bool]
     products: list
 
     class Config:
