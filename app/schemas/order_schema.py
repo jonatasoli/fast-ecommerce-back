@@ -16,10 +16,10 @@ class ProductSchema(BaseModel):
     category_id: int
     discount: Optional[int]
     quantity: Optional[int]
-    heigth: Optional[int]
-    width: Optional[int]
-    weigth: Optional[int]
-    length: Optional[int]
+    heigth: Optional[float]
+    width: Optional[float]
+    weigth: Optional[float]
+    length: Optional[float]
 
     class Config:
         orm_mode = True
@@ -45,10 +45,10 @@ class ProductFullResponse(BaseModel):
     quantity: Optional[int]
     showcase: bool
     show_discount: Optional[bool]
-    heigth: Optional[int]
-    width: Optional[int]
-    weigth: Optional[int]
-    length: Optional[int]
+    heigth: Optional[float]
+    width: Optional[float]
+    weigth: Optional[float]
+    length: Optional[float]
 
     class Config:
         orm_mode = True
@@ -70,10 +70,10 @@ class ProductInDB(BaseModel):
     quantity: Optional[int]
     showcase: bool
     show_discount: Optional[bool]
-    heigth: Optional[int]
-    width: Optional[int]
-    weigth: Optional[int]
-    length: Optional[int]
+    heigth: Optional[float]
+    width: Optional[float]
+    weigth: Optional[float]
+    length: Optional[float]
 
     class Config:
         orm_mode = True
