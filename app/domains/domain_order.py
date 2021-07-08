@@ -1,10 +1,10 @@
 from datetime import date
 from sqlalchemy.orm import Session
 from sqlalchemy import literal_column, cast, Date, between
-from sqlalchemy.sql import func, compiler
 from loguru import logger
 from ext import optimize_image
 from collections import defaultdict
+
 
 from schemas.order_schema import (
     ProductSchema,
@@ -139,15 +139,16 @@ def get_product_by_id(db: Session, id):
     return ProductInDB.from_orm(product)
 
 
-def get_orders_paid(db: Session, dates, status):
-    new_date = json.loads(dates)
-    date_end = {'date_end': new_date.get('date_start')}
-    table_date = Order.last_updated
-    if 'date_end' not in new_date.keys():
-        new_date.update(date_end)
+def get_orders_paid(db: Session, dates= None, status=None, user_id= None):
+    if dates:
+        print(dates)
+        new_date = json.loads(dates)
+        date_end = {'date_end': new_date.get('date_start')}
+        if 'date_end' not in new_date.keys():
+            new_date.update(date_end)
     if status == "null":
         status = None
-        table_date = Order.order_date
+        
 
     orders = db.query(
         Transaction.order_id,
@@ -162,21 +163,22 @@ def get_orders_paid(db: Session, dates, status):
         Transaction.affiliate,
         Payment.amount,
         Payment.gateway_id.label('id_pagarme'),
-        Order.order_status.label('status')
+        Order.order_status.label('status'),
+        Order.checked,
         )\
     .join(Order, Transaction.order_id == Order.id)\
     .join(Product, Transaction.product_id == Product.id)\
     .join(User, Transaction.user_id == User.id)\
-    .join(Payment, Payment.id == Transaction.payment_id)\
-        .filter(
-            Order.order_status == status,
-            cast(Order.order_date, Date).between(
-                new_date.get('date_start'), new_date.get('date_end')
-            )).distinct().all()
-    print(status)
+    .join(Payment, Payment.id == Transaction.payment_id)
+    if dates:
+        orders = orders.filter(Order.order_status == status, 
+        cast(Order.order_date, Date).between(
+            new_date.get('date_start'), new_date.get('date_end'))).distinct().all()
+    if user_id:
+        user = db.query(User).filter(User.document == str(user_id)).first()
+        orders = orders.filter(Order.customer_id == user.id).distinct().all()
     order_list = []
     product_list = []
-    print(orders)
     for order in orders:
         address = db.query(
             Address.user_id,
@@ -206,6 +208,7 @@ def get_orders_paid(db: Session, dates, status):
         
         products = db.query(
             Product.name.label('product_name'),
+            Product.image_path,
             Transaction.amount.label('price'),
             Transaction.qty,
             Transaction.payment_id,
@@ -248,10 +251,10 @@ def get_orders_paid(db: Session, dates, status):
             zipcode= address.zipcode,
             user_affiliate= affiliate,
             amount= order.amount,
+            checked= order.checked,
             products= prods)
 
-        order_list.append(OrdersPaidFullResponse.from_orm(orders_all))
-    print(new_date)    
+        order_list.append(OrdersPaidFullResponse.from_orm(orders_all))   
     if orders:
         return {"orders":order_list}
     return {"orders": []}
@@ -310,6 +313,14 @@ def put_trancking_number(db: Session, data: TrackingFullResponse, id):
     order = order.update(data)
     db.commit()
     return {**data.dict()}
+
+
+def checked_order(db: Session, id, check):
+    db_order = db.query(Order).filter(Order.id == id).first()
+    db_order.checked = check
+    db.commit()
+    return db_order
+
 
 def create_order(db: Session, order_data: OrderSchema):
     db_order = Order(**order_data.dict())

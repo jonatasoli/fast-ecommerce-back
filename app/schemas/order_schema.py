@@ -16,10 +16,10 @@ class ProductSchema(BaseModel):
     category_id: int
     discount: Optional[int]
     quantity: Optional[int]
-    heigth: Optional[int]
-    width: Optional[int]
-    weigth: Optional[int]
-    length: Optional[int]
+    heigth: Optional[float]
+    width: Optional[float]
+    weigth: Optional[float]
+    length: Optional[float]
 
     class Config:
         orm_mode = True
@@ -45,10 +45,10 @@ class ProductFullResponse(BaseModel):
     quantity: Optional[int]
     showcase: bool
     show_discount: Optional[bool]
-    heigth: Optional[int]
-    width: Optional[int]
-    weigth: Optional[int]
-    length: Optional[int]
+    heigth: Optional[float]
+    width: Optional[float]
+    weigth: Optional[float]
+    length: Optional[float]
 
     class Config:
         orm_mode = True
@@ -70,10 +70,10 @@ class ProductInDB(BaseModel):
     quantity: Optional[int]
     showcase: bool
     show_discount: Optional[bool]
-    heigth: Optional[int]
-    width: Optional[int]
-    weigth: Optional[int]
-    length: Optional[int]
+    heigth: Optional[float]
+    width: Optional[float]
+    weigth: Optional[float]
+    length: Optional[float]
 
     class Config:
         orm_mode = True
@@ -121,7 +121,7 @@ class OrderCl:
     country: str, city: str, state: str,  neighborhood: str, 
     street: str, street_number: int, address_complement: str, 
     zipcode: int, user_affiliate: str,
-    amount: int, products: list):
+    amount: int, checked:bool, products: list):
         self.payment_id = payment_id
         self.id_pagarme = id_pagarme
         self.status = status
@@ -144,10 +144,12 @@ class OrderCl:
         self.zipcode = zipcode 
         self.user_affiliate = user_affiliate 
         self.amount = amount 
+        self.checked = checked
         self.products = products
 
 class ProductsResponseOrder(BaseModel):
     product_name: str
+    image_path: Optional[str]
     price: int
     qty: int
     payment_id: int
@@ -178,6 +180,7 @@ class OrdersPaidFullResponse(BaseModel):
     zipcode: str
     user_affiliate: Optional[str]
     amount: int
+    checked: Optional[bool]
     products: list
 
     class Config:
