@@ -50,9 +50,9 @@ beautifulsoup4==4.9.3 \
     --hash=sha256:4c98143716ef1cb40bf7f39a8e3eec8f8b009509e74904ba3a7b315431577e35 \
     --hash=sha256:fff47e031e34ec82bf17e00da8f592fe7de69aeea38be00523c04623c04fb666 \
     --hash=sha256:84729e322ad1d5b4d25f805bfa05b902dd96450f43842c4e99067d5e1369eb25
-boto3==1.17.108; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0") \
-    --hash=sha256:10122ff0f942d7400b18b726edaead20600178f8246cb21b40420073350613b5 \
-    --hash=sha256:484bba256137c2d2f8351175553dee0e888e8bd5872f5406c8984e02715acf4d
+boto3==1.17.109; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0") \
+    --hash=sha256:bce638f57fbf054f8eba1abce56c849108646edde3564bd08316763323a4020e \
+    --hash=sha256:c1f94af6989cb6bb90e22c063783b5b9b2b75ccf20bac993d9c35de84501e2bb
 botocore==1.20.108; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" \
     --hash=sha256:7667ef69001708afa796d2e79910230715e8542a910820581bf4623a5d3b0d47 \
     --hash=sha256:f4686d2ccf68dfcd90d2591695938fd0906ae0a7121f792d193b0f000a5d8872
