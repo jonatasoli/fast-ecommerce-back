@@ -484,6 +484,6 @@ wcwidth==0.2.5; python_version >= "3.5" \
 win32-setctime==1.0.3; sys_platform == "win32" and python_version >= "3.5" \
     --hash=sha256:dc925662de0a6eb987f0b01f599c01a8236cb8c62831c22d9cada09ad958243e \
     --hash=sha256:4e88556c32fdf47f64165a2180ba4552f8bb32c1103a2fafd05723a0bd42bd4b
-zipp==3.5.0; python_version >= "3.6" \
-    --hash=sha256:957cfda87797e389580cb8b9e3870841ca991e2125350677b2ca83a0e99390a3 \
-    --hash=sha256:f5812b1e007e48cff63449a5e9f4e7ebea716b4111f9c4f9a645f91d579bf0c4
+zipp==3.6.0; python_version >= "3.6" \
+    --hash=sha256:71c644c5369f4a6e07636f0aa966270449561fcea2e3d6747b8d23efaa9d7832 \
+    --hash=sha256:9fe5ea21568a0a70e50f273397638d39b03353731e6cbbb3fd8502a33fec40bc
