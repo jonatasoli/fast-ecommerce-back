@@ -400,9 +400,9 @@ requests==2.25.1; (python_version >= "2.7" and python_full_version < "3.0.0") or
 rfc3986==1.5.0; python_version >= "3.6" \
     --hash=sha256:a86d6e1f5b1dc238b218b012df0aa79409667bb209e58da56d0b94704e712a97 \
     --hash=sha256:270aaf10d87d0d4e095063c65bf3ddbc6ee3d0b226328ce21e036f946e421835
-rsa==4.7.1; python_version >= "3.5" and python_version < "4" \
-    --hash=sha256:74ba16e7ef58920b80b5c54c1c1066d391a2c1e812c466773f74c634eb12253b \
-    --hash=sha256:9d74d1ff850745c9802cd6b53382bfeec7f6dbe4e26ee2759241ed1e7b0ecf5d
+rsa==4.8; python_version >= "3.5" and python_version < "4" \
+    --hash=sha256:5c6bd9dc7a543b7fe4304a631f8a8a3b674e2bbfc49c2ae96200cdbe55df6b17 \
+    --hash=sha256:95c5d300c4e879ee69708c428ba566c59478fd653cc3a22243eeb8ed846950bb
 s3transfer==0.3.7; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" \
     --hash=sha256:efa5bd92a897b6a8d5c1383828dca3d52d0790e0756d49740563a3fb6ed03246 \
     --hash=sha256:35627b86af8ff97e7ac27975fe0a98a312814b46c6333d8a6b889627bcd80994
