@@ -387,8 +387,9 @@ python-editor==1.0.4; python_version >= "2.7" and python_full_version < "3.0.0" 
     --hash=sha256:ea87e17f6ec459e780e4221f295411462e0d0810858e055fc514684350a2f522 \
     --hash=sha256:1bf6e860a8ad52a14c3ee1252d5dc25b2030618ed80c022598f00176adc8367d \
     --hash=sha256:c3da2053dbab6b29c94e43c486ff67206eafbe7eb52dbec7390b5e2fb05aac77
-python-http-client==3.3.2; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" \
-    --hash=sha256:67e6a7bea19b03e14dc971480d3531b80becfc203d6c69478561bf7844d52661
+python-http-client==3.3.4; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" \
+    --hash=sha256:723d0d6f03d4865cc8d08172aef15837a1eb9d8d8a719a08107e4680d0876e41 \
+    --hash=sha256:742169c42033ee81e22958dcf9e2c6f2b196028d72f87563eecdb28324d82528
 python-jose==3.2.0 \
     --hash=sha256:4e4192402e100b5fb09de5a8ea6bcc39c36ad4526341c123d401e2561720335b \
     --hash=sha256:67d7dfff599df676b04a996520d9be90d6cdb7e6dd10b4c7cacc0c3e2e92f2be
