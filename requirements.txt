@@ -46,10 +46,9 @@ bcrypt==3.2.0; python_version >= "3.6" \
     --hash=sha256:a67fb841b35c28a59cebed05fbd3e80eea26e6d75851f0574a9273c80f3e9b55 \
     --hash=sha256:81fec756feff5b6818ea7ab031205e1d323d8943d237303baca2c5f9c7846f34 \
     --hash=sha256:5b93c1726e50a93a033c36e5ca7fdcd29a5c7395af50a6892f5d9e7c6cfbfb29
-beautifulsoup4==4.9.3 \
-    --hash=sha256:4c98143716ef1cb40bf7f39a8e3eec8f8b009509e74904ba3a7b315431577e35 \
-    --hash=sha256:fff47e031e34ec82bf17e00da8f592fe7de69aeea38be00523c04623c04fb666 \
-    --hash=sha256:84729e322ad1d5b4d25f805bfa05b902dd96450f43842c4e99067d5e1369eb25
+beautifulsoup4==4.11.1 \
+    --hash=sha256:58d5c3d29f5a36ffeb94f02f0d786cd53014cf9b3b3951d42e0080d8a9498d30 \
+    --hash=sha256:ad9aa55b65ef2808eb405f46cf74df7fcb7044d5cbc26487f96eb2ef2e436693
 boto3==1.17.110; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0") \
     --hash=sha256:00be3c440db39a34a049eabce79377a0b3d453b6a24e2fa52e5156fa08f929bd \
     --hash=sha256:3a7b183def075f6fe17c1154ecec42fc42f9c4ac05a7e7e018f267b7d5ef5961
