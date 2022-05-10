@@ -133,9 +133,9 @@ dynaconf==3.1.2 \
 ecdsa==0.14.1; python_version >= "2.6" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" \
     --hash=sha256:e108a5fe92c67639abae3260e43561af914e7fd0d27bae6d2ec1312ae7934dfe \
     --hash=sha256:64c613005f13efec6541bb0a33290d0d03c27abab5f15fbab20fb0ee162bdd8e
-fastapi==0.66.0; python_version >= "3.6" \
-    --hash=sha256:6ea4225448786f3d6fae737713789f87631a7455f65580de0a4a2e50471060d9 \
-    --hash=sha256:85d8aee8c3c46171f4cb7bb3651425a42c07cb9183345d100ef55d88ca2ce15f
+fastapi==0.77.0; python_version >= "3.6" \
+    --hash=sha256:2bf599a2262ad04a97c31a4900ba38473b673f0748aa54bfb2809344989e77d0 \
+    --hash=sha256:e37cf40f6374e59e6fe6e223f59f8f30e29608353212fa6b9e4d39d0e9c7bdf9
 h11==0.12.0; python_version >= "3.6" \
     --hash=sha256:36a3cb8c0a032f56e2da7084577878a035d3b61d104230d4bd49c0c6b555a9c6 \
     --hash=sha256:47222cb6067e4a307d535814917cd98fd0a57b6788ce715755fa2b6c28b56042
