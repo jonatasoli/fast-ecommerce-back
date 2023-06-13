@@ -1,13 +1,11 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from loguru import logger
+from passlib.context import CryptContext
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 
 from constants import DocumentType
 from ext.database import Base
 
-from passlib.context import CryptContext
-
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
 class User(Base):
@@ -35,36 +33,40 @@ class User(Base):
     phone = Column(String(128), nullable=True)
     user_timezone = Column(
         String(50),
-        default="America/Sao_Paulo",
-        server_default="America/Sao_Paulo",
+        default='America/Sao_Paulo',
+        server_default='America/Sao_Paulo',
         nullable=True,
     )
     password = Column(String)
 
     role_id = Column(Integer)
 
-    status = Column(String(20), default="deactivated")
+    status = Column(String(20), default='deactivated')
     uuid = Column(String, nullable=True)
     franchise_id = Column(Integer, default=1)
 
-    update_email_on_next_login = Column(Boolean, default=False, server_default="0")
-    update_password_on_next_login = Column(Boolean, default=False, server_default="0")
+    update_email_on_next_login = Column(
+        Boolean, default=False, server_default='0'
+    )
+    update_password_on_next_login = Column(
+        Boolean, default=False, server_default='0'
+    )
 
     def to_app_json(self, expand=False):
         return {
-            "id": self.id,
-            "uuid": self.uuid,
-            "name": self.name,
-            "picture_id": self.picture_id,
-            "profile_picture": self.user_profile_picture(),
-            "document": self.document,
-            "gender": self.gender,
-            "email": self.email,
-            "phone": self.phone,
-            "user_timezone": self.user_timezone,
-            "role_id": self.role_id,
-            "status": self.status,
-            "terms_and_conditions_id": self.terms_and_conditions_id,
+            'id': self.id,
+            'uuid': self.uuid,
+            'name': self.name,
+            'picture_id': self.picture_id,
+            'profile_picture': self.user_profile_picture(),
+            'document': self.document,
+            'gender': self.gender,
+            'email': self.email,
+            'phone': self.phone,
+            'user_timezone': self.user_timezone,
+            'role_id': self.role_id,
+            'status': self.status,
+            'terms_and_conditions_id': self.terms_and_conditions_id,
         }
 
     def __init__(
@@ -91,7 +93,7 @@ class User(Base):
 
         self.update_email_on_next_login = update_email_on_next_login
         self.update_password_on_next_login = update_password_on_next_login
-        logger.info(f"A senha é {password}")
+        logger.info(f'A senha é {password}')
         if password is not None:
             self.gen_hash(password)
 
@@ -120,17 +122,18 @@ class Address(Base):
 
     def to_json(self):
         return {
-            "country": self.country,
-            "city": self.city,
-            "state": self.state,
-            "neighborhood": self.neighborhood,
-            "street": self.street,
-            "street_number": self.street_number,
-            "zipcode": self.zipcode,
+            'country': self.country,
+            'city': self.city,
+            'state': self.state,
+            'neighborhood': self.neighborhood,
+            'street': self.street,
+            'street_number': self.street_number,
+            'zipcode': self.zipcode,
         }
+
 
 class UserResetPassword(Base):
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.id"))
+    user_id = Column(Integer, ForeignKey('user.id'))
     token = Column(String)
     used_token = Column(Boolean, default=False)

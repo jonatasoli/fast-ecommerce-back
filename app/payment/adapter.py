@@ -1,14 +1,10 @@
-from ext.database import get_session
-from domains.domain_user import (
-    register_shipping_address,
-    register_payment_address,
-    check_existent_user,
-    create_user,
-)
-
-from schemas.user_schema import SignUp
-
 from loguru import logger
+
+from domains.domain_user import (check_existent_user, create_user,
+                                 register_payment_address,
+                                 register_shipping_address)
+from ext.database import get_session
+from schemas.user_schema import SignUp
 
 
 class AdapterUser:
@@ -22,7 +18,7 @@ class AdapterUser:
 
     def check_user(self):
         try:
-            logger.info(f"DOCUMENT -----------------{self._document}")
+            logger.info(f'DOCUMENT -----------------{self._document}')
 
             _user = check_existent_user(
                 db=self.db,
@@ -34,7 +30,7 @@ class AdapterUser:
                 return self.user_create()
             return _user
         except Exception as e:
-            logger.error("Erro ao criar usuário {e}")
+            logger.error('Erro ao criar usuário {e}')
             raise e
 
     def user_create(self):
@@ -46,7 +42,7 @@ class AdapterUser:
             phone=self._phone,
         )
         _user = create_user(db=self.db, obj_in=_sign_up)
-        logger.info("----------------USER----------------")
+        logger.info('----------------USER----------------')
         logger.info(_user)
         return _user
 

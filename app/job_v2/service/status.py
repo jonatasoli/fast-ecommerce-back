@@ -1,8 +1,9 @@
-from job_v2.repositories.orm_status import GetOrders, GetOrder
-from ext.database import get_session
-from models.order import Order
-from gateway.payment_gateway import return_transaction
 from loguru import logger
+
+from ext.database import get_session
+from gateway.payment_gateway import return_transaction
+from job_v2.repositories.orm_status import GetOrder, GetOrders
+from models.order import Order
 
 
 def get_db():
@@ -28,13 +29,13 @@ class UpdateStatus:
 
     def update_status(self):
         if self.order.payment_id == 0:
-            self.order.order_status = "refused"
+            self.order.order_status = 'refused'
         else:
             logger.debug(
                 f"------- ID STATUS {self.gateway_id.get('gatewat_id')}-----------"
             )
-            logger.debug(f"---- ID {self.gateway_id} ----")
-            self.order.order_status = self.gateway_id.get("status")
+            logger.debug(f'---- ID {self.gateway_id} ----')
+            self.order.order_status = self.gateway_id.get('status')
         self.db.add(self.order)
         return self.order
 
@@ -49,12 +50,12 @@ class ForUpdate:
             update = UpdateStatus(order, gateway_id, db).update_status()
             cont += 1
         db.commit()
-        logger.debug(f"Foram processados {cont} pedidos")
+        logger.debug(f'Foram processados {cont} pedidos')
 
 
 def main():
     ForUpdate.for_update()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

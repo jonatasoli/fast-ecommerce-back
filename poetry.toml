@@ -1,0 +1,2 @@
+[virtualenvs.options]
+no-setuptools = true

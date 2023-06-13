@@ -1,6 +1,5 @@
-from bs4 import BeautifulSoup
 import lxml
-
+from bs4 import BeautifulSoup
 from loguru import logger
 
 
@@ -23,24 +22,24 @@ class Adapter:
         return body
 
     def xmltojson_consultacep(xml):
-        soup = BeautifulSoup(xml, "lxml")
+        soup = BeautifulSoup(xml, 'lxml')
         data = {
-            "bairro": soup.bairro.text,
-            "cep": soup.cep.text,
-            "cidade": soup.cidade.text,
-            "complemento2": soup.complemento2.text,
-            "end": soup.end.text,
-            "uf": soup.uf.text,
-            "unidadePostagem": [],
+            'bairro': soup.bairro.text,
+            'cep': soup.cep.text,
+            'cidade': soup.cidade.text,
+            'complemento2': soup.complemento2.text,
+            'end': soup.end.text,
+            'uf': soup.uf.text,
+            'unidadePostagem': [],
         }
         return data
 
     def xmltojson_shipping(xml, name):
-        soup = BeautifulSoup(xml, "xml")
+        soup = BeautifulSoup(xml, 'xml')
         data = {
-            "serviço": name,
-            "frete": soup.Valor.text,
-            "prazo": soup.PrazoEntrega.text,
+            'serviço': name,
+            'frete': soup.Valor.text,
+            'prazo': soup.PrazoEntrega.text,
         }
         return data
 
