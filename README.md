@@ -1,7 +1,5 @@
 # Fast Ecommerce
 ## ApiRest in development
-[![Updates](https://pyup.io/repos/github/jonatasoli/fast-ecommerce/shield.svg)](https://pyup.io/repos/github/jonatasoli/fast-ecommerce/)
-[![Python 3](https://pyup.io/repos/github/jonatasoli/fast-ecommerce/python-3-shield.svg)](https://pyup.io/repos/github/jonatasoli/fast-ecommerce/)
 
  [Pre-requirements](#pre-requirements)
  [Install](#install) 

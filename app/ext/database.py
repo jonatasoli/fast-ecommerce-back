@@ -1,23 +1,27 @@
 from typing import Any
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
-from dynaconf import settings
-
 from loguru import logger
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import as_declarative, declared_attr
+from sqlalchemy.orm import sessionmaker
+
+from config import settings
 
 
 def get_engine():
     SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
-    engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_size=10, max_overflow=0)
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, pool_size=10, max_overflow=0
+    )
     return engine
 
 
 def get_session():
     _engine = get_engine()
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+    SessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=_engine
+    )
     return SessionLocal
 
 

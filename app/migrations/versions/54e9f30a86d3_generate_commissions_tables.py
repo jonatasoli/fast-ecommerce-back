@@ -3,15 +3,13 @@
 Revision ID: 54e9f30a86d3
 Revises: edc233fe9449
 Create Date: 2020-11-19 10:53:17.364144
-
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "54e9f30a86d3"
-down_revision = "edc233fe9449"
+revision = '54e9f30a86d3'
+down_revision = 'edc233fe9449'
 branch_labels = None
 depends_on = None
 

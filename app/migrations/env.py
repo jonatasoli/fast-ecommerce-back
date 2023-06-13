@@ -2,10 +2,8 @@ import sys
 from logging.config import fileConfig
 from pathlib import Path
 
-from sqlalchemy import engine_from_config, create_engine
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import create_engine, engine_from_config, pool
 
 folder = Path(__file__).resolve().parents[1]
 print(folder)
@@ -58,7 +56,7 @@ def run_migrations_offline():
         target_metadata=target_metadata,
         compare_type=True,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        dialect_opts={'paramstyle': 'named'},
     )
 
     with context.begin_transaction():
@@ -78,7 +76,7 @@ def run_migrations_online():
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            compare_type=True
+            compare_type=True,
         )
 
         with context.begin_transaction():

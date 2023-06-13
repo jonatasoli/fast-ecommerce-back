@@ -1,17 +1,15 @@
-from fastapi import Depends
-from decimal import Decimal
-from sqlalchemy.orm import Session
-from models.order import Product, Order, OrderItems
-from models.transaction import Transaction, Payment, CreditCardFeeConfig
-from payment.schema import (
-    ConfigCreditCardInDB,
-    ConfigCreditCardResponse,
-    OrderFullResponse,
-    ProductInDB,
-)
-from payment.adapter import get_db
 from datetime import datetime
+from decimal import Decimal
+
+from fastapi import Depends
 from loguru import logger
+from sqlalchemy.orm import Session
+
+from models.order import Order, OrderItems, Product
+from models.transaction import CreditCardFeeConfig, Payment, Transaction
+from payment.adapter import get_db
+from payment.schema import (ConfigCreditCardInDB, ConfigCreditCardResponse,
+                            OrderFullResponse, ProductInDB)
 
 
 def rollback():
@@ -26,7 +24,7 @@ class ProductDB:
 
     def decrease_product(self):
         _product_decrease = (
-            self.db.query(Product).filter_by(id=self.item.get("id")).first()
+            self.db.query(Product).filter_by(id=self.item.get('id')).first()
         )
         return _product_decrease
 
@@ -44,7 +42,7 @@ class OrderDB:
         db_order = Order(
             customer_id=self.user_id,
             order_date=datetime.now(),
-            order_status="pending",
+            order_status='pending',
         )
         db.add(db_order)
         db.commit()
@@ -54,8 +52,8 @@ class OrderDB:
         db = get_db()
         db_item = OrderItems(
             order_id=db_order,
-            product_id=cart.get("product_id"),
-            quantity=cart.get("qty"),
+            product_id=cart.get('product_id'),
+            quantity=cart.get('qty'),
         )
         db.add(db_item)
         db.commit()
@@ -73,9 +71,9 @@ class CreatePayment:
         db_payment = Payment(
             user_id=self.user_id,
             amount=int(self._total_amount) * 100,
-            status="pending",
+            status='pending',
             payment_method=self._payment_method,
-            payment_gateway="PagarMe",
+            payment_gateway='PagarMe',
             installments=self._installments if self._installments else 1,
         )
         self.db.add(db_payment)
@@ -104,12 +102,12 @@ class CreateTransaction:
     def create_transaction(self):
         db_transaction = Transaction(
             user_id=self.user_id,
-            amount=self.cart.get("amount"),
+            amount=self.cart.get('amount'),
             order_id=self.order.id,
-            qty=self.cart.get("qty"),
+            qty=self.cart.get('qty'),
             payment_id=self.payment_id,
-            status="pending",
-            product_id=self.cart.get("product_id"),
+            status='pending',
+            product_id=self.cart.get('product_id'),
             affiliate=self.affiliate,
         )
         self.db.add(db_transaction)
@@ -140,7 +138,9 @@ class CreditCardConfig:
         self.config_data = config_data
 
     def create_installment_config(self):
-        db_config = CreateCreditConfig(config_data=self.config_data).create_credit()
+        db_config = CreateCreditConfig(
+            config_data=self.config_data
+        ).create_credit()
         return db_config
 
 
@@ -173,20 +173,26 @@ class UpdateStatus:
                 db.query(Transaction).filter_by(order_id=self.order.id).first()
             )
 
-            db_transaction.status = self.payment_data.get("status")
+            db_transaction.status = self.payment_data.get('status')
 
             db_payment = (
-                db.query(Payment).filter_by(id=db_transaction.payment_id).first()
+                db.query(Payment)
+                .filter_by(id=db_transaction.payment_id)
+                .first()
             )
-            db_order = db.query(Order).filter_by(id=db_transaction.order_id).first()
+            db_order = (
+                db.query(Order).filter_by(id=db_transaction.order_id).first()
+            )
             db_payment.processed = True
             db_payment.processed_at = datetime.now()
-            db_payment.gateway_id = self.payment_data.get("gateway_id")
-            db_order.payment_id = self.payment_data.get("gateway_id")
+            db_payment.gateway_id = self.payment_data.get('gateway_id')
+            db_order.payment_id = self.payment_data.get('gateway_id')
 
-            db_payment.token = self.payment_data.get("token")
-            db_payment.authorization = self.payment_data.get("authorization_code")
-            db_payment.status = self.payment_data.get("status")
+            db_payment.token = self.payment_data.get('token')
+            db_payment.authorization = self.payment_data.get(
+                'authorization_code'
+            )
+            db_payment.status = self.payment_data.get('status')
             db.add(db_transaction)
             db.add(db_payment)
             db.add(db_order)

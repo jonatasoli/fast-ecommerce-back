@@ -1,38 +1,32 @@
-import httpx
 import enum
-from functools import wraps
-from dynaconf import settings
-from loguru import logger
 from datetime import datetime, timedelta
+from functools import wraps
 from typing import Optional
 
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
-
-from jose import JWTError, jwt
+import httpx
+from dynaconf import settings
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from loguru import logger
 from passlib.context import CryptContext
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
-from schemas.user_schema import (
-    SignUp,
-    UserInDB,
-    UserSchema,
-    UserResponseResetPassword
-)
-from ext.database import get_session
-from schemas.order_schema import CheckoutSchema
-from models.users import User, Address, UserResetPassword
-from models.role import Role
 from constants import DocumentType, Roles
+from ext.database import get_session
+from models.role import Role
+from models.users import Address, User, UserResetPassword
+from schemas.order_schema import CheckoutSchema
+from schemas.user_schema import (SignUp, UserInDB, UserResponseResetPassword,
+                                 UserSchema)
 
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="access_token")
+pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 
 
 class COUNTRY_CODE(enum.Enum):
-    brazil = "brazil"
+    brazil = 'brazil'
 
 
 def create_user(db: Session, obj_in: SignUp):
@@ -66,11 +60,11 @@ def check_existent_user(db: Session, email, document, password):
     try:
         db_user = db.query(User).filter_by(document=document).first()
         if not password:
-            raise Exception("User not password")
+            raise Exception('User not password')
         # if db_user and db_user.verify_password(password.get_secret_value()):
         #     return db_user
-        logger.info("---------DB_USER-----------")
-        logger.info(f"DB_USER -> {db_user}")
+        logger.info('---------DB_USER-----------')
+        logger.info(f'DB_USER -> {db_user}')
         return db_user
     except Exception as e:
         raise e
@@ -81,11 +75,13 @@ def get_user(db: Session, document: str, password: str):
 
         db_user = _get_user(db=db, document=document)
         if not password:
-            raise Exception("User not password")
+            raise Exception('User not password')
         if db_user and db_user.verify_password(password):
             return db_user
         else:
-            raise Exception(f"User not finded {db_user.document}, {db_user.password}")
+            raise Exception(
+                f'User not finded {db_user.document}, {db_user.password}'
+            )
 
     except Exception as e:
         raise e
@@ -96,7 +92,7 @@ def authenticate_user(db, document: str, password: str):
     user_dict = UserSchema.from_orm(user).dict()
 
     user = UserInDB(**user_dict)
-    logger.debug(f"{user} ")
+    logger.debug(f'{user} ')
     if not user:
         return False
     return user
@@ -108,7 +104,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
+    to_encode.update({'exp': expire})
     encoded_jwt = jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
@@ -120,14 +116,14 @@ def get_current_user(
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        detail='Could not validate credentials',
+        headers={'WWW-Authenticate': 'Bearer'},
     )
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        document: str = payload.get("sub")
+        document: str = payload.get('sub')
         if document is None:
             raise credentials_exception
     except JWTError:
@@ -154,16 +150,16 @@ def check_token(f):
     def check_jwt(*args, **kwargs):
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail='Could not validate credentials',
+            headers={'WWW-Authenticate': 'Bearer'},
         )
         try:
             payload = jwt.decode(
-                kwargs.get("token", None),
+                kwargs.get('token', None),
                 settings.SECRET_KEY,
                 algorithms=[settings.ALGORITHM],
             )
-            _user_credentials: str = payload.get("sub")
+            _user_credentials: str = payload.get('sub')
             if not payload or _user_credentials is None:
                 raise credentials_exception
         except JWTError:
@@ -185,11 +181,12 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
             .filter(
                 and_(
                     Address.user_id == user.id,
-                    Address.zipcode == checkout_data.get("zip_code"),
-                    Address.street_number == checkout_data.get("address_number"),
+                    Address.zipcode == checkout_data.get('zip_code'),
+                    Address.street_number
+                    == checkout_data.get('address_number'),
                     Address.address_complement
-                    == checkout_data.get("address_complement"),
-                    Address.category == "billing",
+                    == checkout_data.get('address_complement'),
+                    Address.category == 'billing',
                 )
             )
             .first()
@@ -197,15 +194,15 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
         if not _address:
             db_payment_address = Address(
                 user_id=user.id,
-                country=checkout_data.get("country"),
-                city=checkout_data.get("city"),
-                state=checkout_data.get("state"),
-                neighborhood=checkout_data.get("neighborhood"),
-                street=checkout_data.get("address"),
-                street_number=checkout_data.get("address_number"),
-                zipcode=checkout_data.get("zip_code"),
-                type_address="house",
-                category="billing",
+                country=checkout_data.get('country'),
+                city=checkout_data.get('city'),
+                state=checkout_data.get('state'),
+                neighborhood=checkout_data.get('neighborhood'),
+                street=checkout_data.get('address'),
+                street_number=checkout_data.get('address_number'),
+                zipcode=checkout_data.get('zip_code'),
+                type_address='house',
+                category='billing',
             )
             db.add(db_payment_address)
             db.commit()
@@ -216,37 +213,39 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
         raise e
 
 
-def register_shipping_address(db: Session, checkout_data: CheckoutSchema, user):
+def register_shipping_address(
+    db: Session, checkout_data: CheckoutSchema, user
+):
     try:
         _address = (
             db.query(Address)
             .filter(
                 and_(
                     Address.user_id == user.id,
-                    Address.zipcode == checkout_data.get("ship_zip"),
-                    Address.street_number == checkout_data.get("ship_number"),
+                    Address.zipcode == checkout_data.get('ship_zip'),
+                    Address.street_number == checkout_data.get('ship_number'),
                     Address.address_complement
-                    == checkout_data.get("ship_address_complement"),
-                    Address.category == "shipping",
+                    == checkout_data.get('ship_address_complement'),
+                    Address.category == 'shipping',
                 )
             )
             .first()
         )
 
-        if checkout_data.get("shipping_is_payment"):
-            logger.debug(f"{checkout_data}")
-            if not checkout_data.get("ship_zip"):
+        if checkout_data.get('shipping_is_payment'):
+            logger.debug(f'{checkout_data}')
+            if not checkout_data.get('ship_zip'):
                 _address = (
                     db.query(Address)
                     .filter(
                         and_(
                             Address.user_id == user.id,
-                            Address.zipcode == checkout_data.get("zip_code"),
+                            Address.zipcode == checkout_data.get('zip_code'),
                             Address.street_number
-                            == checkout_data.get("address_number"),
+                            == checkout_data.get('address_number'),
                             Address.address_complement
-                            == checkout_data.get("address_complement"),
-                            Address.category == "billing",
+                            == checkout_data.get('address_complement'),
+                            Address.category == 'billing',
                         )
                     )
                     .first()
@@ -254,15 +253,15 @@ def register_shipping_address(db: Session, checkout_data: CheckoutSchema, user):
             if not _address:
                 db_shipping_address = Address(
                     user_id=user.id,
-                    country=checkout_data.get("country"),
-                    city=checkout_data.get("city"),
-                    state=checkout_data.get("state"),
-                    neighborhood=checkout_data.get("neighborhood"),
-                    street=checkout_data.get("address"),
-                    street_number=checkout_data.get("address_number"),
-                    zipcode=checkout_data.get("zip_code"),
-                    type_address="house",
-                    category="shipping",
+                    country=checkout_data.get('country'),
+                    city=checkout_data.get('city'),
+                    state=checkout_data.get('state'),
+                    neighborhood=checkout_data.get('neighborhood'),
+                    street=checkout_data.get('address'),
+                    street_number=checkout_data.get('address_number'),
+                    zipcode=checkout_data.get('zip_code'),
+                    type_address='house',
+                    category='shipping',
                 )
                 db.add(db_shipping_address)
                 db.commit()
@@ -272,22 +271,22 @@ def register_shipping_address(db: Session, checkout_data: CheckoutSchema, user):
             if not _address:
                 db_shipping_address = Address(
                     user_id=user.id,
-                    country=checkout_data.get("ship_country"),
-                    city=checkout_data.get("ship_city"),
-                    state=checkout_data.get("ship_state"),
-                    neighborhood=checkout_data.get("ship_neighborhood"),
-                    street=checkout_data.get("ship_address"),
-                    street_number=checkout_data.get("ship_number"),
-                    zipcode=checkout_data.get("ship_zip"),
-                    type_address="house",
-                    category="shipping",
+                    country=checkout_data.get('ship_country'),
+                    city=checkout_data.get('ship_city'),
+                    state=checkout_data.get('ship_state'),
+                    neighborhood=checkout_data.get('ship_neighborhood'),
+                    street=checkout_data.get('ship_address'),
+                    street_number=checkout_data.get('ship_number'),
+                    zipcode=checkout_data.get('ship_zip'),
+                    type_address='house',
+                    category='shipping',
                 )
                 db.add(db_shipping_address)
                 db.commit()
                 _address = db_shipping_address
 
-        logger.debug("INFO")
-        logger.error(f"{_address}")
+        logger.debug('INFO')
+        logger.error(f'{_address}')
         return _address
     except Exception as e:
         db.rollback()
@@ -297,38 +296,38 @@ def register_shipping_address(db: Session, checkout_data: CheckoutSchema, user):
 def address_by_postal_code(zipcode_data):
     try:
 
-        postal_code = zipcode_data.get("postal_code")
+        postal_code = zipcode_data.get('postal_code')
 
         if not postal_code:
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                details={"message": "Cep inválido"},
+                details={'message': 'Cep inválido'},
             )
 
-        viacep_url = f"https://viacep.com.br/ws/{postal_code}/json/"
+        viacep_url = f'https://viacep.com.br/ws/{postal_code}/json/'
         status_code = httpx.get(viacep_url).status_code
 
         if status_code != 200:
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={"message": "Cep inválido"},
+                detail={'message': 'Cep inválido'},
             )
 
         response = httpx.get(viacep_url).json()
 
-        if response.get("erro"):
+        if response.get('erro'):
             return HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                details={"message": "Cep inválido"},
+                details={'message': 'Cep inválido'},
             )
 
         address = {
-            "street": response.get("logradouro"),
-            "city": response.get("localidade"),
-            "neighborhood": response.get("bairro"),
-            "state": response.get("uf"),
-            "country": COUNTRY_CODE.brazil.value,
-            "zip_code": postal_code,
+            'street': response.get('logradouro'),
+            'city': response.get('localidade'),
+            'neighborhood': response.get('bairro'),
+            'state': response.get('uf'),
+            'country': COUNTRY_CODE.brazil.value,
+            'zip_code': postal_code,
         }
 
         return address
@@ -337,32 +336,32 @@ def address_by_postal_code(zipcode_data):
         raise e
 
 
-def get_user_login(db: Session, document:str):
-    user = db.query(User).filter_by(document = document).first()
+def get_user_login(db: Session, document: str):
+    user = db.query(User).filter_by(document=document).first()
     return UserSchema.from_orm(user)
 
 
-
-def save_token_reset_password(db: Session, document:str):
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+def save_token_reset_password(db: Session, document: str):
+    access_token_expires = timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
     _token = create_access_token(
-        data={"sub": document}, expires_delta=access_token_expires
+        data={'sub': document}, expires_delta=access_token_expires
     )
-    _user = db.query(User).filter_by(document = document).first()
-    db_reset = UserResetPassword(
-        user_id = _user.id,
-        token =_token
-    )
+    _user = db.query(User).filter_by(document=document).first()
+    db_reset = UserResetPassword(user_id=_user.id, token=_token)
     db.add(db_reset)
     db.commit()
     return db_reset
 
 
 def reset_password(db: Session, data: UserResponseResetPassword):
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    _user = db.query(User).filter_by(document = data.document).first()
-    _used_token = db.query(UserResetPassword).filter_by(user_id= _user.id).first()
+    pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+    _user = db.query(User).filter_by(document=data.document).first()
+    _used_token = (
+        db.query(UserResetPassword).filter_by(user_id=_user.id).first()
+    )
     _used_token.used_token = True
     _user.password = pwd_context.hash(data.password)
     db.commit()
-    return "Senha alterada"
+    return 'Senha alterada'

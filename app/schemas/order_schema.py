@@ -1,6 +1,7 @@
+from datetime import date, datetime
+from typing import Dict, List, Optional
+
 from pydantic import BaseModel, SecretStr
-from typing import List, Optional, Dict
-from datetime import datetime, date
 
 
 class ProductSchema(BaseModel):
@@ -111,17 +112,39 @@ class OrderFullResponse(BaseModel):
     class Config:
         orm_mode = True
 
+
 class TrackingFullResponse(BaseModel):
     tracking_number: str
 
+
 class OrderCl:
-    def __init__(self, payment_id: int,id_pagarme: str, status: str ,
-    order_id: int, tracking_number: str, order_date: str, user_name: str, 
-    email: str, phone: str,  document: int, type_address: str, category: str, 
-    country: str, city: str, state: str,  neighborhood: str, 
-    street: str, street_number: int, address_complement: str, 
-    zipcode: int, user_affiliate: str,
-    amount: int, checked:bool, products: list):
+    def __init__(
+        self,
+        payment_id: int,
+        id_pagarme: str,
+        status: str,
+        order_id: int,
+        tracking_number: str,
+        order_date: str,
+        user_name: str,
+        email: str,
+        phone: str,
+        document: int,
+        type_address: str,
+        category: str,
+        country: str,
+        city: str,
+        state: str,
+        neighborhood: str,
+        street: str,
+        street_number: int,
+        address_complement: str,
+        zipcode: int,
+        user_affiliate: str,
+        amount: int,
+        checked: bool,
+        products: list,
+    ):
         self.payment_id = payment_id
         self.id_pagarme = id_pagarme
         self.status = status
@@ -133,19 +156,20 @@ class OrderCl:
         self.phone = phone
         self.document = document
         self.type_address = type_address
-        self.category = category 
-        self.country = country 
+        self.category = category
+        self.country = country
         self.city = city
-        self.state = state 
-        self.neighborhood = neighborhood 
-        self.street = street 
-        self.street_number = street_number 
-        self.address_complement = address_complement 
-        self.zipcode = zipcode 
-        self.user_affiliate = user_affiliate 
-        self.amount = amount 
+        self.state = state
+        self.neighborhood = neighborhood
+        self.street = street
+        self.street_number = street_number
+        self.address_complement = address_complement
+        self.zipcode = zipcode
+        self.user_affiliate = user_affiliate
+        self.amount = amount
         self.checked = checked
         self.products = products
+
 
 class ProductsResponseOrder(BaseModel):
     product_name: str
@@ -155,7 +179,8 @@ class ProductsResponseOrder(BaseModel):
     payment_id: int
 
     class Config:
-        orm_mode= True       
+        orm_mode = True
+
 
 class OrdersPaidFullResponse(BaseModel):
     payment_id: int
@@ -185,7 +210,7 @@ class OrdersPaidFullResponse(BaseModel):
 
     class Config:
         orm_mode = True
-    
+
 
 class OrderItemsSchema(BaseModel):
     id: int
@@ -250,7 +275,6 @@ class CategoryInDB(BaseModel):
     id: int
     name: str
     path: str
-
 
     class Config:
         orm_mode = True

@@ -1,23 +1,21 @@
 import logging
 import sys
 
+import sentry_sdk
+from dynaconf import settings
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from loguru import logger
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
 from endpoints.v1.direct_sales import direct_sales
+from endpoints.v1.mail import mail
+from endpoints.v1.order import order
+from endpoints.v1.product import product
+from endpoints.v1.shipping import shipping
 from endpoints.v1.users import user
 from payment.endpoint import payment
-from endpoints.v1.shipping import shipping
-from endpoints.v1.order import order
-from endpoints.v1.mail import mail
-from endpoints.v1.product import product
-
-from dynaconf import settings
-from loguru import logger
-
-import sentry_sdk
-from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
 
 class InterceptHandler(logging.Handler):
@@ -28,14 +26,14 @@ class InterceptHandler(logging.Handler):
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount('/static', StaticFiles(directory='static'), name='static')
 
 origins = [
-    "*",
+    '*',
 ]
 
 sentry_sdk.init(
-    "https://f8ca28ef3c3a4b54aac3a61c963a043b@o281685.ingest.sentry.io/5651868",
+    'https://f8ca28ef3c3a4b54aac3a61c963a043b@o281685.ingest.sentry.io/5651868',
     traces_sample_rate=1.0,
 )
 
@@ -45,8 +43,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
 # set loguru format for root logger
@@ -58,21 +56,22 @@ logger.add(
     sys.stdout,
     colorize=True,
     level=settings.LOG_LEVEL,
-    format="{time} {level} {message}",
+    format='{time} {level} {message}',
     backtrace=settings.LOG_BACKTRACE,
     enqueue=True,
     diagnose=True,
 )
 
-logging.getLogger("uvicorn.access").handlers = [InterceptHandler()]
+logging.getLogger('uvicorn.access').handlers = [InterceptHandler()]
 
-app.include_router(user, prefix="/user")
+app.include_router(user, prefix='/user')
 app.include_router(
-        direct_sales,
-        prefix="/direct-sales",
-        responses={404: {"description": "Not found"}})
+    direct_sales,
+    prefix='/direct-sales',
+    responses={404: {'description': 'Not found'}},
+)
 app.include_router(payment)
 app.include_router(shipping)
 app.include_router(order)
-app.include_router(mail, prefix="/mail")
-app.include_router(product, prefix="/product")
+app.include_router(mail, prefix='/mail')
+app.include_router(product, prefix='/product')

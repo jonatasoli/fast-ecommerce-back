@@ -1,6 +1,6 @@
-from ext.database import Base
+from sqlalchemy import Boolean, Column, Integer, String
 
-from sqlalchemy import Column, String, Integer, Boolean
+from ext.database import Base
 
 
 class UploadedImage(Base):
@@ -18,12 +18,12 @@ class UploadedImage(Base):
 
     def to_app_json(self, expand=False):
         return {
-            "id": self.id,
-            "original": self.original,
-            "small": self.small,
-            "thumb": self.thumb,
-            "icon": self.icon,
-            "uploaded": self.uploaded,
+            'id': self.id,
+            'original': self.original,
+            'small': self.small,
+            'thumb': self.thumb,
+            'icon': self.icon,
+            'uploaded': self.uploaded,
         }
 
     def __init__(self, _id=None):

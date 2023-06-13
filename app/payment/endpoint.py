@@ -1,50 +1,42 @@
-from fastapi import Header, APIRouter, Depends
-from starlette.requests import Request
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, Header
 from loguru import logger
+from sqlalchemy.orm import Session
+from starlette.requests import Request
 
-from payment.schema import (
-    CreditCardPayment,
-    SlipPayment,
-    ConfigCreditCardInDB,
-    ConfigCreditCardResponse,
-)
-from schemas.order_schema import ProductSchema, CheckoutReceive, CheckoutSchema
-from payment import service
-from payment import gateway
-from payment import repositories
-from payment.service import Checkout
 from domains import domain_order
 from endpoints import deps
-
-from loguru import logger
+from payment import gateway, repositories, service
+from payment.schema import (ConfigCreditCardInDB, ConfigCreditCardResponse,
+                            CreditCardPayment, SlipPayment)
+from payment.service import Checkout
+from schemas.order_schema import CheckoutReceive, CheckoutSchema, ProductSchema
 
 payment = APIRouter()
 
 
-@payment.get("/product/category/{uri}", status_code=200)
+@payment.get('/product/category/{uri}', status_code=200)
 async def get_product(*, db: Session = Depends(deps.get_db), uri):
     try:
         return domain_order.get_product(db, uri)
     except Exception as e:
-        logger.error("Erro ao retornar produto {e}")
+        logger.error('Erro ao retornar produto {e}')
         raise e
 
 
-@payment.get("/upsell/{id}", status_code=200)
+@payment.get('/upsell/{id}', status_code=200)
 async def get_upsell_products(id):
     try:
         return True
     except Exception as e:
-        logger.error("Erro ao retornar upsell {e}")
+        logger.error('Erro ao retornar upsell {e}')
         raise e
 
 
-@payment.post("/checkout", status_code=201)
+@payment.post('/checkout', status_code=201)
 def checkout(*, db: Session = Depends(deps.get_db), data: CheckoutReceive):
-    checkout_data = data.dict().get("transaction")
-    affiliate = data.dict().get("affiliate")
-    cupom = data.dict().get("cupom")
+    checkout_data = data.dict().get('transaction')
+    affiliate = data.dict().get('affiliate')
+    cupom = data.dict().get('cupom')
     logger.info(checkout_data)
     logger.info(affiliate)
     checkout = Checkout(
@@ -53,7 +45,7 @@ def checkout(*, db: Session = Depends(deps.get_db), data: CheckoutReceive):
     return checkout
 
 
-@payment.post("/create-product", status_code=201)
+@payment.post('/create-product', status_code=201)
 async def create_product(
     *, db: Session = Depends(deps.get_db), product_data: ProductSchema
 ):
@@ -61,7 +53,7 @@ async def create_product(
     return ProductSchema.from_orm(product)
 
 
-@payment.post("/create-config", status_code=201)
+@payment.post('/create-config', status_code=201)
 def create_config(*, config_data: ConfigCreditCardInDB):
     _config = repositories.CreditCardConfig(
         config_data=config_data
@@ -69,13 +61,13 @@ def create_config(*, config_data: ConfigCreditCardInDB):
     return ConfigCreditCardResponse.from_orm(_config)
 
 
-@payment.post("/gateway-payment-credit-card", status_code=201)
+@payment.post('/gateway-payment-credit-card', status_code=201)
 async def payment_credit_card(*, payment_data: CreditCardPayment):
     payment = gateway.credit_card_payment(payment=payment_data)
     return payment
 
 
-@payment.post("/gateway-payment-bank-slip", status_code=201)
+@payment.post('/gateway-payment-bank-slip', status_code=201)
 def payment_bank_slip(*, payment_data: SlipPayment):
     payment = gateway.slip_payment(payment=payment_data)
     return payment

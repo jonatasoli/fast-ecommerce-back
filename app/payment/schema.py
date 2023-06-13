@@ -1,6 +1,7 @@
-from pydantic import BaseModel, SecretStr
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, SecretStr
 
 
 class CreditCardPayment(BaseModel):
@@ -155,7 +156,7 @@ class OrderFullResponse(BaseModel):
 
     class Config:
         orm_mode = True
-        
+
 
 class OrderItemsSchema(BaseModel):
     id: int

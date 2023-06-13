@@ -1,41 +1,38 @@
+import sys
+from os.path import abspath
+from os.path import dirname as d
+from os.path import join
 from typing import Dict, Generator
-from loguru import logger
 
 import pytest
 from fastapi.testclient import TestClient
+from loguru import logger
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.engine import reflection
-from sqlalchemy.schema import (
-    MetaData,
-    Table,
-    DropTable,
-    ForeignKeyConstraint,
-    DropConstraint,
-)
-
-import sys
-from os.path import dirname as d
-from os.path import abspath, join
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.schema import (DropConstraint, DropTable, ForeignKeyConstraint,
+                               MetaData, Table)
 
 root_dir = d(abspath(__file__))
-print(f"ROOT {root_dir}")
+print(f'ROOT {root_dir}')
 sys.path.append(root_dir)
 
-from ext.base import Base
 from dynaconf import settings
-from .ext.database import get_session
-from .main import app
-from .endpoints.deps import get_db
+
+from ext.base import Base
 from ext.database import get_engine
 
+from .endpoints.deps import get_db
+from .ext.database import get_session
+from .main import app
 
-@pytest.fixture(scope="session", autouse=True)
+
+@pytest.fixture(scope='session', autouse=True)
 def set_test_settings():
-    settings.configure(FORCE_ENV_FOR_DYNACONF="testing")
+    settings.configure(FORCE_ENV_FOR_DYNACONF='testing')
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def clean_db():
     _engine = get_engine()
 
@@ -64,9 +61,9 @@ def db_DropEverything():
     for table_name in inspector.get_table_names():
         fks = []
         for fk in inspector.get_foreign_keys(table_name):
-            if not fk["name"]:
+            if not fk['name']:
                 continue
-            fks.append(ForeignKeyConstraint((), (), name=fk["name"]))
+            fks.append(ForeignKeyConstraint((), (), name=fk['name']))
         t = Table(table_name, metadata, *fks)
         tbs.append(t)
         all_fks.extend(fks)
@@ -80,11 +77,11 @@ def db_DropEverything():
     trans.commit()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def override_get_db():
     try:
         _engine = get_engine()
-        logger.info(f"----- ADD DB {Base.metadata}-------")
+        logger.info(f'----- ADD DB {Base.metadata}-------')
         TestingSessionLocal = sessionmaker(
             autocommit=False, autoflush=False, bind=_engine
         )
@@ -94,31 +91,35 @@ def override_get_db():
         db.close()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def db() -> Generator:
     _engine = get_engine()
-    logger.info("-----GENERATE DB------")
+    logger.info('-----GENERATE DB------')
     _engine = get_engine()
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=_engine
+    )
     yield TestingSessionLocal()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def db_models(clean_db) -> Generator:
     _engine = get_engine()
-    logger.info("-----GENERATE DB------")
+    logger.info('-----GENERATE DB------')
     _engine = get_engine()
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=_engine
+    )
     yield TestingSessionLocal()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def t_client(clean_db, override_get_db) -> Generator:
     def _get_db_override():
         return override_get_db
 
-    logger.info("-----GENERATE APP------")
+    logger.info('-----GENERATE APP------')
     app.dependency_overrides[get_db] = _get_db_override
-    logger.info(f"{ settings.current_env }")
+    logger.info(f'{ settings.current_env }')
     with TestClient(app) as c:
         yield c

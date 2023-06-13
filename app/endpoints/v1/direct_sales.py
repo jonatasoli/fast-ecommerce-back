@@ -1,18 +1,17 @@
-from fastapi import Header, APIRouter, Depends
-from starlette.requests import Request
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, Header
 from loguru import logger
+from sqlalchemy.orm import Session
+from starlette.requests import Request
 
-from schemas.payment_schema import CreditCardPayment, SlipPayment
-from schemas.order_schema import ProductSchema, CheckoutReceive, CheckoutSchema
-from domains import domain_payment
-from domains import domain_order
+from domains import domain_order, domain_payment
 from endpoints import deps
+from schemas.order_schema import CheckoutReceive, CheckoutSchema, ProductSchema
+from schemas.payment_schema import CreditCardPayment, SlipPayment
 
 direct_sales = APIRouter()
 
 
-@direct_sales.get("/product/{uri}", status_code=200)
+@direct_sales.get('/product/{uri}', status_code=200)
 async def get_product(*, db: Session = Depends(deps.get_db), uri):
     try:
         return domain_order.get_product(db, uri)
@@ -20,7 +19,7 @@ async def get_product(*, db: Session = Depends(deps.get_db), uri):
         raise e
 
 
-@direct_sales.get("/upsell/{id}", status_code=200)
+@direct_sales.get('/upsell/{id}', status_code=200)
 async def get_upsell_products(id):
     try:
         return True
@@ -28,17 +27,20 @@ async def get_upsell_products(id):
         raise e
 
 
-@direct_sales.post("/checkout", status_code=201)
+@direct_sales.post('/checkout', status_code=201)
 def checkout(*, db: Session = Depends(deps.get_db), data: CheckoutReceive):
     try:
-        checkout_data = data.dict().get("transaction")
-        affiliate = data.dict().get("affiliate")
-        cupom = data.dict().get("cupom")
+        checkout_data = data.dict().get('transaction')
+        affiliate = data.dict().get('affiliate')
+        cupom = data.dict().get('cupom')
         from loguru import logger
 
         logger.info(checkout_data)
         checkout = domain_payment.process_checkout(
-            db=db, checkout_data=checkout_data, affiliate=affiliate, cupom=cupom
+            db=db,
+            checkout_data=checkout_data,
+            affiliate=affiliate,
+            cupom=cupom,
         )
         # import ipdb; ipdb.set_trace()
         return checkout
@@ -46,7 +48,7 @@ def checkout(*, db: Session = Depends(deps.get_db), data: CheckoutReceive):
         raise e
 
 
-@direct_sales.post("/create-product", status_code=201)
+@direct_sales.post('/create-product', status_code=201)
 async def create_product(
     *, db: Session = Depends(deps.get_db), product_data: ProductSchema
 ):

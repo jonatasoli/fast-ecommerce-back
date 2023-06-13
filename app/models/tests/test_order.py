@@ -1,6 +1,7 @@
-from models.order import OrderStatusSteps
 from datetime import datetime
+
 from constants import StepsOrder
+from models.order import OrderStatusSteps
 
 
 def test_order_status_steps(db_models):
