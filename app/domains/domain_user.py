@@ -18,8 +18,12 @@ from ext.database import get_session
 from models.role import Role
 from models.users import Address, User, UserResetPassword
 from schemas.order_schema import CheckoutSchema
-from schemas.user_schema import (SignUp, UserInDB, UserResponseResetPassword,
-                                 UserSchema)
+from schemas.user_schema import (
+    SignUp,
+    UserInDB,
+    UserResponseResetPassword,
+    UserSchema,
+)
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')

@@ -4,8 +4,12 @@ from loguru import logger
 
 from domains.domain_order import create_order
 from endpoints.deps import get_db
-from endpoints.v1.order import (check_status_pedding, order_status,
-                                status_paid, status_pending)
+from endpoints.v1.order import (
+    check_status_pedding,
+    order_status,
+    status_paid,
+    status_pending,
+)
 from main import app
 from schemas.order_schema import ProductSchema
 

@@ -5,9 +5,14 @@ from sqlalchemy.orm import Session
 from domains import domain_order
 from endpoints.deps import get_db
 from ext import optimize_image
-from schemas.order_schema import (CategorySchema, InstallmentSchema,
-                                  OrderFullResponse, OrderSchema,
-                                  ProductFullResponse, ProductSchema)
+from schemas.order_schema import (
+    CategorySchema,
+    InstallmentSchema,
+    OrderFullResponse,
+    OrderSchema,
+    ProductFullResponse,
+    ProductSchema,
+)
 
 product = APIRouter()
 

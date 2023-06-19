@@ -1,8 +1,11 @@
 from loguru import logger
 
-from domains.domain_user import (check_existent_user, create_user,
-                                 register_payment_address,
-                                 register_shipping_address)
+from domains.domain_user import (
+    check_existent_user,
+    create_user,
+    register_payment_address,
+    register_shipping_address,
+)
 from ext.database import get_session
 from schemas.user_schema import SignUp
 
