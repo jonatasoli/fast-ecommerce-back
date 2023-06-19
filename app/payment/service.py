@@ -5,15 +5,27 @@ from dynaconf import settings
 from loguru import logger
 from sqlalchemy.orm import Session
 
-from domains.domain_user import (register_payment_address,
-                                 register_shipping_address)
+from domains.domain_user import (
+    register_payment_address,
+    register_shipping_address,
+)
 from payment.adapter import AdapterUser
 from payment.gateway import credit_card_payment, slip_payment
-from payment.repositories import (CreatePayment, CreateTransaction,
-                                  GetCreditCardConfig, OrderDB, ProductDB,
-                                  UpdateStatus, rollback)
-from payment.schema import (CheckoutSchema, CreditCardPayment, PaymentResponse,
-                            SlipPayment)
+from payment.repositories import (
+    CreatePayment,
+    CreateTransaction,
+    GetCreditCardConfig,
+    OrderDB,
+    ProductDB,
+    UpdateStatus,
+    rollback,
+)
+from payment.schema import (
+    CheckoutSchema,
+    CreditCardPayment,
+    PaymentResponse,
+    SlipPayment,
+)
 
 
 class User:

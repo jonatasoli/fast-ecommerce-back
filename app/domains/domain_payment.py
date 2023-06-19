@@ -10,13 +10,20 @@ from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from constants import DocumentType, Roles
-from domains.domain_user import (check_existent_user, create_user,
-                                 register_payment_address,
-                                 register_shipping_address)
+from domains.domain_user import (
+    check_existent_user,
+    create_user,
+    register_payment_address,
+    register_shipping_address,
+)
 from models.order import Order, OrderItems, Product
 from models.transaction import CreditCardFeeConfig, Payment, Transaction
-from schemas.order_schema import (CheckoutSchema, OrderItemsSchema,
-                                  OrderSchema, ProductSchema)
+from schemas.order_schema import (
+    CheckoutSchema,
+    OrderItemsSchema,
+    OrderSchema,
+    ProductSchema,
+)
 from schemas.payment_schema import CreditCardPayment, SlipPayment
 from schemas.user_schema import SignUp
 

@@ -1,8 +1,15 @@
 from datetime import datetime
 
 from passlib.hash import pbkdf2_sha512
-from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer,
-                        Numeric, String)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+)
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql import func
 

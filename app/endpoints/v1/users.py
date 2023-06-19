@@ -10,8 +10,12 @@ from sqlalchemy.orm import Session
 from domains import domain_user
 from domains.domain_user import check_token
 from endpoints.deps import get_db
-from schemas.user_schema import (SignUp, SignUpResponse, Token,
-                                 UserResponseResetPassword)
+from schemas.user_schema import (
+    SignUp,
+    SignUpResponse,
+    Token,
+    UserResponseResetPassword,
+)
 
 user = APIRouter()
 

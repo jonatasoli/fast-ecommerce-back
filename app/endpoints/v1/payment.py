@@ -4,10 +4,17 @@ from sqlalchemy.orm import Session
 
 from domains import domain_payment
 from endpoints import deps
-from schemas.order_schema import (CheckoutSchema, ProductResponseSchema,
-                                  ProductSchema)
-from schemas.payment_schema import (ConfigCreditCard, ConfigCreditCardResponse,
-                                    CreditCardPayment, SlipPayment)
+from schemas.order_schema import (
+    CheckoutSchema,
+    ProductResponseSchema,
+    ProductSchema,
+)
+from schemas.payment_schema import (
+    ConfigCreditCard,
+    ConfigCreditCardResponse,
+    CreditCardPayment,
+    SlipPayment,
+)
 
 payment = APIRouter()
 

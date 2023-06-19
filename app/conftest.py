@@ -10,8 +10,13 @@ from loguru import logger
 from sqlalchemy import create_engine
 from sqlalchemy.engine import reflection
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.schema import (DropConstraint, DropTable, ForeignKeyConstraint,
-                               MetaData, Table)
+from sqlalchemy.schema import (
+    DropConstraint,
+    DropTable,
+    ForeignKeyConstraint,
+    MetaData,
+    Table,
+)
 
 root_dir = d(abspath(__file__))
 print(f'ROOT {root_dir}')

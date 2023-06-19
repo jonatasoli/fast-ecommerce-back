@@ -6,8 +6,12 @@ from starlette.requests import Request
 from domains import domain_order
 from endpoints import deps
 from payment import gateway, repositories, service
-from payment.schema import (ConfigCreditCardInDB, ConfigCreditCardResponse,
-                            CreditCardPayment, SlipPayment)
+from payment.schema import (
+    ConfigCreditCardInDB,
+    ConfigCreditCardResponse,
+    CreditCardPayment,
+    SlipPayment,
+)
 from payment.service import Checkout
 from schemas.order_schema import CheckoutReceive, CheckoutSchema, ProductSchema
 
