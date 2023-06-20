@@ -1,17 +1,15 @@
 import pytest
 
-# from app.conftest import override_get_db
 from dynaconf import settings
 from fastapi.testclient import TestClient
 
-# from sqlalchemy.orm import Session
 from loguru import logger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.domains.domain_user import get_current_user
-from app.endpoints.deps import get_db
-from app.main import app
+from domains.domain_user import get_current_user
+from endpoints.deps import get_db
+from main import app
 from models.role import Role
 
 
