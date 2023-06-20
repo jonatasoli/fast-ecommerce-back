@@ -2,23 +2,27 @@ import pytest
 from fastapi.testclient import TestClient
 from loguru import logger
 
-from app.endpoints.deps import get_db
-from app.main import app
-from app.schemas.order_schema import ProductSchema
+from payment.schema import ResponseGateway
 from domains.domain_order import create_order, create_product
+from endpoints.deps import get_db
+from main import app
+from schemas.order_schema import ProductSchema
+
+name = 'Jonatas L Oliveira'
+city = 'São Paulo'
 
 transacton_with_shipping = {
-    'document': '22941297090',
+    'document': '86187785088',
     'mail': 'mail@jonatasoliveira.me',
     'password': 'asdasd',
     'phone': '12345678901',
-    'name': 'Jonatas L Oliveira',
+    'name': name,
     'address': 'Rua XZ',
     'address_number': '160',
     'address_complement': 'Apto 444',
     'neighborhood': 'Narnia',
-    'city': 'São Paulo',
-    'state': 'São Paulo',
+    'city': city,
+    'state': city,
     'country': 'br',
     'zip_code': '18120000',
     'shipping_is_payment': True,
@@ -28,7 +32,7 @@ transacton_with_shipping = {
     'ship_address_complement': '',
     'ship_neighborhood': '',
     'ship_city': '',
-    'ship_state': 'São Paulo',
+    'ship_state': city,
     'ship_country': 'br',
     'ship_zip_code': '',
     'payment_method': 'credit-card',
@@ -43,7 +47,14 @@ transacton_with_shipping = {
                     'product_id': 1,
                     'product_name': 'course01',
                     'tangible': True,
-                }
+                },
+                {
+                    'amount': 100000,
+                    'qty': 1,
+                    'product_id': 1,
+                    'product_name': 'course01',
+                    'tangible': True,
+                },
             ],
         }
     ],
@@ -59,13 +70,13 @@ transacton_with_shipping_and_document_error = {
     'mail': 'mail2@jonatasoliveira.me',
     'password': 'asdasd',
     'phone': '12345678910',
-    'name': 'Jonatas L Oliveira',
+    'name': name,
     'address': 'Rua XZ',
     'address_number': '160',
     'address_complement': 'Apto 444',
     'neighborhood': 'Narnia',
-    'city': 'São Paulo',
-    'state': 'São Paulo',
+    'city': city,
+    'state': city,
     'country': 'br',
     'zip_code': '18120000',
     'shipping_is_payment': True,
@@ -75,7 +86,7 @@ transacton_with_shipping_and_document_error = {
     'ship_address_complement': '',
     'ship_neighborhood': '',
     'ship_city': '',
-    'ship_state': 'São Paulo',
+    'ship_state': city,
     'ship_country': 'br',
     'ship_zip_code': '',
     'payment_method': 'credit-card',
@@ -94,7 +105,7 @@ transacton_with_shipping_and_document_error = {
             ],
         }
     ],
-    'credit_card_name': 'Jonatas L Oliveira',
+    'credit_card_name': name,
     'credit_card_number': '5401641103018656',
     'credit_card_cvv': '123',
     'credit_card_validate': '1220',
@@ -125,7 +136,7 @@ def test_create_product_(db_models):  # TODO Fix product ENDPOINT
     assert db_product.id == 1
 
 
-@pytest.mark.skip
+@pytest.mark.first
 def test_create_config(t_client):
     _config = {'fee': '0.0599', 'min_installment': 3, 'max_installment': 12}
 
@@ -135,7 +146,7 @@ def test_create_config(t_client):
     assert response.get('fee') == '0.0599'
 
 
-@pytest.mark.skip
+@pytest.mark.second
 def test_create_product(t_client):
     product = {
         'description': 'Test Product',
@@ -158,34 +169,61 @@ def test_create_product(t_client):
         ],
     }
 
-    r = t_client.post('/direct-sales/create-product', json=product)
+    r = t_client.post('/create-product', json=product)
     response = r.json()
     assert r.status_code == 201
     assert response.get('name') == 'Test'
 
 
-@pytest.mark.skip
-def test_payment(t_client):
+@pytest.mark.skip()
+def test_payment(t_client, mocker):
     data = {
         'transaction': transacton_with_shipping,
         'affiliate': 'xyz',
-        'cupom': 'disconunt',
+        'cupom': 'discount',
     }
-    r = t_client.post('/direct-sales/checkout', json=data)
-    response = r.json()
-    assert r.status_code == 201
+    return_mock = ResponseGateway(
+        user='usuario',
+        token='token',
+        status='PAGAMENTO REALIZADO',
+        authorization_code='authorization_code',
+        gateway_id=1,
+        payment_method='credit-card',
+        errors=[],
+    ).dict()
+
+    mocker.patch(
+        'app.payment.gateway.credit_card_payment', return_value=return_mock
+    )
+    res = t_client.post('/checkout', json=data)
+
+    response = res.json()
+    assert res.status_code == 201
     assert response.get('order_id') == 1
     assert response.get('payment_status') == 'PAGAMENTO REALIZADO'
 
 
-@pytest.mark.skip
-def test_payment_with_document_error(t_client):
+@pytest.mark.skip()
+def test_payment_with_document_error(t_client, mocker):
     data = {
         'transaction': transacton_with_shipping_and_document_error,
         'affiliate': 'xyz',
         'cupom': '',
     }
-    r = t_client.post('/direct-sales/checkout', json=data)
+    return_mock = ResponseGateway(
+        user='usuario',
+        token='token',
+        status='PAGAMENTO REALIZADO',
+        authorization_code='authorization_code',
+        gateway_id=1,
+        payment_method='credit-card',
+        errors=[{'code': 1, 'message': 'Invalid CPF'}],
+    ).dict()
+
+    mocker.patch(
+        'app.payment.gateway.credit_card_payment', return_value=return_mock
+    )
+    r = t_client.post('/checkout', json=data)
     response = r.json()
     assert r.status_code == 201
     assert response.get('order_id') == 2
