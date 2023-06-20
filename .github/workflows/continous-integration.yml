@@ -1,0 +1,53 @@
+name: Continuous Integration
+on: [push]
+jobs:
+  lint_and_test:
+    services:
+      postgres:
+        image: postgres:11
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    runs-on: ubuntu-latest
+    steps:
+
+        - name: Set up python
+          uses: actions/setup-python@v2
+          with:
+              python-version: 3.10
+
+        - name: Check out repository
+          uses: actions/checkout@v2
+
+        - name: Install Poetry
+          uses: snok/install-poetry@v1
+          with:
+              virtualenvs-in-project: true
+
+        - name: Load cached venv
+          id: cached-poetry-dependencies
+          uses: actions/cache@v2
+          with:
+              path: .venv
+              key: venv-${{ hashFiles('**/poetry.lock') }}
+
+        - name: Install dependencies
+          if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+          run: poetry install --no-interaction
+
+        - name: Lint
+          run: poetry run make lint
+
+        - name: Run tests
+          run: export DATABASE_URL "postgresql://postgres_user:pass123@localhost/ecommerce-test" && poetry run make test
+
+        - name: Build coverage file
+          run: |
+            poetry run make report
+
+        - name: Comment coverage
+          uses: coroo/pytest-coverage-commentator@v1.0.2
