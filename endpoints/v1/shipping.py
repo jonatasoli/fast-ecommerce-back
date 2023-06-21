@@ -7,8 +7,8 @@ from endpoints.deps import get_db
 from schemas.shipping_schema import Shipping, ShippingCalc
 
 shipping = APIRouter(
-    prefix="/shipping",
-    tags=["shipping"],
+    prefix="/freight",
+    tags=["freight"],
 )
 
 # @shipping.post('/zip_code/shipping', status_code= 200)

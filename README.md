@@ -55,6 +55,25 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8001
 python -m pytest
 ````
 
+
+## Domains
+
+* User: Handles all user management operations, such as user registration, login, and profile management.
+* Direct Sales: Manages operations related to selling a product directly, bypassing any intermediary.
+* Payment: Handles all payment-related operations, including processing payments through various methods such as credit cards, PIX, boleto, and installment plans.
+* Freight: Responsible for managing operations related to shipping, delivery, and logistics.
+* Order: Manages operations related to processing and fulfilling customer orders, including order creation, tracking, and status updates.
+* Notification: Handles operations related to user notifications, including sending out notifications for order updates, promotions, and other relevant information.
+* Product: Manages all aspects related to products, including product creation, editing, categorization, and attributes.
+* Catalog: Handles the listing and presentation of products, providing features such as search, filtering, and sorting for users to browse and explore.
+* Cart: Deals with operations related to the shopping cart, allowing users to add, remove, and modify items before proceeding to checkout.
+* Inventory: Manages the control and tracking of product inventory, including stock levels, replenishment, and availability.
+* Reviews: Handles customer reviews, comments, and ratings for products, allowing users to share their experiences and opinions.
+* Coupons: Manages promotional campaigns, discounts, and coupon codes to attract and incentivize customers.
+* Reports: Provides reporting and analytics capabilities, allowing stakeholders to gain insights into sales, customer behavior, and other relevant metrics.
+* Sales: Handles integrations with sales tools and platforms, facilitating processes such as order synchronization, inventory management, and sales data analysis.
+* Campaign: Manages integrations with marketing tools and platforms, enabling targeted marketing campaigns, customer segmentation, and automation.
+
 ## Getting Started
 
 * Create Roles in database

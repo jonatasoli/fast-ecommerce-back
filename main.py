@@ -13,9 +13,19 @@ from endpoints.v1.direct_sales import direct_sales
 from endpoints.v1.mail import mail
 from endpoints.v1.order import order
 from endpoints.v1.product import product
+from endpoints.v1.product import catalog
 from endpoints.v1.shipping import shipping
 from endpoints.v1.users import user
-from payment.endpoint import payment
+from endpoints.v1.payment import payment
+from endpoints.v1.payment import cart
+from endpoints.v1.default import (
+    inventory,
+    reviews,
+    coupons,
+    reports,
+    campaing,
+    sales,
+)
 
 
 class InterceptHandler(logging.Handler):
@@ -75,6 +85,14 @@ app.include_router(shipping)
 app.include_router(order)
 app.include_router(mail)
 app.include_router(product)
+app.include_router(catalog)
+app.include_router(cart)
+app.include_router(inventory)
+app.include_router(reviews)
+app.include_router(coupons)
+app.include_router(reports)
+app.include_router(campaing)
+app.include_router(sales)
 
 def create_app():
     app = FastAPI()
