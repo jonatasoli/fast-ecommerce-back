@@ -16,7 +16,10 @@ from schemas.payment_schema import (
     SlipPayment,
 )
 
-payment = APIRouter()
+payment = APIRouter(
+    prefix="/payment",
+    tags=["payment"],
+)
 
 
 @payment.post('/gateway-payment-credit-card', status_code=201)

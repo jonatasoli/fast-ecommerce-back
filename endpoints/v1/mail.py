@@ -7,7 +7,10 @@ from domains import domain_mail
 from endpoints import deps
 from schemas.mail_schema import MailFormCourses, MailTrackingNumber
 
-mail = APIRouter()
+mail = APIRouter(
+    prefix="/mail",
+    tags=["mail"],
+)
 
 
 @mail.post('/send-mail-tracking-number', status_code=201)

@@ -64,7 +64,7 @@ logger.add(
 
 logging.getLogger('uvicorn.access').handlers = [InterceptHandler()]
 
-app.include_router(user, prefix='/user')
+app.include_router(user)
 app.include_router(
     direct_sales,
     prefix='/direct-sales',
@@ -73,5 +73,23 @@ app.include_router(
 app.include_router(payment)
 app.include_router(shipping)
 app.include_router(order)
-app.include_router(mail, prefix='/mail')
-app.include_router(product, prefix='/product')
+app.include_router(mail)
+app.include_router(product)
+
+def create_app():
+    app = FastAPI()
+    origins = [
+        'localhost',
+    ]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=['*'],
+        allow_headers=['*'],
+    )
+    # app.include_router(
+    #     payment,
+    #     responses={status.HTTP_404_NOT_FOUND: {'description': 'Not found'}},
+    # )
+    return app

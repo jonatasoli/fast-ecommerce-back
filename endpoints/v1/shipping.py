@@ -6,7 +6,10 @@ from domains import domain_shipping
 from endpoints.deps import get_db
 from schemas.shipping_schema import Shipping, ShippingCalc
 
-shipping = APIRouter()
+shipping = APIRouter(
+    prefix="/shipping",
+    tags=["shipping"],
+)
 
 # @shipping.post('/zip_code/shipping', status_code= 200)
 # def zip_code_shipping(shipping = Shipping):
