@@ -17,7 +17,10 @@ from schemas.user_schema import (
     UserResponseResetPassword,
 )
 
-user = APIRouter()
+user = APIRouter(
+    prefix="/user",
+    tags=["user"],
+)
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
@@ -84,7 +87,7 @@ async def login_for_access_token(
     return response
 
 
-@user.get('/user/{document}', status_code=200)
+@user.get('/{document}', status_code=200)
 async def get_user(document: str, db: Session = Depends(get_db)):
     return domain_user.get_user_login(db, document)
 

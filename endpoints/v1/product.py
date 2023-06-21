@@ -1,20 +1,18 @@
-from fastapi import APIRouter, Depends, File, Header, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile
 from loguru import logger
 from sqlalchemy.orm import Session
 
 from domains import domain_order
 from endpoints.deps import get_db
-from ext import optimize_image
 from schemas.order_schema import (
-    CategorySchema,
     InstallmentSchema,
-    OrderFullResponse,
-    OrderSchema,
     ProductFullResponse,
-    ProductSchema,
 )
 
-product = APIRouter()
+product = APIRouter(
+    prefix="/product",
+    tags=["product"],
+)
 
 
 @product.post('/upload-image/{product_id}', status_code=200)
@@ -75,7 +73,7 @@ async def get_product_uri(uri: str, db: Session = Depends(get_db)):
         raise e
 
 
-@product.get('/product/all', status_code=200)
+@product.get('/all', status_code=200)
 async def get_products_all(db: Session = Depends(get_db)):
     try:
         return domain_order.get_product_all(db)
