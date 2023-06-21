@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Optional
+from payment.schema import InstallmentSchema
 
 from fastapi import APIRouter, Depends, Header
 from loguru import logger

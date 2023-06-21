@@ -13,6 +13,10 @@ product = APIRouter(
     prefix="/product",
     tags=["product"],
 )
+catalog = APIRouter(
+    prefix="/catalog",
+    tags=["catalog"],
+)
 
 
 @product.post('/upload-image/{product_id}', status_code=200)
@@ -39,7 +43,7 @@ async def upload_image_gallery(
         raise e
 
 
-@product.get('/showcase/all', status_code=200)
+@catalog.get('/showcase/all', status_code=200)
 async def get_showcase(*, db: Session = Depends(get_db)):
     try:
         return domain_order.get_showcase(db)
@@ -73,23 +77,12 @@ async def get_product_uri(uri: str, db: Session = Depends(get_db)):
         raise e
 
 
-@product.get('/all', status_code=200)
+@catalog.get('/all', status_code=200)
 async def get_products_all(db: Session = Depends(get_db)):
     try:
         return domain_order.get_product_all(db)
     except Exception as e:
         logger.error(f'Erro em obter os produtos - { e }')
-        raise e
-
-
-@product.post('/cart/installments', status_code=200)
-async def get_installments(
-    *, db: Session = Depends(get_db), cart: InstallmentSchema
-):
-    try:
-        return domain_order.get_installments(db, cart=cart)
-    except Exception as e:
-        logger.error(f'Erro ao coletar o parcelamento - {e}')
         raise e
 
 
@@ -111,7 +104,7 @@ async def delete_product(id: int, db: Session = Depends(get_db)):
         raise e
 
 
-@product.get('/all/categorys', status_code=200)
+@catalog.get('/all/categorys', status_code=200)
 async def get_categorys(db: Session = Depends(get_db)):
     try:
         return domain_order.get_category(db)
@@ -120,7 +113,7 @@ async def get_categorys(db: Session = Depends(get_db)):
         raise e
 
 
-@product.get('/category/products/{path}', status_code=200)
+@catalog.get('/category/products/{path}', status_code=200)
 async def get_product_category(path: str, db: Session = Depends(get_db)):
     try:
         return domain_order.get_products_category(db, path)
