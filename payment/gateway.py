@@ -1,9 +1,8 @@
 import json
 
-import requests
+import httpx
 from dynaconf import settings
 from loguru import logger
-from sqlalchemy.orm import Session
 
 from payment.schema import CreditCardPayment, ResponseGateway, SlipPayment
 
@@ -13,7 +12,7 @@ def credit_card_payment(payment: CreditCardPayment):
         headers = {'Content-Type': 'application/json'}
         logger.debug(f'----- DICT {payment.dict()} ------------')
         logger.debug(f'{settings.PAYMENT_GATEWAY_URL}')
-        r = requests.post(
+        r = httpx.post(
             f'{settings.PAYMENT_GATEWAY_URL}',
             json=payment.dict(),
             headers=headers,
@@ -41,7 +40,7 @@ def slip_payment(payment: SlipPayment):
         headers = {'Content-Type': 'application/json'}
         logger.debug(f'------------ {payment.json()} ----- PAYMENTJSON')
         logger.debug(f'{settings.PAYMENT_GATEWAY_URL}')
-        r = requests.post(
+        r = httpx.post(
             f'{settings.PAYMENT_GATEWAY_URL}',
             json=payment.dict(),
             headers=headers,

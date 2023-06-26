@@ -16,12 +16,14 @@ from models.role import Role
 def test_roles(t_client, db):
     role_1 = Role(status='active', role='ADMIN')
     role_2 = Role(status='active', role='USER')
-    db.add(role_1)
-    db.commit()
-    db.add(role_2)
-    db.commit()
-    assert role_1.id == 1
-    assert role_2.id == 2
+    with db:
+        db.add(role_1)
+        db.commit()
+        db.add(role_2)
+        db.commit()
+
+        assert role_1.id == 1
+        assert role_2.id == 2
 
 
 def test_signup(t_client) -> None:

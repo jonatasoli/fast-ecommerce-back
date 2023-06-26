@@ -131,8 +131,9 @@ def test_create_product_(db_models):  # TODO Fix product ENDPOINT
             {'name': '5', 'value': 'R$20,00'},
         },
     )
-    db.add(db_product)
-    db.commit()
+    with db:
+        db.add(db_product)
+        db.commit()
     assert db_product.id == 1
 
 
@@ -140,7 +141,7 @@ def test_create_product_(db_models):  # TODO Fix product ENDPOINT
 def test_create_config(t_client):
     _config = {'fee': '0.0599', 'min_installment': 3, 'max_installment': 12}
 
-    r = t_client.post('/create-config', json=_config)
+    r = t_client.post('/payment/create-config', json=_config)
     response = r.json()
     assert r.status_code == 201
     assert response.get('fee') == '0.0599'
@@ -169,7 +170,7 @@ def test_create_product(t_client):
         ],
     }
 
-    r = t_client.post('/create-product', json=product)
+    r = t_client.post('/payment/create-product', json=product)
     response = r.json()
     assert r.status_code == 201
     assert response.get('name') == 'Test'

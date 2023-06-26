@@ -18,8 +18,8 @@ from schemas.user_schema import (
 )
 
 user = APIRouter(
-    prefix="/user",
-    tags=["user"],
+    prefix='/user',
+    tags=['user'],
 )
 
 

@@ -10,12 +10,12 @@ from schemas.order_schema import (
 )
 
 product = APIRouter(
-    prefix="/product",
-    tags=["product"],
+    prefix='/product',
+    tags=['product'],
 )
 catalog = APIRouter(
-    prefix="/catalog",
-    tags=["catalog"],
+    prefix='/catalog',
+    tags=['catalog'],
 )
 
 
