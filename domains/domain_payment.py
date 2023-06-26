@@ -2,7 +2,7 @@ import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-import requests
+import httpx
 from dynaconf import settings
 from fastapi import HTTPException
 from loguru import logger
@@ -44,7 +44,7 @@ def credit_card_payment(db: Session, payment: CreditCardPayment):
     try:
         headers = {'Content-Type': 'application/json'}
         logger.debug(f'{payment.json()}')
-        r = requests.post(
+        r = httpx.post(
             settings.PAYMENT_GATEWAY_URL, data=payment.json(), headers=headers
         )
         r = r.json()
@@ -65,7 +65,7 @@ def credit_card_payment(db: Session, payment: CreditCardPayment):
 def slip_payment(db: Session, payment: SlipPayment):
     try:
         headers = {'Content-Type': 'application/json'}
-        r = requests.post(
+        r = httpx.post(
             settings.PAYMENT_GATEWAY_URL, data=payment.json(), headers=headers
         )
         r = r.json()

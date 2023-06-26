@@ -1,4 +1,4 @@
-import requests
+import httpx
 from loguru import logger
 
 from .adapter import Adapter
@@ -21,7 +21,7 @@ class FindZipCode:
     def find_zip_code_target(self, url=correios_zip_code()):
         headers = {'content-type': 'text/xml; charset=utf-8'}
         body = Adapter.xml_find_zipcode(self.zip_code_target)
-        response = requests.post(url, headers=headers, data=body)
+        response = httpx.post(url, headers=headers, data=body)
         content = response.content
         if response.status_code == 200:
             data = Adapter.xmltojson_consultacep(content)
@@ -54,7 +54,7 @@ class CalculateShipping:
                 self.heigth,
                 self.width,
             )
-            response = requests.post(url, headers=headers, data=body)
+            response = httpx.post(url, headers=headers, data=body)
             content = response.content
             logger.debug(content)
             if '4510' == service:

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, Header
 from loguru import logger
 from sqlalchemy.orm import Session
-from starlette.requests import Request
 
 from domains import domain_order, domain_payment
 from endpoints import deps

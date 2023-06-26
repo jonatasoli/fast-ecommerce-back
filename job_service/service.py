@@ -1,7 +1,7 @@
 import json
 
 import psycopg2
-import requests
+import httpx
 from dynaconf import settings
 from loguru import logger
 from sqlalchemy import (
@@ -28,7 +28,7 @@ def get_session():
 
 
 def post_order_status(url):
-    response = requests.post(url=url)
+    response = httpx.post(url=url)
     return response
 
 

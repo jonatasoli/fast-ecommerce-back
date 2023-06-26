@@ -94,6 +94,7 @@ app.include_router(reports)
 app.include_router(campaing)
 app.include_router(sales)
 
+
 def create_app():
     app = FastAPI()
     origins = [

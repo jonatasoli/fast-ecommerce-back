@@ -20,8 +20,8 @@ from schemas.order_schema import (
 )
 
 order = APIRouter(
-    prefix="/order",
-    tags=["order"],
+    prefix='/order',
+    tags=['order'],
 )
 
 

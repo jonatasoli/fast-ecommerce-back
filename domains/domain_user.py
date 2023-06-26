@@ -10,7 +10,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from loguru import logger
 from passlib.context import CryptContext
-from sqlalchemy import and_
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from constants import DocumentType, Roles
@@ -38,35 +38,35 @@ def create_user(db: Session, obj_in: SignUp):
         logger.info(obj_in)
         logger.debug(Roles.USER.value)
 
-        db_user = User(
-            name=obj_in.name,
-            document_type=DocumentType.CPF.value,
-            document=obj_in.document,
-            birth_date=None,
-            email=obj_in.mail,
-            phone=obj_in.phone,
-            password=obj_in.password.get_secret_value(),
-            role_id=Roles.USER.value,
-            update_email_on_next_login=False,
-            update_password_on_next_login=False,
-        )
-        db.add(db_user)
-        logger.info(db_user)
-        db.commit()
+        with db:
+            db_user = User(
+                name=obj_in.name,
+                document_type=DocumentType.CPF.value,
+                document=obj_in.document,
+                birth_date=None,
+                email=obj_in.mail,
+                phone=obj_in.phone,
+                password=obj_in.password.get_secret_value(),
+                role_id=Roles.USER.value,
+                update_email_on_next_login=False,
+                update_password_on_next_login=False,
+            )
+            db.add(db_user)
+            logger.info(db_user)
+            db.commit()
         return db_user
     except Exception as e:
-        db.rollback()
         logger.error(e)
         raise e
 
 
 def check_existent_user(db: Session, email, document, password):
     try:
-        db_user = db.query(User).filter_by(document=document).first()
+        with db:
+            user_query = select(User).where(document == document)
+            db_user = db.execute(user_query).scalars().first()
         if not password:
             raise Exception('User not password')
-        # if db_user and db_user.verify_password(password.get_secret_value()):
-        #     return db_user
         logger.info('---------DB_USER-----------')
         logger.info(f'DB_USER -> {db_user}')
         return db_user
@@ -76,17 +76,16 @@ def check_existent_user(db: Session, email, document, password):
 
 def get_user(db: Session, document: str, password: str):
     try:
-
         db_user = _get_user(db=db, document=document)
         if not password:
             raise Exception('User not password')
         if db_user and db_user.verify_password(password):
             return db_user
         else:
-            raise Exception(
+            logger.error(
                 f'User not finded {db_user.document}, {db_user.password}'
             )
-
+            raise Exception(f'User not finded {db_user.document}')
     except Exception as e:
         raise e
 
@@ -141,12 +140,9 @@ def get_current_user(
 
 
 def _get_user(db: Session, document: str):
-    try:
-
-        return db.query(User).filter_by(document=document).first()
-
-    except Exception as e:
-        raise e
+    with db:
+        user_query = select(User).where(User.document == document)
+        return db.execute(user_query).scalars().first()
 
 
 def check_token(f):
@@ -174,15 +170,17 @@ def check_token(f):
 
 
 def get_role_user(db: Session, user_role_id: int):
-    _role = db.query(Role).filter_by(id=user_role_id).first()
-    return _role.role
+    with db:
+        role_query = select(Role).where(Role.id == user_role_id)
+        _role = db.execute(role_query).scalars().first()
+        return _role.role
 
 
 def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
     try:
-        _address = (
-            db.query(Address)
-            .filter(
+        _address = None
+        with db:
+            address_query = select(Address).where(
                 and_(
                     Address.user_id == user.id,
                     Address.zipcode == checkout_data.get('zip_code'),
@@ -193,27 +191,25 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
                     Address.category == 'billing',
                 )
             )
-            .first()
-        )
-        if not _address:
-            db_payment_address = Address(
-                user_id=user.id,
-                country=checkout_data.get('country'),
-                city=checkout_data.get('city'),
-                state=checkout_data.get('state'),
-                neighborhood=checkout_data.get('neighborhood'),
-                street=checkout_data.get('address'),
-                street_number=checkout_data.get('address_number'),
-                zipcode=checkout_data.get('zip_code'),
-                type_address='house',
-                category='billing',
-            )
-            db.add(db_payment_address)
-            db.commit()
-            _address = db_payment_address
+            _address = db.execute(address_query).scalars().first()
+            if not _address:
+                db_payment_address = Address(
+                    user_id=user.id,
+                    country=checkout_data.get('country'),
+                    city=checkout_data.get('city'),
+                    state=checkout_data.get('state'),
+                    neighborhood=checkout_data.get('neighborhood'),
+                    street=checkout_data.get('address'),
+                    street_number=checkout_data.get('address_number'),
+                    zipcode=checkout_data.get('zip_code'),
+                    type_address='house',
+                    category='billing',
+                )
+                db.add(db_payment_address)
+                db.commit()
+                _address = db_payment_address
         return _address
     except Exception as e:
-        db.rollback()
         raise e
 
 
@@ -221,9 +217,9 @@ def register_shipping_address(
     db: Session, checkout_data: CheckoutSchema, user
 ):
     try:
-        _address = (
-            db.query(Address)
-            .filter(
+        _address = None
+        with db:
+            address_query = select(Address).where(
                 and_(
                     Address.user_id == user.id,
                     Address.zipcode == checkout_data.get('ship_zip'),
@@ -233,15 +229,12 @@ def register_shipping_address(
                     Address.category == 'shipping',
                 )
             )
-            .first()
-        )
+            _address = db.execute(address_query).scalars().first()
 
-        if checkout_data.get('shipping_is_payment'):
-            logger.debug(f'{checkout_data}')
-            if not checkout_data.get('ship_zip'):
-                _address = (
-                    db.query(Address)
-                    .filter(
+            if checkout_data.get('shipping_is_payment'):
+                logger.debug(f'{checkout_data}')
+                if not checkout_data.get('ship_zip'):
+                    address_query = select(Address).where(
                         and_(
                             Address.user_id == user.id,
                             Address.zipcode == checkout_data.get('zip_code'),
@@ -252,48 +245,47 @@ def register_shipping_address(
                             Address.category == 'billing',
                         )
                     )
-                    .first()
-                )
-            if not _address:
-                db_shipping_address = Address(
-                    user_id=user.id,
-                    country=checkout_data.get('country'),
-                    city=checkout_data.get('city'),
-                    state=checkout_data.get('state'),
-                    neighborhood=checkout_data.get('neighborhood'),
-                    street=checkout_data.get('address'),
-                    street_number=checkout_data.get('address_number'),
-                    zipcode=checkout_data.get('zip_code'),
-                    type_address='house',
-                    category='shipping',
-                )
-                db.add(db_shipping_address)
-                db.commit()
-                _address = db_shipping_address
-        else:
+                    _address = db.execute(address_query).scalars().first()
 
-            if not _address:
-                db_shipping_address = Address(
-                    user_id=user.id,
-                    country=checkout_data.get('ship_country'),
-                    city=checkout_data.get('ship_city'),
-                    state=checkout_data.get('ship_state'),
-                    neighborhood=checkout_data.get('ship_neighborhood'),
-                    street=checkout_data.get('ship_address'),
-                    street_number=checkout_data.get('ship_number'),
-                    zipcode=checkout_data.get('ship_zip'),
-                    type_address='house',
-                    category='shipping',
-                )
-                db.add(db_shipping_address)
-                db.commit()
-                _address = db_shipping_address
+                if not _address:
+                    db_shipping_address = Address(
+                        user_id=user.id,
+                        country=checkout_data.get('country'),
+                        city=checkout_data.get('city'),
+                        state=checkout_data.get('state'),
+                        neighborhood=checkout_data.get('neighborhood'),
+                        street=checkout_data.get('address'),
+                        street_number=checkout_data.get('address_number'),
+                        zipcode=checkout_data.get('zip_code'),
+                        type_address='house',
+                        category='shipping',
+                    )
+                    db.add(db_shipping_address)
+                    db.commit()
+                    _address = db_shipping_address
+            else:
 
-        logger.debug('INFO')
-        logger.error(f'{_address}')
+                if not _address:
+                    db_shipping_address = Address(
+                        user_id=user.id,
+                        country=checkout_data.get('ship_country'),
+                        city=checkout_data.get('ship_city'),
+                        state=checkout_data.get('ship_state'),
+                        neighborhood=checkout_data.get('ship_neighborhood'),
+                        street=checkout_data.get('ship_address'),
+                        street_number=checkout_data.get('ship_number'),
+                        zipcode=checkout_data.get('ship_zip'),
+                        type_address='house',
+                        category='shipping',
+                    )
+                    db.add(db_shipping_address)
+                    db.commit()
+                    _address = db_shipping_address
+
+            logger.debug('INFO')
+            logger.error(f'{_address}')
         return _address
     except Exception as e:
-        db.rollback()
         raise e
 
 
@@ -341,8 +333,10 @@ def address_by_postal_code(zipcode_data):
 
 
 def get_user_login(db: Session, document: str):
-    user = db.query(User).filter_by(document=document).first()
-    return UserSchema.from_orm(user)
+    with db:
+        user_query = select(User).where(User.document == document)
+        user_db = db.execute(user_query).scalars().first()
+    return UserSchema.from_orm(user_db)
 
 
 def save_token_reset_password(db: Session, document: str):
@@ -352,20 +346,27 @@ def save_token_reset_password(db: Session, document: str):
     _token = create_access_token(
         data={'sub': document}, expires_delta=access_token_expires
     )
-    _user = db.query(User).filter_by(document=document).first()
-    db_reset = UserResetPassword(user_id=_user.id, token=_token)
-    db.add(db_reset)
-    db.commit()
+    with db:
+        user_query = select(User).where(User.document == document)
+        _user = db.execute(user_query).scalars().first()
+        db_reset = UserResetPassword(user_id=_user.id, token=_token)
+        db.add(db_reset)
+        db.commit()
     return db_reset
 
 
 def reset_password(db: Session, data: UserResponseResetPassword):
     pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-    _user = db.query(User).filter_by(document=data.document).first()
-    _used_token = (
-        db.query(UserResetPassword).filter_by(user_id=_user.id).first()
-    )
-    _used_token.used_token = True
-    _user.password = pwd_context.hash(data.password)
-    db.commit()
+    with db:
+        user_query = select(User).where(User.document == data.document)
+        _user = db.execute(user_query).scalars().first()
+
+        used_token_query = select(UserResetPassword).where(
+            UserResetPassword.user_id == _user.id
+        )
+        _used_token = db.execute(used_token_query).scalars().first()
+
+        _used_token.used_token = True
+        _user.password = pwd_context.hash(data.password)
+        db.commit()
     return 'Senha alterada'

@@ -1,6 +1,6 @@
 import json
 
-import requests
+import httpx
 from dynaconf import settings
 
 
@@ -11,7 +11,7 @@ def return_transaction(gateway_id):
             'date_created': '2017-08-15T16:14:58.903Z',
         }
         data = {'api_key': settings.GATEWAY_API}
-        r = requests.get(
+        r = httpx.get(
             f'https://api.pagar.me/1/transactions/{gateway_id}',
             headers=headers,
             json=data,

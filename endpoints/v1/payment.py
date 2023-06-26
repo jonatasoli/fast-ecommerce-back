@@ -20,7 +20,7 @@ payment = APIRouter(
     prefix='/payment',
     tags=['payment'],
 )
-cart= APIRouter(
+cart = APIRouter(
     prefix='/cart',
     tags=['cart'],
 )
@@ -61,7 +61,7 @@ def create_config(*, config_data: ConfigCreditCardInDB):
     _config = repositories.CreditCardConfig(
         config_data=config_data
     ).create_installment_config()
-    return ConfigCreditCardResponse.from_orm(_config)
+    return _config
 
 
 @payment.post('/gateway-payment-credit-card', status_code=201)
@@ -74,6 +74,7 @@ async def payment_credit_card(*, payment_data: CreditCardPayment):
 def payment_bank_slip(*, payment_data: SlipPayment):
     payment = gateway.slip_payment(payment=payment_data)
     return payment
+
 
 @cart.post('/cart/installments', status_code=200)
 async def get_installments(

@@ -8,8 +8,8 @@ from endpoints import deps
 from schemas.mail_schema import MailFormCourses, MailTrackingNumber
 
 mail = APIRouter(
-    prefix="/mail",
-    tags=["mail"],
+    prefix='/notification',
+    tags=['notification'],
 )
 
 

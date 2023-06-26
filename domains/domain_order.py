@@ -2,7 +2,7 @@ import json
 from collections import defaultdict
 from datetime import date
 
-import requests
+from sqlalchemy import and_, select
 from loguru import logger
 from sqlalchemy import Date, between, cast, literal_column
 from sqlalchemy.orm import Session
@@ -29,120 +29,144 @@ from schemas.order_schema import (
 
 
 def get_product(db: Session, uri):
-    return db.query(Product).filter(Product.uri == uri).first()
+    with db:
+        query_product = select(Product).where(Product.uri == uri)
+        return db.execute(query_product).scalars().first()
 
 
 def create_product(db: Session, product_data: ProductSchema):
     db_product = Product(**product_data.dict())
-    db.add(db_product)
-    db.commit()
-    return db_product
+    with db:
+        db.add(db_product)
+        db.commit()
+        return ProductSchema.from_orm(db_product)
 
 
 def put_product(db: Session, id, product_data: ProductFullResponse):
-    product = db.query(Product).filter(Product.id == id)
-    product = product.update(product_data)
-    logger.debug(product)
-    db.commit()
+    with db:
+        product_query = select(Product).where(Product.id == id)
+        product = db.execute(product_query).scalars().first()
+        product = product.update(product_data)
+        logger.debug(product)
+        db.commit()
     return {**product_data.dict()}
 
 
 def delete_product(db: Session, id):
-    db.query(Product).filter(Product.id == id).delete()
-    db.commit()
+    with db:
+        db.execute(select(Product).where(Product.id == id).delete()).delete()
+        db.commit()
     return {'Produto excluido'}
 
 
 def upload_image(db: Session, product_id, image):
     image_path = optimize_image.optimize_image(image)
-    db_product = db.query(Product).filter(Product.id == product_id).first()
-    db_product.image_path = image_path
-    db.commit()
+    with db:
+        db_product = db.query(Product).filter(Product.id == product_id).first()
+        db_product.image_path = image_path
+        db.commit()
     return image_path
 
 
 def upload_image_gallery(product_id, db: Session, imageGallery):
     image_path = optimize_image.optimize_image(imageGallery)
-    db_image_gallery = ImageGallery(url=image_path, product_id=product_id)
-    db.add(db_image_gallery)
-    db.commit()
+    with db:
+        db_image_gallery = ImageGallery(url=image_path, product_id=product_id)
+        db.add(db_image_gallery)
+        db.commit()
     return image_path
 
 
 def delete_image_gallery(id: int, db: Session):
-    db.query(ImageGallery).filter(ImageGallery.id == id).delete()
-    db.commit()
+    with db:
+        db.execute(select(ImageGallery).where(ImageGallery.id == id)).delete()
+        db.commit()
     return 'Imagem excluida'
 
 
 def get_images_gallery(db: Session, uri):
-    product_id = db.query(Product).filter(Product.uri == uri).first()
-    images = (
-        db.query(ImageGallery)
-        .filter(ImageGallery.product_id == product_id.id)
-        .all()
-    )
-    images_list = []
+    with db:
+        product_id_query = select(Product).where(Product.uri == uri)
+        product_id = db.execute(product_id_query).scalars().first()
+        images_query = select.query(ImageGallery).where(
+            ImageGallery.product_id == product_id.id
+        )
+        images = db.execute(images_query).scalars().all()
+        images_list = []
 
-    for image in images:
-        images_list.append(ImageGalleryResponse.from_orm(image))
+        for image in images:
+            images_list.append(ImageGalleryResponse.from_orm(image))
 
-    if images:
-        return {'images': images_list}
-    return {'images': []}
+        if images:
+            return {'images': images_list}
+        return {'images': []}
 
 
 def get_showcase(db: Session):
-    showcases = db.query(Product).filter_by(showcase=True).all()
-    products = []
+    with db:
+        showcases_query = select(Product).where(Product.showcase == True)
+        showcases = db.execute(showcases_query).scalars().all()
+        products = []
 
-    for showcase in showcases:
-        products.append(ProductInDB.from_orm(showcase))
+        for showcase in showcases:
+            products.append(ProductInDB.from_orm(showcase))
 
-    if showcases:
-        return {'products': products}
-    return {'products': []}
+        if showcases:
+            return {'products': products}
+        return {'products': []}
 
 
 def get_installments(db: Session, cart):
-    _cart = cart.dict()
-    _product_id = _cart['cart'][0]['product_id']
-    _product_config = db.query(Product).filter_by(id=int(_product_id)).first()
-    _total_amount = 0
-    _total_amount_fee = 0
-    _installments = []
+    with db:
+        _cart = cart.dict()
+        _product_id = _cart['cart'][0]['product_id']
+        _product_config_query = select(Product).where(
+            Product.id == int(_product_id)
+        )
+        _product = db.execute(_product_config_query).scalars().first()
+        _total_amount = 0
+        _total_amount_fee = 0
+        _installments = []
 
-    for item in _cart['cart']:
-        _total_amount += item['amount'] * item['qty']
+        for item in _cart['cart']:
+            _total_amount += item['amount'] * item['qty']
 
-    logger.debug(f'Total da soma {_total_amount}')
-    for n in range(1, 13):
-        if n <= 3:
-            _installment = (_total_amount / n) / 100
-            _installments.append(
-                {'name': f'{n} x R${round(_installment, 2)}', 'value': f'{n}'}
-            )
-            logger.debug(f'Parcela sem juros {_installment}')
-        else:
-            _total_amount_fee = _total_amount * (1 + 0.0199) ** n
-            _installment = (_total_amount_fee / n) / 100
-            _installments.append(
-                {'name': f'{n} x R${round(_installment, 2)}', 'value': f'{n}'}
-            )
-            logger.debug(f'Parcela com juros {_installment}')
+        logger.debug(f'Total da soma {_total_amount}')
+        for n in range(1, 13):
+            if n <= 3:
+                _installment = (_total_amount / n) / 100
+                _installments.append(
+                    {
+                        'name': f'{n} x R${round(_installment, 2)}',
+                        'value': f'{n}',
+                    }
+                )
+                logger.debug(f'Parcela sem juros {_installment}')
+            else:
+                _total_amount_fee = _total_amount * (1 + 0.0199) ** n
+                _installment = (_total_amount_fee / n) / 100
+                _installments.append(
+                    {
+                        'name': f'{n} x R${round(_installment, 2)}',
+                        'value': f'{n}',
+                    }
+                )
+                logger.debug(f'Parcela com juros {_installment}')
 
-    logger.debug(f'array de parcelas {_installments}')
-    return _installments
+        logger.debug(f'array de parcelas {_installments}')
+        return _installments
 
 
 def get_product_by_id(db: Session, id):
-    product = db.query(Product).filter_by(id=id).first()
-    return ProductInDB.from_orm(product)
+    with db:
+        product_query = select(Product).where(Product.id == id)
+        product = db.execute(product_query).scalars().first()
+        return ProductInDB.from_orm(product)
 
 
 def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
     if dates:
-        print(dates)
+        logger.info(dates)
         new_date = json.loads(dates)
         date_end = {'date_end': new_date.get('date_start')}
         if 'date_end' not in new_date.keys():
@@ -150,8 +174,8 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
     if status == 'null':
         status = None
 
-    orders = (
-        db.query(
+    orders_query = (
+        select(
             Transaction.order_id,
             Transaction.payment_id,
             Order.tracking_number,
@@ -173,8 +197,8 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
         .join(Payment, Payment.id == Transaction.payment_id)
     )
     if dates:
-        orders = (
-            orders.filter(
+        orders_query = (
+            orders.where(
                 Order.order_status == status,
                 cast(Order.order_date, Date).between(
                     new_date.get('date_start'), new_date.get('date_end')
@@ -184,47 +208,46 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
             .all()
         )
     if user_id:
-        user = db.query(User).filter(User.document == str(user_id)).first()
-        orders = orders.filter(Order.customer_id == user.id).distinct().all()
+        user_query = select(User).where(User.document == str(user_id))
+        user = db.execute(user_query).scalars().first()
+
+        orders_query = (
+            orders.where(Order.customer_id == user.id).distinct().all()
+        )
     order_list = []
     product_list = []
+    orders = db.execute(orders_query).scalars().all()
     for order in orders:
-        address = (
-            db.query(
-                Address.user_id,
-                Address.type_address,
-                Address.category,
-                Address.country,
-                Address.city,
-                Address.state,
-                Address.neighborhood,
-                Address.street,
-                Address.street_number,
-                Address.address_complement,
-                Address.zipcode,
-            )
-            .filter(
-                Address.category == 'shipping',
-                Address.user_id == order.user_id,
-            )
-            .first()
+        address_query = select(
+            Address.user_id,
+            Address.type_address,
+            Address.category,
+            Address.country,
+            Address.city,
+            Address.state,
+            Address.neighborhood,
+            Address.street,
+            Address.street_number,
+            Address.address_complement,
+            Address.zipcode,
+        ).where(
+            Address.category == 'shipping',
+            Address.user_id == order.user_id,
         )
+        address = db.execute(address_query).scalars().first()
 
         affiliate = None
         if order.affiliate != None:
-            affiliates = (
-                db.query(User.name)
-                .filter(
-                    order.affiliate == User.uuid,
-                    Transaction.payment_id == order.payment_id,
-                )
-                .first()
+            affiliates_query = select(User.name).where(
+                order.affiliate == User.uuid,
+                Transaction.payment_id == order.payment_id,
             )
+            affiliates = db.execute(affiliates_query).scalars().all()
             for affil in affiliates:
                 affiliate = affil
 
-        products = (
-            db.query(
+        products_query = (
+            select(
                 Product.name.label('product_name'),
                 Product.image_path,
                 Transaction.amount.label('price'),
@@ -233,8 +256,9 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
                 Transaction.order_id,
             )
             .join(Product, Transaction.product_id == Product.id)
-            .filter(Transaction.payment_id == order.payment_id)
+            .where(Transaction.payment_id == order.payment_id)
         )
+        products = db.execute(products_query).scalars().all()
         for product in products:
             product_all = ProductsResponseOrder.from_orm(product)
             product_list.append(product_all)
@@ -280,85 +304,106 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
 
 
 def get_order(db: Session, id):
-    users = (
-        db.query(User)
-        .join(Order, Order.customer_id == User.id)
-        .filter(Order.id == id)
-    )
-    orders = (
-        db.query(Order)
-        .join(User, Order.customer_id == User.id)
-        .filter(Order.id == id)
-    )
-    for user in users:
-        orderObject = {'name': user.name, 'order': []}
-        for order in orders:
-            order = {
-                'id': order.id,
-                'customer_id': order.customer_id,
-                'order_date': order.order_date,
-                'tracking_number': order.tracking_number,
-                'payment_id': order.payment_id,
-            }
-            orderObject['order'].append(order)
-            return orderObject
+    with db:
+        users_query = (
+            select(User)
+            .join(Order, Order.customer_id == User.id)
+            .where(Order.id == id)
+        )
+        users = db.execute(users_query).scalars().all()
+        orders_query = (
+            select(Order)
+            .join(User, Order.customer_id == User.id)
+            .where(Order.id == id)
+        )
+        orders = db.execute(orders_query).scalars().all()
+        for user in users:
+            orderObject = {'name': user.name, 'order': []}
+            for order in orders:
+                order = {
+                    'id': order.id,
+                    'customer_id': order.customer_id,
+                    'order_date': order.order_date,
+                    'tracking_number': order.tracking_number,
+                    'payment_id': order.payment_id,
+                }
+                orderObject['order'].append(order)
+                return orderObject
 
 
 def get_order_users(db: Session, id):
-    users = (
-        db.query(User)
-        .join(Order, Order.customer_id == User.id)
-        .filter(User.id == id)
-    )
-    orders = (
-        db.query(Order)
-        .join(User, Order.customer_id == User.id)
-        .filter(User.id == id)
-    )
-    for user in users:
-        orderObject = {'name': user.name, 'orders': []}
-        for order in orders:
-            order = {
-                'id': order.id,
-                'customer_id': order.customer_id,
-                'order_date': order.order_date,
-                'tracking_number': order.tracking_number,
-                'payment_id': order.payment_id,
-            }
-            orderObject['orders'].append(order)
+    orderObject = None
+    with db:
+        users_query = (
+            select(User)
+            .join(Order, Order.customer_id == User.id)
+            .where(User.id == id)
+        )
+        users = db.execute(users_query).scalars().all()
+        orders_query = (
+            select(Order)
+            .join(User, Order.customer_id == User.id)
+            .where(User.id == id)
+        )
+        orders = db.execute(orders_query).scalars().all()
+        for user in users:
+            orderObject = {'name': user.name, 'orders': []}
+            for order in orders:
+                order = {
+                    'id': order.id,
+                    'customer_id': order.customer_id,
+                    'order_date': order.order_date,
+                    'tracking_number': order.tracking_number,
+                    'payment_id': order.payment_id,
+                }
+                orderObject['orders'].append(order)
             return orderObject
 
 
 def put_order(db: Session, order_data: OrderFullResponse, id):
-    order = db.query(Order).filter(Order.id == id)
-    order = order.update(order_data)
-    return {**order_data.dict()}
+    order = None
+    with db:
+        order_query = select(Order).where(Order.id == id)
+        order = db.execute(order_query).scalars().first()
+        order = order_data.dict()
+        db.commit()
+        return {**order_data.dict()}
 
 
 def put_trancking_number(db: Session, data: TrackingFullResponse, id):
-    order = db.query(Order).filter(Order.id == id)
-    order = order.update(data)
-    db.commit()
+    order = None
+    with db:
+        order = select(Order).where(Order.id == id)
+        order = order.update(data)
+        db.commit()
     return {**data.dict()}
 
 
 def checked_order(db: Session, id, check):
-    db_order = db.query(Order).filter(Order.id == id).first()
-    db_order.checked = check
-    db.commit()
+    db_order = None
+    with db:
+        db_order_query = select(Order).where(Order.id == id)
+        db_order = db.execute(db_order_query).scalars().first()
+        db_order.checked = check
+        db.commit()
     return db_order
 
 
 def create_order(db: Session, order_data: OrderSchema):
     db_order = Order(**order_data.dict())
-    db.add(db_order)
-    db.commit()
-    db.refresh(db_order)
+    with db:
+        db.add(db_order)
+        db.commit()
+        db.refresh(db_order)
     return db_order
 
 
 def get_category(db: Session):
-    categorys = db.query(Category).all()
+    categorys = None
+    with db:
+        categorys_query = select(Category)
+        categorys = db.execute(categorys_query).scalars().all()
+
     category_list = []
 
     for category in categorys:
@@ -367,13 +412,17 @@ def get_category(db: Session):
 
 
 def get_products_category(db: Session, path):
-    category = db.query(Category).filter(Category.path == path).first()
-    print(category.path, category.id)
-    products = (
-        db.query(Product)
-        .filter(Product.showcase == True, Product.category_id == category.id)
-        .all()
-    )
+    products = None
+    with db:
+        category = db.query(Category).filter(Category.path == path).first()
+        logger.info(category.path, category.id)
+        products = (
+            db.query(Product)
+            .filter(
+                Product.showcase == True, Product.category_id == category.id
+            )
+            .all()
+        )
     products_category = []
 
     for product in products:
@@ -385,7 +434,10 @@ def get_products_category(db: Session, path):
 
 
 def get_product_all(db: Session):
-    products = db.query(Product).all()
+    products = None
+    with db:
+        products = select(Product)
+        products = db.execute(products).scalars().all()
     products_list = []
 
     for product in products:
