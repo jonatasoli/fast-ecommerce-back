@@ -285,13 +285,20 @@ class Checkout:
 
     def process_checkout(self):
         try:
+            # Buscando o usuário ativo
             _user = User(db=self.db, checkout_data=self.checkout_data).user()
+
+            # Criando o endereço de cobrança
             _payment_address = register_payment_address(
                 db=self.db, checkout_data=self.checkout_data, user=_user
             )
+
+            # Criando o endereço de entrega
             _shipping_address = register_shipping_address(
                 db=self.db, checkout_data=self.checkout_data, user=_user
             )
+
+            # Criando o pedido
             order = ProcessOrder(
                 checkout_data=self.checkout_data,
                 user=_user,
@@ -300,6 +307,8 @@ class Checkout:
                 shipping_address=_shipping_address,
             )
             _order = order.process_order()
+
+            # Criando o pagamento
             payment = ProcessPayment(
                 checkout_data=self.checkout_data,
                 user=_user,
@@ -309,6 +318,8 @@ class Checkout:
                 _customer=order.customer(),
             )
             _payment = payment.process_payment()
+
+            # Criando a transação
             ProcessTransaction(
                 checkout_data=self.checkout_data,
                 user=_user,
@@ -321,9 +332,12 @@ class Checkout:
                 _order.order_status == 'pending'
                 or _order.order_status != 'pending'
             ):
+                # Atualizando status do pedido
                 UpdateStatus(
                     payment_data=_payment, order=_order
                 ).update_payment_status()
+
+            # Gerando retorno do pagamento de cartão de crédito
             if 'credit-card' in _payment.values():
                 _payment_response = PaymentResponse(
                     token=_payment.get('token'),
@@ -332,6 +346,7 @@ class Checkout:
                     payment_status='PAGAMENTO REALIZADO',
                     errors=_payment.get('errors'),
                 )
+            # Gerando retorno do pagamento de boleto
             else:
                 _payment_response = PaymentResponse(
                     token=_payment.get('token'),

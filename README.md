@@ -114,6 +114,45 @@ suggest test product
     }
 ```
 
+## Integrations
+* Sendgrid
+* Pagarme
+* Correios
+* Tallos
+
+## API Structure
+- app
+  -- infra
+     -- db
+     -- enpoints
+        -- schemas
+     -- redis
+     -- gateways
+        -- payment
+        -- mail
+        -- whatsapp
+     -- workers
+ -- entities -> Business rules
+  -- user
+     -- service -> application orchestration
+     -- repository -> queries
+  -- direct_sales
+  -- payment
+  -- order
+  -- freight
+  -- infra
+  -- infra
+  -- notification
+  -- product
+  -- catalog
+  -- cart
+  -- inventory
+  -- coupons
+  -- reports
+  -- sales
+  -- campaign
+- tests
+
 ## Technologies
 + [PostgreSql](https://www.postgresql.org/)
 + [FastApi](https://fastapi.tiangolo.com/)

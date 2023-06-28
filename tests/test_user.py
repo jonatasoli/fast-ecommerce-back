@@ -1,15 +1,5 @@
 import pytest
-
-from dynaconf import settings
-from fastapi.testclient import TestClient
-
-from loguru import logger
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-
 from domains.domain_user import get_current_user
-from endpoints.deps import get_db
-from main import app
 from models.role import Role
 
 
@@ -50,7 +40,7 @@ def test_invalid_signup(t_client) -> None:
     }
     r = t_client.post('/user/signup', json=signup_data)
 
-    response = r.json()
+    r.json()
     assert r.status_code == 422
 
 
@@ -110,6 +100,6 @@ def test_auth_dash(t_client):
 
     output = t_client.get('/user/dashboard', headers=_headers)
     _json = output.json()
-    assert output != None
+    assert output is not None
     assert output.status_code == 200
     assert _json['role'] == 'USER'

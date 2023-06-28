@@ -38,6 +38,7 @@ aiofiles = "*"
 boto3 = "*"
 zipp = "*"
 dynaconf = "*"
+redis = "^4.6.0"
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"
@@ -52,11 +53,14 @@ pytest-sugar = "*"
 pytest-watch = "*"
 pytest-ordering = "*"
 pytest-asyncio = "*"
+factory-boy = "^3.2.1"
 
 [tool.ruff]
-select = ["E", "F", "W", "I", "D", "U", "N", "ERA", "C", "FBT", "B", "A", "T", "I25", "T", "ANN", "YTT", "BLE", "C90", "RUF", "M"]
-src = ["src", "tests"]
-ignore = ["D203"]
+select = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+src = ["app", "tests"]
+fixable = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+unfixable = []
+ignore = ["D100", "D101", "D102", "D107", "D203", "D213"]
 # Exclude a variety of commonly ignored directories.
 exclude = [
     ".bzr",

@@ -11,11 +11,13 @@ shell:
 	@poetry shell
 
 format:
-	@blue . 
+	@blue app/ 
+	@blue tests/ 
 
 lint:
-	@blue . --check
-	@ruff check .
+	@blue app/ tests/ --check
+	@ruff check app/
+	@ruff check tests/entities --ignore S101
 
 test:
 	@pytest -s tests
