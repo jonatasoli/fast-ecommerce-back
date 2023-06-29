@@ -53,6 +53,25 @@ class CartBase(BaseModel):
             return self
         return self
 
+    def add_product(self: Self, product_id: int, quantity: int) -> Self:
+        # self.cart_items.append(dict(product_id=product_id, quantity=quantity))
+        # return self
+        """Add a product to the cart."""
+        for item in self.cart_items:
+            if item.product_id == product_id:
+                item.quantity += quantity
+                return self
+        
+        self.cart_items.append(dict(product_id=product_id, quantity=quantity))
+        return self
+
+    def remove_product(self: Self, product_id: int) -> Self:
+        """Remove a product from the cart based on its product_id."""
+        for i, item in enumerate(self.cart_items):
+            if item.product_id == product_id:
+                del self.cart_items[i]
+                return self
+        raise IndexError(f"Product id {product_id} don't exists in cart")
 
 class CartUser(CartBase):
     """Cart second step representation with logged user."""
