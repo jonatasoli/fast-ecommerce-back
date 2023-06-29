@@ -20,7 +20,7 @@ lint:
 	@ruff check tests/entities --ignore S101
 
 test:
-	@pytest -s tests
+	@pytest -s tests/entities
 
 configs:
 	dynaconf -i src.config.settings list
