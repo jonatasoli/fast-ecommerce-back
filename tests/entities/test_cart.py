@@ -18,7 +18,10 @@ def test_create_uuid_to_cart() -> None:
     assert isinstance(uuid, UUID)
 
 
-def create_cart(product_id: int = DEFAULT_PRODUCT_ID, quantity: int = DEFAULT_QUANTITY) -> CartBase:
+def create_cart(
+    product_id: int = DEFAULT_PRODUCT_ID,
+    quantity: int = DEFAULT_QUANTITY,
+) -> CartBase:
     """Generate random shopping cart."""
     return CartBase(
         uuid=fake.uuid4(),
@@ -102,8 +105,8 @@ def test_add_product_to_cart() -> None:
     )
 
     # Assert
-    assert output.cart_items[1]["product_id"] == product_id
-    assert output.cart_items[1]["quantity"] == 1
+    assert output.cart_items[1]['product_id'] == product_id
+    assert output.cart_items[1]['quantity'] == 1
 
 
 def test_add_duplicate_product_should_increase_quantity() -> None:
@@ -149,20 +152,43 @@ def test_remove_product_to_cart_with_product_not_exists() -> None:
         cart.remove_product(product_id=product_id)
 
     # Assert
-    assert index_error.value.args[0] == f"Product id {product_id} don't exists in cart"
+    assert (
+        index_error.value.args[0]
+        == f"Product id {product_id} don't exists in cart"
+    )
 
 
 def test_calculate_subtotal_to_cart() -> None:
+    """Must calculate subtotal to cart."""
+    # Arrange
+    cart_items = []
+    subtotal = 0
+    for _ in range(10):
+        price = fake_decimal()
+        quantity = fake.random_int()
+        cart_items.append(
+            ProductCart(
+                product_id=fake.random_int(),
+                quantity=quantity,
+                price=price,
+            ),
+        )
+        subtotal += quantity * price
+    cart = create_cart()
+    cart.cart_items = cart_items
+
+    # Act
+    cart.calculate_subtotal()
+
+    # Assert
+    assert cart.subtotal == subtotal
+
+
+def test_calculate_subtotal_in_cart_without_prices_raise_key_error() -> None:
+    """Must raise KeyError."""
     ...
 
 
-def test_caculate_subtotal_in_cart_without_prices() -> None:
-    ...
-
-
-def test_calculate_subtotal_in_cart_with_prices() -> None:
-    ...
-
-
-def test_calculate_subtotal_in_cart_with_cart_items_empty() -> None:
+def test_calculate_subtotal_in_cart_with_cart_items_empty_raise_value_error() -> None:
+    """Must raise ValueError."""
     ...

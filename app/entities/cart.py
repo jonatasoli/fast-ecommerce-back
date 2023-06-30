@@ -54,15 +54,15 @@ class CartBase(BaseModel):
         return self
 
     def add_product(self: Self, product_id: int, quantity: int) -> Self:
-        # self.cart_items.append(dict(product_id=product_id, quantity=quantity))
-        # return self
         """Add a product to the cart."""
         for item in self.cart_items:
             if item.product_id == product_id:
                 item.quantity += quantity
                 return self
-        
-        self.cart_items.append(dict(product_id=product_id, quantity=quantity))
+
+        self.cart_items.append(
+            {'product_id': product_id, 'quantity': quantity},
+        )
         return self
 
     def remove_product(self: Self, product_id: int) -> Self:
@@ -71,7 +71,16 @@ class CartBase(BaseModel):
             if item.product_id == product_id:
                 del self.cart_items[i]
                 return self
-        raise IndexError(f"Product id {product_id} don't exists in cart")
+        msg = f"Product id {product_id} don't exists in cart"
+        raise IndexError(msg)
+
+    def calculate_subtotal(self: Self) -> None:
+        """Calculate subtotal of cart."""
+        subtotal = Decimal(0)
+        for item in self.cart_items:
+            subtotal += item.price * item.quantity
+        self.subtotal = subtotal
+
 
 class CartUser(CartBase):
     """Cart second step representation with logged user."""
