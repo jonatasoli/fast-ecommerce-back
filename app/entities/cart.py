@@ -7,9 +7,17 @@ from app.entities.freight import ShippingAddress
 from app.entities.payment import CreditCardInformation
 from app.entities.product import ProductCart
 from app.entities.user import UserAddress, UserData
+from app.entities.coupon import CouponBase
 from pydantic import BaseModel
 
 Self = TypeVar('Self')
+
+
+class CartNotFoundPriceError(Exception):
+    """Raise when cart not found price."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('Price or quantity not found in cart item')
 
 
 def generate_cart_uuid() -> UUID:
@@ -22,7 +30,8 @@ class CartBase(BaseModel):
 
     uuid: UUID
     cart_items: list[ProductCart]
-    discount_total: Decimal | None
+    coupon: CouponBase | None
+    discount: Decimal = Decimal(0)
     subtotal: Decimal
 
     def increase_quantity(self: Self, product_id: int) -> Self:
@@ -74,12 +83,32 @@ class CartBase(BaseModel):
         msg = f"Product id {product_id} don't exists in cart"
         raise IndexError(msg)
 
-    def calculate_subtotal(self: Self) -> None:
+    def add_product_price(self: Self, products: list[ProductCart]) -> Self:
+        """Add a product price to cart."""
+        product_prices = {
+            product.product_id: product.price for product in products
+        }
+
+        self.cart_items = [
+            item.update_price(new_price=product_prices.get(item.product_id))
+            for item in self.cart_items
+        ]
+
+    def calculate_subtotal(self: Self, discount: Decimal = 0) -> None:
         """Calculate subtotal of cart."""
         subtotal = Decimal(0)
-        for item in self.cart_items:
-            subtotal += item.price * item.quantity
-        self.subtotal = subtotal
+        if not self.cart_items:
+            msg = 'Cart items is empty'
+            raise ValueError(msg)
+        try:
+            for item in self.cart_items:
+                subtotal += item.price * item.quantity
+                if discount > 0:
+                    item.discount_price = item.price * discount
+                    self.discount += item.discount_price * item.quantity
+            self.subtotal = subtotal
+        except TypeError as err:
+            raise CartNotFoundPriceError from err
 
 
 class CartUser(CartBase):

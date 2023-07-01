@@ -41,6 +41,14 @@ class Cupons(Base):
     active = Column(Boolean)
 
 
+class Coupons(Base):
+    id = Column(Integer, nullable=False, primary_key=True)
+    code = Column(String)
+    discount = Column(Numeric(10, 2))
+    qty = Column(Integer)
+    active = Column(Boolean)
+
+
 class Order(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     customer_id = Column(Integer, ForeignKey('user.id'))
