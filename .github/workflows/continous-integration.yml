@@ -49,6 +49,13 @@ jobs:
           env:
             DATABASE_URL: "postgresql://postgres_user:pass123@localhost/ecommerce-test"
             REDIS_URL: "redis://localhost:6379"
+            GATEWAY_API: "API_KEY"
+            GATEWAY_CRYP: "CRYP_KEY"
+            PAYMENT_GATEWAY_URL: "URL_GATEWAY"
+            SENDGRID_API_KEY: "API_KEY"
+            EMAIL_FROM: "EMAIL"
+            API_MAIL_URL: "https://testapi.com/"
+            ACCESS_TOKEN_EXPIRE_MINUTES: 15
           run: poetry run pip install setuptools && poetry run make test
 
         - name: Build coverage file
