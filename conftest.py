@@ -27,9 +27,9 @@ from dynaconf import settings
 from ext.base import Base
 from ext.database import get_engine
 
-from .endpoints.deps import get_db
-from .ext.database import get_session
-from .main import app
+from endpoints.deps import get_db
+from ext.database import get_session
+from main import app
 
 
 @pytest.fixture(scope='session', autouse=True)
