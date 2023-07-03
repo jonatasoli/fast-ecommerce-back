@@ -49,7 +49,7 @@ jobs:
           env:
             DATABASE_URL: "postgresql://postgres_user:pass123@localhost/ecommerce-test"
             REDIS_URL: "redis://localhost:6379"
-          run: pip install setuptools && poetry run make test
+          run: poetry run pip install setuptools && poetry run make test
 
         - name: Build coverage file
           run: |
