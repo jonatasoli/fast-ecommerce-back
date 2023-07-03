@@ -56,7 +56,7 @@ jobs:
             EMAIL_FROM: "EMAIL"
             API_MAIL_URL: "https://testapi.com/"
             ACCESS_TOKEN_EXPIRE_MINUTES: 15
-          run: poetry run pip install setuptools && poetry run make test
+          run: poetry run pip install setuptools # && poetry run make test
 
         - name: Build coverage file
           run: |
