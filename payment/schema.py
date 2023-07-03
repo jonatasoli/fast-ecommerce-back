@@ -32,25 +32,25 @@ class SlipPayment(BaseModel):
 
 
 class PaymentResponse(BaseModel):
-    token: Optional[str]
+    token: str | None
     order_id: int
     name: str
-    payment_status: Optional[str]
-    boleto_url: Optional[str]
-    boleto_barcode: Optional[str]
-    errors: Optional[list]
+    payment_status: str | None
+    boleto_url: str | None
+    boleto_barcode: str | None
+    errors: list | None
 
 
 class ResponseGateway(BaseModel):
     user: str
-    token: Optional[str]
-    status: Optional[str]
-    authorization_code: Optional[str]
-    gateway_id: Optional[int]
-    payment_method: Optional[str]
-    boleto_url: Optional[str]
-    boleto_barcode: Optional[str]
-    errors: Optional[list]
+    token: str | None
+    status: str | None
+    authorization_code: str | None
+    gateway_id: int | None
+    payment_method: str | None
+    boleto_url: str | None
+    boleto_barcode: str | None
+    errors: list | None
 
 
 class ConfigCreditCardInDB(BaseModel):
@@ -76,19 +76,20 @@ class ProductSchema(BaseModel):
     name: str
     uri: str
     price: int
-    direct_sales: Optional[bool] = None
-    upsell: Optional[list] = None
+    direct_sales: bool | None = None
+    upsell: list | None = None
     description: str
     image_path: str
-    installments_config: Optional[int]
-    installments_list: Optional[list]
+    installments_config: int | None
+    installments_list: list | None
     category_id: int
-    discount: Optional[int]
-    quantity: Optional[int]
-    heigth: Optional[int]
-    width: Optional[int]
-    weigth: Optional[int]
-    length: Optional[int]
+    discount: int | None
+    quantity: int | None
+    height: int | None
+    width: int | None
+    weight: int | None
+    length: int | None
+    diameter: int | None
 
     class Config:
         orm_mode = True
@@ -103,21 +104,21 @@ class ProductInDB(BaseModel):
     name: str
     uri: str
     price: int
-    direct_sales: Optional[bool] = None
-    upsell: Optional[list] = None
+    direct_sales: bool | None = None
+    upsell: list | None = None
     description: str
     image_path: str
-    installments_config: Optional[int]
-    installments_list: Optional[list]
+    installments_config: int | None
+    installments_list: list | None
     category_id: int
-    discount: Optional[int]
-    quantity: Optional[int]
+    discount: int | None
+    quantity: int | None
     showcase: bool
     show_discount: bool
-    heigth: Optional[int]
-    width: Optional[int]
-    weigth: Optional[int]
-    length: Optional[int]
+    heigth: int | None
+    width: int | None
+    weigth: int | None
+    length: int | None
 
     class Config:
         orm_mode = True
@@ -149,8 +150,8 @@ class OrderFullResponse(BaseModel):
     id: int
     customer_id: int
     order_date: datetime
-    tracking_number: Optional[int]
-    payment_id: Optional[int]
+    tracking_number: int | None
+    payment_id: int | None
     order_status: str
     last_updated: Optional[datetime]
 
@@ -180,35 +181,35 @@ class CheckoutSchema(BaseModel):
     country: str
     zip_code: str
     shipping_is_payment: bool
-    ship_name: Optional[str]
-    ship_address: Optional[str]
-    ship_number: Optional[str]
-    ship_address_complement: Optional[str]
-    ship_neighborhood: Optional[str]
-    ship_city: Optional[str]
-    ship_state: Optional[str]
-    ship_country: Optional[str]
-    ship_zip: Optional[str]
+    ship_name: str | None
+    ship_address: str | None
+    ship_number: str | None
+    ship_address_complement: str | None
+    ship_neighborhood: str | None
+    ship_city: str | None
+    ship_state: str | None
+    ship_country: str | None
+    ship_zip: str | None
     payment_method: str
     shopping_cart: list
-    credit_card_name: Optional[str]
-    credit_card_number: Optional[str]
-    credit_card_cvv: Optional[str]
-    credit_card_validate: Optional[str]
-    installments: Optional[int]
+    credit_card_name: str | None
+    credit_card_number: str | None
+    credit_card_cvv: str | None
+    credit_card_validate: str | None
+    installments: int | None
 
 
 class CheckoutReceive(BaseModel):
     transaction: dict
-    affiliate: Optional[str]
-    cupom: Optional[str]
+    affiliate: str | None
+    cupom: str | None
 
 
 class CheckoutResponseSchema(BaseModel):
     token: str
     order_id: int
     name: str
-    slip_payment: Optional[str]
+    slip_payment: str | None
 
 
 class CategorySchema(BaseModel):

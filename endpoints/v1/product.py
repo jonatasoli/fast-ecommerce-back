@@ -3,7 +3,9 @@ from loguru import logger
 from sqlalchemy.orm import Session
 
 from domains import domain_order
+from endpoints import deps
 from endpoints.deps import get_db
+from payment.schema import ProductSchema
 from schemas.order_schema import (
     InstallmentSchema,
     ProductFullResponse,
@@ -17,6 +19,14 @@ catalog = APIRouter(
     prefix='/catalog',
     tags=['catalog'],
 )
+
+
+@product.post('/create-product', status_code=201)
+async def create_product(
+    *, db: Session = Depends(deps.get_db), product_data: ProductSchema
+):
+    product = domain_order.create_product(db=db, product_data=product_data)
+    return ProductSchema.from_orm(product)
 
 
 @product.post('/upload-image/{product_id}', status_code=200)

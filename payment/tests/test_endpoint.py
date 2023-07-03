@@ -170,7 +170,7 @@ def test_create_product(t_client):
         ],
     }
 
-    r = t_client.post('/payment/create-product', json=product)
+    r = t_client.post('/product/create-product', json=product)
     response = r.json()
     assert r.status_code == 201
     assert response.get('name') == 'Test'

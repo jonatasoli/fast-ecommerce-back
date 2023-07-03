@@ -26,10 +26,11 @@ class Product(Base):
     quantity = Column(Integer, server_default='9999')
     showcase = Column(Boolean, default=True, server_default='0')
     show_discount = Column(Boolean, default=False, server_default='0')
-    heigth = Column(Numeric(5, 3), nullable=True)
+    height = Column(Numeric(5, 3), nullable=True)
     width = Column(Numeric(5, 3), nullable=True)
-    weigth = Column(Numeric(5, 3), nullable=True)
+    weight = Column(Numeric(5, 3), nullable=True)
     length = Column(Numeric(5, 3), nullable=True)
+    diameter = Column(Numeric(5, 3), nullable=True)
 
 
 class Cupons(Base):
