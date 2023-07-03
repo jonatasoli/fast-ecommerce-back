@@ -58,9 +58,9 @@ jobs:
             ACCESS_TOKEN_EXPIRE_MINUTES: 15
           run: poetry run pip install setuptools # && poetry run make test
 
-        - name: Build coverage file
-          run: |
-            poetry run make report
+        # - name: Build coverage file
+        #   run: |
+        #     poetry run make report
 
-        - name: Comment coverage
-          uses: coroo/pytest-coverage-commentator@v1.0.2
+        # - name: Comment coverage
+        #   uses: coroo/pytest-coverage-commentator@v1.0.2
