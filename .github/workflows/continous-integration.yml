@@ -2,23 +2,13 @@ name: Continuous Integration
 on: [push]
 jobs:
   lint_and_test:
-    services:
-      postgres:
-        image: postgres:11
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     runs-on: ubuntu-latest
     steps:
 
         - name: Set up python
           uses: actions/setup-python@v2
           with:
-              python-version: 3.10
+              python-version: 3.11.0
 
         - name: Check out repository
           uses: actions/checkout@v2
