@@ -23,6 +23,13 @@ class Product(Base):
     installments_list = Column(ARRAY(JSON), nullable=True)
     discount = Column(Integer, nullable=True)
     category_id = Column(Integer, default=1)
+    category = relationship(
+        'Category',
+        foreign_keys=[category_id],
+        backref='Product',
+        cascade='all,delete',
+        uselist=False,
+    )
     showcase = Column(Boolean, default=True)
     show_discount = Column(Boolean, default=False)
     height = Column(Numeric(5, 3), nullable=True)
