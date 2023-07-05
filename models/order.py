@@ -22,7 +22,7 @@ class Product(Base):
     installments_config = Column(Integer, nullable=True)
     installments_list = Column(ARRAY(JSON), nullable=True)
     discount = Column(Integer, nullable=True)
-    category_id = Column(Integer, default=1)
+    category_id = Column(Integer, ForeignKey('category.id'))
     category = relationship(
         'Category',
         foreign_keys=[category_id],

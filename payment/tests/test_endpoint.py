@@ -1,13 +1,14 @@
 import pytest
 from fastapi.testclient import TestClient
 from loguru import logger
+from models.order import Category
 
 from payment.schema import ResponseGateway
 from domains.domain_order import create_order, create_product
 from endpoints.deps import get_db
 from main import app
 from schemas.order_schema import ProductSchema
-
+from tests.fake_functions import fake
 name = 'Jonatas L Oliveira'
 city = 'São Paulo'
 
@@ -148,7 +149,15 @@ def test_create_config(t_client):
 
 
 @pytest.mark.second
-def test_create_product(t_client):
+def test_create_product(t_client, db_models):
+    db_category = Category(
+        id = 1,
+        name = fake.name(),
+        path = "/tests",
+    )
+    with db_models as db:
+        db.add(db_category)
+        db.commit()
     product = {
         'description': 'Test Product',
         'direct_sales': None,
@@ -158,7 +167,6 @@ def test_create_product(t_client):
         'upsell': None,
         'uri': '/test',
         'image_path': 'https://i.pinimg.com/originals/e4/34/2a/e4342a4e0e968344b75cf50cf1936c09.jpg',
-        'quantity': 100,
         'discount': 100,
         'category_id': 1,
         'installments_list': [
