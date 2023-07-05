@@ -84,7 +84,6 @@ class ProductSchema(BaseModel):
     installments_list: list | None
     category_id: int
     discount: int | None
-    quantity: int | None
     height: int | None
     width: int | None
     weight: int | None
