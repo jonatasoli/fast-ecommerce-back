@@ -1,4 +1,3 @@
-import pytest
 from loguru import logger
 
 from constants import DocumentType, Roles

@@ -12,12 +12,8 @@ class User(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String(512))
 
-    # picture_id = Column(String(512), ForeignKey("uploaded_image.id"))
-    # picture = relationship(
     #   "UploadedImage",
-    #   backref=backref(
     #       "user",
-    #       uselist=False
     #   ), foreign_keys=[picture_id],
     # uselist=False)
 
@@ -46,10 +42,14 @@ class User(Base):
     franchise_id = Column(Integer, default=1)
 
     update_email_on_next_login = Column(
-        Boolean, default=False, server_default='0'
+        Boolean,
+        default=False,
+        server_default='0',
     )
     update_password_on_next_login = Column(
-        Boolean, default=False, server_default='0'
+        Boolean,
+        default=False,
+        server_default='0',
     )
 
     def to_app_json(self, expand=False):
@@ -81,7 +81,7 @@ class User(Base):
         role_id=None,
         update_email_on_next_login=False,
         update_password_on_next_login=False,
-    ):
+    ) -> None:
         super().__init__()
         self.name = name
         self.document_type = document_type

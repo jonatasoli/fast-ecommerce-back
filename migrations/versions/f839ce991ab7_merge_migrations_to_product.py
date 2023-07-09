@@ -1,11 +1,9 @@
-"""merge migrations to product
+"""merge migrations to product.
 
 Revision ID: f839ce991ab7
 Revises: 558effa87e2e, 6f91dc2c2189
 Create Date: 2020-11-26 11:44:12.928088
 """
-import sqlalchemy as sa
-from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'f839ce991ab7'

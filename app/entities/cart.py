@@ -30,7 +30,7 @@ class CartBase(BaseModel):
 
     uuid: UUID
     cart_items: list[ProductCart]
-    coupon: CouponBase | None
+    coupon: CouponBase | None = None
     discount: Decimal = Decimal(0)
     subtotal: Decimal
 
@@ -70,7 +70,7 @@ class CartBase(BaseModel):
                 return self
 
         self.cart_items.append(
-            {'product_id': product_id, 'quantity': quantity},
+            ProductCart(product_id=product_id, quantity=quantity),
         )
         return self
 
@@ -121,7 +121,7 @@ class CartShipping(CartUser):
     """Cart third step representation with shipping information."""
 
     shipping_is_payment: bool
-    shipping_address: ShippingAddress | None
+    shipping_address: ShippingAddress | None = None
     user_address: UserAddress
 
 
@@ -130,3 +130,13 @@ class CartPayment(CartShipping):
 
     payment_method: enum.Enum
     credit_card_information: CreditCardInformation
+
+
+def generate_new_cart(product: ProductCart, quantity: int) -> CartBase:
+    """Generate new cart."""
+    product.quantity = quantity
+    return CartBase(
+        uuid=generate_cart_uuid(),
+        cart_items=[product],
+        subtotal=product.price,
+    )

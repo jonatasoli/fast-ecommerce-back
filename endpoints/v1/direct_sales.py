@@ -1,11 +1,9 @@
-from fastapi import APIRouter, Depends, Header
-from loguru import logger
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from domains import domain_order, domain_payment
 from endpoints import deps
-from schemas.order_schema import CheckoutReceive, CheckoutSchema, ProductSchema
-from schemas.payment_schema import CreditCardPayment, SlipPayment
+from schemas.order_schema import CheckoutReceive, ProductSchema
 
 direct_sales = APIRouter()
 
@@ -35,21 +33,21 @@ def checkout(*, db: Session = Depends(deps.get_db), data: CheckoutReceive):
         from loguru import logger
 
         logger.info(checkout_data)
-        checkout = domain_payment.process_checkout(
+        return domain_payment.process_checkout(
             db=db,
             checkout_data=checkout_data,
             affiliate=affiliate,
             cupom=cupom,
         )
-        # import ipdb; ipdb.set_trace()
-        return checkout
     except Exception as e:
         raise e
 
 
 @direct_sales.post('/create-product', status_code=201)
 async def create_product(
-    *, db: Session = Depends(deps.get_db), product_data: ProductSchema
+    *,
+    db: Session = Depends(deps.get_db),
+    product_data: ProductSchema,
 ):
     product = domain_order.create_product(db=db, product_data=product_data)
     return ProductSchema.from_orm(product)

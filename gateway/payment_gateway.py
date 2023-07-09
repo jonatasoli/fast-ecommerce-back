@@ -1,5 +1,3 @@
-import json
-
 import httpx
 from dynaconf import settings
 

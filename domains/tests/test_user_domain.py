@@ -1,5 +1,3 @@
-from schemas.user_schema import UserSchema
-
 fake_user_db = {
     'name': 'Jonh Snow',
     'mail': 'bastard@email.com',

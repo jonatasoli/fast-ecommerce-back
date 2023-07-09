@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
-from sqlalchemy import create_engine, engine_from_config, pool
+from sqlalchemy import create_engine
 
 folder = Path(__file__).resolve().parents[1]
 print(folder)
@@ -11,7 +11,6 @@ sys.path.insert(0, str(folder))
 
 from dynaconf import settings
 
-from ext import base
 from ext.base import Base
 
 # this is the Alembic Config object, which provides
@@ -24,13 +23,10 @@ fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
 

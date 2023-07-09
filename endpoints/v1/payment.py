@@ -1,20 +1,19 @@
 from endpoints.deps import get_db
 from payment.schema import InstallmentSchema
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends
 from loguru import logger
 from sqlalchemy.orm import Session
 
 from domains import domain_order
 from endpoints import deps
-from payment import gateway, repositories, service
+from payment import gateway, repositories
 from payment.schema import (
     ConfigCreditCardInDB,
-    ConfigCreditCardResponse,
     CreditCardPayment,
     SlipPayment,
 )
 from payment.service import Checkout
-from schemas.order_schema import CheckoutReceive, CheckoutSchema, ProductSchema
+from schemas.order_schema import CheckoutReceive
 
 payment = APIRouter(
     prefix='/payment',
@@ -42,37 +41,36 @@ def checkout(*, db: Session = Depends(deps.get_db), data: CheckoutReceive):
     cupom = data.dict().get('cupom')
     logger.info(checkout_data)
     logger.info(affiliate)
-    checkout = Checkout(
-        db=db, checkout_data=checkout_data, affiliate=affiliate, cupom=cupom
+    return Checkout(
+        db=db,
+        checkout_data=checkout_data,
+        affiliate=affiliate,
+        cupom=cupom,
     ).process_checkout()
-    return checkout
-
-
 
 
 @payment.post('/create-config', status_code=201)
 def create_config(*, config_data: ConfigCreditCardInDB):
-    _config = repositories.CreditCardConfig(
-        config_data=config_data
+    return repositories.CreditCardConfig(
+        config_data=config_data,
     ).create_installment_config()
-    return _config
 
 
 @payment.post('/gateway-payment-credit-card', status_code=201)
 async def payment_credit_card(*, payment_data: CreditCardPayment):
-    payment = gateway.credit_card_payment(payment=payment_data)
-    return payment
+    return gateway.credit_card_payment(payment=payment_data)
 
 
 @payment.post('/gateway-payment-bank-slip', status_code=201)
 def payment_bank_slip(*, payment_data: SlipPayment):
-    payment = gateway.slip_payment(payment=payment_data)
-    return payment
+    return gateway.slip_payment(payment=payment_data)
 
 
 @cart.post('/cart/installments', status_code=200)
 async def get_installments(
-    *, db: Session = Depends(get_db), cart: InstallmentSchema
+    *,
+    db: Session = Depends(get_db),
+    cart: InstallmentSchema,
 ):
     try:
         return domain_order.get_installments(db, cart=cart)

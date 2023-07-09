@@ -1,9 +1,6 @@
-from fastapi import FastAPI, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import settings
-
-# from todo.api.endpoints import todo_router
 
 catalog = FastAPI()
 
@@ -22,5 +19,3 @@ catalog.add_middleware(
 
 # catalog.include_router(
 #     catalog_router,
-#     responses={status.HTTP_404_NOT_FOUND: {'description': 'Not found'}},
-# )

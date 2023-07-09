@@ -1,4 +1,4 @@
-from pydantic import BaseModel, SecretStr
+from pydantic import ConfigDict, BaseModel
 
 
 class CreditCardPayment(BaseModel):
@@ -32,9 +32,7 @@ class ConfigCreditCard(BaseModel):
     fee: str
     min_installment: int
     max_installment: int
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ConfigCreditCardResponse(BaseModel):
@@ -42,6 +40,4 @@ class ConfigCreditCardResponse(BaseModel):
     fee: str
     min_installment_with_fee: int
     mx_installments: int
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

@@ -1,5 +1,4 @@
 from dynaconf import settings
-from loguru import logger
 from PIL import Image
 
 from .spaces import send_image_spaces

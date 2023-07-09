@@ -45,8 +45,11 @@ def test_payment_process_credit_card(db: Session):
     }
 
     _payment = domain_payment.process_checkout(
-        db=db, checkout_data=checkout_data, affiliate=None, cupom=None
+        db=db,
+        checkout_data=checkout_data,
+        affiliate=None,
+        cupom=None,
     )
     logger.info(_payment)
 
-    assert _payment == {type('payment_id'): str, 'status': 'paid'}
+    assert _payment == {str: str, 'status': 'paid'}

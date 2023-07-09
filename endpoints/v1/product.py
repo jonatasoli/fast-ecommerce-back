@@ -7,7 +7,6 @@ from endpoints import deps
 from endpoints.deps import get_db
 from payment.schema import ProductSchema
 from schemas.order_schema import (
-    InstallmentSchema,
     ProductFullResponse,
 )
 
@@ -23,7 +22,9 @@ catalog = APIRouter(
 
 @product.post('/create-product', status_code=201)
 async def create_product(
-    *, db: Session = Depends(deps.get_db), product_data: ProductSchema
+    *,
+    db: Session = Depends(deps.get_db),
+    product_data: ProductSchema,
 ):
     product = domain_order.create_product(db=db, product_data=product_data)
     return ProductSchema.from_orm(product)
@@ -98,7 +99,9 @@ async def get_products_all(db: Session = Depends(get_db)):
 
 @product.put('/update/{id}', status_code=200)
 async def put_product(
-    id: int, value: ProductFullResponse, db: Session = Depends(get_db)
+    id: int,
+    value: ProductFullResponse,
+    db: Session = Depends(get_db),
 ):
     try:
         return domain_order.put_product(db, id, value)

@@ -1,4 +1,4 @@
-"""add new columns in product
+"""add new columns in product.
 
 Revision ID: 6f91dc2c2189
 Revises: da771fa190c4
@@ -19,7 +19,10 @@ def upgrade():
     op.add_column(
         'product',
         sa.Column(
-            'show_discount', sa.Boolean(), server_default='0', nullable=True
+            'show_discount',
+            sa.Boolean(),
+            server_default='0',
+            nullable=True,
         ),
     )
     op.add_column(

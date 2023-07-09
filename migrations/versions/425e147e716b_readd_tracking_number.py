@@ -1,11 +1,9 @@
-"""readd tracking number
+"""readd tracking number.
 
 Revision ID: 425e147e716b
 Revises: e39f5d088828
 Create Date: 2021-03-09 09:46:03.647929
 """
-import sqlalchemy as sa
-from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '425e147e716b'

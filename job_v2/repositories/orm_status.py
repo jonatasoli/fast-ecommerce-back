@@ -4,16 +4,15 @@ from models.order import Order
 
 class GetOrders:
     def get_orders(db=get_session()):
-        orders = (
+        return (
             db.query(Order)
             .filter(~Order.order_status.in_(['paid', 'refused']))
             .all()
         )
-        return orders
 
 
 class GetOrder:
-    def __init__(self, payment_id):
+    def __init__(self, payment_id) -> None:
         self.payment_id = payment_id
         self.db = db
 

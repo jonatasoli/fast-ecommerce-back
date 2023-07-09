@@ -1,11 +1,6 @@
 import pytest
-from fastapi.testclient import TestClient
-from loguru import logger
 
-from endpoints.deps import get_db
-from main import app
 from schemas.order_schema import ProductSchema
-from domains.domain_order import create_order, create_product
 
 transacton_with_shipping = {
     'document': '22941297090',
@@ -43,9 +38,9 @@ transacton_with_shipping = {
                     'product_id': 1,
                     'product_name': 'course01',
                     'tangible': True,
-                }
+                },
             ],
-        }
+        },
     ],
     'credit_card_name': 'Jonatas L Oliveira',
     'credit_card_number': '5286455462496746',
@@ -90,9 +85,9 @@ transacton_with_shipping_and_document_error = {
                     'product_id': 1,
                     'product_name': 'course01',
                     'tangible': True,
-                }
+                },
             ],
-        }
+        },
     ],
     'credit_card_name': 'Jonatas L Oliveira',
     'credit_card_number': '5401641103018656',
@@ -102,7 +97,7 @@ transacton_with_shipping_and_document_error = {
 }
 
 
-@pytest.mark.skip
+@pytest.mark.skip()
 def test_create_product_(db_models):  # TODO Fix product ENDPOINT
     db_product = ProductSchema(
         description='Test Product',
@@ -125,7 +120,7 @@ def test_create_product_(db_models):  # TODO Fix product ENDPOINT
     assert db_product.id == 1
 
 
-@pytest.mark.skip
+@pytest.mark.skip()
 def test_create_config(t_client):
     _config = {'fee': '0.0599', 'min_installment': 3, 'max_installment': 12}
 
@@ -135,7 +130,7 @@ def test_create_config(t_client):
     assert response.get('fee') == '0.0599'
 
 
-@pytest.mark.skip
+@pytest.mark.skip()
 def test_create_product(t_client):
     product = {
         'description': 'Test Product',
@@ -164,7 +159,7 @@ def test_create_product(t_client):
     assert response.get('name') == 'Test'
 
 
-@pytest.mark.skip
+@pytest.mark.skip()
 def test_payment(t_client):
     data = {
         'transaction': transacton_with_shipping,
@@ -178,7 +173,7 @@ def test_payment(t_client):
     assert response.get('payment_status') == 'PAGAMENTO REALIZADO'
 
 
-@pytest.mark.skip
+@pytest.mark.skip()
 def test_payment_with_document_error(t_client):
     data = {
         'transaction': transacton_with_shipping_and_document_error,

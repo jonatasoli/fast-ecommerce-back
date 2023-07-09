@@ -111,8 +111,8 @@ def test_add_product_to_cart() -> None:
     )
 
     # Assert
-    assert output.cart_items[1]['product_id'] == product_id
-    assert output.cart_items[1]['quantity'] == 1
+    assert output.cart_items[1].product_id == product_id
+    assert output.cart_items[1].quantity == 1
 
 
 def test_add_duplicate_product_should_increase_quantity() -> None:

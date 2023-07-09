@@ -1,4 +1,4 @@
-"""add checked order
+"""add checked order.
 
 Revision ID: 4bc709905973
 Revises: 59e463cfc589

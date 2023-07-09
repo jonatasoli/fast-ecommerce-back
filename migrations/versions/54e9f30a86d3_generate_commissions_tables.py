@@ -1,11 +1,9 @@
-"""generate commissions tables
+"""generate commissions tables.
 
 Revision ID: 54e9f30a86d3
 Revises: edc233fe9449
 Create Date: 2020-11-19 10:53:17.364144
 """
-import sqlalchemy as sa
-from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '54e9f30a86d3'

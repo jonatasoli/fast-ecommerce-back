@@ -1,4 +1,4 @@
-"""update tables product and adress
+"""update tables product and adress.
 
 Revision ID: 4ed0b67518ec
 Revises: e4dd5fb9b8ac

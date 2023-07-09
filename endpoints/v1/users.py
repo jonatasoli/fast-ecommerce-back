@@ -1,10 +1,8 @@
 from datetime import timedelta
-from typing import List, Optional
 
 from dynaconf import settings
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from loguru import logger
 from sqlalchemy.orm import Session
 
 from domains import domain_user
@@ -38,9 +36,7 @@ async def signup(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Não foi possível criar o usuário',
         )
-    response = {'name': 'usuario', 'message': 'adicionado com sucesso'}
-
-    return response
+    return {'name': 'usuario', 'message': 'adicionado com sucesso'}
 
 
 @user.get('/dashboard', status_code=200)
@@ -52,9 +48,7 @@ def dashboard(
 ):
     user = domain_user.get_current_user(token)
     role = domain_user.get_role_user(db, user.role_id)
-    response = {'role': role}
-
-    return response
+    return {'role': role}
 
 
 @user.post('/token', response_model=Token)
@@ -63,7 +57,9 @@ async def login_for_access_token(
     db: Session = Depends(get_db),
 ):
     user = domain_user.authenticate_user(
-        db, form_data.username, form_data.password
+        db,
+        form_data.username,
+        form_data.password,
     )
     if not user:
         raise HTTPException(
@@ -72,19 +68,19 @@ async def login_for_access_token(
             headers={'WWW-Authenticate': 'Bearer'},
         )
     access_token_expires = timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
     access_token = domain_user.create_access_token(
-        data={'sub': user.document}, expires_delta=access_token_expires
+        data={'sub': user.document},
+        expires_delta=access_token_expires,
     )
     role = domain_user.get_role_user(db, user.role_id)
 
-    response = {
+    return {
         'access_token': access_token,
         'token_type': 'bearer',
         'role': role,
     }
-    return response
 
 
 @user.get('/{document}', status_code=200)
@@ -99,6 +95,7 @@ async def request_reset_password(document: str, db: Session = Depends(get_db)):
 
 @user.put('/reset-password', status_code=200)
 async def reset_password(
-    response_model: UserResponseResetPassword, db: Session = Depends(get_db)
+    response_model: UserResponseResetPassword,
+    db: Session = Depends(get_db),
 ):
     return domain_user.reset_password(db, data=response_model)

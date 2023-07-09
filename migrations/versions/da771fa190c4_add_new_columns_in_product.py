@@ -1,4 +1,4 @@
-"""add new columns in product
+"""add new columns in product.
 
 Revision ID: da771fa190c4
 Revises: 54e9f30a86d3
@@ -19,16 +19,23 @@ def upgrade():
     op.add_column(
         'product',
         sa.Column(
-            'category_id', sa.Integer(), server_default='1', nullable=True
+            'category_id',
+            sa.Integer(),
+            server_default='1',
+            nullable=True,
         ),
     )
     op.add_column(
-        'product', sa.Column('discount', sa.Integer(), nullable=True)
+        'product',
+        sa.Column('discount', sa.Integer(), nullable=True),
     )
     op.add_column(
         'product',
         sa.Column(
-            'quantity', sa.Integer(), server_default='9999', nullable=True
+            'quantity',
+            sa.Integer(),
+            server_default='9999',
+            nullable=True,
         ),
     )
     # ### end Alembic commands ###

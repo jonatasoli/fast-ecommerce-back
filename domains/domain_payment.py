@@ -1,4 +1,3 @@
-import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
@@ -6,10 +5,8 @@ import httpx
 from dynaconf import settings
 from fastapi import HTTPException
 from loguru import logger
-from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from constants import DocumentType, Roles
 from domains.domain_user import (
     check_existent_user,
     create_user,
@@ -20,8 +17,6 @@ from models.order import Order, OrderItems, Product
 from models.transaction import CreditCardFeeConfig, Payment, Transaction
 from schemas.order_schema import (
     CheckoutSchema,
-    OrderItemsSchema,
-    OrderSchema,
     ProductSchema,
 )
 from schemas.payment_schema import CreditCardPayment, SlipPayment
@@ -45,7 +40,9 @@ def credit_card_payment(db: Session, payment: CreditCardPayment):
         headers = {'Content-Type': 'application/json'}
         logger.debug(f'{payment.json()}')
         r = httpx.post(
-            settings.PAYMENT_GATEWAY_URL, data=payment.json(), headers=headers
+            settings.PAYMENT_GATEWAY_URL,
+            data=payment.json(),
+            headers=headers,
         )
         r = r.json()
         logger.error(f"response error {r.get('errors')}")
@@ -66,7 +63,9 @@ def slip_payment(db: Session, payment: SlipPayment):
     try:
         headers = {'Content-Type': 'application/json'}
         r = httpx.post(
-            settings.PAYMENT_GATEWAY_URL, data=payment.json(), headers=headers
+            settings.PAYMENT_GATEWAY_URL,
+            data=payment.json(),
+            headers=headers,
         )
         r = r.json()
         logger.info(f'RESPONSE ------------{r}')
@@ -86,18 +85,25 @@ def slip_payment(db: Session, payment: SlipPayment):
 
 
 def process_checkout(
-    db: Session, checkout_data: CheckoutSchema, affiliate=None, cupom=None
+    db: Session,
+    checkout_data: CheckoutSchema,
+    affiliate=None,
+    cupom=None,
 ):
     try:
         _user = check_user(db=db, checkout_data=checkout_data)
         _payment_address = register_payment_address(
-            db=db, checkout_data=checkout_data, user=_user
+            db=db,
+            checkout_data=checkout_data,
+            user=_user,
         )
         _shipping_address = register_shipping_address(
-            db=db, checkout_data=checkout_data, user=_user
+            db=db,
+            checkout_data=checkout_data,
+            user=_user,
         )
         logger.info(
-            f'SHIPPING--------------{_shipping_address}---------------'
+            f'SHIPPING--------------{_shipping_address}---------------',
         )
         _order = process_order(
             db=db,
@@ -165,7 +171,10 @@ def check_user(db: Session, checkout_data: CheckoutSchema):
         logger.info(f'DOCUMENT -----------------{_document}')
 
         _user = check_existent_user(
-            db=db, email=_user_email, document=_document, password=_password
+            db=db,
+            email=_user_email,
+            document=_document,
+            password=_password,
         )
         logger.info('----------------USER----------------')
         logger.info(_user)
@@ -244,10 +253,7 @@ def process_payment(
         _total_amount = Decimal(_shopping_cart[0].get('total_amount'))
         _payment_method = checkout_data.get('payment_method')
         _installments = checkout_data.get('installments')
-        if _installments:
-            _installments = int(_installments)
-        else:
-            _installments = 1
+        _installments = int(_installments) if _installments else 1
         _affiliate = affiliate
         _cupom = cupom
         # TODO refactor config instalments to many products
@@ -264,7 +270,8 @@ def process_payment(
             .first()
         )
         if _installments > 12:
-            raise Exception('O número máximo de parcelas é 12')
+            msg = 'O número máximo de parcelas é 12'
+            raise Exception(msg)
         elif _installments >= _config_installments.min_installment_with_fee:
             _total_amount = _total_amount * (
                 (1 + _config_installments.fee) ** _installments
@@ -323,7 +330,7 @@ def process_payment(
                     'unit_price': cart.get('amount'),
                     'quantity': cart.get('qty'),
                     'tangible': str(cart.get('tangible')),
-                }
+                },
             )
             db.add(db_transaction)
         db.commit()
@@ -335,7 +342,8 @@ def process_payment(
             _qty_decrease = int(item.get('quantity'))
             _product_decrease.quantity -= _qty_decrease
             if _product_decrease.quantity < 0:
-                raise Exception('Produto esgotado')
+                msg = 'Produto esgotado'
+                raise Exception(msg)
             else:
                 db.add(_product_decrease)
 
@@ -366,7 +374,6 @@ def process_payment(
                 customer=_customer,
                 type='individual',
                 country='br',
-                # postback_url= "api.graciellegatto.com.br/payment-postback",
                 boleto_expiration_date=_slip_expire.strftime('%Y/%m/%d'),
                 email=_customer.get('email'),
                 name=_customer.get('name'),
@@ -388,7 +395,9 @@ def send_payment_mail(db: Session, user, payment):
 def postback_payment(db: Session, payment_data, order):
     try:
         return update_payment_status(
-            db=db, payment_data=payment_data, order=order
+            db=db,
+            payment_data=payment_data,
+            order=order,
         )
     except Exception as e:
         raise e
@@ -432,7 +441,6 @@ def update_payment_status(db: Session, payment_data, order):
         db.commit()
         db.refresh(db_transaction)
         db.refresh(db_payment)
-        # send_payment_mail(db=db, user=_user, payment=_payment)
 
     except Exception as e:
         raise e

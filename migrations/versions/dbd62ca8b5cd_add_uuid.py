@@ -1,4 +1,4 @@
-"""add uuid
+"""add uuid.
 
 Revision ID: dbd62ca8b5cd
 Revises: 227ee7edf01f

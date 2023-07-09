@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String
 
-from constants import Roles
 from ext.database import Base
 
 

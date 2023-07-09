@@ -1,4 +1,4 @@
-"""add cupon table
+"""add cupon table.
 
 Revision ID: dad47228ad42
 Revises: edb298743631
@@ -22,7 +22,9 @@ def upgrade():
         sa.Column('cupon_uuid', sa.String(), nullable=True),
         sa.Column('cupon_name', sa.String(), nullable=True),
         sa.Column(
-            'cupon_fee', sa.Numeric(precision=10, scale=2), nullable=True
+            'cupon_fee',
+            sa.Numeric(precision=10, scale=2),
+            nullable=True,
         ),
         sa.PrimaryKeyConstraint('id'),
     )

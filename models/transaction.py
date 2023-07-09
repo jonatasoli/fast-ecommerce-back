@@ -1,6 +1,3 @@
-from datetime import datetime
-
-from passlib.hash import pbkdf2_sha512
 from sqlalchemy import (
     Boolean,
     Column,
@@ -10,10 +7,9 @@ from sqlalchemy import (
     Numeric,
     String,
 )
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from constants import DocumentType
 from ext.database import Base
 
 
@@ -56,7 +52,10 @@ class Payment(Base):
     payment_gateway = Column(String)
     installments = Column(Integer, default=1)
     processed = Column(
-        Boolean, default=False, server_default='0', nullable=False
+        Boolean,
+        default=False,
+        server_default='0',
+        nullable=False,
     )
     processed_at = Column(DateTime, nullable=True)
 
@@ -67,5 +66,7 @@ class CreditCardFeeConfig(Base):
     mx_installments = Column(Integer)
     fee = Column(Numeric)
     active_date = Column(
-        DateTime, default=func.now(), server_default=func.now()
+        DateTime,
+        default=func.now(),
+        server_default=func.now(),
     )

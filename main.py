@@ -109,6 +109,4 @@ def create_app():
     )
     # app.include_router(
     #     payment,
-    #     responses={status.HTTP_404_NOT_FOUND: {'description': 'Not found'}},
-    # )
     return app

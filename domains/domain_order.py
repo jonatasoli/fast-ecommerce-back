@@ -1,21 +1,18 @@
 import json
 from collections import defaultdict
-from datetime import date
 
-from sqlalchemy import and_, select
+from sqlalchemy import select
 from loguru import logger
-from sqlalchemy import Date, between, cast, literal_column
+from sqlalchemy import Date, cast
 from sqlalchemy.orm import Session
 
 from ext import optimize_image
-from models.order import Category, ImageGallery, Order, OrderItems, Product
+from models.order import Category, ImageGallery, Order, Product
 from models.transaction import Payment, Transaction
 from models.users import Address, User
 from schemas.order_schema import (
     CategoryInDB,
-    CategorySchema,
     ImageGalleryResponse,
-    ListProducts,
     OrderCl,
     OrderFullResponse,
     OrderSchema,
@@ -89,7 +86,7 @@ def get_images_gallery(db: Session, uri):
         product_id_query = select(Product).where(Product.uri == uri)
         product_id = db.execute(product_id_query).scalars().first()
         images_query = select.query(ImageGallery).where(
-            ImageGallery.product_id == product_id.id
+            ImageGallery.product_id == product_id.id,
         )
         images = db.execute(images_query).scalars().all()
         images_list = []
@@ -104,7 +101,7 @@ def get_images_gallery(db: Session, uri):
 
 def get_showcase(db: Session):
     with db:
-        showcases_query = select(Product).where(Product.showcase == True)
+        showcases_query = select(Product).where(Product.showcase is True)
         showcases = db.execute(showcases_query).scalars().all()
         products = []
 
@@ -121,7 +118,7 @@ def get_installments(db: Session, cart):
         _cart = cart.dict()
         _product_id = _cart['cart'][0]['product_id']
         _product_config_query = select(Product).where(
-            Product.id == int(_product_id)
+            Product.id == int(_product_id),
         )
         _product = db.execute(_product_config_query).scalars().first()
         _total_amount = 0
@@ -139,7 +136,7 @@ def get_installments(db: Session, cart):
                     {
                         'name': f'{n} x R${round(_installment, 2)}',
                         'value': f'{n}',
-                    }
+                    },
                 )
                 logger.debug(f'Parcela sem juros {_installment}')
             else:
@@ -149,7 +146,7 @@ def get_installments(db: Session, cart):
                     {
                         'name': f'{n} x R${round(_installment, 2)}',
                         'value': f'{n}',
-                    }
+                    },
                 )
                 logger.debug(f'Parcela com juros {_installment}')
 
@@ -201,7 +198,8 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
             orders.where(
                 Order.order_status == status,
                 cast(Order.order_date, Date).between(
-                    new_date.get('date_start'), new_date.get('date_end')
+                    new_date.get('date_start'),
+                    new_date.get('date_end'),
                 ),
             )
             .distinct()
@@ -237,7 +235,7 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
         address = db.execute(address_query).scalars().first()
 
         affiliate = None
-        if order.affiliate != None:
+        if order.affiliate is not None:
             affiliates_query = select(User.name).where(
                 order.affiliate == User.uuid,
                 Transaction.payment_id == order.payment_id,
@@ -329,6 +327,7 @@ def get_order(db: Session, id):
                 }
                 orderObject['order'].append(order)
                 return orderObject
+        return None
 
 
 def get_order_users(db: Session, id):
@@ -358,14 +357,14 @@ def get_order_users(db: Session, id):
                 }
                 orderObject['orders'].append(order)
             return orderObject
+        return None
 
 
 def put_order(db: Session, order_data: OrderFullResponse, id):
-    order = None
     with db:
         order_query = select(Order).where(Order.id == id)
-        order = db.execute(order_query).scalars().first()
-        order = order_data.dict()
+        db.execute(order_query).scalars().first()
+        order_data.dict()
         db.commit()
         return {**order_data.dict()}
 
@@ -419,7 +418,8 @@ def get_products_category(db: Session, path):
         products = (
             db.query(Product)
             .filter(
-                Product.showcase == True, Product.category_id == category.id
+                Product.showcase is True,
+                Product.category_id == category.id,
             )
             .all()
         )

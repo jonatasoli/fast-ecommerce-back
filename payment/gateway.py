@@ -1,5 +1,3 @@
-import json
-
 import httpx
 from dynaconf import settings
 from loguru import logger
@@ -20,7 +18,7 @@ def credit_card_payment(payment: CreditCardPayment):
         logger.error(f'----- request {r.content} --------')
         r = r.json()
         logger.error(f"response error {r.get('errors')}")
-        response = ResponseGateway(
+        return ResponseGateway(
             user='usuario',
             token=r.get('acquirer_id'),
             status=r.get('status'),
@@ -29,7 +27,6 @@ def credit_card_payment(payment: CreditCardPayment):
             payment_method='credit-card',
             errors=r.get('errors'),
         ).dict()
-        return response
     except Exception as e:
         logger.error(f'Erro ao retornar gateway {e}')
         raise e
@@ -47,7 +44,7 @@ def slip_payment(payment: SlipPayment):
         )
         r = r.json()
         logger.info(f'RESPONSE ------------{r}')
-        response = ResponseGateway(
+        return ResponseGateway(
             user='usuario',
             token=r.get('acquirer_id'),
             status=r.get('status'),
@@ -58,7 +55,6 @@ def slip_payment(payment: SlipPayment):
             boleto_barcode=r.get('boletor_barcode'),
             errors=r.get('errors'),
         ).dict()
-        return response
     except Exception as e:
         logger.error('Erro ao retornar gateway {e}')
         raise e

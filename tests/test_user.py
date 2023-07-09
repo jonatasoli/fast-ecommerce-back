@@ -3,7 +3,7 @@ from domains.domain_user import get_current_user
 from models.role import Role
 
 
-def test_roles(t_client, db):
+def test_roles(db):
     role_1 = Role(status='active', role='ADMIN')
     role_2 = Role(status='active', role='USER')
     with db:

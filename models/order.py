@@ -1,12 +1,9 @@
-from passlib.hash import pbkdf2_sha512
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.types import JSON, Numeric
 
-from constants import DocumentType
 from ext.database import Base
-from models.users import User
 
 
 class Product(Base):

@@ -1,4 +1,4 @@
-"""create table image gallery
+"""create table image gallery.
 
 Revision ID: 59e463cfc589
 Revises: d9a7b005a2e9

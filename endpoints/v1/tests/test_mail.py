@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 
-from domains.domain_mail import send_mail
 from schemas.mail_schema import MailTrackingNumber
 
 mail = {
@@ -22,7 +21,7 @@ mail = {
 }
 
 
-@pytest.mark.skip
+@pytest.mark.skip()
 @mock.patch('domains.domain_mail.send_mail', return_value=mail)
 def test_send_mail(t_client):
     mail_data = MailTrackingNumber(

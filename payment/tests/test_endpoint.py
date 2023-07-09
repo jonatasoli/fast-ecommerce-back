@@ -1,14 +1,10 @@
 import pytest
-from fastapi.testclient import TestClient
-from loguru import logger
 from models.order import Category
 
 from payment.schema import ResponseGateway
-from domains.domain_order import create_order, create_product
-from endpoints.deps import get_db
-from main import app
 from schemas.order_schema import ProductSchema
 from tests.fake_functions import fake
+
 name = 'Jonatas L Oliveira'
 city = 'São Paulo'
 
@@ -57,7 +53,7 @@ transacton_with_shipping = {
                     'tangible': True,
                 },
             ],
-        }
+        },
     ],
     'credit_card_name': 'Jonatas L Oliveira',
     'credit_card_number': '5286455462496746',
@@ -102,9 +98,9 @@ transacton_with_shipping_and_document_error = {
                     'product_id': 1,
                     'product_name': 'course01',
                     'tangible': True,
-                }
+                },
             ],
-        }
+        },
     ],
     'credit_card_name': name,
     'credit_card_number': '5401641103018656',
@@ -114,7 +110,7 @@ transacton_with_shipping_and_document_error = {
 }
 
 
-@pytest.mark.skip
+@pytest.mark.skip()
 def test_create_product_(db_models):  # TODO Fix product ENDPOINT
     db_product = ProductSchema(
         description='Test Product',
@@ -138,7 +134,7 @@ def test_create_product_(db_models):  # TODO Fix product ENDPOINT
     assert db_product.id == 1
 
 
-@pytest.mark.first
+@pytest.mark.first()
 def test_create_config(t_client):
     _config = {'fee': '0.0599', 'min_installment': 3, 'max_installment': 12}
 
@@ -148,12 +144,12 @@ def test_create_config(t_client):
     assert response.get('fee') == '0.0599'
 
 
-@pytest.mark.second
+@pytest.mark.second()
 def test_create_product(t_client, db_models):
     db_category = Category(
-        id = 1,
-        name = fake.name(),
-        path = "/tests",
+        id=1,
+        name=fake.name(),
+        path='/tests',
     )
     with db_models as db:
         db.add(db_category)
@@ -202,7 +198,8 @@ def test_payment(t_client, mocker):
     ).dict()
 
     mocker.patch(
-        'app.payment.gateway.credit_card_payment', return_value=return_mock
+        'app.payment.gateway.credit_card_payment',
+        return_value=return_mock,
     )
     res = t_client.post('/checkout', json=data)
 
@@ -230,7 +227,8 @@ def test_payment_with_document_error(t_client, mocker):
     ).dict()
 
     mocker.patch(
-        'app.payment.gateway.credit_card_payment', return_value=return_mock
+        'app.payment.gateway.credit_card_payment',
+        return_value=return_mock,
     )
     r = t_client.post('/checkout', json=data)
     response = r.json()

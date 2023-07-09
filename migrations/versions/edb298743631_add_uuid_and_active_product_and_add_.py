@@ -1,4 +1,4 @@
-"""add uuid and active product and add franchisee table
+"""add uuid and active product and add franchisee table.
 
 Revision ID: edb298743631
 Revises: dbd62ca8b5cd
@@ -21,7 +21,8 @@ def upgrade():
         sa.Column('active', sa.Boolean(), server_default='0', nullable=True),
     )
     op.add_column(
-        'user', sa.Column('franchise_id', sa.Integer(), nullable=True)
+        'user',
+        sa.Column('franchise_id', sa.Integer(), nullable=True),
     )
     op.add_column('user', sa.Column('uuid', sa.String(), nullable=True))
     # ### end Alembic commands ###

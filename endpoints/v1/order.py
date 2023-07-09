@@ -1,8 +1,4 @@
-from datetime import date
-from typing import Optional
-from payment.schema import InstallmentSchema
-
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends
 from loguru import logger
 from sqlalchemy.orm import Session
 
@@ -43,9 +39,9 @@ async def get_order_users_id(*, db: Session = Depends(get_db), id):
 
 @order.get('/orders', status_code=200)
 async def get_orders_paid(
-    dates: Optional[str] = None,
-    status: Optional[str] = None,
-    user_id: Optional[int] = None,
+    dates: str | None = None,
+    status: str | None = None,
+    user_id: int | None = None,
     db: Session = Depends(get_db),
 ):
     try:
@@ -56,7 +52,10 @@ async def get_orders_paid(
 
 @order.put('/{id}', status_code=200)
 async def put_order(
-    *, db: Session = Depends(get_db), value: OrderFullResponse, id
+    *,
+    db: Session = Depends(get_db),
+    value: OrderFullResponse,
+    id: int,
 ):
     try:
         return domain_order.put_order(db, value, id)
@@ -78,7 +77,9 @@ async def put_trancking_number(
 
 @order.post('/check_order/{id}', status_code=200)
 async def put_trancking_number(
-    id: int, check: bool, db: Session = Depends(get_db)
+    id: int,
+    check: bool,
+    db: Session = Depends(get_db),
 ):
     try:
         return domain_order.checked_order(db, id, check)
@@ -88,7 +89,9 @@ async def put_trancking_number(
 
 @order.post('/create_order', status_code=200)
 async def create_order(
-    *, db: Session = Depends(get_db), order_data: OrderSchema
+    *,
+    db: Session = Depends(get_db),
+    order_data: OrderSchema,
 ):
     return domain_order.create_order(db=db, order_data=order_data)
 
@@ -103,6 +106,7 @@ def order_status():
             'payment_id': order.payment_id,
             'order_status': order.order_status,
         }
+    return None
 
 
 def check_status_pedding():
@@ -110,6 +114,7 @@ def check_status_pedding():
     logger.debug(data)
     if data.get('order_status') == 'pending':
         return 'pending'
+    return None
 
 
 def status_pending():
@@ -132,6 +137,7 @@ def status_paid():
         data['order_status'] = OrderStatus.PAYMENT_PAID.value
         logger.debug(data)
         return data
+    return None
 
 
 def alternate_status(status):

@@ -1,17 +1,4 @@
 import pytest
-from fastapi.testclient import TestClient
-from loguru import logger
-
-from domains.domain_order import create_order
-from endpoints.deps import get_db
-from endpoints.v1.order import (
-    check_status_pedding,
-    order_status,
-    status_paid,
-    status_pending,
-)
-from main import app
-from schemas.order_schema import ProductSchema
 
 
 @pytest.mark.skip()
@@ -37,7 +24,7 @@ def test_put_order(t_client):
         'customer_id': 1,
         'order_date': '2020-11-11 17:30:01',
         'payment_id': 1,
-        'tracking_number': 3334131,
+        'tracking_number': '3334131',
     }
     r = t_client.put('/order/2', json=order)
     response = r.json()
@@ -65,20 +52,14 @@ def test_get_order_user_id(t_client):
 def test_order_status(t_client):
     orderState = {'order_id': 1, 'payment_id': 1, 'order_status': 'paid'}
     r = t_client.post('/update-payment-and-order-status', json=orderState)
-    response = r.json()
+    r.json()
     assert r.status_code == 200
 
 
 # def test_check_status():
-#     response = check_status_pedding()
-#     assert response == 'pending'
 
 
 # def test_status_pending():
-#    response = status_pending()
-#    assert response.get('status') == 'paid'
 
 
 # def test_status_paid():
-#     data = status_paid()
-#     assert data.get('order_status') == 'PAYMENT_PAID'

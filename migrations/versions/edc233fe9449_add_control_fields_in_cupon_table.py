@@ -1,4 +1,4 @@
-"""add control fields in cupon table
+"""add control fields in cupon table.
 
 Revision ID: edc233fe9449
 Revises: dad47228ad42

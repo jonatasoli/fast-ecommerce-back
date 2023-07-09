@@ -1,4 +1,4 @@
-"""add category
+"""add category.
 
 Revision ID: 766ac3a1776c
 Revises: 4ed0b67518ec

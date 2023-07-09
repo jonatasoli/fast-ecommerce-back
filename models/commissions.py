@@ -1,9 +1,5 @@
-from loguru import logger
-from passlib.hash import pbkdf2_sha512
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy import Boolean, Column, DateTime, Integer
 
-from constants import DocumentType
 from ext.database import Base
 
 

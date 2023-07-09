@@ -1,7 +1,6 @@
 import enum
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Optional
 
 import httpx
 from dynaconf import settings
@@ -66,7 +65,8 @@ def check_existent_user(db: Session, email, document, password):
             user_query = select(User).where(document == document)
             db_user = db.execute(user_query).scalars().first()
         if not password:
-            raise Exception('User not password')
+            msg = 'User not password'
+            raise Exception(msg)
         logger.info('---------DB_USER-----------')
         logger.info(f'DB_USER -> {db_user}')
         return db_user
@@ -78,14 +78,16 @@ def get_user(db: Session, document: str, password: str):
     try:
         db_user = _get_user(db=db, document=document)
         if not password:
-            raise Exception('User not password')
+            msg = 'User not password'
+            raise Exception(msg)
         if db_user and db_user.verify_password(password):
             return db_user
         else:
             logger.error(
-                f'User not finded {db_user.document}, {db_user.password}'
+                f'User not finded {db_user.document}, {db_user.password}',
             )
-            raise Exception(f'User not finded {db_user.document}')
+            msg = f'User not finded {db_user.document}'
+            raise Exception(msg)
     except Exception as e:
         raise e
 
@@ -101,17 +103,18 @@ def authenticate_user(db, document: str, password: str):
     return user
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({'exp': expire})
-    encoded_jwt = jwt.encode(
-        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    return jwt.encode(
+        to_encode,
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
     )
-    return encoded_jwt
 
 
 def get_current_user(
@@ -124,7 +127,9 @@ def get_current_user(
     )
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
         )
         document: str = payload.get('sub')
         if document is None:
@@ -189,7 +194,7 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
                     Address.address_complement
                     == checkout_data.get('address_complement'),
                     Address.category == 'billing',
-                )
+                ),
             )
             _address = db.execute(address_query).scalars().first()
             if not _address:
@@ -214,7 +219,9 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
 
 
 def register_shipping_address(
-    db: Session, checkout_data: CheckoutSchema, user
+    db: Session,
+    checkout_data: CheckoutSchema,
+    user,
 ):
     try:
         _address = None
@@ -227,7 +234,7 @@ def register_shipping_address(
                     Address.address_complement
                     == checkout_data.get('ship_address_complement'),
                     Address.category == 'shipping',
-                )
+                ),
             )
             _address = db.execute(address_query).scalars().first()
 
@@ -243,7 +250,7 @@ def register_shipping_address(
                             Address.address_complement
                             == checkout_data.get('address_complement'),
                             Address.category == 'billing',
-                        )
+                        ),
                     )
                     _address = db.execute(address_query).scalars().first()
 
@@ -317,7 +324,7 @@ def address_by_postal_code(zipcode_data):
                 details={'message': 'Cep inválido'},
             )
 
-        address = {
+        return {
             'street': response.get('logradouro'),
             'city': response.get('localidade'),
             'neighborhood': response.get('bairro'),
@@ -325,8 +332,6 @@ def address_by_postal_code(zipcode_data):
             'country': COUNTRY_CODE.brazil.value,
             'zip_code': postal_code,
         }
-
-        return address
 
     except Exception as e:
         raise e
@@ -341,10 +346,11 @@ def get_user_login(db: Session, document: str):
 
 def save_token_reset_password(db: Session, document: str):
     access_token_expires = timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
     _token = create_access_token(
-        data={'sub': document}, expires_delta=access_token_expires
+        data={'sub': document},
+        expires_delta=access_token_expires,
     )
     with db:
         user_query = select(User).where(User.document == document)
@@ -362,7 +368,7 @@ def reset_password(db: Session, data: UserResponseResetPassword):
         _user = db.execute(user_query).scalars().first()
 
         used_token_query = select(UserResetPassword).where(
-            UserResetPassword.user_id == _user.id
+            UserResetPassword.user_id == _user.id,
         )
         _used_token = db.execute(used_token_query).scalars().first()
 

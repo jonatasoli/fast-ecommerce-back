@@ -1,4 +1,4 @@
-"""create table user-reset-password
+"""create table user-reset-password.
 
 Revision ID: d9a7b005a2e9
 Revises: 425e147e716b

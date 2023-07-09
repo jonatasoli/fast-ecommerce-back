@@ -10,7 +10,7 @@ python = "^3.11"
 fastapi = "*"
 uvicorn = "*"
 alembic = "*"
-sqlalchemy = "*"
+sqlalchemy = {version = "~2", extras = ["asyncio"]}
 databases = {version = "*", extras = ["postgress", "sqlite"]}
 passlib = "*"
 pyjwt = "*"

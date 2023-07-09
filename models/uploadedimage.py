@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, String
 
 from ext.database import Base
 
@@ -26,5 +26,5 @@ class UploadedImage(Base):
             'uploaded': self.uploaded,
         }
 
-    def __init__(self, _id=None):
+    def __init__(self, _id=None) -> None:
         self.id = _id

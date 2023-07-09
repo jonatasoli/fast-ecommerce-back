@@ -11,7 +11,7 @@ class ProductCart(BaseModel):
 
     product_id: int
     quantity: int
-    price: Decimal | None
+    price: Decimal | None = None
     discount_price: Decimal = Decimal(0)
 
     def update_price(self: Self, new_price: Decimal) -> 'ProductCart':

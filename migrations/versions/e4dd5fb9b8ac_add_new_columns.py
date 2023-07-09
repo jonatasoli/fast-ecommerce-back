@@ -1,4 +1,4 @@
-"""add new columns
+"""add new columns.
 
 Revision ID: e4dd5fb9b8ac
 Revises: f839ce991ab7
