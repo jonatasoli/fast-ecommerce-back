@@ -34,6 +34,7 @@ class Product(Base):
     weight = Column(Numeric(5, 3), nullable=True)
     length = Column(Numeric(5, 3), nullable=True)
     diameter = Column(Numeric(5, 3), nullable=True)
+    sku = Column(String, nullable=True)
 
 
 class Cupons(Base):

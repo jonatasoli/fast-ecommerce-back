@@ -85,6 +85,7 @@ class ProductSchema(BaseModel):
     weight: int | None = None
     length: int | None = None
     diameter: int | None = None
+    sku: str | None = None
     model_config = ConfigDict(from_attributes=True)
 
 

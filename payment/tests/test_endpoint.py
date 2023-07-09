@@ -172,6 +172,7 @@ def test_create_product(t_client, db_models):
             {'name': '4', 'value': 'R$25,00'},
             {'name': '5', 'value': 'R$20,00'},
         ],
+        'sku': 'test_sku_001',
     }
 
     r = t_client.post('/product/create-product', json=product)
