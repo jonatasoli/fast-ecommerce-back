@@ -51,6 +51,7 @@ jobs:
         - name: Run tests
           env:
             DATABASE_URL: "postgresql://postgres_user:pass123@localhost/ecommerce-test"
+            DATABASE_URI: "postgresql+asyncpg://postgres_user:pass123@localhost/ecommerce-test"
             REDIS_HOST: "localhost"
             REDIS_PORT: "6379"
             REDIS_DB: 0
