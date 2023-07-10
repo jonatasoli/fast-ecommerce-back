@@ -50,18 +50,18 @@ jobs:
 
         - name: Run tests
           env:
-            DATABASE_URL: "postgresql://postgres_user:pass123@localhost/ecommerce-test"
-            DATABASE_URI: "postgresql+asyncpg://postgres_user:pass123@localhost/ecommerce-test"
-            REDIS_HOST: "localhost"
-            REDIS_PORT: "6379"
-            REDIS_DB: 0
-            GATEWAY_API: "API_KEY"
-            GATEWAY_CRYP: "CRYP_KEY"
-            PAYMENT_GATEWAY_URL: "URL_GATEWAY"
-            SENDGRID_API_KEY: "API_KEY"
-            EMAIL_FROM: "EMAIL"
-            API_MAIL_URL: "https://testapi.com/"
-            ACCESS_TOKEN_EXPIRE_MINUTES: 15
+            DYNACONF_DATABASE_URL: "postgresql://postgres_user:pass123@localhost/ecommerce-test"
+            DYNACONF_DATABASE_URI: "postgresql+asyncpg://postgres_user:pass123@localhost/ecommerce-test"
+            DYNACONF_REDIS_HOST: "localhost"
+            DYNACONF_REDIS_PORT: "6379"
+            DYNACONF_REDIS_DB: 0
+            DYNACONF_GATEWAY_API: "API_KEY"
+            DYNACONF_GATEWAY_CRYP: "CRYP_KEY"
+            DYNACONF_PAYMENT_GATEWAY_URL: "URL_GATEWAY"
+            DYNACONF_SENDGRID_API_KEY: "API_KEY"
+            DYNACONF_EMAIL_FROM: "EMAIL"
+            DYNACONF_API_MAIL_URL: "https://testapi.com/"
+            DYNACONF_ACCESS_TOKEN_EXPIRE_MINUTES: 15
           run: poetry run make test
 
         # - name: Build coverage file
