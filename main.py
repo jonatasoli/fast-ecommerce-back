@@ -17,7 +17,7 @@ from endpoints.v1.product import catalog
 from endpoints.v1.shipping import shipping
 from endpoints.v1.users import user
 from endpoints.v1.payment import payment
-from endpoints.v1.payment import cart
+from app.infra.endpoints.cart import cart
 from endpoints.v1.default import (
     inventory,
     reviews,

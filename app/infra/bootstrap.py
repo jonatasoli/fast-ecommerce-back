@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 from app.cart import uow
+from app.cart.uow import SqlAlchemyUnitOfWork
 from app.infra import redis, queue
 
 
@@ -24,7 +25,7 @@ async def bootstrap(
 ) -> Command:
     """Create a command function to use in the application."""
     if uow is None:
-        uow = await uow.SqlAlchemyUnitOfWork()
+        uow = SqlAlchemyUnitOfWork()
 
     return Command(
         uow=uow,

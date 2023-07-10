@@ -20,6 +20,13 @@ class CartNotFoundPriceError(Exception):
         super().__init__('Price or quantity not found in cart item')
 
 
+class ProductNotFoundError(Exception):
+    """Raise when gived product not exists in database."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('Product not found in database')
+
+
 def generate_cart_uuid() -> UUID:
     """Generate UUID to Cart."""
     return uuid4()
@@ -132,11 +139,22 @@ class CartPayment(CartShipping):
     credit_card_information: CreditCardInformation
 
 
-def generate_new_cart(product: ProductCart, quantity: int) -> CartBase:
+def convert_price_to_decimal(price: int) -> Decimal:
+    """Convert price to decimal."""
+    return Decimal(price / 100)
+
+
+def generate_new_cart(
+    product: ProductCart,
+    price: int,
+    quantity: int,
+) -> CartBase:
     """Generate new cart."""
+    if not product:
+        raise ProductNotFoundError
     product.quantity = quantity
     return CartBase(
         uuid=generate_cart_uuid(),
         cart_items=[product],
-        subtotal=product.price,
+        subtotal=convert_price_to_decimal(price * quantity),
     )

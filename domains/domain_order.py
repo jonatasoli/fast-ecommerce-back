@@ -32,11 +32,11 @@ def get_product(db: Session, uri):
 
 
 def create_product(db: Session, product_data: ProductSchema):
-    db_product = Product(**product_data.dict())
+    db_product = Product(**product_data.model_dump())
     with db:
         db.add(db_product)
         db.commit()
-        return ProductSchema.from_orm(db_product)
+        return ProductSchema.model_validate(db_product)
 
 
 def put_product(db: Session, id, product_data: ProductFullResponse):

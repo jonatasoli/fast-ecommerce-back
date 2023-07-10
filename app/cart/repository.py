@@ -19,18 +19,23 @@ class AbstractRepository(abc.ABC):
     def __init__(self: Self) -> None:
         self.seen = set()  # type: Set[order.Product]
 
-    def get_product(self: Self, id: int) -> order.Product:   # noqa: A002
-        return self._get_product(id)
+    def get_product_by_id(self: Self, product_id: int) -> order.Product:
+        return self._get_product_by_id(product_id)
 
-    def get_product_inventory(self: Self, product_id: int) -> int:
-        return self._get_inventory(product_id)
+    # def get_product(self: Self, id: int) -> order.Product:
+
+    # def get_product_inventory(self: Self, product_id: int) -> int:
+
+    # @abc.abstractmethod
+    # def _get_product(self: Self, sku: str) -> order.Product:
+    #     raise NotImplementedError
+
+    # @abc.abstractmethod
+    # def _get_inventory(self: Self, product_id: int) -> int:
+    #     raise NotImplementedError
 
     @abc.abstractmethod
-    def _get_product(self: Self, sku: str) -> order.Product:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def _get_inventory(self: Self, product_id: int) -> int:
+    def _get_product_by_id(self: Self, product_id: int) -> order.Product:
         raise NotImplementedError
 
 
@@ -53,3 +58,15 @@ class SqlAlchemyRepository(AbstractRepository):
                 raise ProductNotFoundError(msg)
 
             return product.fetchone()
+
+    async def _get_product_by_id(self: Self, product_id: int) -> order.Product:
+        """Must return a product by id."""
+        async with self.session() as session:
+            product = await session.execute(
+                select(order.Product).where(order.Product.id == product_id),
+            )
+            if not product:
+                msg = f'No product with id {product_id}'
+                raise ProductNotFoundError(msg)
+
+            return product.scalars().first()

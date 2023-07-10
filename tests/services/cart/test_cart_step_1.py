@@ -7,6 +7,7 @@ from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from app.cart.services import add_product_to_cart
 from app.infra.bootstrap import Command
+from app.infra.redis import MemoryCache
 from tests.fake_functions import fake
 
 
@@ -28,7 +29,7 @@ async def test_add_product_to_new_cart(
 
     # Assert
     assert cart_response.uuid
-    assert cart_response.cart_items[0].price
+    assert len(cart_response.cart_items) == 1
     assert isinstance(cart_response.uuid, UUID)
     assert cart_response.cart_items[0].product_id == product.product_id
     assert cart_response.cart_items[0].quantity == product.quantity
@@ -46,7 +47,9 @@ async def test_add_product_to_new_cart_should_set_in_cache(
         quantity=1,
     )
     bootstrap = await memory_bootstrap
-    cache_spy = mocker.spy(bootstrap.cache, 'set')
+    memory_client = MemoryCache().client()
+    mocker.patch.object(bootstrap.cache, 'client', return_value=memory_client)
+    cache_spy = mocker.spy(memory_client, 'set')
 
     # Act
     cart_response = await add_product_to_cart(None, product, bootstrap)
@@ -80,7 +83,8 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
         cart_items=[current_product],
         subtotal=Decimal(10),
     )
-    bootstrap.cache.set(str(uuid), cart.model_dump_json())
+    cache = bootstrap.cache.client()
+    cache.set(str(uuid), cart.model_dump_json())
 
     # Act
     cart_response = await add_product_to_cart(

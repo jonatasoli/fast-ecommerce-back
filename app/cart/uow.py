@@ -10,7 +10,8 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import sessionmaker
 
-from app.entities.product import ProductCart
+from app.entities.product import ProductCart, ProductInDB
+from app.cart import repository
 
 
 from config import settings
@@ -20,6 +21,8 @@ Self = TypeVar('Self')
 
 
 class AbstractUnitOfWork(abc.ABC):
+    cart = repository.AbstractRepository
+
     @abc.abstractmethod
     async def get_product_by_id(self: Self) -> ProductCart:
         """Must return a product by id."""
@@ -46,18 +49,21 @@ def get_session() -> sessionmaker:
 
 
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
-    async def __init__(
+    def __init__(
         self: Self,
         session_factory: sessionmaker = get_session(),  # noqa: B008
     ) -> None:
-        self.session_factory = session_factory
+        self.session = session_factory
+        self.cart = repository.SqlAlchemyRepository(session_factory)
 
     async def get(self: Self) -> None:
         async with self._session() as session, session.begin():
             await session.execute('SELECT 1')
 
-    async def get_product_by_id(self: Self, product_id: int) -> ProductCart:
-        ...
+    async def get_product_by_id(self: Self, product_id: int) -> ProductInDB:
+        """Must return a product by id."""
+        product_db = await self.cart.get_product_by_id(product_id=product_id)
+        return ProductInDB.model_validate(product_db)
 
 
 class MemoryUnitOfWork(AbstractUnitOfWork):
