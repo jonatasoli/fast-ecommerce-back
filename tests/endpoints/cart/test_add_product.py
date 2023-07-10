@@ -8,7 +8,6 @@ from models.order import Product
 URL = '/cart/product'
 
 
-@pytest.mark.asyncio
 def test_add_product_in_new_cart(client, mocker, db) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
@@ -21,13 +20,6 @@ def test_add_product_in_new_cart(client, mocker, db) -> None:
             installments_config=1,
             upsell=None,
             uri='/test_product',
-            # installments_list={
-            #     {'name': '1', 'value': 'R$100,00'},
-            #     {'name': '2', 'value': 'R$50,00'},
-            #     {'name': '3', 'value': 'R$33,00'},
-            #     {'name': '4', 'value': 'R$25,00'},
-            #     {'name': '5', 'value': 'R$20,00'},
-            # },
         )
         db.add(product_db)
 
