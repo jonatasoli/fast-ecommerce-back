@@ -23,10 +23,25 @@ Self = TypeVar('Self')
 class AbstractUnitOfWork(abc.ABC):
     cart = repository.AbstractRepository
 
-    @abc.abstractmethod
     async def get_product_by_id(self: Self) -> ProductCart:
         """Must return a product by id."""
+        return await self._get_product_by_id
+
+    async def get_products(self: Self) -> ProductCart:
+        """Must return a product by id."""
+        return await self._get_product_by_id
+
+    @abc.abstractmethod
+    async def _get_product_by_id(self: Self) -> ProductCart:
+        """Must return a product by id."""
         ...
+
+    @abc.abstractmethod
+    async def _get_products(self: Self) -> ProductCart:
+        """Must return a product by id."""
+        ...
+
+
 
 
 def get_engine() -> AsyncEngine:
@@ -60,14 +75,14 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         async with self._session() as session, session.begin():
             await session.execute('SELECT 1')
 
-    async def get_product_by_id(self: Self, product_id: int) -> ProductInDB:
+    async def _get_product_by_id(self: Self, product_id: int) -> ProductInDB:
         """Must return a product by id."""
         product_db = await self.cart.get_product_by_id(product_id=product_id)
         return ProductInDB.model_validate(product_db)
 
 
 class MemoryUnitOfWork(AbstractUnitOfWork):
-    async def get_product_by_id(self: Self, product_id: int) -> ProductCart:
+    async def _get_product_by_id(self: Self, product_id: int) -> ProductCart:
         """Must add product to new cart and return cart."""
 
         async def create_product_cart() -> ProductCart:
@@ -78,3 +93,21 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
             )
 
         return await create_product_cart()
+
+    async def _get_products(self: Self, products: list) -> list:
+        """Must return a list of products."""
+        async def return_product_list() -> list:
+            return [
+                    ProductCart(
+                        product_id=1,
+                        quantity=10,
+                        price=Decimal('10.00'),
+                    ),
+                    ProductCart(
+                        product_id=2,
+                        quantity=10,
+                        price=Decimal('20.00'),
+                    ),
+                ]
+
+        return await return_product_list()

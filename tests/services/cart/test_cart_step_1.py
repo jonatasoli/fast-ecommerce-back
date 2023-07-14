@@ -5,7 +5,7 @@ from pytest_mock import MockerFixture
 from app.entities.cart import CartBase
 
 from app.entities.product import ProductCart
-from app.cart.services import add_product_to_cart
+from app.cart.services import add_product_to_cart, calculate_cart
 from app.infra.bootstrap import Command
 from app.infra.redis import MemoryCache
 from tests.fake_functions import fake
@@ -99,3 +99,41 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
     assert cart_response.cart_items[0].quantity == current_product.quantity
     assert cart_response.cart_items[1].product_id == new_product.product_id
     assert cart_response.cart_items[1].quantity == new_product.quantity
+
+
+@pytest.mark.asyncio()
+async def test_given_cart_with_items_need_calculate_to_preview(
+    memory_bootstrap: Command,
+    mocker: MockerFixture,
+) -> None:
+    """Must add product to current cart and calc subtotal."""
+    # Arrange
+    cart_items = []
+    first_product = ProductCart(
+        product_id=2,
+        quantity=1,
+    )
+    second_product = ProductCart(
+        product_id=1,
+        quantity=1,
+    )
+    cart_items.append(first_product)
+    cart_items.append(second_product)
+    bootstrap = await memory_bootstrap
+    uuid = fake.uuid4()
+    cart = CartBase(
+        uuid=uuid,
+        cart_items=cart_items,
+        subtotal=Decimal(10),
+    )
+    cache = bootstrap.cache.client()
+    cache.set(str(uuid), cart.model_dump_json())
+
+    # Act
+    cart_response = await calculate_cart(
+        str(uuid),
+        bootstrap,
+    )
+
+    # Assert
+    assert str(cart_response.uuid) == str(uuid)

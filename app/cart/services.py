@@ -29,3 +29,15 @@ async def add_product_to_cart(
         )
     cache.set(str(cart.uuid), cart.model_dump_json())
     return cart
+
+
+async def calculate_cart(uuid: str, bootstrap: Command) -> CartBase:
+    """Must calculate cart and return cart."""
+    cache = bootstrap.cache.client()
+    cart = cache.get(uuid)
+    cart = CartBase.model_validate_json(cart)
+    products_db = await bootstrap.uow.get_products(cart.cart_items)
+    cart.update_products(products_db)
+    cart.calculate_subtotal()
+    cache.set(str(cart.uuid), cart.model_dump_json())
+    return cart
