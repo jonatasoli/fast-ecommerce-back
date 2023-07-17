@@ -19,16 +19,21 @@ class AbstractRepository(abc.ABC):
     def __init__(self: Self) -> None:
         self.seen = set()  # type: Set[order.Product]
 
-    def get_product_by_id(self: Self, product_id: int) -> order.Product:
-        return self._get_product_by_id(product_id)
+    async def get_product_by_id(self: Self, product_id: int) -> order.Product:
+        return await self._get_product_by_id(product_id)
+
+    async def get_product(self: Self, id: int) -> order.Product:   # noqa: A002
+        product = await self._get_product(id)
+        self.seen.add(product)
+        return product
 
     # def get_product(self: Self, id: int) -> order.Product:
 
     # def get_product_inventory(self: Self, product_id: int) -> int:
 
-    # @abc.abstractmethod
-    # def _get_product(self: Self, sku: str) -> order.Product:
-    #     raise NotImplementedError
+    @abc.abstractmethod
+    def _get_product(self: Self, id: int) -> order.Product:   # noqa: A002
+        raise NotImplementedError
 
     # @abc.abstractmethod
     # def _get_inventory(self: Self, product_id: int) -> int:
