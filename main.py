@@ -42,10 +42,11 @@ origins = [
     '*',
 ]
 
-sentry_sdk.init(
-    'https://f8ca28ef3c3a4b54aac3a61c963a043b@o281685.ingest.sentry.io/5651868',
-    traces_sample_rate=1.0,
-)
+if settings.ENVIRONMENT == 'production':
+    sentry_sdk.init(
+        'https://f8ca28ef3c3a4b54aac3a61c963a043b@o281685.ingest.sentry.io/5651868',
+        traces_sample_rate=1.0,
+    )
 
 app.add_middleware(SentryAsgiMiddleware)
 
@@ -78,7 +79,7 @@ app.include_router(user)
 app.include_router(
     direct_sales,
     prefix='/direct-sales',
-    responses={404: {'description': 'Not found'}},
+    responses={404: {'description': 'URL Not found'}},
 )
 app.include_router(payment)
 app.include_router(shipping)

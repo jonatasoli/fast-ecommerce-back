@@ -22,25 +22,30 @@ class AbstractRepository(abc.ABC):
     async def get_product_by_id(self: Self, product_id: int) -> order.Product:
         return await self._get_product_by_id(product_id)
 
-    async def get_product(self: Self, id: int) -> order.Product:   # noqa: A002
-        product = await self._get_product(id)
+    async def get_product_by_sku(
+        self: Self,
+        sku: str,
+    ) -> order.Product:
+        product = await self._get_product_by_sku(sku)
         self.seen.add(product)
         return product
 
-    # def get_product(self: Self, id: int) -> order.Product:
-
-    # def get_product_inventory(self: Self, product_id: int) -> int:
+    def get_products(self: Self, products: list) -> order.Product:
+        return self._get_products(products)
 
     @abc.abstractmethod
-    def _get_product(self: Self, id: int) -> order.Product:   # noqa: A002
+    def _get_product_by_sku(
+        self: Self,
+        sku: str,
+    ) -> order.Product:
         raise NotImplementedError
-
-    # @abc.abstractmethod
-    # def _get_inventory(self: Self, product_id: int) -> int:
-    #     raise NotImplementedError
 
     @abc.abstractmethod
     def _get_product_by_id(self: Self, product_id: int) -> order.Product:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _get_products(self: Self, products: list) -> order.Product:
         raise NotImplementedError
 
 
@@ -49,7 +54,7 @@ class SqlAlchemyRepository(AbstractRepository):
         super().__init__()
         self.session = session
 
-    async def _get_product(
+    async def _get_product_by_sku(
         self: Self,
         id: int,  # noqa: A002
     ) -> order.Product:
@@ -75,3 +80,20 @@ class SqlAlchemyRepository(AbstractRepository):
                 raise ProductNotFoundError(msg)
 
             return product.scalars().first()
+
+    async def _get_products(
+        self: Self,
+        products: list[int],
+    ) -> list[order.Product]:
+        """Must return updated products in db."""
+        async with self.session() as session:
+            products_db = await session.execute(
+                select(order.Product).where(order.Product.id.in_(products)),
+            )
+            if not products_db:
+                msg = f'No products with ids {products}'
+                raise ProductNotFoundError(msg)
+
+            return products_db.scalars().all()
+
+        return super()._get_products(products)

@@ -78,9 +78,11 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         product_db = await self.cart.get_product_by_id(product_id=product_id)
         return ProductInDB.model_validate(product_db)
 
-    async def _get_products(self: Self, products: list) -> ProductInDB:
-        """Must return a product by id."""
-        return await self.cart.get_products(products=products)
+    async def _get_products(self: Self, products: list) -> list[ProductCart]:
+        """Must return a products in list."""
+        product_ids: list[int] = [item.product_id for item in products]
+        products_db = await self.cart.get_products(products=product_ids)
+        return [ProductInDB.model_validate(product) for product in products_db]
 
 
 class MemoryUnitOfWork(AbstractUnitOfWork):
@@ -96,21 +98,60 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
 
         return await create_product_cart()
 
-    async def _get_products(self: Self, products: list) -> list:
+    async def _get_products(
+        self: Self,
+        products: list[ProductInDB],
+    ) -> list[ProductInDB]:
         """Must return a list of products."""
         _ = products
 
         async def return_product_list() -> list:
             return [
-                ProductCart(
-                    product_id=1,
-                    quantity=10,
-                    price=Decimal('10.00'),
+                ProductInDB(
+                    id=1,
+                    name='test_1',
+                    uri='/test',
+                    price=10000,
+                    active=True,
+                    direct_sales=False,
+                    description='description 1',
+                    discount=100,
+                    category_id=1,
+                    showcase=True,
+                    show_discount=True,
+                    upsell=None,
+                    image_path='',
+                    installments_config=1,
+                    installments_list=[],
+                    height=None,
+                    width=None,
+                    weight=None,
+                    length=None,
+                    diameter=None,
+                    sku='sku_1',
                 ),
-                ProductCart(
-                    product_id=2,
-                    quantity=10,
-                    price=Decimal('20.00'),
+                ProductInDB(
+                    id=2,
+                    name='test_2',
+                    uri='/test',
+                    price=20000,
+                    active=True,
+                    direct_sales=False,
+                    description='description 1',
+                    discount=0,
+                    category_id=1,
+                    showcase=True,
+                    show_discount=True,
+                    upsell=None,
+                    image_path='',
+                    installments_config=1,
+                    installments_list=[],
+                    height=None,
+                    width=None,
+                    weight=None,
+                    length=None,
+                    diameter=None,
+                    sku='sku_2',
                 ),
             ]
 

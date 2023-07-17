@@ -37,12 +37,7 @@ async def calculate_cart(uuid: str, bootstrap: Command) -> CartBase:
     cart = cache.get(uuid)
     cart = CartBase.model_validate_json(cart)
     products_db = await bootstrap.uow.get_products(cart.cart_items)
-    cart_items = []
-    for product in products_db:
-        cart_items.append(
-            product,
-        )
-    cart.cart_items = cart_items
+    cart.get_products_price_and_discounts(products_db)
     cart.calculate_subtotal()
     cache.set(str(cart.uuid), cart.model_dump_json())
     return cart

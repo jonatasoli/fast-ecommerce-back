@@ -2,6 +2,8 @@ import enum
 from decimal import Decimal
 from typing import TypeVar
 from uuid import UUID, uuid4
+from loguru import logger
+
 
 from app.entities.freight import ShippingAddress
 from app.entities.payment import CreditCardInformation
@@ -25,6 +27,13 @@ class ProductNotFoundError(Exception):
 
     def __init__(self: Self) -> None:
         super().__init__('Product not found in database')
+
+
+class CartInconsistencyError(Exception):
+    """Raise when cart is diferent to product list to check."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('Cart is diferent to product list to check')
 
 
 def generate_cart_uuid() -> UUID:
@@ -88,6 +97,7 @@ class CartBase(BaseModel):
                 del self.cart_items[i]
                 return self
         msg = f"Product id {product_id} don't exists in cart"
+        logger.error(msg)
         raise IndexError(msg)
 
     def add_product_price(self: Self, products: list[ProductCart]) -> Self:
@@ -106,6 +116,7 @@ class CartBase(BaseModel):
         subtotal = Decimal(0)
         if not self.cart_items:
             msg = 'Cart items is empty'
+            logger.error(msg)
             raise ValueError(msg)
         try:
             for item in self.cart_items:
@@ -115,7 +126,27 @@ class CartBase(BaseModel):
                     self.discount += item.discount_price * item.quantity
             self.subtotal = subtotal
         except TypeError as err:
+            logger.error('Price or quantity not found in cart item')
             raise CartNotFoundPriceError from err
+
+    def get_products_price_and_discounts(self: Self, products: list) -> None:
+        """Get products price and discounts."""
+        if len(self.cart_items) != len(products):
+            logger.error(
+                f'Cart items is diferent to product list to check. '
+                f'Cart items: {self.cart_items} '
+                f'Product list: {products}',
+            )
+            raise CartInconsistencyError
+        product_dict = {product.id: product for product in products}
+        for index, cart_item in enumerate(self.cart_items):
+            product_id = cart_item.product_id
+            if product_id in product_dict:
+                product = product_dict[product_id]
+                self.cart_items[index].price = product.price
+                self.cart_items[index].discount_price = (
+                    product.discount if product.discount else Decimal('0')
+                )
 
 
 class CartUser(CartBase):
@@ -151,6 +182,7 @@ def generate_new_cart(
 ) -> CartBase:
     """Generate new cart."""
     if not product:
+        logger.error('Product not found in database')
         raise ProductNotFoundError
     product.quantity = quantity
     return CartBase(

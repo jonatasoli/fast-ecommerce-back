@@ -1,4 +1,5 @@
 from typing import Any
+from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from app.infra.bootstrap import Command, bootstrap
 from endpoints.deps import get_db
@@ -24,7 +25,7 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
-@cart.post('/product', status_code=201)
+@cart.post('/product', status_code=201, response_model=CartBase)
 async def add_product_to_cart(  # noqa: ANN201
     *,
     uuid: str | None = None,
@@ -36,6 +37,19 @@ async def add_product_to_cart(  # noqa: ANN201
     return await services.add_product_to_cart(
         cart_uuid=uuid,
         product=product,
+        bootstrap=bootstrap,
+    )
+
+
+@cart.get('/preview/{uuid}', status_code=200, response_model=CartBase)
+async def preview(
+    uuid: str,
+    *,
+    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+) -> CartBase:
+    """Add product to cart."""
+    return await services.calculate_cart(
+        uuid=uuid,
         bootstrap=bootstrap,
     )
 

@@ -95,7 +95,7 @@ def override_get_db():
         db.close()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def db() -> Generator:
     _engine = get_engine()
     Base.metadata.drop_all(bind=_engine)
