@@ -1,4 +1,4 @@
-.PHONY: install update shell format lint test sec export configs upgrade run migrate
+.PHONY: install update shell format lint test sec export configs upgrade run migrate post-test
 
 
 install:
@@ -20,7 +20,10 @@ lint:
 	@ruff check tests/entities --ignore S101
 
 test:
-	@pytest -s tests/entities
+	@pytest -s tests/entities -x --cov=fast_zero -vv
+
+post-test:
+	@coverage html
 
 configs:
 	dynaconf -i src.config.settings list

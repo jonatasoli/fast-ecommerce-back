@@ -31,7 +31,7 @@ pytest-asyncio = "*"
 psycopg2-binary = "*"
 importlib-metadata = "*"
 typing-extensions = "*"
-sentry-sdk = "*"
+sentry-sdk = {version = "*", extras = ["fastapi"]}
 cloudinary = "*"
 Pillow = "*"
 aiofiles = "*"
@@ -82,7 +82,8 @@ exclude = [
     "build",
     "dist",
     "node_modules",
-    "venv",
+    ".venv",
+    "migrations"
 ]
 
 [tool.ruff.flake8-annotations]
@@ -92,7 +93,7 @@ mypy-init-return = true
 "__init__.py" = ["D104"]
 
 [tool.ruff.isort]
-known-first-party = ["src"]
+known-first-party = ["app"]
 known-third-party = ["fastapi"]
 
 [tool.pylint.main]
@@ -112,6 +113,10 @@ markers = [
   "smoke: main tests to validate system",
   "integrate: integrate tests",
 ]
+pythonpath = "."
+
+[tool.blue]
+extend-exclude = '(migrations/)'
 
 [tool.coverage.run]
 omit = [

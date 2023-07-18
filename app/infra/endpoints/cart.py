@@ -1,4 +1,6 @@
 from typing import Any
+
+from fastapi.security import OAuth2PasswordBearer
 from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from app.infra.bootstrap import Command, bootstrap
@@ -19,10 +21,28 @@ cart = APIRouter(
     tags=['cart'],
 )
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+
 
 async def get_bootstrap() -> Command:
     """Get bootstrap."""
     return await bootstrap()
+
+
+@cart.post('/cart', response_model=CartBase, status_code=200)
+@cart.post('/cart/{uuid}', response_model=CartBase, status_code=201)
+def create_or_get_cart(
+    *,
+    uuid: str | None = None,
+    token: str = Depends(oauth2_scheme),  # noqa: B008
+    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+) -> CartBase:
+    """Create or get cart."""
+    return services.create_or_get_cart(
+        uuid=uuid,
+        token=token,
+        bootstrap=bootstrap,
+    )
 
 
 @cart.post('/product', status_code=201, response_model=CartBase)

@@ -1,6 +1,24 @@
-from app.entities.cart import CartBase, generate_new_cart
+from app.entities.cart import CartBase, generate_empty_cart, generate_new_cart
 from app.entities.product import ProductCart
 from app.infra.bootstrap import Command
+
+
+def create_or_get_cart(
+    uuid: str | None,
+    token: str,
+    bootstrap: Command,
+) -> CartBase:
+    """Must create or get cart and return cart."""
+    cart = None
+    cache = bootstrap.cache.client()
+    if token:
+        cart = cache.get(token)
+    elif uuid:
+        cart = cache.get(uuid)
+    else:
+        cart = generate_empty_cart()
+        cache.set(str(cart.uuid), cart.model_dump_json())
+    return cart
 
 
 async def add_product_to_cart(

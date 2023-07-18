@@ -175,6 +175,15 @@ def convert_price_to_decimal(price: int) -> Decimal:
     return Decimal(price / 100)
 
 
+def generate_empty_cart() -> CartBase:
+    """Generate empty cart."""
+    return CartBase(
+        uuid=generate_cart_uuid(),
+        cart_items=[],
+        subtotal=Decimal(0),
+    )
+
+
 def generate_new_cart(
     product: ProductCart,
     price: int,

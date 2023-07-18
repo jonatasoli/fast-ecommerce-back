@@ -44,7 +44,7 @@ origins = [
 
 if settings.ENVIRONMENT == 'production':
     sentry_sdk.init(
-        'https://f8ca28ef3c3a4b54aac3a61c963a043b@o281685.ingest.sentry.io/5651868',
+        dsn=settings.SENTRY_DSN,
         traces_sample_rate=1.0,
     )
 
