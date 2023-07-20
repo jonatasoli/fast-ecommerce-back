@@ -441,7 +441,7 @@ def get_product_all(db: Session):
     products_list = []
 
     for product in products:
-        products_list.append(ProductInDB.from_orm(product))
+        products_list.append(ProductInDB.model_validate(product))
 
     if products:
         return {'products': products_list}
