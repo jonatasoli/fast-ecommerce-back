@@ -47,7 +47,7 @@ class CartBase(BaseModel):
     uuid: UUID
     cart_items: list[ProductCart]
     coupon: CouponBase | None = None
-    discount: Decimal = Decimal(0)
+    discount: Decimal | None = Decimal(0)
     subtotal: Decimal
 
     def increase_quantity(self: Self, product_id: int) -> Self:

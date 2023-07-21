@@ -86,14 +86,17 @@ class SqlAlchemyRepository(AbstractRepository):
         products: list[int],
     ) -> list[order.Product]:
         """Must return updated products in db."""
-        async with self.session() as session:
-            products_db = await session.execute(
-                select(order.Product).where(order.Product.id.in_(products)),
-            )
-            if not products_db:
-                msg = f'No products with ids {products}'
-                raise ProductNotFoundError(msg)
+        try:
+            async with self.session() as session:
+                products_db = await session.execute(
+                    select(order.Product).where(
+                        order.Product.id.in_(products),
+                    ),
+                )
+                if not products_db:
+                    msg = f'No products with ids {products}'
+                    raise ProductNotFoundError(msg)
 
-            return products_db.scalars().all()
-
-        return super()._get_products(products)
+                return products_db.scalars().all()
+        except Exception as e:
+            raise e

@@ -61,15 +61,17 @@ async def add_product_to_cart(  # noqa: ANN201
     )
 
 
-@cart.get('/preview/{uuid}', status_code=200, response_model=CartBase)
+@cart.post('/preview/{uuid}', status_code=201, response_model=CartBase)
 async def preview(
     uuid: str,
     *,
+    cart: CartBase,
     bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
 ) -> CartBase:
     """Add product to cart."""
     return await services.calculate_cart(
         uuid=uuid,
+        cart=cart,
         bootstrap=bootstrap,
     )
 

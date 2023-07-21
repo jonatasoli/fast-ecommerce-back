@@ -131,8 +131,9 @@ async def test_given_cart_with_items_need_calculate_to_preview(
 
     # Act
     cart_response = await calculate_cart(
-        str(uuid),
-        bootstrap,
+        uuid=str(uuid),
+        cart=cart,
+        bootstrap=bootstrap,
     )
 
     # Assert

@@ -1,0 +1,17 @@
+{ lib, buildPythonPackage, fetchPypi }:
+
+
+buildPythonPackage rec {
+  pname = "api-fastecommerce-back";
+  version = "0.1.0";
+
+  src = ./.;
+
+  propagatedBuildInputs = [ libxml2 libxslt ];
+
+  meta = with lib; {
+    description = "Fast Ecommerce Back";
+    license = licenses.mit;
+    platforms = platforms.all;
+  };
+}

@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from app.entities.cart import CartBase, generate_empty_cart, generate_new_cart
 from app.entities.product import ProductCart
 from app.infra.bootstrap import Command
@@ -49,11 +50,16 @@ async def add_product_to_cart(
     return cart
 
 
-async def calculate_cart(uuid: str, bootstrap: Command) -> CartBase:
+async def calculate_cart(uuid: str, cart: CartBase, bootstrap: Command) -> CartBase:
     """Must calculate cart and return cart."""
     cache = bootstrap.cache.client()
-    cart = cache.get(uuid)
-    cart = CartBase.model_validate_json(cart)
+    cache_cart = cache.get(uuid)
+    cache_cart = CartBase.model_validate_json(cache_cart)
+    if cache_cart.uuid != cart.uuid:
+        raise HTTPException(
+            status_code=400,
+            detail='Cart uuid is not the same as the cache uuid',
+        )
     products_db = await bootstrap.uow.get_products(cart.cart_items)
     cart.get_products_price_and_discounts(products_db)
     cart.calculate_subtotal()

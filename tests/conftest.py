@@ -6,8 +6,7 @@ from main import app
 import pytest
 
 
-@pytest.fixture(scope='session', autouse=True)
-def set_test_settings():
+def pytest_configure(config):
     settings.configure(FORCE_ENV_FOR_DYNACONF='testing')
 
 

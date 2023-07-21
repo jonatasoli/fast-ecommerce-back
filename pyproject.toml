@@ -54,6 +54,8 @@ pytest-watch = "*"
 pytest-ordering = "*"
 pytest-asyncio = "*"
 factory-boy = "^3.2.1"
+pytest-env = "^0.8.2"
+anyio = "^3.7.1"
 
 [tool.ruff]
 select = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]

@@ -20,7 +20,9 @@ lint:
 	@ruff check tests/entities --ignore S101
 
 test:
-	@pytest -s tests/entities -x --cov=fast_zero -vv
+	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/entities -x --cov=fast_ecommerce -vv
+	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/endpoints/cart -x --cov=fast_ecommerce -vv
+	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/services -x --cov=fast_ecommerce -vv
 
 post-test:
 	@coverage html
