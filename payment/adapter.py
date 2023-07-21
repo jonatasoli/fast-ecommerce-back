@@ -4,7 +4,7 @@ from domains.domain_user import (
     check_existent_user,
     create_user,
 )
-from ext.database import get_session
+from app.infra.database import get_session
 from schemas.user_schema import SignUp
 
 

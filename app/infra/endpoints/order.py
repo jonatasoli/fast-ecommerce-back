@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from constants import OrderStatus
 from domains import domain_order
-from endpoints.deps import get_db
+from app.infra.deps import get_db
 from gateway.payment_gateway import return_transaction
 from job_service.service import get_session
 from models.order import Order

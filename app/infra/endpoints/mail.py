@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from domains import domain_mail
-from endpoints import deps
+from app.infra import deps
 from schemas.mail_schema import MailFormCourses, MailTrackingNumber
 
 mail = APIRouter(

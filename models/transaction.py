@@ -10,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from ext.database import Base
+from app.infra.database import Base
 
 
 class Transaction(Base):

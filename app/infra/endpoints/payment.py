@@ -1,11 +1,11 @@
-from endpoints.deps import get_db
+from app.infra.deps import get_db
 from payment.schema import InstallmentSchema
 from fastapi import APIRouter, Depends
 from loguru import logger
 from sqlalchemy.orm import Session
 
 from domains import domain_order
-from endpoints import deps
+from app.infra import deps
 from payment import gateway, repositories
 from payment.schema import (
     ConfigCreditCardInDB,

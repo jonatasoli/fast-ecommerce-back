@@ -49,11 +49,12 @@ def test_get_order_user_id(t_client):
 
 
 @pytest.mark.skip()
-def test_order_status(t_client):
+def test_order_status(t_client: str) -> None:
+    """Test order status."""
     orderState = {'order_id': 1, 'payment_id': 1, 'order_status': 'paid'}
     r = t_client.post('/update-payment-and-order-status', json=orderState)
     r.json()
-    assert r.status_code == 200
+    assert r.status_code == 200, 'return success'
 
 
 # def test_check_status():

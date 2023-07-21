@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from domains import domain_order, domain_payment
-from endpoints import deps
+from app.infra import deps
 from schemas.order_schema import CheckoutReceive, ProductSchema
 
 direct_sales = APIRouter()

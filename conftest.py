@@ -20,12 +20,12 @@ root_dir = d(abspath(__file__))
 print(f'ROOT {root_dir}')
 sys.path.append(root_dir)
 
-from dynaconf import settings
+from config import settings
 
-from ext.base import Base
-from ext.database import get_engine
+from app.infra.base import Base
+from app.infra.database import get_engine
 
-from endpoints.deps import get_db
+from app.infra.deps import get_db
 from main import app
 
 
@@ -131,3 +131,4 @@ def t_client(clean_db, override_get_db) -> Generator:
     logger.info(f'{ settings.current_env }')
     with TestClient(app) as c:
         yield c
+

@@ -3,8 +3,8 @@ from loguru import logger
 from sqlalchemy.orm import Session
 
 from domains import domain_order
-from endpoints import deps
-from endpoints.deps import get_db
+from app.infra import deps
+from app.infra.deps import get_db
 from payment.schema import ProductSchema
 from schemas.order_schema import (
     ProductFullResponse,

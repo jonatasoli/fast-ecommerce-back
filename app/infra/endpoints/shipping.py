@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from domains import domain_shipping
-from endpoints.deps import get_db
+from app.infra.deps import get_db
 from schemas.shipping_schema import Shipping, ShippingCalc
 
 shipping = APIRouter(

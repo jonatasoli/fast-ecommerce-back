@@ -3,7 +3,7 @@ from passlib.context import CryptContext
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 
 from constants import DocumentType
-from ext.database import Base
+from app.infra.database import Base
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 

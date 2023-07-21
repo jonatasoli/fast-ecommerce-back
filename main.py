@@ -9,16 +9,16 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
-from endpoints.v1.direct_sales import direct_sales
-from endpoints.v1.mail import mail
-from endpoints.v1.order import order
-from endpoints.v1.product import product
-from endpoints.v1.product import catalog
-from endpoints.v1.shipping import shipping
-from endpoints.v1.users import user
-from endpoints.v1.payment import payment
+from app.infra.endpoints.direct_sales import direct_sales
+from app.infra.endpoints.mail import mail
+from app.infra.endpoints.order import order
+from app.infra.endpoints.product import product
+from app.infra.endpoints.product import catalog
+from app.infra.endpoints.shipping import shipping
+from app.infra.endpoints.users import user
+from app.infra.endpoints.payment import payment
 from app.infra.endpoints.cart import cart
-from endpoints.v1.default import (
+from app.infra.endpoints.default import (
     inventory,
     reviews,
     coupons,

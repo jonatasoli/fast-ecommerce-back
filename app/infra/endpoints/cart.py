@@ -4,14 +4,14 @@ from fastapi.security import OAuth2PasswordBearer
 from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from app.infra.bootstrap import Command, bootstrap
-from endpoints.deps import get_db
+from app.infra.deps import get_db
 from payment.schema import InstallmentSchema, PaymentResponse
 from fastapi import APIRouter, Depends
 from loguru import logger
 from sqlalchemy.orm import Session
 
 from domains import domain_order
-from endpoints import deps
+from app.infra import deps
 from payment.service import Checkout
 from schemas.order_schema import CheckoutReceive
 from app.cart import services

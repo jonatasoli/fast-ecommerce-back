@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.types import JSON, Numeric
 
-from ext.database import Base
+from app.infra.database import Base
 
 
 class Product(Base):

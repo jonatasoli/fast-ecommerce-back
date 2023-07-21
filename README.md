@@ -9,7 +9,7 @@
 + PostgreSQL
 + Repository clone
 ```
-git clone https://github.com/jonatasoli/fast-ecommerce
+git clone https://github.com/jonatasoli/fast-ecommerce-back.git
 ```
 ```
 cd fast-ecommerce
