@@ -50,7 +50,11 @@ async def add_product_to_cart(
     return cart
 
 
-async def calculate_cart(uuid: str, cart: CartBase, bootstrap: Command) -> CartBase:
+async def calculate_cart(
+    uuid: str,
+    cart: CartBase,
+    bootstrap: Command,
+) -> CartBase:
     """Must calculate cart and return cart."""
     cache = bootstrap.cache.client()
     cache_cart = cache.get(uuid)

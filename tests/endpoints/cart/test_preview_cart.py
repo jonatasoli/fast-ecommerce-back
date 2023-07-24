@@ -18,6 +18,7 @@ from main import app
 
 URL = '/cart/preview'
 
+
 @pytest.mark.anyio
 async def test_preview_product_cart(client, db) -> None:
     """Must add product in new cart and return cart."""
@@ -82,7 +83,9 @@ async def test_preview_product_cart(client, db) -> None:
     # Act
     # async with AsyncClient(app=app, base_url='http://test') as ac:
     #     response = await ac.post(f'{URL}/{str(uuid)}', json=jsonable_encoder(cart.model_dump()))
-    response = await client.post(f'{URL}/{str(uuid)}', json=jsonable_encoder(cart.model_dump()))
+    response = await client.post(
+        f'{URL}/{str(uuid)}', json=jsonable_encoder(cart.model_dump())
+    )
 
     # Assert
     assert response.status_code == 201
