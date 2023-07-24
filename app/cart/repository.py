@@ -1,5 +1,6 @@
 import abc
 from typing import Any, TypeVar
+from loguru import logger
 
 from sqlalchemy import select
 
@@ -93,10 +94,19 @@ class SqlAlchemyRepository(AbstractRepository):
                         order.Product.id.in_(products),
                     ),
                 )
-                if not products_db:
-                    msg = f'No products with ids {products}'
-                    raise ProductNotFoundError(msg)
+                await self._check_products_db(products_db, products)
 
                 return products_db.scalars().all()
         except Exception as e:
-            raise e
+            logger.error(f'Error in _get_products: {e}')
+            raise
+
+    @staticmethod
+    async def _check_products_db(
+        products_db: list,
+        products: list[int],
+    ) -> None:
+        """Must check if all products are in db."""
+        if not products_db:
+            msg = f'No products with ids {products}'
+            raise ProductNotFoundError(msg)
