@@ -9,7 +9,6 @@ from app.entities.freight import ShippingAddress
 from app.entities.payment import CreditCardInformation
 from app.entities.product import ProductCart
 from app.entities.user import UserAddress, UserData
-from app.entities.coupon import CouponBase
 from pydantic import BaseModel
 
 Self = TypeVar('Self')
@@ -46,7 +45,7 @@ class CartBase(BaseModel):
 
     uuid: UUID
     cart_items: list[ProductCart]
-    coupon: CouponBase | None = None
+    coupon: str | None = None
     discount: Decimal | None = Decimal(0)
     subtotal: Decimal
 

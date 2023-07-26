@@ -124,6 +124,7 @@ async def test_given_cart_with_items_need_calculate_to_preview(
     cart = CartBase(
         uuid=uuid,
         cart_items=cart_items,
+        coupon='code',
         subtotal=Decimal(10),
     )
     cache = bootstrap.cache.client()

@@ -80,9 +80,6 @@ async def test_preview_product_cart(client, db) -> None:
     cache = redis.Redis(connection_pool=pool)
     cache.set(str(uuid), cart.model_dump_json())
 
-    # Act
-    # async with AsyncClient(app=app, base_url='http://test') as ac:
-    #     response = await ac.post(f'{URL}/{str(uuid)}', json=jsonable_encoder(cart.model_dump()))
     response = await client.post(
         f'{URL}/{str(uuid)}', json=jsonable_encoder(cart.model_dump())
     )

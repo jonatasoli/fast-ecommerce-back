@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import sessionmaker
+from app.entities.coupon import CouponBase
 
 from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
@@ -31,6 +32,10 @@ class AbstractUnitOfWork(abc.ABC):
         """Must return a product by id."""
         return await self._get_products(products=products)
 
+    async def get_coupon_by_code(self: Self, code: str) -> CouponBase:
+        """Must return a coupon by code."""
+        return await self._get_coupon_by_code(code=code)
+
     @abc.abstractmethod
     async def _get_product_by_id(self: Self, product_id: int) -> ProductCart:
         """Must return a product by id."""
@@ -39,6 +44,11 @@ class AbstractUnitOfWork(abc.ABC):
     @abc.abstractmethod
     async def _get_products(self: Self, products: list) -> list:
         """Must return a product by id."""
+        ...
+
+    @abc.abstractmethod
+    async def _get_coupon_by_code(self: Self, code: str) -> CouponBase:
+        """Must return a coupon by code."""
         ...
 
 
@@ -83,6 +93,9 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         product_ids: list[int] = [item.product_id for item in products]
         products_db = await self.cart.get_products(products=product_ids)
         return [ProductInDB.model_validate(product) for product in products_db]
+
+    async def _get_coupon_by_code(self: Self, code: str) -> CouponBase:
+        ...
 
 
 class MemoryUnitOfWork(AbstractUnitOfWork):
@@ -156,3 +169,9 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
             ]
 
         return await return_product_list()
+
+    async def _get_coupon_by_code(self: Self, code: str) -> CouponBase:
+        return CouponBase(
+            code=code,
+            coupon_fee=Decimal('10.00'),
+        )

@@ -66,6 +66,13 @@ async def calculate_cart(
         )
     products_db = await bootstrap.uow.get_products(cart.cart_items)
     cart.get_products_price_and_discounts(products_db)
-    cart.calculate_subtotal()
+    if cart.coupon and not (
+        coupon := await bootstrap.uow.get_coupon_by_code(cart.coupon)
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail='Coupon not found',
+        )
+    cart.calculate_subtotal(discount=coupon.coupon_fee if cart.coupon else 0)
     cache.set(str(cart.uuid), cart.model_dump_json())
     return cart

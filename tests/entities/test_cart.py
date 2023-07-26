@@ -267,7 +267,7 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
     discount_percentage = fake.random_number()
     coupon = CouponBase(
         code=fake.word(),
-        discount=discount_percentage,
+        coupon_fee=discount_percentage,
     )
     for _ in range(10):
         price = fake_decimal()
@@ -286,7 +286,7 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
     cart.coupon = coupon
 
     # Act
-    cart.calculate_subtotal(discount=coupon.discount)
+    cart.calculate_subtotal(discount=coupon.coupon_fee)
 
     # Assert
     assert cart.subtotal == subtotal
