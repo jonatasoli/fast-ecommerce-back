@@ -38,8 +38,6 @@ async def test_add_product_in_new_cart(client, db) -> None:
     # Act
     product = ProductCart(product_id=1, quantity=1)
     product.__delattr__('discount_price')
-    # async with AsyncClient(app=app, base_url='http://test') as ac:
-    #     response = await ac.post(URL, json=product.model_dump())
     response = await client.post(URL, json=product.model_dump())
 
     # Assert

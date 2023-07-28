@@ -73,6 +73,15 @@ async def calculate_cart(
             status_code=400,
             detail='Coupon not found',
         )
+    if cart.zipcode:
+        freight_cart = await bootstrap.freight.calculate_volume_weight(
+            cart.zipcode,
+            products=products_db,
+        )
+        cart.freight_price = await bootstrap.freight.get_freight(
+            freight_cart=freight_cart,
+            zipcode=cart.zipcode,
+        )
     cart.calculate_subtotal(discount=coupon.coupon_fee if cart.coupon else 0)
     cache.set(str(cart.uuid), cart.model_dump_json())
     return cart
