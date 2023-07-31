@@ -95,13 +95,18 @@ async def calculate_cart(
 
 
 async def add_user_to_cart(
-    uuid: str,  # noqa: ARG001
-    cart: CartBase,  # noqa: ARG001
-    token: str,  # noqa: ARG001
-    bootstrap: Command,  # noqa: ARG001
+    uuid: str,
+    cart: CartBase,
+    token: str,
+    bootstrap: Command,
 ) -> CartUser:
     """Must validate token user if is valid add user id in cart."""
-    ...
+    user = bootstrap.user.get_current_user(token)
+    cart_user = CartUser(**cart.model_dump(), user=user)
+    cache = bootstrap.cache
+    cache.get(uuid)
+    cache.set(str(cart.uuid), cart_user.model_dump_json())
+    return cart
 
 
 async def add_address_to_cart(
