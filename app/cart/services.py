@@ -130,11 +130,13 @@ async def add_payment_information(
 
 
 async def preview(
-    uuid: str,  # noqa: ARG001
-    bootstrap: Command,  # noqa: ARG001
+    uuid: str,
+    bootstrap: Command,
 ) -> CartPayment:
     """Must get address id and payment token to show in cart."""
-    ...
+    cache = bootstrap.cache
+    cart = cache.get(uuid)
+    return CartPayment.model_validate_json(cart)
 
 
 async def checkout(uuid: str, bootstrap: Command) -> dict:   # noqa: ARG001
