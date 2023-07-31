@@ -44,7 +44,7 @@ class CartBase(BaseModel):
     """Cart first step representation."""
 
     uuid: UUID
-    cart_items: list[ProductCart]
+    cart_items: list[ProductCart] = []
     coupon: str | None = None
     discount: Decimal = Decimal(0)
     freight: Decimal = Decimal(0)

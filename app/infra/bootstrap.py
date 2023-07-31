@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+import redis as cache_client
 from app.cart import uow
 from app.cart.uow import SqlAlchemyUnitOfWork
 from app.infra import redis, queue
@@ -10,7 +11,7 @@ class Command(BaseModel):
     """Command to use in the application."""
 
     uow: uow.AbstractUnitOfWork
-    cache: redis.AbstractCache
+    cache: redis.MemoryClient | cache_client.Redis
     publish: queue.AbstractPublish
     freight: freight.AbstractFreight
 
@@ -30,9 +31,11 @@ async def bootstrap(
     if uow is None:
         uow = SqlAlchemyUnitOfWork()
 
+    _cache = cache.client()
+
     return Command(
         uow=uow,
-        cache=cache,
+        cache=_cache,
         publish=publish,
         freight=freight,
     )

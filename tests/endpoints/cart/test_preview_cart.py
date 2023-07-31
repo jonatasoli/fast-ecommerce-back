@@ -16,11 +16,11 @@ from httpx import AsyncClient
 from main import app
 
 
-URL = '/cart/preview'
+URL = '/cart'
 
 
 @pytest.mark.anyio
-async def test_preview_product_cart(client, db) -> None:
+async def test_estimate_products_in_cart(client, db) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
     with db:
@@ -81,7 +81,7 @@ async def test_preview_product_cart(client, db) -> None:
     cache.set(str(uuid), cart.model_dump_json())
 
     response = await client.post(
-        f'{URL}/{str(uuid)}', json=jsonable_encoder(cart.model_dump())
+        f'{URL}/{str(uuid)}/estimate', json=jsonable_encoder(cart.model_dump())
     )
 
     # Assert

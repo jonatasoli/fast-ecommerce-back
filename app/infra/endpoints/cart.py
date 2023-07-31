@@ -1,7 +1,7 @@
 from typing import Any
 
 from fastapi.security import OAuth2PasswordBearer
-from app.entities.cart import CartBase
+from app.entities.cart import CartBase, CartUser
 from app.entities.product import ProductCart
 from app.infra.bootstrap import Command, bootstrap
 from endpoints.deps import get_db
@@ -29,11 +29,11 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
-@cart.post('/cart', response_model=CartBase, status_code=200)
-@cart.post('/cart/{uuid}', response_model=CartBase, status_code=201)
+@cart.post('/', response_model=CartBase, status_code=200)
+@cart.post('/{uuid}', response_model=CartBase, status_code=201)
 def create_or_get_cart(
-    *,
     uuid: str | None = None,
+    *,
     token: str = Depends(oauth2_scheme),  # noqa: B008
     bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
 ) -> CartBase:
@@ -45,10 +45,10 @@ def create_or_get_cart(
     )
 
 
-@cart.post('/product', status_code=201, response_model=CartBase)
+@cart.post('/{uuid}/product', status_code=201, response_model=CartBase)
 async def add_product_to_cart(  # noqa: ANN201
-    *,
     uuid: str | None = None,
+    *,
     product: ProductCart,
     bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
 ):
@@ -61,8 +61,8 @@ async def add_product_to_cart(  # noqa: ANN201
     )
 
 
-@cart.post('/preview/{uuid}', status_code=201, response_model=CartBase)
-async def preview(
+@cart.post('/{uuid}/estimate', status_code=201, response_model=CartBase)
+async def estimate(
     uuid: str,
     *,
     cart: CartBase,
@@ -72,6 +72,23 @@ async def preview(
     return await services.calculate_cart(
         uuid=uuid,
         cart=cart,
+        bootstrap=bootstrap,
+    )
+
+
+@cart.post('{uuid}/user', status_code=201, response_model=CartUser)
+async def add_user_to_cart(
+    uuid: str,
+    *,
+    cart: CartBase,
+    token: str = Depends(oauth2_scheme),  # noqa: B008
+    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+) -> CartUser:
+    """Add user to cart."""
+    return await services.add_user_to_cart(
+        uuid=uuid,
+        cart=cart,
+        token=token,
         bootstrap=bootstrap,
     )
 

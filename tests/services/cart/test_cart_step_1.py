@@ -47,9 +47,7 @@ async def test_add_product_to_new_cart_should_set_in_cache(
         quantity=1,
     )
     bootstrap = await memory_bootstrap
-    memory_client = MemoryCache().client()
-    mocker.patch.object(bootstrap.cache, 'client', return_value=memory_client)
-    cache_spy = mocker.spy(memory_client, 'set')
+    cache_spy = mocker.spy(bootstrap.cache, 'set')
 
     # Act
     cart_response = await add_product_to_cart(None, product, bootstrap)
@@ -83,7 +81,7 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
         cart_items=[current_product],
         subtotal=Decimal(10),
     )
-    cache = bootstrap.cache.client()
+    cache = bootstrap.cache
     cache.set(str(uuid), cart.model_dump_json())
 
     # Act
@@ -127,7 +125,7 @@ async def test_given_cart_with_items_need_calculate_to_preview(
         coupon='code',
         subtotal=Decimal(10),
     )
-    cache = bootstrap.cache.client()
+    cache = bootstrap.cache
     cache.set(str(uuid), cart.model_dump_json())
 
     # Act
