@@ -39,6 +39,8 @@ boto3 = "*"
 zipp = "*"
 dynaconf = "*"
 redis = "^4.6.0"
+stripe = "^5.5.0"
+celery = {version = "^5.3.1", extras = ["librabbitmq"]}
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"

@@ -1,19 +1,18 @@
-from typing import Any
-
 from fastapi.security import OAuth2PasswordBearer
-from app.entities.cart import CartBase, CartUser
+from app.entities.address import CreateAddress
+from app.entities.cart import (
+    CartBase,
+    CartPayment,
+    CartShipping,
+    CartUser,
+    CreateCheckoutResponse,
+    CreatePaymentMethod,
+)
 from app.entities.product import ProductCart
 from app.infra.bootstrap import Command, bootstrap
-from endpoints.deps import get_db
-from payment.schema import InstallmentSchema, PaymentResponse
 from fastapi import APIRouter, Depends
 from loguru import logger
-from sqlalchemy.orm import Session
 
-from domains import domain_order
-from endpoints import deps
-from payment.service import Checkout
-from schemas.order_schema import CheckoutReceive
 from app.cart import services
 
 cart = APIRouter(
@@ -93,7 +92,81 @@ async def add_user_to_cart(
     )
 
 
-@cart.get('/upsell/{id}', status_code=200)
+@cart.post('{uuid}/address', status_code=201, response_model=CartShipping)
+async def add_address_to_cart(
+    uuid: str,
+    *,
+    cart: CartUser,
+    address: CreateAddress,
+    token: str = Depends(oauth2_scheme),  # noqa: B008
+    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+) -> CartShipping:
+    """Add user to cart."""
+    return await services.add_address_to_cart(
+        uuid=uuid,
+        cart=cart,
+        address=address,
+        token=token,
+        bootstrap=bootstrap,
+    )
+
+
+@cart.post('{uuid}/payment', status_code=201, response_model=CartPayment)
+async def add_payment_information_to_cart(
+    uuid: str,
+    *,
+    cart: CartShipping,
+    payment: CreatePaymentMethod,
+    token: str = Depends(oauth2_scheme),  # noqa: B008
+    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+) -> CartShipping:
+    """Add user to cart."""
+    return await services.add_payment_information(
+        uuid=uuid,
+        cart=cart,
+        payment=payment,
+        token=token,
+        bootstrap=bootstrap,
+    )
+
+
+@cart.post('{uuid}/preview', status_code=200, response_model=CartPayment)
+async def preview_cart(
+    uuid: str,
+    *,
+    token: str = Depends(oauth2_scheme),  # noqa: B008
+    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+) -> CartShipping:
+    """Add user to cart."""
+    return await services.preview(
+        uuid=uuid,
+        token=token,
+        bootstrap=bootstrap,
+    )
+
+
+@cart.post(
+    '{uuid}/checkout',
+    status_code=202,
+    response_model=CreateCheckoutResponse,
+)
+async def checkout_cart(
+    uuid: str,
+    *,
+    cart: CartPayment,
+    token: str = Depends(oauth2_scheme),  # noqa: B008
+    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+) -> CreateCheckoutResponse:
+    """Add user to cart."""
+    return await services.checkout(
+        uuid=uuid,
+        cart=cart,
+        token=token,
+        bootstrap=bootstrap,
+    )
+
+
+@cart.get('{uuid}/upsell/{id}', status_code=200)
 async def get_upsell_products(id):   # noqa: A002, ANN201, ANN001
     """Get upsell products."""
     try:
@@ -102,38 +175,4 @@ async def get_upsell_products(id):   # noqa: A002, ANN201, ANN001
         return True   # noqa: TRY300
     except Exception as e:
         logger.error('Erro ao retornar upsell {e}')
-        raise e   # noqa: TRY201
-
-
-@cart.post('/checkout', status_code=201)
-def checkout(
-    *,
-    db: Session = Depends(deps.get_db),  # noqa: B008
-    data: CheckoutReceive,
-) -> PaymentResponse:
-    """Checkout."""
-    checkout_data = data.model_dump().get('transaction')
-    affiliate = data.model_dump().get('affiliate')
-    cupom = data.model_dump().get('cupom')
-    logger.info(checkout_data)
-    logger.info(affiliate)
-    return Checkout(
-        db=db,
-        checkout_data=checkout_data,
-        affiliate=affiliate,
-        cupom=cupom,
-    ).process_checkout()
-
-
-@cart.post('/cart/installments', status_code=200)
-async def get_installments(
-    *,
-    db: Session = Depends(get_db),  # noqa: B008
-    cart: InstallmentSchema,
-) -> list[Any]:
-    """Get installments."""
-    try:
-        return domain_order.get_installments(db, cart=cart)
-    except Exception as e:
-        logger.error(f'Erro ao coletar o parcelamento - {e}')
         raise e   # noqa: TRY201

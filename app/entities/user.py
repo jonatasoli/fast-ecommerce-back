@@ -9,6 +9,7 @@ class UserData(BaseModel):
 
 
 class UserAddress(BaseModel):
+    id: int   # noqa: A003
     address: str
     address_number: str
     address_complement: str

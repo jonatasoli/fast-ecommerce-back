@@ -18,6 +18,7 @@ class User(Base):
     # uselist=False)
 
     document = Column(String(32), unique=True)
+    username = Column(String(32), unique=True)
     document_type = Column(
         String(32),
         default=DocumentType.CPF.value,
@@ -34,11 +35,14 @@ class User(Base):
         nullable=True,
     )
     password = Column(String)
-
     role_id = Column(Integer)
 
     status = Column(String(20), default='deactivated')
+    active = Column(Boolean, default=False, server_default='0')
+
     uuid = Column(String, nullable=True)
+    customer_id = Column(String, nullable=True)
+    card_id = Column(String, nullable=True)
     franchise_id = Column(Integer, default=1)
 
     update_email_on_next_login = Column(

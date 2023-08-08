@@ -1,4 +1,3 @@
-import enum
 from decimal import Decimal
 from typing import TypeVar
 from uuid import UUID, uuid4
@@ -6,7 +5,6 @@ from loguru import logger
 
 
 from app.entities.freight import ShippingAddress
-from app.entities.payment import CreditCardInformation
 from app.entities.product import ProductCart
 from app.entities.user import UserAddress, UserData
 from pydantic import BaseModel
@@ -167,8 +165,33 @@ class CartShipping(CartUser):
 class CartPayment(CartShipping):
     """Cart fourth step representation with payment information."""
 
-    payment_method: enum.Enum
-    credit_card_information: CreditCardInformation
+    payment_method: str
+    payment_method_id: str
+
+
+class CreatePaymentMethod(BaseModel):
+    """Create payment method."""
+
+    number: str
+    exp_month: int
+    exp_year: int
+    cvc: str
+    name: str
+
+
+class AddressCreate(BaseModel):
+    """Create address model."""
+
+    shipping_is_payment: bool
+    shipping_address: ShippingAddress | None = None
+    user_address: UserAddress
+
+
+class CreateCheckoutResponse(BaseModel):
+    """Result of create checkout."""
+
+    status: str
+    message: str
 
 
 def convert_price_to_decimal(price: int) -> Decimal:

@@ -1,9 +1,11 @@
 from fastapi import HTTPException
+from app.entities.address import CreateAddress
 from app.entities.cart import (
     CartBase,
     CartUser,
     CartShipping,
     CartPayment,
+    CreatePaymentMethod,
     generate_empty_cart,
     generate_new_cart,
 )
@@ -110,35 +112,93 @@ async def add_user_to_cart(
 
 
 async def add_address_to_cart(
-    uuid: str,  # noqa: ARG001
-    cart: CartUser,  # noqa: ARG001
-    address: dict,  # noqa: ARG001
-    bootstrap: Command,  # noqa: ARG001
+    uuid: str,
+    cart: CartUser,
+    address: CreateAddress,
+    token: str,
+    bootstrap: Command,
 ) -> CartShipping:
     """Must add addresss information to shipping and payment."""
-    ...
+    _ = token
+    cache_cart = bootstrap.cache.get(uuid)
+    cache_cart = CartUser.model_validate_json(cache_cart)
+    if cache_cart.uuid != cart.uuid:
+        raise HTTPException(
+            status_code=400,
+            detail='Cart uuid is not the same as the cache uuid',
+        )
+    address_id = address.user_address.id
+    address_user = await bootstrap.uow.get_address_by_id(address_id)
+    if not address_user:
+        address_user = await bootstrap.uow.create_address(
+            address,
+            cart.user.id,
+        )
+    if not address.shipping_is_payment:
+        address_shipping = await bootstrap.uow.create_address(
+            address,
+            cart.user.id,
+        )
+    cart = CartShipping(
+        **cart.model_dump(),
+        user_address=address_user,
+        shipping_address=address_shipping,
+    )
+    bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
+    return cart
 
 
-async def add_payment_information(
-    uuid: str,  # noqa: ARG001
-    cart: CartShipping,  # noqa: ARG001
-    payment: dict,  # noqa: ARG001
-    bootstrap: Command,  # noqa: ARG001
+async def add_payment_information(  # noqa: PLR0913
+    uuid: str,
+    cart: CartShipping,
+    payment: CreatePaymentMethod,
+    token: str,
+    bootstrap: Command,
+    payment_method: str = 'card',
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
-    ...
+    _ = token
+    cache_cart = bootstrap.cache.get(uuid)
+    cache_cart = CartShipping.model_validate_json(cache_cart)
+    if cache_cart.uuid != cart.uuid:
+        raise HTTPException(
+            status_code=400,
+            detail='Cart uuid is not the same as the cache uuid',
+        )
+    payment = bootstrap.payment.create_payment_method(payment)
+    cart = CartPayment(
+        **cart.model_dump(),
+        payment_method=payment_method,
+        payment_method_id=payment.id,
+    )
+    bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
+    await bootstrap.uow.update_payment_method_to_user(cart.user.id, payment.id)
+    return cart
 
 
 async def preview(
     uuid: str,
+    token: str,
     bootstrap: Command,
 ) -> CartPayment:
     """Must get address id and payment token to show in cart."""
-    cache = bootstrap.cache
-    cart = cache.get(uuid)
+    _ = token
+    cart = bootstrap.cache.get(uuid)
     return CartPayment.model_validate_json(cart)
 
 
-async def checkout(uuid: str, bootstrap: Command) -> dict:   # noqa: ARG001
+async def checkout(
+    uuid: str,
+    cart: CartPayment,
+    token: str,
+    bootstrap: Command,
+) -> None:
     """Process payment to specific cart."""
-    ...
+    _ = token, cart
+    cache_cart = bootstrap.cache.get(uuid)
+    if not cart:
+        raise HTTPException(
+            status_code=400,
+            detail='Cart not found',
+        )
+    bootstrap.publish.checkout.apply_async(args=[cache_cart.uuid])
