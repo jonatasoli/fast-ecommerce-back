@@ -61,10 +61,10 @@ class ConfigCreditCardInDB(BaseModel):
 
 
 class ConfigCreditCardResponse(BaseModel):
-    id: int
+    credit_card_fee_config_id: int
     fee: Decimal
     min_installment_with_fee: int
-    mx_installments: int
+    max_installments: int
     model_config = ConfigDict(from_attributes=True)
 
 

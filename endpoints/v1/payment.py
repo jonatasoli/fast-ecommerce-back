@@ -1,5 +1,5 @@
 from endpoints.deps import get_db
-from payment.schema import InstallmentSchema
+from payment.schema import ConfigCreditCardResponse, InstallmentSchema
 from fastapi import APIRouter, Depends
 from loguru import logger
 from sqlalchemy.orm import Session
@@ -49,7 +49,7 @@ def checkout(*, db: Session = Depends(deps.get_db), data: CheckoutReceive):
     ).process_checkout()
 
 
-@payment.post('/create-config', status_code=201)
+@payment.post('/create-config', status_code=201, response_model=ConfigCreditCardResponse)
 def create_config(*, config_data: ConfigCreditCardInDB):
     return repositories.CreditCardConfig(
         config_data=config_data,

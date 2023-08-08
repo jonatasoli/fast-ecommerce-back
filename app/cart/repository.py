@@ -4,7 +4,7 @@ from loguru import logger
 
 from sqlalchemy import select
 
-from models import order
+from app.infra.models import order
 
 
 Self = TypeVar('Self')

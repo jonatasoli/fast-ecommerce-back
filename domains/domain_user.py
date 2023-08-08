@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session
 
 from constants import DocumentType, Roles
 from ext.database import get_session
-from models.role import Role
-from models.users import Address, User, UserResetPassword
+from app.infra.models.role import Role
+from app.infra.models.users import Address, User, UserResetPassword
 from schemas.order_schema import CheckoutSchema
 from schemas.user_schema import (
     SignUp,
@@ -32,20 +32,33 @@ class COUNTRY_CODE(enum.Enum):
     brazil = 'brazil'
 
 
+def gen_hash(password):
+    return pwd_context.hash(password)
+
+
+def verify_password(password, check_password):
+    return pwd_context.verify(check_password, password)
+
+
 def create_user(db: Session, obj_in: SignUp):
     try:
         logger.info(obj_in)
         logger.debug(Roles.USER.value)
+        if not obj_in.password:
+            msg = 'User not password'
+            raise Exception(msg)
+
 
         with db:
             db_user = User(
                 name=obj_in.name,
+                username=obj_in.username,
                 document_type=DocumentType.CPF.value,
                 document=obj_in.document,
                 birth_date=None,
                 email=obj_in.mail,
                 phone=obj_in.phone,
-                password=obj_in.password.get_secret_value(),
+                password=gen_hash(obj_in.password.get_secret_value()),
                 role_id=Roles.USER.value,
                 update_email_on_next_login=False,
                 update_password_on_next_login=False,
@@ -80,21 +93,20 @@ def get_user(db: Session, document: str, password: str):
         if not password:
             msg = 'User not password'
             raise Exception(msg)
-        if db_user and db_user.verify_password(password):
+        if db_user and verify_password(db_user.password, password):
             return db_user
         else:
             logger.error(
                 f'User not finded {db_user.document}, {db_user.password}',
             )
-            msg = f'User not finded {db_user.document}'
-            raise Exception(msg)
+            raise HTTPException(status_code=403, detail="Access forbidden")
     except Exception as e:
         raise e
 
 
 def authenticate_user(db, document: str, password: str):
     user = get_user(db, document, password)
-    user_dict = UserSchema.from_orm(user).dict()
+    user_dict = UserSchema.model_validate(user).model_dump()
 
     user = UserInDB(**user_dict)
     logger.debug(f'{user} ')
@@ -176,7 +188,7 @@ def check_token(f):
 
 def get_role_user(db: Session, user_role_id: int):
     with db:
-        role_query = select(Role).where(Role.id == user_role_id)
+        role_query = select(Role).where(Role.role_id == user_role_id)
         _role = db.execute(role_query).scalars().first()
         return _role.role
 

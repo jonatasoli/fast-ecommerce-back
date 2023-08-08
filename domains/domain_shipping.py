@@ -2,7 +2,7 @@ from dynaconf import settings
 from loguru import logger
 from sqlalchemy.orm import Session
 
-from models.order import Product
+from app.infra.models.order import Product
 from schemas.shipping_schema import Shipping, ShippingCalc
 from zipcode.zip_code import CalculateShipping, FindZipCode
 

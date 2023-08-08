@@ -27,7 +27,6 @@ def fake_decimal(
         ),
     )
 
-
 def fake_cpf(*, with_separators: bool = False) -> str:
     if with_separators:
         return cast(str, fake.cpf())
@@ -48,3 +47,7 @@ def fake_dict() -> dict[str, Any]:
 
 def fake_url() -> str:
     return cast(str, fake.uri())
+
+def fake_url_path() -> str:
+    return cast(str, fake.uri_path())
+

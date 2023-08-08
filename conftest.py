@@ -22,7 +22,7 @@ sys.path.append(root_dir)
 
 from dynaconf import settings
 
-from ext.base import Base
+from app.infra.models.base import Base
 from ext.database import get_engine
 
 from endpoints.deps import get_db

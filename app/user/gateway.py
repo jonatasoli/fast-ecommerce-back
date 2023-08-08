@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session
 
 from constants import DocumentType, Roles
 from ext.database import get_session
-from models.role import Role
-from models.users import User, UserResetPassword
+from app.infra.models.role import Role
+from app.infra.models.users import User, UserResetPassword
 from schemas.user_schema import (
     SignUp,
     UserInDB,

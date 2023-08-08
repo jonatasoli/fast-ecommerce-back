@@ -1,10 +1,12 @@
 from sqlalchemy import Boolean, Column, DateTime, Integer
 
-from ext.database import Base
+from app.infra.models.base import Base
 
 
 class CommissionsTransactions(Base):
-    id = Column(Integer, nullable=False, primary_key=True)
+    __tablename__ = 'commissions_transactions'
+
+    commissions_transactions_id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer)
     transaction_id = Column(Integer)
     commissions = Column(Integer)
@@ -14,7 +16,9 @@ class CommissionsTransactions(Base):
 
 
 class CommissionsWallet(Base):
-    id = Column(Integer, nullable=False, primary_key=True)
+    __tablename__ = 'commissions_wallet'
+
+    commissions_wallet_id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer)
     commissions_total = Column(Integer)
     date_created = Column(DateTime)

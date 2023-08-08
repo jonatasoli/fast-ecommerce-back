@@ -7,9 +7,9 @@ from sqlalchemy import Date, cast
 from sqlalchemy.orm import Session
 
 from ext import optimize_image
-from models.order import Category, ImageGallery, Order, Product
-from models.transaction import Payment, Transaction
-from models.users import Address, User
+from app.infra.models.order import Category, ImageGallery, Order, Product
+from app.infra.models.transaction import Payment, Transaction
+from app.infra.models.users import Address, User
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,

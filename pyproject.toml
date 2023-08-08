@@ -41,6 +41,8 @@ dynaconf = "*"
 redis = "^4.6.0"
 stripe = "^5.5.0"
 celery = {version = "^5.3.1", extras = ["librabbitmq"]}
+pydantic-settings = "^2.0.2"
+factory-boy = "^3.3.0"
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"

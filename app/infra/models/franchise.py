@@ -1,10 +1,12 @@
 from sqlalchemy import Boolean, Column, Integer, String
 
-from ext.database import Base
+from app.infra.models.base import Base
 
 
-class User(Base):
-    id = Column(Integer, nullable=False, primary_key=True)
+class Franchise(Base):
+    __tablename__ = "franchise"
+
+    franchise_id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String)
     active = Column(Boolean)
     communication_name = Column(String)

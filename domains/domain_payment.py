@@ -13,8 +13,8 @@ from domains.domain_user import (
     register_payment_address,
     register_shipping_address,
 )
-from models.order import Order, OrderItems, Product
-from models.transaction import CreditCardFeeConfig, Payment, Transaction
+from app.infra.models.order import Order, OrderItems, Product
+from app.infra.models.transaction import CreditCardFeeConfig, Payment, Transaction
 from schemas.order_schema import (
     CheckoutSchema,
     ProductSchema,
@@ -28,7 +28,7 @@ def create_installment_config(db: Session, config_data):
         active_date=datetime.now(),
         fee=Decimal(config_data.fee),
         min_installment_with_fee=config_data.min_installment,
-        mx_installments=config_data.max_installment,
+        max_installments=config_data.max_installment,
     )
     db.add(db_config)
     db.commit()
