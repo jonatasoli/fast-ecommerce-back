@@ -101,7 +101,7 @@ def get_images_gallery(db: Session, uri):
 
 def get_showcase(db: Session):
     with db:
-        showcases_query = select(Product).where(Product.showcase is True)
+        showcases_query = select(Product).where(Product.showcase == True)
         showcases = db.execute(showcases_query).scalars().all()
         products = []
 
@@ -412,21 +412,22 @@ def get_category(db: Session):
 
 def get_products_category(db: Session, path):
     products = None
-    with db:
-        category = db.query(Category).filter(Category.path == path).first()
-        logger.info(category.path, category.id)
-        products = (
-            db.query(Product)
-            .filter(
-                Product.showcase is True,
-                Product.category_id == category.id,
-            )
-            .all()
-        )
     products_category = []
+    with db:
+        category_query = select(Category).where(Category.path == path)
+        category = db.execute(category_query).scalars().first()
 
-    for product in products:
-        products_category.append(product)
+        logger.info(category.path, category.category_id)
+        products_query = (
+            select(Product)
+            .where(
+                Product.category_id == category.category_id,
+            )
+        )
+        products = db.execute(products_query).scalars().all()
+
+        for product in products:
+            products_category.append(product)
 
     if products:
         return {'product': products_category}

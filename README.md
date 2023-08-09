@@ -92,26 +92,18 @@ python -m pytest
 * Create product with route -> create_product
 suggest test product
 ```json
-    product = {
-        'description': 'Test Product',
-        'direct_sales': None,
-        'installments_config': 1,
-        'name': 'Test',
-        'price': 10000,
-        'upsell': None,
-        'uri': '/test',
-        'image_path': 'https://i.pinimg.com/originals/e4/34/2a/e4342a4e0e968344b75cf50cf1936c09.jpg',
-        'quantity': 100,
-        'discount': 100,
-        'category_id': 1,
-        'installments_list': [
-            {'name': '1', 'value': 'R$100,00'},
-            {'name': '2', 'value': 'R$50,00'},
-            {'name': '3', 'value': 'R$33,00'},
-            {'name': '4', 'value': 'R$25,00'},
-            {'name': '5', 'value': 'R$20,00'},
-        ],
-    }
+{
+  "name": "Test",
+  "uri": "/test",
+  "price": 10000,
+  "direct_sales": 0,
+  "description": "Test Product",
+  "image_path": "https://i.pinimg.com/originals/e4/34/2a/e4342a4e0e968344b75cf50cf1936c09.jpg",
+  "installments_config": 1,
+  "category_id": 1,
+  "discount": 100,
+  "sku": "sku01"
+}
 ```
 
 ## Integrations

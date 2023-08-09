@@ -73,11 +73,10 @@ class ProductSchema(BaseModel):
     uri: str
     price: int
     direct_sales: bool | None = None
-    upsell: list | None = None
     description: str
     image_path: str
     installments_config: int | None = None
-    installments_list: list | None = None
+    installments_list: dict | None = None
     category_id: int
     discount: int | None = None
     height: int | None = None

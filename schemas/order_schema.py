@@ -8,14 +8,12 @@ class ProductSchema(BaseModel):
     uri: str
     price: int
     direct_sales: bool | None = None
-    upsell: list | None = None
     description: str
     image_path: str | None = None
     installments_config: int | None = None
-    installments_list: list | None = None
+    installments_list: dict | None = None
     category_id: int
     discount: int | None = None
-    quantity: int | None = None
     heigth: float | None = None
     width: float | None = None
     weigth: float | None = None
@@ -24,23 +22,21 @@ class ProductSchema(BaseModel):
 
 
 class ProductResponseSchema(ProductSchema):
-    id: int
+    product_id: int
 
 
 class ProductFullResponse(BaseModel):
-    id: int | None = None
+    product_id: int | None = None
     name: str
     uri: str
     price: int
     direct_sales: bool | None = None
-    upsell: list | None = None
     description: str | None = None
     image_path: str | None = None
     installments_config: int | None = None
-    installments_list: list | None = None
+    installments_list: dict | None = None
     category_id: int
     discount: int | None = None
-    quantity: int | None = None
     showcase: bool
     show_discount: bool | None = None
     heigth: float | None = None
@@ -51,25 +47,24 @@ class ProductFullResponse(BaseModel):
 
 
 class ProductInDB(BaseModel):
-    id: int
+    product_id: int
     name: str
     uri: str
     price: int
     direct_sales: bool | None = None
-    upsell: list | None = None
     description: str | None = None
     image_path: str | None = None
     installments_config: int | None = None
-    installments_list: list | None = None
+    installments_list: dict | None = None
     category_id: int
     discount: int | None = None
-    quantity: int | None = None
     showcase: bool
     show_discount: bool | None = None
     heigth: float | None = None
     width: float | None = None
     weigth: float | None = None
     length: float | None = None
+    sku: str
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -83,7 +78,7 @@ class InstallmentSchema(BaseModel):
 
 
 class OrderSchema(BaseModel):
-    id: int
+    order_id: int
     customer_id: int
     order_date: datetime
     tracking_number: str
@@ -93,7 +88,7 @@ class OrderSchema(BaseModel):
 
 
 class OrderFullResponse(BaseModel):
-    id: int
+    order_id: int
     customer_id: int
     order_date: datetime
     tracking_number: str
@@ -197,7 +192,7 @@ class OrdersPaidFullResponse(BaseModel):
 
 
 class OrderItemsSchema(BaseModel):
-    id: int
+    order_items_id: int
     order_id: int
     product_id: int
     quantity: int
@@ -250,20 +245,20 @@ class CheckoutResponseSchema(BaseModel):
 
 
 class CategorySchema(BaseModel):
-    id: int
+    category_id: int
     name: str
     path: str
 
 
 class CategoryInDB(BaseModel):
-    id: int
+    category_id: int
     name: str
     path: str
     model_config = ConfigDict(from_attributes=True)
 
 
 class ImageGalleryResponse(BaseModel):
-    id: int
+    image_gallery_id: int
     url: str
     model_config = ConfigDict(from_attributes=True)
 
