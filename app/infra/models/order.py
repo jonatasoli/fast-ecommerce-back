@@ -1,6 +1,5 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import List
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 from sqlalchemy.types import JSON
@@ -30,8 +29,15 @@ class Product(Base):
     installments_config: Mapped[int]
     installments_list: Mapped[dict] = mapped_column(JSON, nullable=True)
     discount: Mapped[int | None]
-    category_id: Mapped[int] = mapped_column(ForeignKey('category.category_id'))
-    category: Mapped["Category"] = relationship(foreign_keys=[category_id], backref='Product', cascade='all,delete', uselist=False,)
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey('category.category_id'),
+    )
+    category: Mapped['Category'] = relationship(
+        foreign_keys=[category_id],
+        backref='Product',
+        cascade='all,delete',
+        uselist=False,
+    )
     showcase: Mapped[bool] = mapped_column(default=False)
     show_discount: Mapped[bool] = mapped_column(default=False)
     height: Mapped[Decimal | None]
@@ -66,7 +72,9 @@ class Order(Base):
     )
     order_date: Mapped[datetime]
     tracking_number: Mapped[str | None]
-    payment_id: Mapped[int | None] = mapped_column(ForeignKey('payment.payment_id'))
+    payment_id: Mapped[int | None] = mapped_column(
+        ForeignKey('payment.payment_id'),
+    )
     order_status: Mapped[str]
     last_updated: Mapped[datetime]
     checked: Mapped[bool] = mapped_column(default=False)

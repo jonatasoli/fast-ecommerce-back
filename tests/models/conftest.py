@@ -8,7 +8,11 @@ from app.infra.models.base import Base
 @pytest.fixture
 def session() -> sessionmaker:
     engine = create_engine('sqlite:///:memory:')
-    Session = sessionmaker(bind=engine, autocommit=False, autoflush=False,)
+    Session = sessionmaker(
+        bind=engine,
+        autocommit=False,
+        autoflush=False,
+    )
     Base.metadata.create_all(engine)
     yield Session()
     Base.metadata.drop_all(engine)

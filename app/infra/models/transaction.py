@@ -1,13 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
     ForeignKey,
-    Integer,
-    Numeric,
-    String,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -22,7 +16,12 @@ class Transaction(Base):
 
     transaction_id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
-    user: Mapped["User"] = relationship(foreign_keys=[user_id], backref='transaction', cascade='all,delete', uselist=False,)
+    user: Mapped['User'] = relationship(  # noqa: F821
+        foreign_keys=[user_id],
+        backref='transaction',
+        cascade='all,delete',
+        uselist=False,
+    )
     amount: Mapped[int]
     order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
     qty: Mapped[int]
@@ -38,7 +37,12 @@ class Payment(Base):
 
     payment_id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
-    user: Mapped["User"] = relationship(foreign_keys=[user_id], backref='payment', cascade='all,delete', uselist=False,)
+    user: Mapped['User'] = relationship(  # noqa: F821
+        foreign_keys=[user_id],
+        backref='payment',
+        cascade='all,delete',
+        uselist=False,
+    )
     amount: Mapped[int]
     token: Mapped[str]
     gateway_id: Mapped[int]
@@ -58,4 +62,4 @@ class CreditCardFeeConfig(Base):
     min_installment_with_fee: Mapped[int]
     max_installments: Mapped[int]
     fee: Mapped[Decimal]
-    active_date: Mapped[datetime] = mapped_column( default=func.now())
+    active_date: Mapped[datetime] = mapped_column(default=func.now())

@@ -26,7 +26,7 @@ class ProductCart(BaseModel):
 class ProductInDB(BaseModel):
     """Product Representation in DB."""
 
-    product_id: int   # noqa: A003
+    product_id: int
     name: str
     uri: str
     price: int

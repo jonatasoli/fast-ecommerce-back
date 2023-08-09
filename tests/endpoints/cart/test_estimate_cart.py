@@ -12,7 +12,11 @@ from fastapi.encoders import jsonable_encoder
 import redis
 
 from app.infra.models.order import Product, Category
-from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, ProductFactory
+from tests.factories_db import (
+    CategoryFactory,
+    CreditCardFeeConfigFactory,
+    ProductFactory,
+)
 from tests.fake_functions import fake
 from httpx import AsyncClient
 from main import app
@@ -30,8 +34,12 @@ async def test_estimate_products_in_cart(client, db) -> None:
         config_fee = CreditCardFeeConfigFactory()
         db.add_all([category, config_fee])
         db.flush()
-        product_db_1 = ProductFactory(category=category,installment_config=config_fee, price=100)
-        product_db_2 = ProductFactory(category=category,installment_config=config_fee, price=200)
+        product_db_1 = ProductFactory(
+            category=category, installment_config=config_fee, price=100
+        )
+        product_db_2 = ProductFactory(
+            category=category, installment_config=config_fee, price=200
+        )
         db.add_all([product_db_1, product_db_2])
         db.commit()
     cart_items = []

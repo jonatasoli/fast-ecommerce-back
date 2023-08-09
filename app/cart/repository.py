@@ -57,7 +57,7 @@ class SqlAlchemyRepository(AbstractRepository):
 
     async def _get_product_by_sku(
         self: Self,
-        sku: str,  # noqa: A002
+        sku: str,
     ) -> order.Product:
         """Queery must return a valid product in search by sku."""
         async with self.session().begin() as session:
@@ -65,7 +65,7 @@ class SqlAlchemyRepository(AbstractRepository):
                 select(order.Product).where(order.Product.sku == sku),
             )
             if not product:
-                msg = f'No product with id {product_id}'
+                msg = f'No product with sku {sku}'
                 raise ProductNotFoundError(msg)
 
             return product.fetchone()
@@ -74,7 +74,9 @@ class SqlAlchemyRepository(AbstractRepository):
         """Must return a product by id."""
         async with self.session() as session:
             product = await session.execute(
-                select(order.Product).where(order.Product.product_id == product_id),
+                select(order.Product).where(
+                    order.Product.product_id == product_id,
+                ),
             )
             if not product:
                 msg = f'No product with id {product_id}'

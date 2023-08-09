@@ -1,7 +1,3 @@
-
-
-
-
 from sqlalchemy.sql import select
 from app.infra.models.role import Role
 from tests.factories_db import RoleFactory

@@ -6,7 +6,11 @@ from app.infra.models.base import Base
 class CommissionsTransactions(Base):
     __tablename__ = 'commissions_transactions'
 
-    commissions_transactions_id = Column(Integer, nullable=False, primary_key=True)
+    commissions_transactions_id = Column(
+        Integer,
+        nullable=False,
+        primary_key=True,
+    )
     user_id = Column(Integer)
     transaction_id = Column(Integer)
     commissions = Column(Integer)

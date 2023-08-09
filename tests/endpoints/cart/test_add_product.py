@@ -6,7 +6,11 @@ from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from main import app
 from httpx import AsyncClient
-from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, ProductFactory
+from tests.factories_db import (
+    CategoryFactory,
+    CreditCardFeeConfigFactory,
+    ProductFactory,
+)
 from tests.fake_functions import fake
 from config import settings
 
@@ -25,7 +29,9 @@ async def test_add_product_in_new_cart(client, db) -> None:
         config_fee = CreditCardFeeConfigFactory()
         db.add_all([category, config_fee])
         db.flush()
-        product_db = ProductFactory(category=category, installment_config=config_fee,  price=10000)
+        product_db = ProductFactory(
+            category=category, installment_config=config_fee, price=10000
+        )
         db.add(category)
         db.add(product_db)
         db.commit()

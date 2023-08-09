@@ -8,7 +8,13 @@ from app.infra.models.users import User
 from app.infra.models.role import Role
 from app.infra.models.order import Category, Order, OrderStatusSteps, Product
 from constants import OrderStatus, StepsOrder
-from tests.fake_functions import fake_cpf, fake_decimal, fake_email, fake_url, fake_url_path
+from tests.fake_functions import (
+    fake_cpf,
+    fake_decimal,
+    fake_email,
+    fake_url,
+    fake_url_path,
+)
 
 
 fake = Faker()
@@ -31,16 +37,16 @@ class UserFactory(factory.Factory):
     class Params:
         role = SubFactory(RoleFactory)
 
-    name= fake.name()
+    name = fake.name()
     username = fake.user_name()
     email = fake_email()
     document = fake_cpf()
     phone = fake.phone_number()
     password = fake.password()
-    role_id = SelfAttribute("role.role_id")
+    role_id = SelfAttribute('role.role_id')
 
 
-class CategoryFactory( factory.Factory):
+class CategoryFactory(factory.Factory):
     class Meta:
         model = Category
 
@@ -48,16 +54,20 @@ class CategoryFactory( factory.Factory):
     path = fake_url_path()
 
 
-class CreditCardFeeConfigFactory( factory.Factory):
+class CreditCardFeeConfigFactory(factory.Factory):
     class Meta:
         model = CreditCardFeeConfig
 
-    min_installment_with_fee = factory.LazyFunction(lambda: fake.pyint(min_value=1, max_value=5))
-    max_installments = factory.LazyFunction(lambda: fake.pyint(min_value=6, max_value=12))
+    min_installment_with_fee = factory.LazyFunction(
+        lambda: fake.pyint(min_value=1, max_value=5)
+    )
+    max_installments = factory.LazyFunction(
+        lambda: fake.pyint(min_value=6, max_value=12)
+    )
     fee = fake_decimal()
 
 
-class ProductFactory( factory.Factory):
+class ProductFactory(factory.Factory):
     class Meta:
         model = Product
 
@@ -69,10 +79,12 @@ class ProductFactory( factory.Factory):
     price = fake.pyint()
     description = fake.pystr()
     direct_sales = fake.pybool()
-    installments_config = SelfAttribute("installment_config.credit_card_fee_config_id")
+    installments_config = SelfAttribute(
+        'installment_config.credit_card_fee_config_id'
+    )
     uri = fake_url_path()
     sku = fake.pystr()
-    category_id = SelfAttribute("category.category_id")
+    category_id = SelfAttribute('category.category_id')
     weight = fake.pyint()
     height = fake.pyint()
     width = fake.pyint()
@@ -93,7 +105,8 @@ class OrderFactory(factory.Factory):
     order_status = OrderStatus.PAYMENT_PENDING.value
     last_updated = fake.date_time()
     checked = fake.pybool()
-    customer_id = SelfAttribute("user.user_id")
+    customer_id = SelfAttribute('user.user_id')
+
 
 class PaymentFactory(factory.Factory):
     class Meta:
@@ -102,7 +115,7 @@ class PaymentFactory(factory.Factory):
     class Params:
         user = SubFactory(UserFactory)
 
-    user_id = SelfAttribute("user.user_id")
+    user_id = SelfAttribute('user.user_id')
     amount = fake.pyint()
     token = fake.pystr()
     gateway_id = fake.pyint()
@@ -121,11 +134,11 @@ class OrderStatusStepsFactory(factory.Factory):
     class Params:
         order = SubFactory(OrderFactory)
 
-    order_id = SelfAttribute("order.order_id")
-    status=StepsOrder.PAYMENT_PENDING.value
-    last_updated=fake.date_time()
-    sending= fake.pybool()
-    active= fake.pybool()
+    order_id = SelfAttribute('order.order_id')
+    status = StepsOrder.PAYMENT_PENDING.value
+    last_updated = fake.date_time()
+    sending = fake.pybool()
+    active = fake.pybool()
 
 
 class UploadedImageFactory(factory.Factory):

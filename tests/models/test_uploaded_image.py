@@ -12,7 +12,11 @@ def test_create_user(session):
     session.commit()
 
     # Act
-    image = session.scalar(select(UploadedImage).where(UploadedImage.uploaded_image_id == new_image.uploaded_image_id))
+    image = session.scalar(
+        select(UploadedImage).where(
+            UploadedImage.uploaded_image_id == new_image.uploaded_image_id
+        )
+    )
 
     # Assert
     assert image.uploaded_image_id == new_image.uploaded_image_id

@@ -1,4 +1,4 @@
-# ruff: noqa: ANN003, ANN002, ANN202, DTZ003, TRY302, TRY002, TRY201, TRY301, ANN001, RET505, TRY300, PLR0124 ARG001, N801, E501
+# ruff: noqa: ANN003, ANN002, ANN202, DTZ003, TRY302, TRY002, TRY201, TRY301, ANN001, RET505, TRY300, PLR0124 ARG001, N801, E501, B904
 import enum
 from datetime import datetime, timedelta
 from functools import wraps

@@ -9,7 +9,7 @@ class UserData(BaseModel):
 
 
 class UserAddress(BaseModel):
-    user_id: int   # noqa: A003
+    user_id: int
     address: str
     address_number: str
     address_complement: str
