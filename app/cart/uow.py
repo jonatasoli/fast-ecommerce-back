@@ -188,7 +188,7 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
         async def return_product_list() -> list:
             return [
                 ProductInDB(
-                    id=1,
+                    product_id=1,
                     name='test_1',
                     uri='/test',
                     price=10000,
@@ -211,7 +211,7 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
                     sku='sku_1',
                 ),
                 ProductInDB(
-                    id=2,
+                    product_id=2,
                     name='test_2',
                     uri='/test',
                     price=20000,

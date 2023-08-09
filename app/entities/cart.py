@@ -137,7 +137,7 @@ class CartBase(BaseModel):
                 f'Product list: {products}',
             )
             raise CartInconsistencyError
-        product_dict = {product.id: product for product in products}
+        product_dict = {product.product_id: product for product in products}
         for index, cart_item in enumerate(self.cart_items):
             product_id = cart_item.product_id
             if product_id in product_dict:

@@ -6,10 +6,11 @@ from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from main import app
 from httpx import AsyncClient
+from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, ProductFactory
 from tests.fake_functions import fake
 from config import settings
 
-from models.order import Category, Product
+from app.infra.models.order import Category, Product
 
 
 URL = '/cart'
@@ -20,21 +21,11 @@ async def test_add_product_in_new_cart(client, db) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
     with db:
-        category = Category(
-            name='category1',
-            path='/test',
-        )
-        product_db = Product(
-            name='product 1',
-            price=Decimal('100.00'),
-            description='Test Product',
-            direct_sales=None,
-            category_id=1,
-            installments_config=1,
-            upsell=None,
-            uri='/test_product',
-            sku='code1',
-        )
+        category = CategoryFactory()
+        config_fee = CreditCardFeeConfigFactory()
+        db.add_all([category, config_fee])
+        db.flush()
+        product_db = ProductFactory(category=category, installment_config=config_fee,  price=10000)
         db.add(category)
         db.add(product_db)
         db.commit()

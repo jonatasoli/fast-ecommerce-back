@@ -2,6 +2,7 @@ import httpx
 import pytest
 from decimal import Decimal
 from mail_service.sendmail import settings
+from sendgrid import category
 from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from config import settings
@@ -10,7 +11,8 @@ from app.infra.bootstrap import bootstrap
 from fastapi.encoders import jsonable_encoder
 import redis
 
-from models.order import Product, Category
+from app.infra.models.order import Product, Category
+from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, ProductFactory
 from tests.fake_functions import fake
 from httpx import AsyncClient
 from main import app
@@ -24,33 +26,12 @@ async def test_estimate_products_in_cart(client, db) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
     with db:
-        category = Category(
-            name='category1',
-            path='/test',
-        )
-        product_db_1 = Product(
-            name='product 1',
-            price=Decimal('100.00'),
-            description='Test Product',
-            direct_sales=None,
-            installments_config=1,
-            upsell=None,
-            uri='/test_product_1',
-            category_id=1,
-            sku='code1',
-        )
-        product_db_2 = Product(
-            name='product 2',
-            price=Decimal('200.00'),
-            description='Test Product',
-            direct_sales=None,
-            installments_config=1,
-            upsell=None,
-            uri='/test_product_2',
-            category_id=1,
-            sku='code2',
-        )
-        db.add(category)
+        category = CategoryFactory()
+        config_fee = CreditCardFeeConfigFactory()
+        db.add_all([category, config_fee])
+        db.flush()
+        product_db_1 = ProductFactory(category=category,installment_config=config_fee, price=100)
+        product_db_2 = ProductFactory(category=category,installment_config=config_fee, price=200)
         db.add_all([product_db_1, product_db_2])
         db.commit()
     cart_items = []

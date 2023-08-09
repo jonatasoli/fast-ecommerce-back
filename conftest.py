@@ -110,7 +110,6 @@ def db() -> Generator:
 
 @pytest.fixture(scope='session')
 def db_models(clean_db) -> Generator:
-    _engine = get_engine()
     logger.info('-----GENERATE DB------')
     _engine = get_engine()
     TestingSessionLocal = sessionmaker(

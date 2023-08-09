@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from constants import StepsOrder
 from app.infra.models.order import Order, OrderStatusSteps
-from tests.factories import OrderFactory, OrderStatusStepsFactory, UserFactory
+from tests.factories_db import OrderFactory, OrderStatusStepsFactory, UserFactory
 
 
 

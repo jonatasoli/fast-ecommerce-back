@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from app.infra.models.uploadedimage import UploadedImage
-from tests.factories import UploadedImageFactory
+from tests.factories_db import UploadedImageFactory
 
 
 def test_create_user(session):

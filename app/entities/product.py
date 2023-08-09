@@ -26,13 +26,12 @@ class ProductCart(BaseModel):
 class ProductInDB(BaseModel):
     """Product Representation in DB."""
 
-    id: int   # noqa: A003
+    product_id: int   # noqa: A003
     name: str
     uri: str
     price: int
     active: bool
     direct_sales: bool
-    upsell: list[int] | None
     description: str
     image_path: str | None
     installments_config: int | None

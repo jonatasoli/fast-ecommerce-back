@@ -21,4 +21,4 @@ class CreateAddress(AddressBase):
 
 
 class AddressInDB(AddressBase):
-    id: int   # noqa: A003
+    ...

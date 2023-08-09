@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from app.infra.models.users import User
-from tests.factories import RoleFactory, UserFactory
+from tests.factories_db import UserFactory
 
 
 def test_create_user(session):

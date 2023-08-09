@@ -4,7 +4,7 @@
 
 from sqlalchemy.sql import select
 from app.infra.models.role import Role
-from tests.factories import RoleFactory
+from tests.factories_db import RoleFactory
 
 
 def test_create_role(session):
