@@ -46,8 +46,6 @@ class Address(Base):
 
     address_id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
-    type_address: Mapped[str]
-    category: Mapped[str]
     country: Mapped[str]
     city: Mapped[str]
     state: Mapped[str]

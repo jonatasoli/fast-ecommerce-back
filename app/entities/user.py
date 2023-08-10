@@ -1,11 +1,12 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class UserData(BaseModel):
     name: str
-    mail: str
+    email: str
     document: str
     phone: str
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserAddress(BaseModel):

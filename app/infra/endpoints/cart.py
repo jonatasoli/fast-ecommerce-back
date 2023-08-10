@@ -29,8 +29,20 @@ async def get_bootstrap() -> Command:
 
 
 @cart.post('/', response_model=CartBase, status_code=200)
-@cart.post('/{uuid}', response_model=CartBase, status_code=201)
-def create_or_get_cart(
+def create_cart(
+    *,
+    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+) -> CartBase:
+    """Create or get cart."""
+    return services.create_or_get_cart(
+        uuid=None,
+        token=None,
+        bootstrap=bootstrap,
+    )
+
+
+@cart.get('/{uuid}', response_model=CartBase, status_code=201)
+def get_cart(
     uuid: str | None = None,
     *,
     token: str = Depends(oauth2_scheme),  # noqa: B008
@@ -75,7 +87,7 @@ async def estimate(
     )
 
 
-@cart.post('{uuid}/user', status_code=201, response_model=CartUser)
+@cart.post('/{uuid}/user', status_code=201, response_model=CartUser)
 async def add_user_to_cart(
     uuid: str,
     *,
@@ -92,7 +104,7 @@ async def add_user_to_cart(
     )
 
 
-@cart.post('{uuid}/address', status_code=201, response_model=CartShipping)
+@cart.post('/{uuid}/address', status_code=201, response_model=CartShipping)
 async def add_address_to_cart(
     uuid: str,
     *,

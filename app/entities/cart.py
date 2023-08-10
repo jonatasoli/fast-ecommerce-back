@@ -158,8 +158,8 @@ class CartShipping(CartUser):
     """Cart third step representation with shipping information."""
 
     shipping_is_payment: bool
-    shipping_address: ShippingAddress | None = None
-    user_address: UserAddress
+    user_address_id: int
+    shipping_address_id: int | None = None
 
 
 class CartPayment(CartShipping):

@@ -18,6 +18,7 @@ from app.cart import repository
 from config import settings
 
 if TYPE_CHECKING:
+    from app.entities.user import UserData
     from app.entities.address import AddressBase
 
 
@@ -39,18 +40,24 @@ class AbstractUnitOfWork(abc.ABC):
         """Must return a coupon by code."""
         return await self._get_coupon_by_code(code=code)
 
-    async def get_address_by_id(self: Self, address_id: int) -> None:
+    async def get_address_by_id(
+        self: Self,
+        address_id: int,
+        user_address_id: int,
+    ) -> None:
         """Must return a address by id."""
-        return await self._get_address_by_id(address_id=address_id)
+        return await self._get_address_by_id(
+            address_id=address_id,
+            user_address_id=user_address_id,
+        )
 
     async def create_address(
         self: Self,
         address: AddressBase,
-        user_id: int,
+        user: UserData,
     ) -> None:
         """Must create a address."""
-        _ = user_id
-        return await self._create_address(address=address)
+        return await self._create_address(address=address, user=user)
 
     async def update_payment_method_to_user(
         self: Self,
@@ -79,7 +86,11 @@ class AbstractUnitOfWork(abc.ABC):
         ...
 
     @abc.abstractmethod
-    async def _get_address_by_id(self: Self, address_id: int) -> None:
+    async def _get_address_by_id(
+        self: Self,
+        address_id: int,
+        user_address_id: int,
+    ) -> None:
         """Must return a address by id."""
         ...
 
@@ -87,7 +98,7 @@ class AbstractUnitOfWork(abc.ABC):
     async def _create_address(
         self: Self,
         address: AddressBase,
-        user_id: int,
+        user: UserData,
     ) -> None:
         """Must create a address."""
         ...
@@ -145,24 +156,45 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         return [ProductInDB.model_validate(product) for product in products_db]
 
     async def _get_coupon_by_code(self: Self, code: str) -> CouponBase:
-        ...
+        """Must return a coupon by code."""
+        coupon_db = await self.cart.get_coupon_by_code(code=code)
+        return CouponBase.model_validate(coupon_db)
 
-    async def _get_address_by_id(self: Self, address_id: int) -> None:
-        ...
+    async def _get_address_by_id(
+        self: Self,
+        address_id: int,
+        user_address_id: int,
+    ) -> None:
+        """Must return a address by id."""
+        address_db = await self.cart.get_address_by_id(
+            address_id=address_id,
+            user_address_id=user_address_id,
+        )
+        return address_db.address_id
 
     async def _create_address(
         self: Self,
         address: AddressBase,
-        user_id: int,
+        user: UserData,
     ) -> None:
-        ...
+        """Must create a address."""
+        user_db = await self.cart.get_user_by_email(email=user.email)
+        address_db = await self.cart.create_address(
+            address=address,
+            user_id=user_db.user_id,
+        )
+        return address_db.address_id
 
     async def _update_payment_method_to_user(
         self: Self,
         user_id: int,
         payment_method: str,
     ) -> None:
-        ...
+        """Must update payment method to user."""
+        await self.cart.update_payment_method_to_user(
+            user_id=user_id,
+            payment_method=payment_method,
+        )
 
 
 class MemoryUnitOfWork(AbstractUnitOfWork):

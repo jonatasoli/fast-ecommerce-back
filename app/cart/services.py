@@ -10,12 +10,19 @@ from app.entities.cart import (
     generate_new_cart,
 )
 from app.entities.product import ProductCart
+from app.entities.user import UserData
 from app.infra.bootstrap import Command
+
+
+class UserAddressNotFoundError(Exception):
+    """User address not found."""
+
+    ...
 
 
 def create_or_get_cart(
     uuid: str | None,
-    token: str,
+    token: str | None,
     bootstrap: Command,
 ) -> CartBase:
     """Must create or get cart and return cart."""
@@ -104,11 +111,12 @@ async def add_user_to_cart(
 ) -> CartUser:
     """Must validate token user if is valid add user id in cart."""
     user = bootstrap.user.get_current_user(token)
-    cart_user = CartUser(**cart.model_dump(), user=user)
+    user_data = UserData.model_validate(user)
+    cart_user = CartUser(**cart.model_dump(), user_data=user_data)
     cache = bootstrap.cache
     cache.get(uuid)
     cache.set(str(cart.uuid), cart_user.model_dump_json())
-    return cart
+    return cart_user
 
 
 async def add_address_to_cart(
@@ -119,7 +127,7 @@ async def add_address_to_cart(
     bootstrap: Command,
 ) -> CartShipping:
     """Must add addresss information to shipping and payment."""
-    _ = token
+    user = bootstrap.user.get_current_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     cache_cart = CartUser.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
@@ -127,22 +135,32 @@ async def add_address_to_cart(
             status_code=400,
             detail='Cart uuid is not the same as the cache uuid',
         )
-    address_id = address.user_address.id
-    address_user = await bootstrap.uow.get_address_by_id(address_id)
-    if not address_user:
-        address_user = await bootstrap.uow.create_address(
-            address,
-            cart.user.id,
+    address_id = address.user_address.address_id
+    user_id = user.user_id
+    user_address_id = None
+    if user_id and address_id:
+        user_address_id = await bootstrap.uow.get_address_by_id(
+            address_id,
+            user_id,
         )
+    if not address_id:
+        user_address_id = await bootstrap.uow.create_address(
+            address.user_address,
+            cache_cart.user_data,
+        )
+    shipping_address_id = None
     if not address.shipping_is_payment:
-        address_shipping = await bootstrap.uow.create_address(
-            address,
-            cart.user.id,
+        shipping_address_id = await bootstrap.uow.create_address(
+            address.shipping_address,
+            cache_cart.user_data,
         )
+    if not user_address_id:
+        raise UserAddressNotFoundError
     cart = CartShipping(
         **cart.model_dump(),
-        user_address=address_user,
-        shipping_address=address_shipping,
+        shipping_is_payment=address.shipping_is_payment,
+        user_address_id=user_address_id,
+        shipping_address_id=shipping_address_id,
     )
     bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
     return cart

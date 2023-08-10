@@ -35,7 +35,7 @@ class ProductInDB(BaseModel):
     description: str
     image_path: str | None
     installments_config: int | None
-    installments_list: list[dict[str, str]] | None
+    installments_list: dict[str, str] | None
     discount: int | None
     category_id: int
     showcase: bool
