@@ -30,6 +30,7 @@ class User(Base):
     uuid: Mapped[str] = mapped_column(nullable=True)
     customer_id: Mapped[str] = mapped_column(nullable=True)
     card_id: Mapped[str] = mapped_column(nullable=True)
+    payment_method: Mapped[str] = mapped_column(nullable=True)
     franchise_id: Mapped[str] = mapped_column(nullable=True)
 
     update_email_on_next_login: Mapped[bool] = mapped_column(

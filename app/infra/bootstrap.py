@@ -1,13 +1,14 @@
 from pydantic import BaseModel
 
 import redis as cache_client
-import stripe
+from app.infra import stripe
 from app.cart import uow
 from app.cart.uow import SqlAlchemyUnitOfWork
-from app.infra import redis, queue
+from app.infra import redis
 from app.freight import freight_gateway as freight
 from app.user import gateway as user_gateway
 from typing import Any
+from app.cart import tasks
 
 
 class Command(BaseModel):
@@ -15,7 +16,7 @@ class Command(BaseModel):
 
     uow: uow.AbstractUnitOfWork
     cache: redis.MemoryClient | cache_client.Redis
-    publish: queue.AbstractPublish
+    publish: Any
     freight: freight.AbstractFreight
     user: Any
     payment: Any
@@ -29,7 +30,7 @@ class Command(BaseModel):
 async def bootstrap(  # noqa: PLR0913
     uow: uow.AbstractUnitOfWork = None,
     cache: redis.AbstractCache = redis.RedisCache(),  # noqa: B008
-    publish: queue.AbstractPublish = queue.RabbitMQPublish(),  # noqa: B008
+    publish: Any = tasks,  # noqa: ANN401
     freight: freight.AbstractFreight = freight.MemoryFreight(),  # noqa: B008
     user: Any = user_gateway,  # noqa: ANN401
     payment: Any = stripe,  # noqa: ANN401

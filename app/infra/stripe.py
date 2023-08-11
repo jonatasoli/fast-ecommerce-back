@@ -1,6 +1,6 @@
 import stripe
 from app.entities.cart import CreatePaymentMethod
-from ext.config import settings
+from config import settings
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -16,17 +16,15 @@ def create_customer(email: str) -> stripe.Customer:
 def create_payment_intent(
     amount: int,
     currency: str,
-    customer: str,
+    customer_id: str,
     payment_method: str,
-    description: str,
 ) -> stripe.PaymentIntent:
     """Must create a payment intent."""
     return stripe.PaymentIntent.create(
         amount=amount,
         currency=currency,
-        customer=customer,
+        customer=customer_id,
         payment_method=payment_method,
-        description=description,
         confirm=True,
     )
 
@@ -79,7 +77,6 @@ def create_payment_method(
             'exp_month': payment.exp_month,
             'exp_year': payment.exp_year,
             'cvc': payment.cvc,
-            'name': payment.name,
         },
     )
 

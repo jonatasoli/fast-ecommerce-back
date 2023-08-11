@@ -5,6 +5,7 @@ from app.entities.cart import (
     CartUser,
     CartShipping,
     CartPayment,
+    CreateCheckoutResponse,
     CreatePaymentMethod,
     generate_empty_cart,
     generate_new_cart,
@@ -175,7 +176,7 @@ async def add_payment_information(  # noqa: PLR0913
     payment_method: str = 'card',
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
-    _ = token
+    user = bootstrap.user.get_current_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     cache_cart = CartShipping.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
@@ -185,12 +186,15 @@ async def add_payment_information(  # noqa: PLR0913
         )
     payment = bootstrap.payment.create_payment_method(payment)
     cart = CartPayment(
-        **cart.model_dump(),
+        **cache_cart.model_dump(),
         payment_method=payment_method,
-        payment_method_id=payment.id,
+        payment_method_id=payment.get('id'),
     )
     bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
-    await bootstrap.uow.update_payment_method_to_user(cart.user.id, payment.id)
+    await bootstrap.uow.update_payment_method_to_user(
+        user.user_id,
+        payment.get('id'),
+    )
     return cart
 
 
@@ -200,7 +204,7 @@ async def preview(
     bootstrap: Command,
 ) -> CartPayment:
     """Must get address id and payment token to show in cart."""
-    _ = token
+    bootstrap.user.get_current_user(token)
     cart = bootstrap.cache.get(uuid)
     return CartPayment.model_validate_json(cart)
 
@@ -210,13 +214,32 @@ async def checkout(
     cart: CartPayment,
     token: str,
     bootstrap: Command,
-) -> None:
+) -> CreateCheckoutResponse:
     """Process payment to specific cart."""
-    _ = token, cart
+    _ = cart
+    user = bootstrap.user.get_current_user(token)
     cache_cart = bootstrap.cache.get(uuid)
-    if not cart:
+    if not cache_cart:
         raise HTTPException(
             status_code=400,
             detail='Cart not found',
         )
-    bootstrap.publish.checkout.apply_async(args=[cache_cart.uuid])
+    cache_cart = CartPayment.model_validate_json(cache_cart)
+
+    async def dummy():   # noqa: ANN202
+        pass
+
+    await dummy()
+    payment_intent = bootstrap.payment.create_payment_intent(
+        amount=cache_cart.subtotal,
+        currency='brl',
+        customer_id=user.customer_id,
+        payment_method=user.payment_method,
+    )
+    checkout_id = bootstrap.publish.checkout.apply_async(
+        args=[cache_cart.uuid, payment_intent],
+    )
+    return CreateCheckoutResponse(
+        message=str(checkout_id),
+        status='processing',
+    )

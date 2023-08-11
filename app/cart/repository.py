@@ -69,8 +69,8 @@ class AbstractRepository(abc.ABC):
         self: Self,
         user_id: int,
         payment_method: str,
-    ) -> None:
-        self._update_payment_method_to_user(
+    ) -> users.User:
+        return self._update_payment_method_to_user(
             user_id=user_id,
             payment_method=payment_method,
         )
@@ -121,7 +121,7 @@ class AbstractRepository(abc.ABC):
         self: Self,
         user_id: int,
         payment_method: str,
-    ) -> None:
+    ) -> users.User:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -242,7 +242,7 @@ class SqlAlchemyRepository(AbstractRepository):
         self: Self,
         user_id: int,
         payment_method: str,
-    ) -> None:
+    ) -> users.User:
         async with self.session() as session:
             user = await session.execute(
                 select(users.User).where(users.User.user_id == user_id),
@@ -254,6 +254,7 @@ class SqlAlchemyRepository(AbstractRepository):
             user = user.scalars().first()
             user.payment_method = payment_method
             await session.commit()
+            return user
 
     async def _get_user_by_email(
         self: Self,

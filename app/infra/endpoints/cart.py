@@ -123,7 +123,7 @@ async def add_address_to_cart(
     )
 
 
-@cart.post('{uuid}/payment', status_code=201, response_model=CartPayment)
+@cart.post('/{uuid}/payment', status_code=201, response_model=CartPayment)
 async def add_payment_information_to_cart(
     uuid: str,
     *,
@@ -142,7 +142,7 @@ async def add_payment_information_to_cart(
     )
 
 
-@cart.post('{uuid}/preview', status_code=200, response_model=CartPayment)
+@cart.get('/{uuid}/preview', status_code=200, response_model=CartPayment)
 async def preview_cart(
     uuid: str,
     *,
@@ -158,7 +158,7 @@ async def preview_cart(
 
 
 @cart.post(
-    '{uuid}/checkout',
+    '/{uuid}/checkout',
     status_code=202,
     response_model=CreateCheckoutResponse,
 )
@@ -178,7 +178,7 @@ async def checkout_cart(
     )
 
 
-@cart.get('{uuid}/upsell/{id}', status_code=200)
+@cart.get('/{uuid}/upsell/{id}', status_code=200)
 async def get_upsell_products(id):   # noqa: A002, ANN201, ANN001
     """Get upsell products."""
     try:

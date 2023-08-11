@@ -4,7 +4,7 @@ from uuid import uuid4
 
 
 @celery.task
-def checkout(cart_uuid: uuid4) -> None:
+def checkout(cart_uuid: uuid4, payment_intent: str) -> None:
     """
     - Get cart from redis
     - Set affiliate if exists
@@ -20,5 +20,6 @@ def checkout(cart_uuid: uuid4) -> None:
     - Send email
     - return order.
     """
+    _ = payment_intent
     _ = cart_uuid
     print('checkout')
