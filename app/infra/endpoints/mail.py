@@ -17,7 +17,8 @@ async def send_mail_tracking_number(
     *,
     db: Session = Depends(deps.get_db),
     mail_data: MailTrackingNumber,
-):
+) -> None:
+    """Send mail tracking number."""
     mail = domain_mail.send_mail_tracking_number(db, mail_data=mail_data)
     if mail:
         return JSONResponse(
@@ -32,7 +33,8 @@ async def send_mail_form_courses(
     *,
     db: Session = Depends(deps.get_db),
     mail_data: MailFormCourses,
-):
+) -> None:
+    """Send mail form courses."""
     mail = domain_mail.send_mail_form_courses(db, mail_data=mail_data)
     if mail:
         return JSONResponse(

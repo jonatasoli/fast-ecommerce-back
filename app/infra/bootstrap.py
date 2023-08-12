@@ -20,8 +20,8 @@ class Command(BaseModel):
 
 async def bootstrap(
     uow: uow.AbstractUnitOfWork = None,
-    cache: redis.AbstractCache = redis.RedisCache(),  # noqa: B008
-    publish: queue.AbstractPublish = queue.RabbitMQPublish(),  # noqa: B008
+    cache: redis.AbstractCache = redis.RedisCache(),
+    publish: queue.AbstractPublish = queue.RabbitMQPublish(),
 ) -> Command:
     """Create a command function to use in the application."""
     if uow is None:

@@ -34,8 +34,8 @@ async def get_bootstrap() -> Command:
 def create_or_get_cart(
     *,
     uuid: str | None = None,
-    token: str = Depends(oauth2_scheme),  # noqa: B008
-    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+    token: str = Depends(oauth2_scheme),
+    bootstrap: Command = Depends(get_bootstrap),
 ) -> CartBase:
     """Create or get cart."""
     return services.create_or_get_cart(
@@ -50,7 +50,7 @@ async def add_product_to_cart(  # noqa: ANN201
     *,
     uuid: str | None = None,
     product: ProductCart,
-    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+    bootstrap: Command = Depends(get_bootstrap),
 ):
     """Add product to cart."""
     # TODO: Implementar o retorno 404 caso produto não exista ou o estoque tenha acabado
@@ -65,7 +65,7 @@ async def add_product_to_cart(  # noqa: ANN201
 async def preview(
     uuid: str,
     *,
-    bootstrap: Command = Depends(get_bootstrap),  # noqa: B008
+    bootstrap: Command = Depends(get_bootstrap),
 ) -> CartBase:
     """Add product to cart."""
     return await services.calculate_cart(
@@ -75,7 +75,7 @@ async def preview(
 
 
 @cart.get('/upsell/{id}', status_code=200)
-async def get_upsell_products(id):   # noqa: A002, ANN201, ANN001
+async def get_upsell_products(id):   # noqa: ANN201, ANN001
     """Get upsell products."""
     try:
         # TODO: Implementar o retorno dos produtos upsell
@@ -89,7 +89,7 @@ async def get_upsell_products(id):   # noqa: A002, ANN201, ANN001
 @cart.post('/checkout', status_code=201)
 def checkout(
     *,
-    db: Session = Depends(deps.get_db),  # noqa: B008
+    db: Session = Depends(deps.get_db),
     data: CheckoutReceive,
 ) -> PaymentResponse:
     """Checkout."""
@@ -109,7 +109,7 @@ def checkout(
 @cart.post('/cart/installments', status_code=200)
 async def get_installments(
     *,
-    db: Session = Depends(get_db),  # noqa: B008
+    db: Session = Depends(get_db),
     cart: InstallmentSchema,
 ) -> list[Any]:
     """Get installments."""

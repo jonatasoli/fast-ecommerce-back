@@ -24,9 +24,9 @@ from config import settings
 
 from app.infra.base import Base
 from app.infra.database import get_engine
-
-from app.infra.deps import get_db
 from main import app
+from app.infra.deps import get_db
+
 
 
 @pytest.fixture(scope='session', autouse=True)

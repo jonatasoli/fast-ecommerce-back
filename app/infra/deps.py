@@ -1,9 +1,10 @@
 from app.infra.database import get_session
 
 
-def get_db():
-    SessionLocal = get_session()
-    db = SessionLocal()
+def get_db() -> None:
+    """Get db."""
+    sessionlocal = get_session()
+    db = sessionlocal()
     try:
         yield db
     finally:

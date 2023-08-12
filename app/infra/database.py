@@ -7,17 +7,19 @@ from sqlalchemy.orm import sessionmaker
 from config import settings
 
 
-def get_engine():
-    SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+def get_engine() -> None:
+    """Get engine."""
+    sqlalchemy_database_url = settings.DATABASE_URL
 
     return create_engine(
-        SQLALCHEMY_DATABASE_URL,
+        sqlalchemy_database_url,
         pool_size=10,
         max_overflow=0,
     )
 
 
-def get_session():
+def get_session() -> None:
+    """Get session."""
     _engine = get_engine()
     return sessionmaker(
         autocommit=False,
@@ -32,5 +34,6 @@ class Base:
     __name__: str
     # Generate __tablename__ automatically
     @declared_attr
-    def __tablename__(cls) -> str:
-        return cls.__name__.lower()
+    def __tablename__(self: None) -> str:
+        """Return a string representation of the table name."""
+        return self.__name__.lower()

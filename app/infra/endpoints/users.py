@@ -104,9 +104,7 @@ async def request_reset_password(
 @user.put('/reset-password', status_code=200)
 async def reset_password(
     response_model: UserResponseResetPassword,
-    db: Session = None,
+    db: Session = Depends(get_db),
 ) -> None:
     """Reset password."""
-    if db is None:
-        db = Depends(get_db)
     return domain_user.reset_password(db, data=response_model)

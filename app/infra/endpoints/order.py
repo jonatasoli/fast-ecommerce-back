@@ -22,19 +22,25 @@ order = APIRouter(
 
 
 @order.get('/{id}', status_code=200)
-async def get_order(*, db: Session = Depends(get_db), id):
+async def get_order(*, db: Session = Depends(get_db), id: int) -> None:
+    """Get order."""
     try:
         return domain_order.get_order(db, id)
-    except Exception as e:
-        raise e
+    except Exception:
+        raise
 
 
 @order.get('/user/{id}', status_code=200)
-async def get_order_users_id(*, db: Session = Depends(get_db), id):
+async def get_order_users_id(
+    *,
+    db: Session = Depends(get_db),
+    id: None,
+) -> None:
+    """Get order users id."""
     try:
         return domain_order.get_order_users(db, id)
-    except Exception as e:
-        raise e
+    except Exception:
+        raise
 
 
 @order.get('/orders', status_code=200)
@@ -43,11 +49,12 @@ async def get_orders_paid(
     status: str | None = None,
     user_id: int | None = None,
     db: Session = Depends(get_db),
-):
+) -> None:
+    """Get orders paid."""
     try:
         return domain_order.get_orders_paid(db, dates, status, user_id)
-    except Exception as e:
-        raise e
+    except Exception:
+        raise
 
 
 @order.put('/{id}', status_code=200)
@@ -56,11 +63,12 @@ async def put_order(
     db: Session = Depends(get_db),
     value: OrderFullResponse,
     id: int,
-):
+) -> None:
+    """Put order."""
     try:
         return domain_order.put_order(db, value, id)
-    except Exception as e:
-        raise e
+    except Exception:
+        raise
 
 
 @order.put('/tracking_number/{id}', status_code=200)
@@ -68,11 +76,12 @@ async def put_trancking_number(
     id: int,
     value: TrackingFullResponse,
     db: Session = Depends(get_db),
-):
+) -> None:
+    """Put trancking number."""
     try:
         return domain_order.put_trancking_number(db, value, id)
-    except Exception as e:
-        raise e
+    except Exception:
+        raise
 
 
 @order.post('/check_order/{id}', status_code=200)
@@ -80,11 +89,12 @@ async def put_trancking_number(
     id: int,
     check: bool,
     db: Session = Depends(get_db),
-):
+) -> int:
+    """Put trancking number."""
     try:
         return domain_order.checked_order(db, id, check)
-    except Exception as e:
-        raise e
+    except Exception:
+        raise
 
 
 @order.post('/create_order', status_code=200)
@@ -92,12 +102,14 @@ async def create_order(
     *,
     db: Session = Depends(get_db),
     order_data: OrderSchema,
-):
+) -> None:
+    """Create order."""
     return domain_order.create_order(db=db, order_data=order_data)
 
 
 @order.post('/update-payment-and-order-status', status_code=200)
-def order_status():
+def order_status() -> None:
+    """Order status."""
     db = get_session()
     orders = db.query(Order).filter(Order.id.isnot(None))
     for order in orders:
@@ -109,7 +121,8 @@ def order_status():
     return None
 
 
-def check_status_pedding():
+def check_status_pedding() -> None:
+    """Check status pedding."""
     data = order_status()
     logger.debug(data)
     if data.get('order_status') == 'pending':
@@ -117,7 +130,8 @@ def check_status_pedding():
     return None
 
 
-def status_pending():
+def status_pending() -> None:
+    """Status pending."""
     data = order_status()
     logger.debug(data)
     db = get_session()
@@ -125,7 +139,8 @@ def status_pending():
     return return_transaction(payment.gateway_id)
 
 
-def status_paid():
+def status_paid() -> None:
+    """Status paid."""
     gateway = status_pending()
     data = order_status()
     logger.debug(gateway.get('status'))
@@ -140,6 +155,7 @@ def status_paid():
     return None
 
 
-def alternate_status(status):
+def alternate_status(status: str) -> None:
+    """Alternate status."""
     order_status = {'pending': status_pending, 'paid': status_paid}
     return order_status[status]

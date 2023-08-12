@@ -22,4 +22,4 @@ API_MAIL_URL="https://testapi.com/"
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 LOG_LEVEL="DEBUG"
 LOG_BACKTRACE=true
-FORCE_ENV_FOR_DYNACONF=testing pytest -s
+#FORCE_ENV_FOR_DYNACONF=testing pytest -s

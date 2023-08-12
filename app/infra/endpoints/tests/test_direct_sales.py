@@ -98,7 +98,7 @@ transacton_with_shipping_and_document_error = {
 
 
 @pytest.mark.skip()
-def test_create_product_(db_models):  # TODO Fix product ENDPOINT
+def test_create_product_():  # TODO Fix product ENDPOINT
     db_product = ProductSchema(
         description='Test Product',
         direct_sales=None,
