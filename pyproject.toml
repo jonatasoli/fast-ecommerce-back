@@ -92,7 +92,7 @@ mypy-init-return = true
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["D104", "N999"]
 "/**/tests/*.py" = ["S101","PLR2004", "B008", 'N806', 'D103', 'F821', 'ANN201', 'ANN001', 'N999']
-"app/infra/*" = ["B008", "A002","A001", "A003", "RUF100","FBT001", "F811","TRY302"]
+"app/infra/*" = ["B008", "A002","A001", "A003", "RUF100","FBT001", "F811","F401","TRY302"]
 
 [tool.ruff.isort]
 known-first-party = ["app"]
