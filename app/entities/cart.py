@@ -1,4 +1,3 @@
-import enum
 from decimal import Decimal
 from typing import TypeVar
 from uuid import UUID, uuid4
@@ -6,10 +5,8 @@ from loguru import logger
 
 
 from app.entities.freight import ShippingAddress
-from app.entities.payment import CreditCardInformation
 from app.entities.product import ProductCart
 from app.entities.user import UserAddress, UserData
-from app.entities.coupon import CouponBase
 from pydantic import BaseModel
 
 Self = TypeVar('Self')
@@ -45,9 +42,11 @@ class CartBase(BaseModel):
     """Cart first step representation."""
 
     uuid: UUID
-    cart_items: list[ProductCart]
-    coupon: CouponBase | None = None
+    cart_items: list[ProductCart] = []
+    coupon: str | None = None
     discount: Decimal = Decimal(0)
+    freight: Decimal = Decimal(0)
+    zipcode: str | None = None
     subtotal: Decimal
 
     def increase_quantity(self: Self, product_id: int) -> Self:
@@ -138,7 +137,7 @@ class CartBase(BaseModel):
                 f'Product list: {products}',
             )
             raise CartInconsistencyError
-        product_dict = {product.id: product for product in products}
+        product_dict = {product.product_id: product for product in products}
         for index, cart_item in enumerate(self.cart_items):
             product_id = cart_item.product_id
             if product_id in product_dict:
@@ -159,15 +158,40 @@ class CartShipping(CartUser):
     """Cart third step representation with shipping information."""
 
     shipping_is_payment: bool
-    shipping_address: ShippingAddress | None = None
-    user_address: UserAddress
+    user_address_id: int
+    shipping_address_id: int | None = None
 
 
 class CartPayment(CartShipping):
     """Cart fourth step representation with payment information."""
 
-    payment_method: enum.Enum
-    credit_card_information: CreditCardInformation
+    payment_method: str
+    payment_method_id: str
+
+
+class CreatePaymentMethod(BaseModel):
+    """Create payment method."""
+
+    number: str
+    exp_month: int
+    exp_year: int
+    cvc: str
+    name: str
+
+
+class AddressCreate(BaseModel):
+    """Create address model."""
+
+    shipping_is_payment: bool
+    shipping_address: ShippingAddress | None = None
+    user_address: UserAddress
+
+
+class CreateCheckoutResponse(BaseModel):
+    """Result of create checkout."""
+
+    status: str
+    message: str
 
 
 def convert_price_to_decimal(price: int) -> Decimal:

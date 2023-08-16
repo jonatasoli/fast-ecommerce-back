@@ -3,6 +3,7 @@ from pydantic import ConfigDict, BaseModel, SecretStr
 
 class SignUp(BaseModel):
     name: str
+    username: str
     mail: str
     password: SecretStr
     document: str

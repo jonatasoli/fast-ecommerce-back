@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class CouponBase(BaseModel):
     code: str
-    discount: Decimal
+    coupon_fee: Decimal
 
 
 class CouponCreate(CouponBase):

@@ -6,10 +6,10 @@ from loguru import logger
 from sqlalchemy import Date, cast
 from sqlalchemy.orm import Session
 
-from app.infra import optimize_image
-from models.order import Category, ImageGallery, Order, Product
-from models.transaction import Payment, Transaction
-from models.users import Address, User
+from ext import optimize_image
+from app.infra.models.order import Category, ImageGallery, Order, Product
+from app.infra.models.transaction import Payment, Transaction
+from app.infra.models.users import Address, User
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,
@@ -412,21 +412,22 @@ def get_category(db: Session):
 
 def get_products_category(db: Session, path):
     products = None
-    with db:
-        category = db.query(Category).filter(Category.path == path).first()
-        logger.info(category.path, category.id)
-        products = (
-            db.query(Product)
-            .filter(
-                Product.showcase is True,
-                Product.category_id == category.id,
-            )
-            .all()
-        )
     products_category = []
+    with db:
+        category_query = select(Category).where(Category.path == path)
+        category = db.execute(category_query).scalars().first()
 
-    for product in products:
-        products_category.append(product)
+        logger.info(category.path, category.category_id)
+        products_query = (
+            select(Product)
+            .where(
+                Product.category_id == category.category_id,
+            )
+        )
+        products = db.execute(products_query).scalars().all()
+
+        for product in products:
+            products_category.append(product)
 
     if products:
         return {'product': products_category}

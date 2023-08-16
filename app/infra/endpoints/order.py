@@ -7,8 +7,8 @@ from domains import domain_order
 from app.infra.deps import get_db
 from gateway.payment_gateway import return_transaction
 from job_service.service import get_session
-from models.order import Order
-from models.transaction import Payment
+from app.infra.models.order import Order
+from app.infra.models.transaction import Payment
 from schemas.order_schema import (
     OrderFullResponse,
     OrderSchema,

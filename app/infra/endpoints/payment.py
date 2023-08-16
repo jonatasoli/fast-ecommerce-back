@@ -1,5 +1,7 @@
 from app.infra.deps import get_db
 from payment.schema import InstallmentSchema
+from endpoints.deps import get_db
+from payment.schema import ConfigCreditCardResponse, InstallmentSchema
 from fastapi import APIRouter, Depends
 from loguru import logger
 from sqlalchemy.orm import Session

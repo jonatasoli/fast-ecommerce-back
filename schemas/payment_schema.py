@@ -36,8 +36,8 @@ class ConfigCreditCard(BaseModel):
 
 
 class ConfigCreditCardResponse(BaseModel):
-    id: int
+    config_credit_card_response_id: int
     fee: str
     min_installment_with_fee: int
-    mx_installments: int
+    max_installments: int
     model_config = ConfigDict(from_attributes=True)

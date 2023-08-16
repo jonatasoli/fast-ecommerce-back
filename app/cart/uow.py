@@ -2,19 +2,24 @@
 from __future__ import annotations
 import abc
 from decimal import Decimal
-from typing import TypeVar
+from typing import TypeVar, TYPE_CHECKING
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     create_async_engine,
 )
 from sqlalchemy.orm import sessionmaker
+from app.entities.coupon import CouponBase
 
 from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
 
 
 from config import settings
+
+if TYPE_CHECKING:
+    from app.entities.user import UserData
+    from app.entities.address import AddressBase
 
 
 Self = TypeVar('Self')
@@ -31,6 +36,40 @@ class AbstractUnitOfWork(abc.ABC):
         """Must return a product by id."""
         return await self._get_products(products=products)
 
+    async def get_coupon_by_code(self: Self, code: str) -> CouponBase:
+        """Must return a coupon by code."""
+        return await self._get_coupon_by_code(code=code)
+
+    async def get_address_by_id(
+        self: Self,
+        address_id: int,
+        user_address_id: int,
+    ) -> None:
+        """Must return a address by id."""
+        return await self._get_address_by_id(
+            address_id=address_id,
+            user_address_id=user_address_id,
+        )
+
+    async def create_address(
+        self: Self,
+        address: AddressBase,
+        user: UserData,
+    ) -> None:
+        """Must create a address."""
+        return await self._create_address(address=address, user=user)
+
+    async def update_payment_method_to_user(
+        self: Self,
+        user_id: int,
+        payment_method: str,
+    ) -> None:
+        """Must update payment method to user."""
+        return await self._update_payment_method_to_user(
+            user_id=user_id,
+            payment_method=payment_method,
+        )
+
     @abc.abstractmethod
     async def _get_product_by_id(self: Self, product_id: int) -> ProductCart:
         """Must return a product by id."""
@@ -39,6 +78,38 @@ class AbstractUnitOfWork(abc.ABC):
     @abc.abstractmethod
     async def _get_products(self: Self, products: list) -> list:
         """Must return a product by id."""
+        ...
+
+    @abc.abstractmethod
+    async def _get_coupon_by_code(self: Self, code: str) -> CouponBase:
+        """Must return a coupon by code."""
+        ...
+
+    @abc.abstractmethod
+    async def _get_address_by_id(
+        self: Self,
+        address_id: int,
+        user_address_id: int,
+    ) -> None:
+        """Must return a address by id."""
+        ...
+
+    @abc.abstractmethod
+    async def _create_address(
+        self: Self,
+        address: AddressBase,
+        user: UserData,
+    ) -> None:
+        """Must create a address."""
+        ...
+
+    @abc.abstractmethod
+    async def _update_payment_method_to_user(
+        self: Self,
+        user_id: int,
+        payment_method: str,
+    ) -> None:
+        """Must update payment method to user."""
         ...
 
 
@@ -84,6 +155,47 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         products_db = await self.cart.get_products(products=product_ids)
         return [ProductInDB.model_validate(product) for product in products_db]
 
+    async def _get_coupon_by_code(self: Self, code: str) -> CouponBase:
+        """Must return a coupon by code."""
+        coupon_db = await self.cart.get_coupon_by_code(code=code)
+        return CouponBase.model_validate(coupon_db)
+
+    async def _get_address_by_id(
+        self: Self,
+        address_id: int,
+        user_address_id: int,
+    ) -> None:
+        """Must return a address by id."""
+        address_db = await self.cart.get_address_by_id(
+            address_id=address_id,
+            user_address_id=user_address_id,
+        )
+        return address_db.address_id
+
+    async def _create_address(
+        self: Self,
+        address: AddressBase,
+        user: UserData,
+    ) -> None:
+        """Must create a address."""
+        user_db = await self.cart.get_user_by_email(email=user.email)
+        address_db = await self.cart.create_address(
+            address=address,
+            user_id=user_db.user_id,
+        )
+        return address_db.address_id
+
+    async def _update_payment_method_to_user(
+        self: Self,
+        user_id: int,
+        payment_method: str,
+    ) -> None:
+        """Must update payment method to user."""
+        await self.cart.update_payment_method_to_user(
+            user_id=user_id,
+            payment_method=payment_method,
+        )
+
 
 class MemoryUnitOfWork(AbstractUnitOfWork):
     async def _get_product_by_id(self: Self, product_id: int) -> ProductCart:
@@ -108,7 +220,7 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
         async def return_product_list() -> list:
             return [
                 ProductInDB(
-                    id=1,
+                    product_id=1,
                     name='test_1',
                     uri='/test',
                     price=10000,
@@ -122,7 +234,7 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
                     upsell=None,
                     image_path='',
                     installments_config=1,
-                    installments_list=[],
+                    installments_list={},
                     height=None,
                     width=None,
                     weight=None,
@@ -131,7 +243,7 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
                     sku='sku_1',
                 ),
                 ProductInDB(
-                    id=2,
+                    product_id=2,
                     name='test_2',
                     uri='/test',
                     price=20000,
@@ -145,7 +257,7 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
                     upsell=None,
                     image_path='',
                     installments_config=1,
-                    installments_list=[],
+                    installments_list={},
                     height=None,
                     width=None,
                     weight=None,
@@ -156,3 +268,26 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
             ]
 
         return await return_product_list()
+
+    async def _get_coupon_by_code(self: Self, code: str) -> CouponBase:
+        return CouponBase(
+            code=code,
+            coupon_fee=Decimal('10.00'),
+        )
+
+    async def _get_address_by_id(self: Self, address_id: int) -> None:
+        ...
+
+    async def _create_address(
+        self: Self,
+        address: AddressBase,
+        user_id: int,
+    ) -> None:
+        ...
+
+    async def _update_payment_method_to_user(
+        self: Self,
+        user_id: int,
+        payment_method: str,
+    ) -> None:
+        ...

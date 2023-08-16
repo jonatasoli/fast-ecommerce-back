@@ -7,7 +7,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from models.order import OrderStatusSteps
+from app.infra.models.order import OrderStatusSteps
 
 
 def get_session():

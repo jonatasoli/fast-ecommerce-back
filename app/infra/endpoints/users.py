@@ -87,8 +87,11 @@ async def login_for_access_token(
 
 
 @user.get('/{document}', status_code=200)
-async def get_user(document: str, db: Session = Depends(get_db)) -> None:
-    """Get user."""
+async def get_user(
+        document: str,
+        token: str = Depends(oauth2_scheme),
+        db: Session = Depends(get_db)):
+    domain_user.get_current_user(token)
     return domain_user.get_user_login(db, document)
 
 

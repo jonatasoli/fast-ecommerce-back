@@ -48,3 +48,7 @@ def fake_dict() -> dict[str, Any]:
 
 def fake_url() -> str:
     return cast(str, fake.uri())
+
+
+def fake_url_path() -> str:
+    return cast(str, fake.uri_path())

@@ -3,8 +3,8 @@ from decimal import Decimal
 
 from loguru import logger
 
-from models.order import Order, OrderItems, Product
-from models.transaction import CreditCardFeeConfig, Payment, Transaction
+from app.infra.models.order import Order, OrderItems, Product
+from app.infra.models.transaction import CreditCardFeeConfig, Payment, Transaction
 from payment.adapter import get_db
 from payment.schema import (
     ConfigCreditCardResponse,
@@ -169,11 +169,11 @@ class CreateCreditConfig:
                 active_date=datetime.now(),
                 fee=Decimal(self.config_data.fee),
                 min_installment_with_fee=self.config_data.min_installment,
-                mx_installments=self.config_data.max_installment,
+                max_installments=self.config_data.max_installment,
             )
             db.add(db_config)
             db.commit()
-            return ConfigCreditCardResponse.from_orm(db_config)
+            return ConfigCreditCardResponse.model_validate(db_config)
 
 
 class UpdateStatus:

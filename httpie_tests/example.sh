@@ -14,3 +14,7 @@ http POST http://localhost:8001/cart/product product_id="1" quantity=1
 
 # Atualizar uma tarefa existente pelo ID
 http PUT http://localhost:8000/task/{id} name="Tarefa atualizada" completed:=true
+
+# Adicionar produto
+http POST http://localhost:8001/cart/product product_id="1" quantity=1
+

@@ -8,8 +8,13 @@ import redis
 Self = TypeVar('Self')
 
 
-class AbstractCache(abc.ABC):   # noqa: B024
-    ...
+class AbstractCache(abc.ABC):
+    def client(self: Self) -> redis.Redis:
+        return self._client()
+
+    @abc.abstractmethod
+    def _client(self: Self) -> redis.Redis:
+        raise NotImplementedError
 
 
 class RedisCache(AbstractCache):
@@ -21,7 +26,7 @@ class RedisCache(AbstractCache):
         )
         self.redis = redis.Redis(connection_pool=self.pool)
 
-    def client(self: Self) -> redis.Redis:
+    def _client(self: Self) -> redis.Redis:
         return self.redis
 
 
@@ -40,5 +45,5 @@ class MemoryCache(AbstractCache):
     def __init__(self: Self) -> None:
         self.client_instance = MemoryClient()
 
-    def client(self: Self) -> MemoryClient:
+    def _client(self: Self) -> MemoryClient:
         return self.client_instance
