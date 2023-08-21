@@ -79,5 +79,4 @@ async def test_estimate_products_in_cart(client, db) -> None:
     return_cart_items = response.json()['cart_items']
     assert return_uuid == uuid
     assert len(return_cart_items) == 2
-    import ipdb; ipdb.set_trace()
     assert response.json()['subtotal'] == str(cart.subtotal).split('.')[0]
