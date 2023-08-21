@@ -1,13 +1,12 @@
-# ruff:  noqa: D202 D205 T201 D212
-from typing import Any
-from app.entities.cart import CartPayment
+from propan.brokers.rabbit import RabbitQueue
+from propan.fastapi import RabbitRouter
+from config import settings
 
-# from app.infra.bootstrap.task_bootstrap import bootstrap
-from app.infra.worker import task_cart_router
+task_cart_router = RabbitRouter(settings.BROKER_URL)
 
 
-@task_cart_router.event('checkout')
-async def checkout(cart_uuid: str, payment_intent: str) -> None:
+@task_cart_router.event(RabbitQueue('checkout'))
+async def checkout(cart_uuid: str, payment_intent: str) -> int:
     """
     - Get cart from redis
     - Set affiliate if exists
@@ -36,3 +35,4 @@ async def checkout(cart_uuid: str, payment_intent: str) -> None:
     _ = payment_intent
     _ = cart_uuid
     print('checkout')
+    return 123

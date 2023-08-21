@@ -9,7 +9,7 @@ from app.entities.cart import (
     CreatePaymentMethod,
 )
 from app.entities.product import ProductCart
-from app.infra.bootstrap import Command, bootstrap
+from app.infra.bootstrap.cart_bootstrap import Command, bootstrap
 from fastapi import APIRouter, Depends
 from loguru import logger
 

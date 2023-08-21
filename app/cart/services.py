@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from propan.brokers.rabbit import RabbitQueue
 from app.entities.address import CreateAddress
 from app.entities.cart import (
     CartBase,
@@ -12,7 +13,7 @@ from app.entities.cart import (
 )
 from app.entities.product import ProductCart
 from app.entities.user import UserData
-from app.infra.bootstrap import Command
+from app.infra.bootstrap.cart_bootstrap import Command
 
 
 class UserAddressNotFoundError(Exception):
@@ -217,7 +218,7 @@ async def checkout(
 ) -> CreateCheckoutResponse:
     """Process payment to specific cart."""
     _ = cart
-    user = bootstrap.user.get_current_user(token)
+    # user = bootstrap.user.get_current_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     if not cache_cart:
         raise HTTPException(
@@ -230,16 +231,19 @@ async def checkout(
         pass
 
     await dummy()
-    payment_intent = bootstrap.payment.create_payment_intent(
-        amount=cache_cart.subtotal,
-        currency='brl',
-        customer_id=user.customer_id,
-        payment_method=user.payment_method,
-    )
-    checkout_id = bootstrap.publish.checkout.apply_async(
-        args=[cache_cart.uuid, payment_intent],
+    # payment_intent = bootstrap.payment.create_payment_intent(
+    #     amount=cache_cart.subtotal,
+    #     currency='brl',
+    #     customer_id=user.customer_id,
+    #     payment_method=user.payment_method,
+    # )
+    payment_intent = 'asdfasdf'
+    checkout_task = await bootstrap.publish.publish(
+        {'cart_uuid': uuid, 'payment_intent': payment_intent},
+        queue=RabbitQueue('checkout'),
+        callback=True,
     )
     return CreateCheckoutResponse(
-        message=str(checkout_id),
+        message=str(checkout_task),
         status='processing',
     )

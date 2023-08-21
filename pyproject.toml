@@ -40,9 +40,9 @@ zipp = "*"
 dynaconf = "*"
 redis = "^4.6.0"
 stripe = "^5.5.0"
-celery = {version = "^5.3.1", extras = ["librabbitmq"]}
 pydantic-settings = "^2.0.2"
 factory-boy = "^3.3.0"
+propan = {version = "^0.1.5.18", extras = ["async-rabbit"]}
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"

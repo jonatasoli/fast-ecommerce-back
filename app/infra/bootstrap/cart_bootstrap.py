@@ -8,7 +8,7 @@ from app.infra import redis
 from app.freight import freight_gateway as freight
 from app.user import gateway as user_gateway
 from typing import Any
-from app.cart import tasks
+from app.infra.worker import task_cart_router
 
 
 class Command(BaseModel):
@@ -30,7 +30,7 @@ class Command(BaseModel):
 async def bootstrap(  # noqa: PLR0913
     uow: uow.AbstractUnitOfWork = None,
     cache: redis.AbstractCache = redis.RedisCache(),  # noqa: B008
-    publish: Any = tasks,  # noqa: ANN401
+    publish: Any = task_cart_router.broker,  # noqa: ANN401
     freight: freight.AbstractFreight = freight.MemoryFreight(),  # noqa: B008
     user: Any = user_gateway,  # noqa: ANN401
     payment: Any = stripe,  # noqa: ANN401
