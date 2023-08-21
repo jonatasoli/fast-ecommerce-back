@@ -23,3 +23,5 @@ ACCESS_TOKEN_EXPIRE_MINUTES=15
 LOG_LEVEL="DEBUG"
 LOG_BACKTRACE=true
 #FORCE_ENV_FOR_DYNACONF=testing pytest -s
+#FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/endpoints/cart -x --cov=fast_ecommerce -vv
+#FORCE_ENV_FOR_DYNACONF=testing pytest -s --pdb

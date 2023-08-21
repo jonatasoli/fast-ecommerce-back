@@ -6,7 +6,7 @@ from loguru import logger
 from sqlalchemy import Date, cast
 from sqlalchemy.orm import Session
 
-from ext import optimize_image
+from app.infra.optimize_image import optimize_image
 from app.infra.models.order import Category, ImageGallery, Order, Product
 from app.infra.models.transaction import Payment, Transaction
 from app.infra.models.users import Address, User
