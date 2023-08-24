@@ -1,4 +1,4 @@
-from app.infra.database import get_session
+from app.cart.uow import get_session
 
 
 def get_db() -> None:

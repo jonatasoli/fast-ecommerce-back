@@ -7,4 +7,4 @@ from app.infra.models.transaction import (
 from app.infra.models.uploadedimage import UploadedImage
 from app.infra.models.users import Address, User
 
-from .database import Base
+from app.infra.models.base import Base

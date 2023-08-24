@@ -7,8 +7,21 @@ from sqlalchemy.orm import sessionmaker
 from config import settings
 
 
-def get_engine() -> None:
-    """Get engine."""
+def get_engine() -> str:
+    """Return an instance of a database connection engine using SQLAlchemy.
+
+    Return:
+    ------
+        sqlalchemy.engine.base.Engine: An instance of the configured SQLAlchemy
+        connection engine.
+
+    Example:
+    -------
+        engine = get_engine()
+        connection = engine.connect()
+        result = connection.execute("SELECT * FROM table")
+        connection.close()
+    """
     sqlalchemy_database_url = settings.DATABASE_URL
 
     return create_engine(
@@ -18,8 +31,26 @@ def get_engine() -> None:
     )
 
 
-def get_session() -> None:
-    """Get session."""
+def get_session() -> str:
+    """Return a SQLAlchemy session factory with a configured engine.
+
+    Return:
+    ------
+        sqlalchemy.orm.session.Session: A session factory configured to interact with
+        the database using the specified engine.
+
+    Example:
+    -------
+        session_factory = get_session()
+        session = session_factory()
+
+    Note:
+    ----
+        To use this function, ensure that the 'get_engine()' function is correctly
+        implemented and that the necessary database URL is provided in the project's
+        settings.
+
+    """
     _engine = get_engine()
     return sessionmaker(
         autocommit=False,
@@ -32,8 +63,8 @@ def get_session() -> None:
 class Base:
     id: Any
     __name__: str
-    # Generate __tablename__ automatically
+
     @declared_attr
-    def __tablename__(self: None) -> str:
-        """Return a string representation of the table name."""
-        return self.__name__.lower()
+    def __tablename__(self: 'Base') -> str:
+        """Generate __tablename__ automatically."""
+        return __name__.lower()

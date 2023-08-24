@@ -16,7 +16,7 @@ SETRY_DSN = "SENTRY_DSN"
 
 
 [testing]
-DATABASE_URL="postgresql://postgres_user:pass123@localhost/ecommerce-test"
+DATABASE_URL="postgresql://postgres_user:pass123@localhost/ecommerce"
 DATABASE_URI="postgresql+asyncpg://postgres_user:pass123@localhost/ecommerce-test"
 API_MAIL_URL="https://testapi.com/"
 ACCESS_TOKEN_EXPIRE_MINUTES=15
