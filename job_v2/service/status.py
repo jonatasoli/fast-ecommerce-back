@@ -1,6 +1,6 @@
 from loguru import logger
 
-from ext.database import get_session
+from app.infra.database import get_session
 from gateway.payment_gateway import return_transaction
 from job_v2.repositories.orm_status import GetOrder, GetOrders
 

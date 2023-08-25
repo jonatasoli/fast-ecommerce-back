@@ -21,7 +21,9 @@ from app.payment.tasks import create_pending_payment, update_payment_status
 
 
 @task_cart_router.event('checkout')
-async def checkout(cart_uuid: str, payment_intent: str, bootstrap: Command) -> None:
+async def checkout(
+    cart_uuid: str, payment_intent: str, bootstrap: Command
+) -> None:
     """Checkout cart with payment intent."""
     cache = bootstrap.cache
     cache_cart = cache.get(cart_uuid)
@@ -79,7 +81,3 @@ async def checkout(cart_uuid: str, payment_intent: str, bootstrap: Command) -> N
     logger.info(
         f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success'
     )
-
-    _ = payment_intent
-    _ = cart_uuid
-    print('checkout')

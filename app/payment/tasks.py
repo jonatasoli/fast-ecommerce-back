@@ -14,12 +14,13 @@ def update_payment_status(
 ):
     return 1
 
+
 @task_payment_router.event('create_customer')
 async def create_customer(user_id: int, bootstrap=bootstrap()) -> None:
     """Create a customer in stripe."""
     async with bootstrap.db as session:
         user = await bootstrap.user.get_user_by_id(session, user_id)
         customer = bootstrap.payment.create_customer(email=user.email)
-        user.customer_id = customer["id"]
+        user.customer_id = customer['id']
         session.add(user)
         await session.commit()

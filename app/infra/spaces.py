@@ -2,7 +2,8 @@ import boto3
 from dynaconf import settings
 
 
-def send_image_spaces(image_name):
+def send_image_spaces(image_name: str) -> None:
+    """Send image to digital ocean spaces."""
     session = boto3.session.Session()
     client = session.client(
         's3',

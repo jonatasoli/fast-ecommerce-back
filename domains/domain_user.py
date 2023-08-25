@@ -13,7 +13,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from constants import DocumentType, Roles
-from ext.database import get_session
+from app.infra.database import get_session
 from app.infra.models.role import Role
 from app.infra.models.users import Address, User, UserResetPassword
 from schemas.order_schema import CheckoutSchema

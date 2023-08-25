@@ -6,4 +6,6 @@ class Settings(BaseSettings):
     items_per_user: int = 50
 
     class Config:
+        """Class config."""
+
         env_file = '.env'

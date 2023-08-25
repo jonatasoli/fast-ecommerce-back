@@ -1,4 +1,4 @@
-.PHONY: install update shell format lint test sec export configs upgrade run migrate post-test worker
+.PHONY: install update shell format lint test sec export configs upgrade run migrate post-test
 
 
 install:
@@ -39,6 +39,3 @@ run:
 
 migrate:
 	@poetry run alembic revision --autogenerate
-
-worker:
-	@celery -A app.worker:celery worker --loglevel=info

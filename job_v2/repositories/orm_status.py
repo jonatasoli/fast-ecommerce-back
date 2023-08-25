@@ -1,4 +1,4 @@
-from ext.database import get_session
+from app.infra.database import get_session
 from models.order import Order
 
 

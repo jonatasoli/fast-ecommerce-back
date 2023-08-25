@@ -33,7 +33,7 @@ class RedisCache(AbstractCache):
 class MemoryClient:
     cache: ClassVar[dict] = {}
 
-    def set(self: Self, key: str, value: str) -> dict:   # noqa: A003
+    def set(self: Self, key: str, value: str) -> dict:
         self.cache[key] = value
         return self.cache
 

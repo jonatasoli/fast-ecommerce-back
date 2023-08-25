@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from domains import domain_user
 from domains.domain_user import check_token
-from endpoints.deps import get_db
+from app.infra.deps import get_db
 from schemas.user_schema import (
     SignUp,
     SignUpResponse,
@@ -29,7 +29,8 @@ async def signup(
     *,
     db: Session = Depends(get_db),
     user_in: SignUp,
-):
+) -> None:
+    """Signup."""
     user = domain_user.create_user(db, obj_in=user_in)
     if not user:
         raise HTTPException(
@@ -45,7 +46,8 @@ def dashboard(
     *,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-):
+) -> None:
+    """Dashboard."""
     user = domain_user.get_current_user(token)
     role = domain_user.get_role_user(db, user.role_id)
     return {'role': role}
@@ -55,7 +57,8 @@ def dashboard(
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
-):
+) -> None:
+    """Login for access token."""
     user = domain_user.authenticate_user(
         db,
         form_data.username,
@@ -85,15 +88,21 @@ async def login_for_access_token(
 
 @user.get('/{document}', status_code=200)
 async def get_user(
-        document: str,
-        token: str = Depends(oauth2_scheme),
-        db: Session = Depends(get_db)):
+    document: str,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> None:
+    """Get user."""
     domain_user.get_current_user(token)
     return domain_user.get_user_login(db, document)
 
 
 @user.post('/request-reset-password', status_code=200)
-async def request_reset_password(document: str, db: Session = Depends(get_db)):
+async def request_reset_password(
+    document: str,
+    db: Session = Depends(get_db),
+) -> None:
+    """Request reset password."""
     return domain_user.save_token_reset_password(db, document)
 
 
@@ -101,5 +110,6 @@ async def request_reset_password(document: str, db: Session = Depends(get_db)):
 async def reset_password(
     response_model: UserResponseResetPassword,
     db: Session = Depends(get_db),
-):
+) -> None:
+    """Reset password."""
     return domain_user.reset_password(db, data=response_model)

@@ -11,5 +11,5 @@ async def memory_bootstrap() -> Command:
     return await bootstrap(
         uow=MemoryUnitOfWork(),
         cache=MemoryCache(),
-        publish=MemoryPublish(),
+        broker=MemoryPublish(),
     )

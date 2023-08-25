@@ -117,7 +117,7 @@ async def add_user_to_cart(
         await bootstrap.broker.payment.publish(
             {'user_id': user.user_id},
             queue=RabbitQueue('create_customer'),
-    )
+        )
     user_data = UserData.model_validate(user)
     cart_user = CartUser(**cart.model_dump(), user_data=user_data)
     cache = bootstrap.cache
@@ -230,7 +230,7 @@ async def checkout(
 ) -> CreateCheckoutResponse:
     """Process payment to specific cart."""
     _ = cart
-    # user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_current_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     if not cache_cart:
         raise HTTPException(
