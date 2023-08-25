@@ -1,5 +1,3 @@
-from unittest import mock
-
 import pytest
 
 from job_v2.service.status import ReturnGatewayID, UpdateStatus

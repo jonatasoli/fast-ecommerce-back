@@ -3,8 +3,8 @@ from decimal import Decimal
 
 from loguru import logger
 
-from models.order import Order, OrderItems, Product
-from models.transaction import CreditCardFeeConfig, Payment, Transaction
+from app.infra.models.order import Order, OrderItems, Product
+from app.infra.models.transaction import CreditCardFeeConfig, Payment, Transaction
 from payment.adapter import get_db
 from payment.schema import (
     ConfigCreditCardResponse,
@@ -18,18 +18,17 @@ def rollback():
 
 
 class ProductDB:
-    def __init__(self, item):
+    def __init__(self, item) -> None:
         self.db = get_db()
         self.item = item
 
     def decrease_product(self):
         with self.db:
-            _product_decrease = (
+            return (
                 self.db.query(Product)
                 .filter_by(id=self.item.get('id'))
                 .first()
             )
-            return _product_decrease
 
     def add_product(self, _product_decrease):
         with self.db:
@@ -38,7 +37,7 @@ class ProductDB:
 
 
 class OrderDB:
-    def __init__(self, user_id):
+    def __init__(self, user_id) -> None:
         self.user_id = user_id
 
     def create_order(self):
@@ -66,7 +65,9 @@ class OrderDB:
 
 
 class CreatePayment:
-    def __init__(self, user_id, _payment_method, _installments, _total_amount):
+    def __init__(
+        self, user_id, _payment_method, _installments, _total_amount
+    ) -> None:
         self.user_id = user_id
         self._total_amount = _total_amount
         self._payment_method = _payment_method
@@ -89,17 +90,16 @@ class CreatePayment:
 
 
 class QueryPayment:
-    def __init__(self, db):
+    def __init__(self, db) -> None:
         self.db = db
 
     def query(self):
         with self.db:
-            db_payment = self.db.query(Payment).first()
-        return db_payment
+            return self.db.query(Payment).first()
 
 
 class CreateTransaction:
-    def __init__(self, user_id, cart, order, affiliate, payment_id):
+    def __init__(self, user_id, cart, order, affiliate, payment_id) -> None:
         self.db = get_db()
         self.user_id = user_id
         self.cart = cart
@@ -124,7 +124,7 @@ class CreateTransaction:
 
 
 class GetCreditCardConfig:
-    def __init__(self, _product_id):
+    def __init__(self, _product_id) -> None:
         self.db = get_db()
         self._product_id = _product_id
 
@@ -142,24 +142,23 @@ class GetCreditCardConfig:
                 .first()
             )
             logger.debug(
-                ConfigCreditCardResponse.from_orm(_config_installments)
+                ConfigCreditCardResponse.from_orm(_config_installments),
             )
         return ConfigCreditCardResponse.from_orm(_config_installments)
 
 
 class CreditCardConfig:
-    def __init__(self, config_data):
+    def __init__(self, config_data) -> None:
         self.config_data = config_data
 
     def create_installment_config(self):
-        db_config = CreateCreditConfig(
-            config_data=self.config_data
+        return CreateCreditConfig(
+            config_data=self.config_data,
         ).create_credit()
-        return db_config
 
 
 class CreateCreditConfig:
-    def __init__(self, config_data):
+    def __init__(self, config_data) -> None:
         self.config_data = config_data
 
     def create_credit(self):
@@ -170,16 +169,15 @@ class CreateCreditConfig:
                 active_date=datetime.now(),
                 fee=Decimal(self.config_data.fee),
                 min_installment_with_fee=self.config_data.min_installment,
-                mx_installments=self.config_data.max_installment,
+                max_installments=self.config_data.max_installment,
             )
             db.add(db_config)
             db.commit()
-            _config = ConfigCreditCardResponse.from_orm(db_config)
-        return _config
+            return ConfigCreditCardResponse.model_validate(db_config)
 
 
 class UpdateStatus:
-    def __init__(self, payment_data, order):
+    def __init__(self, payment_data, order) -> None:
         self.payment_data = payment_data
         self.order = order
 
@@ -212,7 +210,7 @@ class UpdateStatus:
 
                 db_payment.token = self.payment_data.get('token')
                 db_payment.authorization = self.payment_data.get(
-                    'authorization_code'
+                    'authorization_code',
                 )
                 db_payment.status = self.payment_data.get('status')
                 db.add(db_transaction)

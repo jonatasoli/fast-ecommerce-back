@@ -5,17 +5,15 @@ from .adapter import Adapter
 
 
 def correios_zip_code():
-    url = 'https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
-    return url
+    return 'https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
 
 
 def correios_shipping():
-    url = 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx?wsdl'
-    return url
+    return 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx?wsdl'
 
 
 class FindZipCode:
-    def __init__(self, zip_code_target):
+    def __init__(self, zip_code_target) -> None:
         self.zip_code_target = zip_code_target
 
     def find_zip_code_target(self, url=correios_zip_code()):
@@ -24,15 +22,20 @@ class FindZipCode:
         response = httpx.post(url, headers=headers, data=body)
         content = response.content
         if response.status_code == 200:
-            data = Adapter.xmltojson_consultacep(content)
-            return data
+            return Adapter.xmltojson_consultacep(content)
         return {'message': 'Cep inválido'}
 
 
 class CalculateShipping:
     def __init__(
-        self, zip_code_source, zip_code_target, weigth, length, heigth, width
-    ):
+        self,
+        zip_code_source,
+        zip_code_target,
+        weigth,
+        length,
+        heigth,
+        width,
+    ) -> None:
         self.zip_code_source = zip_code_source
         self.zip_code_target = zip_code_target
         self.weigth = weigth
@@ -57,11 +60,11 @@ class CalculateShipping:
             response = httpx.post(url, headers=headers, data=body)
             content = response.content
             logger.debug(content)
-            if '4510' == service:
+            if service == '4510':
                 name = 'PAC'
-            if '4014' == service:
+            if service == '4014':
                 name = 'SEDEX'
             result = Adapter.xmltojson_shipping(content, name)
-            result['frete'] = int((result['frete'].replace(',', '')))
+            result['frete'] = int(result['frete'].replace(',', ''))
             shipping_list.append(result)
         return shipping_list

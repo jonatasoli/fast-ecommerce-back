@@ -1,10 +1,9 @@
-from typing import Optional
-
-from pydantic import BaseModel, SecretStr
+from pydantic import ConfigDict, BaseModel, SecretStr
 
 
 class SignUp(BaseModel):
     name: str
+    username: str
     mail: str
     password: SecretStr
     document: str
@@ -17,12 +16,10 @@ class UserSchema(BaseModel):
     document: str
     phone: str
     role_id: int
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
-
-    class Config:
-        orm_mode = True
+    email: str | None = None
+    full_name: str | None = None
+    disabled: bool | None = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Token(BaseModel):

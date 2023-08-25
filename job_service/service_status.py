@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from loguru import logger
-from sqlalchemy.orm import Session
 
 from gateway.payment_gateway import return_transaction
 from job_service.service import get_session

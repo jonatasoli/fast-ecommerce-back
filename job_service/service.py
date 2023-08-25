@@ -1,47 +1,37 @@
-import json
-
-import psycopg2
 import httpx
 from dynaconf import settings
 from loguru import logger
 from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
     create_engine,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from models.order import OrderStatusSteps
+from app.infra.models.order import OrderStatusSteps
 
 
 def get_session():
     engine = create_engine(settings.DATABASE_URL, echo=True)
-    Base = declarative_base()
+    declarative_base()
     Session = sessionmaker(bind=engine)
-    session = Session()
-    return session
+    return Session()
 
 
 def post_order_status(url):
-    response = httpx.post(url=url)
-    return response
+    return httpx.post(url=url)
 
 
 def process():
     session = get_session()
     result = session.query(OrderStatusSteps).filter_by(
-        active=True, sending=False
+        active=True,
+        sending=False,
     )
     result_list = [
         {'Order_id': row.id, 'Status': row.status} for row in result
     ]
     logger.debug(f'SETTINGS ------ {settings.API_MAIL_URL}')
-    url = post_order_status(settings.API_MAIL_URL)
+    post_order_status(settings.API_MAIL_URL)
     return result_list
 
 

@@ -39,7 +39,7 @@ class User:
         self._phone = checkout_data.get('phone')
 
     def user(self):
-        _user = AdapterUser(
+        return AdapterUser(
             db=self.db,
             _user_email=self._user_email,
             _password=self._password,
@@ -47,11 +47,10 @@ class User:
             _document=self._document,
             _phone=self._phone,
         ).check_user()
-        return _user
 
 
 class Product:
-    def __init__(self, item):
+    def __init__(self, item) -> None:
         self.item = item
 
     def decrease(self):
@@ -61,7 +60,8 @@ class Product:
         _qty_decrease = int(self.item.get('quantity'))
         _product_decrease.quantity -= _qty_decrease
         if _product_decrease.quantity < 0:
-            raise TypeError('Produto esgotado')
+            msg = 'Produto esgotado'
+            raise TypeError(msg)
         else:
             _product.add_product(_product_decrease)
 
@@ -83,24 +83,23 @@ class ShoppingCart:
                     'unit_price': cart.get('amount'),
                     'quantity': cart.get('qty'),
                     'tangible': str(cart.get('tangible')),
-                }
+                },
             )
             for item in _items:
                 Product(item=item).decrease()
             return _items
+        return None
 
     def installments(self):
         _total_amount = Decimal(self._shopping_cart[0].get('total_amount'))
         _installments = self.checkout_data.get('installments')
         _config_installments = GetCreditCardConfig(
-            self.checkout_data['shopping_cart'][0]['itens'][0]['product_id']
+            self.checkout_data['shopping_cart'][0]['itens'][0]['product_id'],
         ).get_config()
-        if _installments:
-            _installments = int(_installments)
-        else:
-            _installments = 1
+        _installments = int(_installments) if _installments else 1
         if _installments > 12:
-            raise TypeError('O número máximo de parcelas é 12')
+            msg = 'O número máximo de parcelas é 12'
+            raise TypeError(msg)
         elif _installments >= _config_installments.min_installment_with_fee:
             _total_amount = _total_amount * (
                 (1 + Decimal(_config_installments.fee)) ** _installments
@@ -122,7 +121,8 @@ class ProcessPayment:
         self.user = user
         self.affiliate = affiliate
         self.shopping_cart = ShoppingCart(
-            checkout_data=self.checkout_data, user=self.user
+            checkout_data=self.checkout_data,
+            user=self.user,
         )
         self._installments = self.shopping_cart.installments()
         self._items = self.shopping_cart.add_items()
@@ -132,13 +132,12 @@ class ProcessPayment:
 
     def db_payment(self):
         _shopping_cart = self.checkout_data.get('shopping_cart')
-        db_payment = CreatePayment(
+        return CreatePayment(
             user_id=self.user.id,
             _total_amount=Decimal(_shopping_cart[0].get('total_amount')),
             _installments=self._installments,
             _payment_method=self.checkout_data.get('payment_method'),
         ).create_payment()
-        return db_payment
 
     def process_payment(self):
         _db_payment = self.db_payment()
@@ -155,7 +154,7 @@ class ProcessPayment:
                 card_number=self.checkout_data.get('credit_card_number'),
                 card_cvv=self.checkout_data.get('credit_card_cvv'),
                 card_expiration_date=self.checkout_data.get(
-                    'credit_card_validate'
+                    'credit_card_validate',
                 ),
                 card_holder_name=self.checkout_data.get('credit_card_name'),
                 installments=self._installments,
@@ -216,7 +215,7 @@ class ProcessOrder:
             raise e
 
     def customer(self):
-        _customer = {
+        return {
             'external_id': str(self.user.id),
             'name': self.user.name,
             'type': 'individual',
@@ -228,14 +227,12 @@ class ProcessOrder:
             if self.user.birth_date
             else '1965-01-01',
         }
-        return _customer
 
     def billing(self):
-        _billing = {
+        return {
             'name': self.user.name,
             'address': self.payment_address.to_json(),
         }
-        return _billing
 
     def shipping(self):
         _total_amount = Decimal(self.shopping_cart[0].get('total_amount'))
@@ -253,7 +250,12 @@ class ProcessOrder:
 
 class ProcessTransaction:
     def __init__(
-        self, checkout_data: CheckoutSchema, user, order, payment_id, affiliate
+        self,
+        checkout_data: CheckoutSchema,
+        user,
+        order,
+        payment_id,
+        affiliate,
     ):
         self.checkout_data = checkout_data
         self.user = user
@@ -276,7 +278,11 @@ class ProcessTransaction:
 
 class Checkout:
     def __init__(
-        self, db: Session, checkout_data: CheckoutSchema, affiliate, cupom
+        self,
+        db: Session,
+        checkout_data: CheckoutSchema,
+        affiliate,
+        cupom,
     ):
         self.db = db
         self.checkout_data = checkout_data
@@ -285,13 +291,24 @@ class Checkout:
 
     def process_checkout(self):
         try:
+            # Buscando o usuário ativo
             _user = User(db=self.db, checkout_data=self.checkout_data).user()
+
+            # Criando o endereço de cobrança
             _payment_address = register_payment_address(
-                db=self.db, checkout_data=self.checkout_data, user=_user
+                db=self.db,
+                checkout_data=self.checkout_data,
+                user=_user,
             )
+
+            # Criando o endereço de entrega
             _shipping_address = register_shipping_address(
-                db=self.db, checkout_data=self.checkout_data, user=_user
+                db=self.db,
+                checkout_data=self.checkout_data,
+                user=_user,
             )
+
+            # Criando o pedido
             order = ProcessOrder(
                 checkout_data=self.checkout_data,
                 user=_user,
@@ -300,6 +317,8 @@ class Checkout:
                 shipping_address=_shipping_address,
             )
             _order = order.process_order()
+
+            # Criando o pagamento
             payment = ProcessPayment(
                 checkout_data=self.checkout_data,
                 user=_user,
@@ -309,6 +328,8 @@ class Checkout:
                 _customer=order.customer(),
             )
             _payment = payment.process_payment()
+
+            # Criando a transação
             ProcessTransaction(
                 checkout_data=self.checkout_data,
                 user=_user,
@@ -321,9 +342,13 @@ class Checkout:
                 _order.order_status == 'pending'
                 or _order.order_status != 'pending'
             ):
+                # Atualizando status do pedido
                 UpdateStatus(
-                    payment_data=_payment, order=_order
+                    payment_data=_payment,
+                    order=_order,
                 ).update_payment_status()
+
+            # Gerando retorno do pagamento de cartão de crédito
             if 'credit-card' in _payment.values():
                 _payment_response = PaymentResponse(
                     token=_payment.get('token'),
@@ -332,6 +357,7 @@ class Checkout:
                     payment_status='PAGAMENTO REALIZADO',
                     errors=_payment.get('errors'),
                 )
+            # Gerando retorno do pagamento de boleto
             else:
                 _payment_response = PaymentResponse(
                     token=_payment.get('token'),
