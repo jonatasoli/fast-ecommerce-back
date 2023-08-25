@@ -9,16 +9,16 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
-from endpoints.v1.direct_sales import direct_sales
-from endpoints.v1.mail import mail
-from endpoints.v1.order import order
-from endpoints.v1.product import product
-from endpoints.v1.product import catalog
-from endpoints.v1.shipping import shipping
-from endpoints.v1.users import user
-from endpoints.v1.payment import payment
-from endpoints.v1.payment import cart
-from endpoints.v1.default import (
+from app.infra.endpoints.direct_sales import direct_sales
+from app.infra.endpoints.mail import mail
+from app.infra.endpoints.order import order
+from app.infra.endpoints.product import product
+from app.infra.endpoints.product import catalog
+from app.infra.endpoints.shipping import shipping
+from app.infra.endpoints.users import user
+from app.infra.endpoints.payment import payment
+from app.infra.endpoints.cart import cart
+from app.infra.endpoints.default import (
     inventory,
     reviews,
     coupons,
@@ -42,10 +42,11 @@ origins = [
     '*',
 ]
 
-sentry_sdk.init(
-    'https://f8ca28ef3c3a4b54aac3a61c963a043b@o281685.ingest.sentry.io/5651868',
-    traces_sample_rate=1.0,
-)
+if settings.ENVIRONMENT == 'production':
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        traces_sample_rate=1.0,
+    )
 
 app.add_middleware(SentryAsgiMiddleware)
 
@@ -78,7 +79,7 @@ app.include_router(user)
 app.include_router(
     direct_sales,
     prefix='/direct-sales',
-    responses={404: {'description': 'Not found'}},
+    responses={404: {'description': 'URL Not found'}},
 )
 app.include_router(payment)
 app.include_router(shipping)
@@ -109,6 +110,4 @@ def create_app():
     )
     # app.include_router(
     #     payment,
-    #     responses={status.HTTP_404_NOT_FOUND: {'description': 'Not found'}},
-    # )
     return app

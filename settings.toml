@@ -1,5 +1,7 @@
 [default]
 REDIS_HOST="localhost"
+REDIS_PORT=6379
+REDIS_DB=0
 SECRET_KEY="NOT_SECURE_SECRET_KEY"
 CONFIRMATION_KEY="NOT_SECURE_CONFIRMATION_KEY"
 LOG_LEVEL="DEBUG"
@@ -10,11 +12,12 @@ ALGORITHM = "HS256"
 COMPANY="MY_COMPANY"
 ENVIRONMENT="development"
 ZIP_CODE_SOURCE ="47590000"
-
+SETRY_DSN = "SENTRY_DSN"
 
 
 [testing]
-DATABASE_URL="postgresql://postgres_user:pass123@localhost/ecommerce-test"
+DATABASE_URL="postgresql://postgres_user:pass123@localhost/ecommerce"
+DATABASE_URI="postgresql+asyncpg://postgres_user:pass123@localhost/ecommerce-test"
 API_MAIL_URL="https://testapi.com/"
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 LOG_LEVEL="DEBUG"

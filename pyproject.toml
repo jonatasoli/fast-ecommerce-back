@@ -10,7 +10,7 @@ python = "^3.11"
 fastapi = "*"
 uvicorn = "*"
 alembic = "*"
-sqlalchemy = "*"
+sqlalchemy = {version = "~2", extras = ["asyncio"]}
 databases = {version = "*", extras = ["postgress", "sqlite"]}
 passlib = "*"
 pyjwt = "*"
@@ -31,13 +31,18 @@ pytest-asyncio = "*"
 psycopg2-binary = "*"
 importlib-metadata = "*"
 typing-extensions = "*"
-sentry-sdk = "*"
+sentry-sdk = {version = "*", extras = ["fastapi"]}
 cloudinary = "*"
 Pillow = "*"
 aiofiles = "*"
 boto3 = "*"
 zipp = "*"
 dynaconf = "*"
+redis = "^4.6.0"
+stripe = "^5.5.0"
+celery = {version = "^5.3.1", extras = ["librabbitmq"]}
+pydantic-settings = "^2.0.2"
+factory-boy = "^3.3.0"
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"
@@ -52,11 +57,16 @@ pytest-sugar = "*"
 pytest-watch = "*"
 pytest-ordering = "*"
 pytest-asyncio = "*"
+factory-boy = "^3.2.1"
+pytest-env = "^0.8.2"
+anyio = "^3.7.1"
 
 [tool.ruff]
-select = ["E", "F", "W", "I", "D", "U", "N", "ERA", "C", "FBT", "B", "A", "T", "I25", "T", "ANN", "YTT", "BLE", "C90", "RUF", "M"]
-src = ["src", "tests"]
-ignore = ["D203"]
+select = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+src = ["app", "tests"]
+fixable = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+unfixable = []
+ignore = ["D100", "D101", "D102", "D107", "D203", "D213"]
 # Exclude a variety of commonly ignored directories.
 exclude = [
     ".bzr",
@@ -78,17 +88,20 @@ exclude = [
     "build",
     "dist",
     "node_modules",
-    "venv",
+    ".venv",
+    "migrations"
 ]
 
 [tool.ruff.flake8-annotations]
 mypy-init-return = true
 
 [tool.ruff.per-file-ignores]
-"__init__.py" = ["D104"]
+"__init__.py" = ["D104", "N999"]
+"/**/tests/*.py" = ["S101","PLR2004", "B008", 'N806', 'D103', 'F821', 'ANN201', 'ANN001', 'N999']
+"app/infra/*" = ["B008", "A002","A001", "A003", "RUF100","FBT001", "F811","F401","TRY302"]
 
 [tool.ruff.isort]
-known-first-party = ["src"]
+known-first-party = ["app"]
 known-third-party = ["fastapi"]
 
 [tool.pylint.main]
@@ -108,6 +121,10 @@ markers = [
   "smoke: main tests to validate system",
   "integrate: integrate tests",
 ]
+pythonpath = "."
+
+[tool.blue]
+extend-exclude = '(migrations/)'
 
 [tool.coverage.run]
 omit = [

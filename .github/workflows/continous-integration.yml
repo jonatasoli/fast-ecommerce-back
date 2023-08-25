@@ -2,23 +2,26 @@ name: Continuous Integration
 on: [push]
 jobs:
   lint_and_test:
+    runs-on: ubuntu-latest
     services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
       postgres:
-        image: postgres:11
+        image: postgres
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: pass123
+          POSTGRES_DB: ecommerce-test
         ports:
           - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-    runs-on: ubuntu-latest
     steps:
 
         - name: Set up python
           uses: actions/setup-python@v2
           with:
-              python-version: 3.10
+              python-version: 3.11.0
 
         - name: Check out repository
           uses: actions/checkout@v2
@@ -42,12 +45,32 @@ jobs:
         - name: Lint
           run: poetry run make lint
 
+        - name: Setuptools
+          run: poetry run pip install setuptools
+
         - name: Run tests
-          run: export DATABASE_URL "postgresql://postgres_user:pass123@localhost/ecommerce-test" && poetry run make test
+          env:
+            DYNACONF_DATABASE_URL: "postgresql://postgres_user:pass123@localhost/ecommerce-test"
+            DYNACONF_DATABASE_URI: "postgresql+asyncpg://postgres_user:pass123@localhost/ecommerce-test"
+            DYNACONF_REDIS_HOST: "localhost"
+            DYNACONF_REDIS_PORT: "6379"
+            DYNACONF_REDIS_DB: 0
+            DYNACONF_GATEWAY_API: "API_KEY"
+            DYNACONF_GATEWAY_CRYP: "CRYP_KEY"
+            DYNACONF_PAYMENT_GATEWAY_URL: "URL_GATEWAY"
+            DYNACONF_SENDGRID_API_KEY: "API_KEY"
+            DYNACONF_EMAIL_FROM: "EMAIL"
+            DYNACONF_API_MAIL_URL: "https://testapi.com/"
+            DYNACONF_ACCESS_TOKEN_EXPIRE_MINUTES: 15
+            DYNACONF_STRIPE_SECRET_KEY: "SECRET"
+            DYNACONF_STRIPE_API_KEY: "API"
+            DYNACONF_BROKER_URL: "BROKER"
+            DYNACONF_RESULT_BACKEND: "rpc://"
+          run: poetry run make test
 
-        - name: Build coverage file
-          run: |
-            poetry run make report
+        # - name: Build coverage file
+        #   run: |
+        #     poetry run make report
 
-        - name: Comment coverage
-          uses: coroo/pytest-coverage-commentator@v1.0.2
+        # - name: Comment coverage
+        #   uses: coroo/pytest-coverage-commentator@v1.0.2

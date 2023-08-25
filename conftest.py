@@ -1,15 +1,13 @@
 import sys
 from os.path import abspath
 from os.path import dirname as d
-from os.path import join
-from typing import Dict, Generator
+from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
 from loguru import logger
-from sqlalchemy import create_engine
 from sqlalchemy.engine import reflection
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.schema import (
     DropConstraint,
     DropTable,
@@ -24,12 +22,11 @@ sys.path.append(root_dir)
 
 from dynaconf import settings
 
-from ext.base import Base
-from ext.database import get_engine
+from app.infra.base import Base
+from app.infra.database import get_engine
+from main import app
+from app.infra.deps import get_db
 
-from .endpoints.deps import get_db
-from .ext.database import get_session
-from .main import app
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -88,7 +85,9 @@ def override_get_db():
         _engine = get_engine()
         logger.info(f'----- ADD DB {Base.metadata}-------')
         TestingSessionLocal = sessionmaker(
-            autocommit=False, autoflush=False, bind=_engine
+            autocommit=False,
+            autoflush=False,
+            bind=_engine,
         )
         db = TestingSessionLocal()
         yield db
@@ -96,15 +95,18 @@ def override_get_db():
         db.close()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def db() -> Generator:
     _engine = get_engine()
-    logger.info('-----GENERATE DB------')
-    _engine = get_engine()
+    # import ipdb; ipdb.set_trace()
+    Base.metadata.drop_all(bind=_engine)
+    Base.metadata.create_all(bind=_engine)
     TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=_engine
+        autocommit=False,
+        autoflush=False,
+        bind=_engine,
     )
-    yield TestingSessionLocal()
+    return TestingSessionLocal()
 
 
 @pytest.fixture(scope='session')
@@ -113,9 +115,11 @@ def db_models(clean_db) -> Generator:
     logger.info('-----GENERATE DB------')
     _engine = get_engine()
     TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=_engine
+        autocommit=False,
+        autoflush=False,
+        bind=_engine,
     )
-    yield TestingSessionLocal()
+    return TestingSessionLocal()
 
 
 @pytest.fixture(scope='session')

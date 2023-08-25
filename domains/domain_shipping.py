@@ -2,8 +2,7 @@ from dynaconf import settings
 from loguru import logger
 from sqlalchemy.orm import Session
 
-from models.order import Product
-from schemas.order_schema import CheckoutSchema
+from app.infra.models.order import Product
 from schemas.shipping_schema import Shipping, ShippingCalc
 from zipcode.zip_code import CalculateShipping, FindZipCode
 
@@ -16,7 +15,7 @@ def shipping_zip_code(db: Session, shipping_data: ShippingCalc):
             return {'shipping': -2}
         _product_id = _shipping_data['cart'][0]['product_id']
         _product = db.query(Product).filter_by(id=int(_product_id)).all()
-        for products in _shipping_data.get('cart'):
+        for _products in _shipping_data.get('cart'):
             _height = 0
             _weight = 0
             _width = 0
@@ -51,7 +50,7 @@ def shipping_zip_code(db: Session, shipping_data: ShippingCalc):
             if shipping == []:
                 return {'shipping': -2}
             return {'shipping': shipping}
-    except Exception as e:
+    except Exception:
         logger.error('Erro no calculo do frete {e}')
         return {'shipping': -2}
 
@@ -59,7 +58,6 @@ def shipping_zip_code(db: Session, shipping_data: ShippingCalc):
 def adress_zip_code(shipping: Shipping, status_code=200):
     try:
         adress = FindZipCode(zip_code_target=shipping.zip_code_target)
-        adress = adress.find_zip_code_target()
-        return adress
+        return adress.find_zip_code_target()
     except Exception as e:
         raise e

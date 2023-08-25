@@ -1,5 +1,4 @@
 from dynaconf import settings
-from fastapi.responses import HTMLResponse
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
 from mail_service.sendmail import SendMail, send_mail_sendgrid
@@ -63,7 +62,12 @@ def get_mail_template_courses(mail_template, **kwargs):
 
 
 def send_mail(
-    from_email, to_emails, subject, plain_text_content, html_content, send_mail
+    from_email,
+    to_emails,
+    subject,
+    plain_text_content,
+    html_content,
+    send_mail,
 ):
     sended = SendMail(
         from_email=from_email,

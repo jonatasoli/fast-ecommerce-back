@@ -3,15 +3,15 @@ from loguru import logger
 from domains.domain_user import (
     check_existent_user,
     create_user,
-    register_payment_address,
-    register_shipping_address,
 )
-from ext.database import get_session
+from app.cart.uow import get_session
 from schemas.user_schema import SignUp
 
 
 class AdapterUser:
-    def __init__(self, db, _user_email, _password, _name, _document, _phone):
+    def __init__(
+        self, db, _user_email, _password, _name, _document, _phone
+    ) -> None:
         self.db = db
         self._user_email = _user_email
         self._password = _password
@@ -52,5 +52,4 @@ class AdapterUser:
 
 def get_db():
     session_local = get_session()
-    db = session_local()
-    return db
+    return session_local()

@@ -1,11 +1,10 @@
-import lxml
 from bs4 import BeautifulSoup
 from loguru import logger
 
 
 class Adapter:
     def xml_find_zipcode(cep):
-        body = (
+        return (
             """<x:Envelope
         xmlns:x="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:cli="http://cliente.bean.master.sigep.bsb.correios.com.br/">
@@ -19,11 +18,10 @@ class Adapter:
         </x:Body>
         </x:Envelope>"""
         )
-        return body
 
     def xmltojson_consultacep(xml):
         soup = BeautifulSoup(xml, 'lxml')
-        data = {
+        return {
             'bairro': soup.bairro.text,
             'cep': soup.cep.text,
             'cidade': soup.cidade.text,
@@ -32,16 +30,14 @@ class Adapter:
             'uf': soup.uf.text,
             'unidadePostagem': [],
         }
-        return data
 
     def xmltojson_shipping(xml, name):
         soup = BeautifulSoup(xml, 'xml')
-        data = {
+        return {
             'serviço': name,
             'frete': soup.Valor.text,
             'prazo': soup.PrazoEntrega.text,
         }
-        return data
 
     def body_shipping(
         cod_service,

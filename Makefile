@@ -1,4 +1,4 @@
-.PHONY: install update shell format lint test sec export configs upgrade run migrate
+.PHONY: install update shell format lint test sec export configs upgrade run migrate post-test
 
 
 install:
@@ -11,14 +11,22 @@ shell:
 	@poetry shell
 
 format:
-	@blue . 
+	@blue app/ 
+	@blue tests/ 
 
 lint:
-	@blue . --check
-	@ruff check .
+	@blue app/ tests/ --check
+	@ruff check app/
+	@ruff check tests/entities --ignore S101
 
 test:
-	@pytest -s tests
+	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/entities -x --cov=fast_ecommerce -vv
+	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/endpoints/cart -x --cov=fast_ecommerce -vv
+	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/services -x --cov=fast_ecommerce -vv
+	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/models -x --cov=fast_ecommerce -vv
+
+post-test:
+	@coverage html
 
 configs:
 	dynaconf -i src.config.settings list

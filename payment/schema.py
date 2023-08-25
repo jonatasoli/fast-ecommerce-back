@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import List, Optional
+from decimal import Decimal
 
-from pydantic import BaseModel, SecretStr
+from pydantic import ConfigDict, BaseModel, SecretStr
 
 
 class CreditCardPayment(BaseModel):
@@ -32,66 +32,60 @@ class SlipPayment(BaseModel):
 
 
 class PaymentResponse(BaseModel):
-    token: Optional[str]
+    token: str | None = None
     order_id: int
     name: str
-    payment_status: Optional[str]
-    boleto_url: Optional[str]
-    boleto_barcode: Optional[str]
-    errors: Optional[list]
+    payment_status: str | None = None
+    boleto_url: str | None = None
+    boleto_barcode: str | None = None
+    errors: list | None = None
 
 
 class ResponseGateway(BaseModel):
     user: str
-    token: Optional[str]
-    status: Optional[str]
-    authorization_code: Optional[str]
-    gateway_id: Optional[int]
-    payment_method: Optional[str]
-    boleto_url: Optional[str]
-    boleto_barcode: Optional[str]
-    errors: Optional[list]
+    token: str | None = None
+    status: str | None = None
+    authorization_code: str | None = None
+    gateway_id: int | None = None
+    payment_method: str | None = None
+    boleto_url: str | None = None
+    boleto_barcode: str | None = None
+    errors: list | None = None
 
 
 class ConfigCreditCardInDB(BaseModel):
     fee: str
     min_installment: int
     max_installment: int
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ConfigCreditCardResponse(BaseModel):
-    id: int
-    fee: str
+    credit_card_fee_config_id: int
+    fee: Decimal
     min_installment_with_fee: int
-    mx_installments: int
-
-    class Config:
-        orm_mode = True
+    max_installments: int
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductSchema(BaseModel):
     name: str
     uri: str
     price: int
-    direct_sales: Optional[bool] = None
-    upsell: Optional[list] = None
+    direct_sales: bool | None = None
     description: str
     image_path: str
-    installments_config: Optional[int]
-    installments_list: Optional[list]
+    installments_config: int | None = None
+    installments_list: dict | None = None
     category_id: int
-    discount: Optional[int]
-    quantity: Optional[int]
-    heigth: Optional[int]
-    width: Optional[int]
-    weigth: Optional[int]
-    length: Optional[int]
-
-    class Config:
-        orm_mode = True
+    discount: int | None = None
+    height: int | None = None
+    width: int | None = None
+    weight: int | None = None
+    length: int | None = None
+    diameter: int | None = None
+    sku: str | None = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductResponseSchema(ProductSchema):
@@ -103,31 +97,27 @@ class ProductInDB(BaseModel):
     name: str
     uri: str
     price: int
-    direct_sales: Optional[bool] = None
-    upsell: Optional[list] = None
+    direct_sales: bool | None = None
+    upsell: list | None = None
     description: str
     image_path: str
-    installments_config: Optional[int]
-    installments_list: Optional[list]
+    installments_config: int | None = None
+    installments_list: list | None = None
     category_id: int
-    discount: Optional[int]
-    quantity: Optional[int]
+    discount: int | None = None
+    quantity: int | None = None
     showcase: bool
     show_discount: bool
-    heigth: Optional[int]
-    width: Optional[int]
-    weigth: Optional[int]
-    length: Optional[int]
-
-    class Config:
-        orm_mode = True
+    heigth: int | None = None
+    width: int | None = None
+    weigth: int | None = None
+    length: int | None = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ListProducts(BaseModel):
-    products: List[ProductInDB]
-
-    class Config:
-        orm_mode = True
+    products: list[ProductInDB]
+    model_config = ConfigDict(from_attributes=True)
 
 
 class InstallmentSchema(BaseModel):
@@ -138,7 +128,6 @@ class OrderSchema(BaseModel):
     id: int
     customer_id: int
     order_date: datetime
-    # order_items_id: int
     tracking_number: int
     payment_id: int
     order_status: str
@@ -149,13 +138,11 @@ class OrderFullResponse(BaseModel):
     id: int
     customer_id: int
     order_date: datetime
-    tracking_number: Optional[int]
-    payment_id: Optional[int]
+    tracking_number: int | None = None
+    payment_id: int | None = None
     order_status: str
-    last_updated: Optional[datetime]
-
-    class Config:
-        orm_mode = True
+    last_updated: datetime | None = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderItemsSchema(BaseModel):
@@ -180,35 +167,35 @@ class CheckoutSchema(BaseModel):
     country: str
     zip_code: str
     shipping_is_payment: bool
-    ship_name: Optional[str]
-    ship_address: Optional[str]
-    ship_number: Optional[str]
-    ship_address_complement: Optional[str]
-    ship_neighborhood: Optional[str]
-    ship_city: Optional[str]
-    ship_state: Optional[str]
-    ship_country: Optional[str]
-    ship_zip: Optional[str]
+    ship_name: str | None = None
+    ship_address: str | None = None
+    ship_number: str | None = None
+    ship_address_complement: str | None = None
+    ship_neighborhood: str | None = None
+    ship_city: str | None = None
+    ship_state: str | None = None
+    ship_country: str | None = None
+    ship_zip: str | None = None
     payment_method: str
     shopping_cart: list
-    credit_card_name: Optional[str]
-    credit_card_number: Optional[str]
-    credit_card_cvv: Optional[str]
-    credit_card_validate: Optional[str]
-    installments: Optional[int]
+    credit_card_name: str | None = None
+    credit_card_number: str | None = None
+    credit_card_cvv: str | None = None
+    credit_card_validate: str | None = None
+    installments: int | None = None
 
 
 class CheckoutReceive(BaseModel):
     transaction: dict
-    affiliate: Optional[str]
-    cupom: Optional[str]
+    affiliate: str | None = None
+    cupom: str | None = None
 
 
 class CheckoutResponseSchema(BaseModel):
     token: str
     order_id: int
     name: str
-    slip_payment: Optional[str]
+    slip_payment: str | None = None
 
 
 class CategorySchema(BaseModel):
@@ -221,13 +208,9 @@ class CategoryInDB(BaseModel):
     id: int
     name: str
     path: str
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ListCategory(BaseModel):
-    category: List[CategoryInDB]
-
-    class Config:
-        orm_mode = True
+    category: list[CategoryInDB]
+    model_config = ConfigDict(from_attributes=True)
