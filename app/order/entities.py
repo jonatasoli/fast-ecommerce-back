@@ -1,0 +1,6 @@
+class OrderNotFound(Exception):
+    ...
+
+
+class CreateOrderStatusStepError(Exception):
+    ...

@@ -113,6 +113,11 @@ async def add_user_to_cart(
 ) -> CartUser:
     """Must validate token user if is valid add user id in cart."""
     user = bootstrap.user.get_current_user(token)
+    if not user.customer_id:
+        await bootstrap.broker.payment.publish(
+            {'user_id': user.user_id},
+            queue=RabbitQueue('create_customer'),
+    )
     user_data = UserData.model_validate(user)
     cart_user = CartUser(**cart.model_dump(), user_data=user_data)
     cache = bootstrap.cache
@@ -205,8 +210,15 @@ async def preview(
     bootstrap: Command,
 ) -> CartPayment:
     """Must get address id and payment token to show in cart."""
-    bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_current_user(token)
     cart = bootstrap.cache.get(uuid)
+    cache_cart = CartPayment.model_validate_json(cart)
+    bootstrap.payment.create_payment_intent(
+        amount=cache_cart.subtotal,
+        currency='brl',
+        customer_id=user.customer_id,
+        payment_method=cache_cart.payment_method_id,
+    )
     return CartPayment.model_validate_json(cart)
 
 
@@ -238,7 +250,7 @@ async def checkout(
     #     payment_method=user.payment_method,
     # )
     payment_intent = 'asdfasdf'
-    checkout_task = await bootstrap.publish.publish(
+    checkout_task = await bootstrap.broker.cart.publish(
         {'cart_uuid': uuid, 'payment_intent': payment_intent},
         queue=RabbitQueue('checkout'),
         callback=True,

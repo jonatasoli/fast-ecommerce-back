@@ -1,3 +1,4 @@
+from app.infra.worker import Broker, broker
 from fastapi import Depends
 from pydantic import BaseModel
 
@@ -19,7 +20,7 @@ class Command(BaseModel):
     db: sessionmaker
     cart_repository: AbstractRepository
     cache: redis.MemoryClient | cache_client.Redis
-    publish: Any
+    broker: Broker
     freight: freight.AbstractFreight
     user: Any
     payment: Any
@@ -34,7 +35,7 @@ def bootstrap(  # noqa: PLR0913
     db: Session = get_session(),
     cart_repository: AbstractRepository = Depends(SqlAlchemyRepository),
     cache: redis.AbstractCache = redis.RedisCache(),  # noqa: B008
-    publish: Any = None,  # noqa: ANN401
+    broker: Broker = broker,  # noqa: ANN401
     freight: freight.AbstractFreight = freight.MemoryFreight(),  # noqa: B008
     user: Any = user_gateway,  # noqa: ANN401
     payment: Any = stripe,  # noqa: ANN401
@@ -47,7 +48,7 @@ def bootstrap(  # noqa: PLR0913
         db=db,
         cart_repository=cart_repository,
         cache=_cache,
-        publish=publish,
+        broker=broker,
         freight=freight,
         user=_user,
         payment=payment,
