@@ -18,8 +18,6 @@ from app.infra.bootstrap import Command
 class UserAddressNotFoundError(Exception):
     """User address not found."""
 
-    ...
-
 
 def create_or_get_cart(
     uuid: str | None,

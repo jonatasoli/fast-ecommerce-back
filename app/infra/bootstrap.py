@@ -29,9 +29,9 @@ class Command(BaseModel):
 
 async def bootstrap(  # noqa: PLR0913
     uow: uow.AbstractUnitOfWork = None,
-    cache: redis.AbstractCache = redis.RedisCache(),  # noqa: B008
+    cache: redis.AbstractCache = redis.RedisCache(),
     publish: Any = tasks,  # noqa: ANN401
-    freight: freight.AbstractFreight = freight.MemoryFreight(),  # noqa: B008
+    freight: freight.AbstractFreight = freight.MemoryFreight(),
     user: Any = user_gateway,  # noqa: ANN401
     payment: Any = stripe,  # noqa: ANN401
 ) -> Command:

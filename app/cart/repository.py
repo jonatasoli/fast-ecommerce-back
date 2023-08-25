@@ -15,19 +15,13 @@ Self = TypeVar('Self')
 class ProductNotFoundError(Exception):
     """Raised when a product is not found in the repository."""
 
-    ...
-
 
 class AddressNotFoundError(Exception):
     """Raised when a product is not found in the repository."""
 
-    ...
-
 
 class UserNotFoundError(Exception):
     """Raised when a product is not found in the repository."""
-
-    ...
 
 
 class AbstractRepository(abc.ABC):

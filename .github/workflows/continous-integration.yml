@@ -62,6 +62,10 @@ jobs:
             DYNACONF_EMAIL_FROM: "EMAIL"
             DYNACONF_API_MAIL_URL: "https://testapi.com/"
             DYNACONF_ACCESS_TOKEN_EXPIRE_MINUTES: 15
+            DYNACONF_STRIPE_SECRET_KEY: "SECRET"
+            DYNACONF_STRIPE_API_KEY: "API"
+            DYNACONF_BROKER_URL: "BROKER"
+            DYNACONF_RESULT_BACKEND: "rpc://"
           run: poetry run make test
 
         # - name: Build coverage file

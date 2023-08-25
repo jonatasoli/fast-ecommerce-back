@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from domains import domain_mail
-from endpoints import deps
+from app.infra import deps
 from schemas.mail_schema import MailFormCourses, MailTrackingNumber
 
 mail = APIRouter(
@@ -17,7 +17,8 @@ async def send_mail_tracking_number(
     *,
     db: Session = Depends(deps.get_db),
     mail_data: MailTrackingNumber,
-):
+) -> None:
+    """Send mail tracking number."""
     mail = domain_mail.send_mail_tracking_number(db, mail_data=mail_data)
     if mail:
         return JSONResponse(
@@ -32,7 +33,8 @@ async def send_mail_form_courses(
     *,
     db: Session = Depends(deps.get_db),
     mail_data: MailFormCourses,
-):
+) -> None:
+    """Send mail form courses."""
     mail = domain_mail.send_mail_form_courses(db, mail_data=mail_data)
     if mail:
         return JSONResponse(
