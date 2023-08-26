@@ -9,7 +9,7 @@ from app.entities.cart import (
     CreatePaymentMethod,
 )
 from app.entities.product import ProductCart
-from app.infra.bootstrap import Command, bootstrap
+from app.infra.bootstrap.cart_bootstrap import Command, bootstrap
 from app.infra.deps import get_db
 from payment.schema import InstallmentSchema, PaymentResponse
 from fastapi import APIRouter, Depends
@@ -96,22 +96,23 @@ async def estimate(
 @cart.get('/upsell/{id}', status_code=200)
 async def get_upsell_products():   # noqa: ANN201
     """Get products and upsell."""
+    ...
 
-    @cart.post('/{uuid}/user', status_code=201, response_model=CartUser)
-    async def add_user_to_cart(
-        uuid: str,
-        *,
-        cart: CartBase,
-        token: str = Depends(oauth2_scheme),
-        bootstrap: Command = Depends(get_bootstrap),
-    ) -> CartUser:
-        """Add user to cart."""
-        return await services.add_user_to_cart(
-            uuid=uuid,
-            cart=cart,
-            token=token,
-            bootstrap=bootstrap,
-        )
+@cart.post('/{uuid}/user', status_code=201, response_model=CartUser)
+async def add_user_to_cart(
+    uuid: str,
+    *,
+    cart: CartBase,
+    token: str = Depends(oauth2_scheme),
+    bootstrap: Command = Depends(get_bootstrap),
+) -> CartUser:
+    """Add user to cart."""
+    return await services.add_user_to_cart(
+        uuid=uuid,
+        cart=cart,
+        token=token,
+        bootstrap=bootstrap,
+    )
 
 
 @cart.post('/{uuid}/address', status_code=201, response_model=CartShipping)

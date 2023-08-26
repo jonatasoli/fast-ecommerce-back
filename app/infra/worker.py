@@ -1,4 +1,5 @@
 from propan.fastapi import RabbitRouter
+from propan.brokers.rabbit.rabbit_broker import RabbitBroker as RabbitMQBroker
 from config import settings
 from pydantic import BaseModel
 
@@ -10,11 +11,14 @@ task_mail_router = RabbitRouter(settings.BROKER_URL)
 
 
 class Broker(BaseModel):
-    cart: RabbitRouter
-    payment: RabbitRouter
-    order: RabbitRouter
-    inventory: RabbitRouter
-    mail: RabbitRouter
+    cart: RabbitMQBroker
+    payment: RabbitMQBroker
+    order: RabbitMQBroker
+    inventory: RabbitMQBroker
+    mail: RabbitMQBroker
+
+    class Config():
+        arbitrary_types_allowed = True
 
 
 broker = Broker(
