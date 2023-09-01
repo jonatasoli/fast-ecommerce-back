@@ -97,10 +97,6 @@ def override_get_db():
 @pytest.fixture(scope='function')
 def db() -> Generator:
     _engine = get_engine()
-<<<<<<< HEAD
-=======
-    # import ipdb; ipdb.set_trace()
->>>>>>> 4c5ed9adcea9104313438b2cd078ea7d8262f05b
     Base.metadata.drop_all(bind=_engine)
     Base.metadata.create_all(bind=_engine)
     TestingSessionLocal = sessionmaker(

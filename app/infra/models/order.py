@@ -24,7 +24,7 @@ class Product(Base):
     price: Mapped[Decimal]
     active: Mapped[bool] = mapped_column(default=False)
     direct_sales: Mapped[bool] = mapped_column(default=False)
-    description: Mapped[str]
+    description: Mapped[dict] = mapped_column(JSON, nullable=True)
     image_path: Mapped[str | None]
     installments_config: Mapped[int]
     installments_list: Mapped[dict] = mapped_column(JSON, nullable=True)

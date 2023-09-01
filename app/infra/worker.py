@@ -17,11 +17,19 @@ class Broker(BaseModel):
     inventory: RabbitMQBroker
     mail: RabbitMQBroker
 
-    class Config():
+    class Config:
         arbitrary_types_allowed = True
 
 
-broker = Broker(
+mq_broker = Broker(
+    cart=task_cart_router.broker,
+    payment=task_payment_router.broker,
+    order=task_order_router.broker,
+    inventory=task_inventory_router.broker,
+    mail=task_mail_router.broker,
+)
+
+memory_broker = Broker(
     cart=task_cart_router.broker,
     payment=task_payment_router.broker,
     order=task_order_router.broker,

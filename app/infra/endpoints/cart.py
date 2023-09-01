@@ -98,6 +98,7 @@ async def get_upsell_products():   # noqa: ANN201
     """Get products and upsell."""
     ...
 
+
 @cart.post('/{uuid}/user', status_code=201, response_model=CartUser)
 async def add_user_to_cart(
     uuid: str,
@@ -140,6 +141,7 @@ async def add_payment_information_to_cart(
     *,
     cart: CartShipping,
     payment: CreatePaymentMethod,
+    installments: int,
     token: str = Depends(oauth2_scheme),
     bootstrap: Command = Depends(get_bootstrap),
 ) -> CartShipping:

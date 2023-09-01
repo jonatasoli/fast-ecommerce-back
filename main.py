@@ -29,11 +29,10 @@ from app.infra.endpoints.default import (
     campaing,
     sales,
 )
-from app.infra.worker import task_cart_router
+from app.cart.tasks import task_cart_router
 
 app = FastAPI(lifespan=task_cart_router.lifespan_context)
 
-app.include_router(task_cart_router)
 
 class InterceptHandler(logging.Handler):
     def emit(self, record):

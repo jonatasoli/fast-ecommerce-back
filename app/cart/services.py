@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from loguru import logger
 from propan.brokers.rabbit import RabbitQueue
 from app.entities.address import CreateAddress
 from app.entities.cart import (
@@ -10,6 +11,7 @@ from app.entities.cart import (
     CreatePaymentMethod,
     generate_empty_cart,
     generate_new_cart,
+    validate_cache_cart,
 )
 from app.entities.product import ProductCart
 from app.entities.user import UserData
@@ -179,6 +181,7 @@ async def add_payment_information(  # noqa: PLR0913
     payment: CreatePaymentMethod,
     token: str,
     bootstrap: Command,
+    installments: int = 1,
     payment_method: str = 'card',
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
@@ -191,10 +194,22 @@ async def add_payment_information(  # noqa: PLR0913
             detail='Cart uuid is not the same as the cache uuid',
         )
     payment = bootstrap.payment.create_payment_method(payment)
+    payment_method_id = payment.get('id')
+    if not payment_method_id:
+        raise HTTPException(
+            status_code=400,
+            detail='Payment method id not found',
+        )
+    bootstrap.payment.attach_customer_in_payment_method(
+        payment_method_id,
+        user.customer_id,
+    )
     cart = CartPayment(
         **cache_cart.model_dump(),
         payment_method=payment_method,
-        payment_method_id=payment.get('id'),
+        payment_method_id=payment_method_id,
+        customer_id=user.customer_id,
+        installments=installments,
     )
     bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
     await bootstrap.uow.update_payment_method_to_user(
@@ -213,13 +228,15 @@ async def preview(
     user = bootstrap.user.get_current_user(token)
     cart = bootstrap.cache.get(uuid)
     cache_cart = CartPayment.model_validate_json(cart)
-    bootstrap.payment.create_payment_intent(
+    payment_intent = bootstrap.payment.create_payment_intent(
         amount=cache_cart.subtotal,
         currency='brl',
         customer_id=user.customer_id,
         payment_method=cache_cart.payment_method_id,
     )
-    return CartPayment.model_validate_json(cart)
+    cache_cart.payment_intent = payment_intent['id']
+    bootstrap.cache.set(str(cache_cart.uuid), cache_cart.model_dump_json())
+    return cache_cart
 
 
 async def checkout(
@@ -230,28 +247,18 @@ async def checkout(
 ) -> CreateCheckoutResponse:
     """Process payment to specific cart."""
     _ = cart
-    user = bootstrap.user.get_current_user(token)
+    bootstrap.user.get_current_user(token)
     cache_cart = bootstrap.cache.get(uuid)
-    if not cache_cart:
-        raise HTTPException(
-            status_code=400,
-            detail='Cart not found',
-        )
+    validate_cache_cart(cache_cart)
     cache_cart = CartPayment.model_validate_json(cache_cart)
 
-    async def dummy():   # noqa: ANN202
-        pass
-
-    await dummy()
-    # payment_intent = bootstrap.payment.create_payment_intent(
-    #     amount=cache_cart.subtotal,
-    #     currency='brl',
-    #     customer_id=user.customer_id,
-    #     payment_method=user.payment_method,
-    # )
-    payment_intent = 'asdfasdf'
+    logger.info(f'{uuid}, {cache_cart.payment_intent} ')
     checkout_task = await bootstrap.broker.cart.publish(
-        {'cart_uuid': uuid, 'payment_intent': payment_intent},
+        {
+            'cart_uuid': uuid,
+            'payment_intent': cache_cart.payment_intent,
+            'payment_method': cache_cart.payment_method_id,
+        },
         queue=RabbitQueue('checkout'),
         callback=True,
     )

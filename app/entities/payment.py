@@ -1,3 +1,5 @@
+import enum
+from typing import Any
 from pydantic import BaseModel
 
 
@@ -22,7 +24,6 @@ class ProcessStripePayment(AbsctractPaymentGateway):
 
     def process_credit_card(self):
         """Process credit card with Stripe."""
-        pass
 
 
 class ProcessPagarmePayment(AbsctractPaymentGateway):
@@ -30,7 +31,6 @@ class ProcessPagarmePayment(AbsctractPaymentGateway):
 
     def process_credit_card(self):
         """Process credit card with Pagarme."""
-        pass
 
 
 class PaymentGateway(enum.Enum):
@@ -39,7 +39,8 @@ class PaymentGateway(enum.Enum):
 
 
 def validate_payment(
-    payment_accept: Any, gateway: AbsctractPaymentGateway
+    payment_accept: Any,
+    gateway: AbsctractPaymentGateway,
 ) -> str:
     """Validate payment."""
     _ = payment_accept, gateway

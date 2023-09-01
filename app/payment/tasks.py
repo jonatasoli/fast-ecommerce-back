@@ -3,14 +3,23 @@ from app.infra.bootstrap.task_bootstrap import bootstrap
 from app.infra.worker import task_payment_router
 
 
-def create_pending_payment(
-    order_id: int, payment_intent: Any, bootstrap=bootstrap()
+async def create_pending_payment(
+    order_id: int,
+    payment_intent: Any,
+    bootstrap=bootstrap(),
 ) -> int:
-    return 1
+    async with bootstrap.db as session:
+        payment = await bootstrap.payment.create_payment(
+            order_id=order_id,
+            payment_intent=payment_intent,
+        )
+    return payment.id
 
 
 def update_payment_status(
-    payment_id: int, payment_status: str, bootstrap=bootstrap()
+    payment_id: int,
+    payment_status: str,
+    bootstrap=bootstrap(),
 ):
     return 1
 

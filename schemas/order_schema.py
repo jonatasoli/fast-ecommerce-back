@@ -8,7 +8,7 @@ class ProductSchema(BaseModel):
     uri: str
     price: int
     direct_sales: bool | None = None
-    description: str
+    description: dict | None
     image_path: str | None = None
     installments_config: int | None = None
     installments_list: dict | None = None
@@ -31,7 +31,7 @@ class ProductFullResponse(BaseModel):
     uri: str
     price: int
     direct_sales: bool | None = None
-    description: str | None = None
+    description: dict | None = None
     image_path: str | None = None
     installments_config: int | None = None
     installments_list: dict | None = None
@@ -52,7 +52,7 @@ class ProductInDB(BaseModel):
     uri: str
     price: int
     direct_sales: bool | None = None
-    description: str | None = None
+    description: dict | None = None
     image_path: str | None = None
     installments_config: int | None = None
     installments_list: dict | None = None
