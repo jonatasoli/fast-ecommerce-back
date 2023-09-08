@@ -14,7 +14,7 @@ from app.entities.cart import (
     validate_cache_cart,
 )
 from app.entities.product import ProductCart
-from app.entities.user import UserData
+from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
 
 
@@ -181,11 +181,11 @@ async def add_payment_information(  # noqa: PLR0913
     payment: CreatePaymentMethod,
     token: str,
     bootstrap: Command,
-    installments: int = 1,
     payment_method: str = 'card',
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
     user = bootstrap.user.get_current_user(token)
+    installments = payment.installments
     cache_cart = bootstrap.cache.get(uuid)
     cache_cart = CartShipping.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
@@ -233,6 +233,7 @@ async def preview(
         currency='brl',
         customer_id=user.customer_id,
         payment_method=cache_cart.payment_method_id,
+        installments=cache_cart.installments,
     )
     cache_cart.payment_intent = payment_intent['id']
     bootstrap.cache.set(str(cache_cart.uuid), cache_cart.model_dump_json())
@@ -247,17 +248,19 @@ async def checkout(
 ) -> CreateCheckoutResponse:
     """Process payment to specific cart."""
     _ = cart
-    bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_current_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     validate_cache_cart(cache_cart)
     cache_cart = CartPayment.model_validate_json(cache_cart)
 
     logger.info(f'{uuid}, {cache_cart.payment_intent} ')
+    user = UserDBGet.model_validate(user)
     checkout_task = await bootstrap.broker.cart.publish(
         {
             'cart_uuid': uuid,
             'payment_intent': cache_cart.payment_intent,
             'payment_method': cache_cart.payment_method_id,
+            'user': user,
         },
         queue=RabbitQueue('checkout'),
         callback=True,

@@ -1,13 +1,13 @@
 from typing import Any
 
-from sqlalchemy import create_engine
+from sqlalchemy import Engine, create_engine
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import sessionmaker
 
 from config import settings
 
 
-def get_engine() -> str:
+def get_engine() -> Engine:
     """Return an instance of a database connection engine using SQLAlchemy.
 
     Return:
@@ -31,7 +31,7 @@ def get_engine() -> str:
     )
 
 
-def get_session() -> str:
+def get_session() -> sessionmaker:
     """Return a SQLAlchemy session factory with a configured engine.
 
     Return:
@@ -57,14 +57,3 @@ def get_session() -> str:
         autoflush=False,
         bind=_engine,
     )
-
-
-@as_declarative()
-class Base:
-    id: Any
-    __name__: str
-
-    @declared_attr
-    def __tablename__(self: 'Base') -> str:
-        """Generate __tablename__ automatically."""
-        return __name__.lower()

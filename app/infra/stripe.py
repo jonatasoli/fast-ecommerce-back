@@ -3,6 +3,7 @@ from loguru import logger
 import stripe
 from stripe.error import InvalidRequestError
 from app.entities.cart import CreatePaymentMethod
+from app.payment.entities import PaymentAcceptError
 from config import settings
 
 
@@ -43,16 +44,12 @@ def create_payment_intent(
     installments: int,
 ) -> stripe.PaymentIntent:
     """Must create a payment intent."""
+    _ = installments
     return stripe.PaymentIntent.create(
         amount=amount,
         currency=currency,
         customer=customer_id,
         payment_method=payment_method,
-        payment_method_options={
-            'card': {
-                'installments': installments,
-            },
-        },
     )
 
 
@@ -63,11 +60,14 @@ def confirm_payment_intent(
 ) -> stripe.PaymentIntent:
     """Must confirm a payment intent."""
     try:
-        return stripe.PaymentIntent.confirm(
+        payment_accept = stripe.PaymentIntent.confirm(
             payment_intent_id,
             payment_method=payment_method,
             receipt_email=receipt_email,
         )
+        if payment_accept.get('error'):
+            raise PaymentAcceptError(payment_accept['error'])
+        return payment_accept
     except InvalidRequestError as error:
         logger.error(error)
         raise PaymentGatewayRequestError

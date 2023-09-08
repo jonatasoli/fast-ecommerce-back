@@ -1,6 +1,5 @@
 from app.infra.deps import get_db
-from payment.schema import InstallmentSchema
-from app.infra.deps import get_db
+from payment.schema import InstallmentSchema, ResponseGateway
 from payment.schema import ConfigCreditCardResponse, InstallmentSchema
 from fastapi import APIRouter, Depends
 from loguru import logger
@@ -37,12 +36,12 @@ async def get_upsell_products() -> None:
         raise
 
 
-@cart.post('/checkout', status_code=201)
+@cart.post('/checkout', status_code=201, response_model=CheckoutReceive)
 def checkout(
     *,
     db: Session = Depends(deps.get_db),
     data: CheckoutReceive,
-) -> None:
+) -> CheckoutReceive:
     """Checkout."""
     checkout_data = data.dict().get('transaction')
     affiliate = data.dict().get('affiliate')
@@ -57,16 +56,16 @@ def checkout(
     ).process_checkout()
 
 
-@payment.post('/create-config', status_code=201)
-def create_config(*, config_data: ConfigCreditCardInDB) -> None:
+@payment.post('/create-config', status_code=201, response_model=ConfigCreditCardResponse)
+def create_config(*, config_data: ConfigCreditCardInDB) -> ConfigCreditCardResponse:
     """Create config."""
     return repositories.CreditCardConfig(
         config_data=config_data,
     ).create_installment_config()
 
 
-@payment.post('/gateway-payment-credit-card', status_code=201)
-async def payment_credit_card(*, payment_data: CreditCardPayment) -> None:
+@payment.post('/gateway-payment-credit-card', status_code=201, response_model=ResponseGateway)
+async def payment_credit_card(*, payment_data: CreditCardPayment) -> ResponseGateway:
     """Payment credit card."""
     return gateway.credit_card_payment(payment=payment_data)
 

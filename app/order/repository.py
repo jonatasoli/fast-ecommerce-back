@@ -9,13 +9,13 @@ from sqlalchemy.sql import select
 
 from app.entities.cart import CartPayment
 from app.infra.constants import OrderStatus
-from app.infra.endpoints import order
+from app.infra.models import order
 from app.order.entities import OrderDBUpdate
 
 
 class AbstractRepository(abc.ABC):
     def __init__(self: Self) -> None:
-        self.seen = set()  # type: Set[order.Product]
+        self.seen = set()  # type: Set[order.Order]
 
     async def create_order(
         self: Self,
@@ -26,6 +26,19 @@ class AbstractRepository(abc.ABC):
         """Create a new order."""
         return await self._create_order(cart, discount, affiliate)
 
+    async def get_order_by_cart_uuid(self: Self, cart_uuid: str) -> order.Order | None:
+        """Get an order by its cart uuid."""
+        return await self._get_order_by_cart_uuid(cart_uuid)
+
+    async def create_order_status_step(
+        self: Self,
+        order_id: int,
+        status: str,
+        sending: bool = False,
+    ) -> int:
+        """Create a new order status step."""
+        return await self._create_order_status_step(order_id, status, sending)
+
     @abc.abstractmethod
     async def _create_order(
         self: Self,
@@ -33,6 +46,19 @@ class AbstractRepository(abc.ABC):
         discount: Decimal,
         affiliate: str | None,
     ) -> order.Order:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def _get_order_by_cart_uuid(self: Self, cart_uuid: str) -> order.Order | None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def _create_order_status_step(
+        self: Self,
+        order_id: int,
+        status: str,
+        sending: bool = False,
+    ) -> int:
         raise NotImplementedError
 
 
@@ -48,13 +74,15 @@ class SqlAlchemyRepository(AbstractRepository):
         affiliate: str | None,
     ) -> order.Order:
         """Create a new order."""
+        import ipdb; ipdb.set_trace()
         async with self.session().begin() as session:
             order = order.Order(
                 customer_id=cart.customer_id,
+                cart_uuid=cart.uuid,
+                discount=cart.discount,
                 order_date=datetime.now(),
-                order_status=OrderStatus.PAYMENT_PENDING,
+                order_status=OrderStatus.PAYMENT_PENDING.value,
                 last_updated=datetime.now(),
-                discount=discount,
                 affiliate=affiliate,
             )
             session.add(order)
@@ -85,3 +113,32 @@ class SqlAlchemyRepository(AbstractRepository):
                 .returning(order.Order)
             )
             return self.session.execute(update_query)
+
+    async def _get_order_by_cart_uuid(
+            self: Self,
+            cart_uuid: str) -> order.Order | None:
+        """Get an order by its cart uuid."""
+        async with self.session().begin() as session:
+            order_query = select(order.Order).where(
+                order.Order.cart_uuid == cart_uuid,
+            )
+            return await session.execute(order_query).scalar_one_or_none()
+
+    async def _create_order_status_step(
+        self: Self,
+        order_id: int,
+        status: str,
+        sending: bool = False,
+    ) -> int:
+        """Create a new order status step."""
+        async with self.session().begin() as session:
+            order_status_step = order.OrderStatusStep(
+                order_id=order_id,
+                status=status,
+                sending=sending,
+                active=True,
+                last_updated=datetime.now(),
+            )
+            session.add(order_status_step)
+            session.commit()
+        return order_status_step.id

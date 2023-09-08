@@ -31,7 +31,12 @@ class OrderStatus(enum.Enum):
     SHIPPING_COMPLETE = 'SHIPPING_COMPLETE'
 
 
-class OrderStatus(enum.Enum):
+class PaymentStatus(enum.Enum):
     PENDING = 'PENDING'
     PAID = 'PAID'
     CANCELLED = 'CANCELLED'
+
+
+class InventoryOperation(enum.Enum):
+    INCREASE = 'INCREASE'
+    DECREASE = 'DECREASE'

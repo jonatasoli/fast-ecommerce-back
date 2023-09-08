@@ -196,6 +196,7 @@ class CreatePaymentMethod(BaseModel):
     exp_year: int
     cvc: str
     name: str
+    installments: int = 1
 
 
 class AddressCreate(BaseModel):

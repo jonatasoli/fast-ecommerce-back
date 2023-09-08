@@ -205,7 +205,7 @@ class SqlAlchemyRepository(AbstractRepository):
                 msg = f'No coupon with code {code}'
                 raise ProductNotFoundError(msg)
 
-            return coupon.scalars().first()
+            return coupon.scalar_one()
 
     async def _get_address_by_id(
         self: Self,

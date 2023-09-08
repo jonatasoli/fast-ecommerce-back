@@ -1,11 +1,14 @@
 # ruff:  noqa: D202 D205 T201 D212
 from typing import Any, Self
 from fastapi import Depends
+from app.entities.user import UserDBGet
+from app.infra.constants import OrderStatus, PaymentStatus
+from app.infra.models.users import User
 from config import settings
 
 from app.entities.payment import PaymentGateway, validate_payment
 from app.inventory.tasks import decrease_inventory
-from app.order.entities import CreateOrderStatusStepError, OrderNotFound
+from app.order.entities import CreateOrderStatusStepError, OrderDBUpdate, OrderNotFound
 from loguru import logger
 
 from app.entities.cart import CartPayment
@@ -19,8 +22,9 @@ from app.order.tasks import (
     update_order,
 )
 from app.payment.entities import CreatePaymentError, PaymentAcceptError
-from app.payment.tasks import create_pending_payment, update_payment_status
+from app.payment.tasks import create_pending_payment, update_payment
 from app.infra.worker import task_cart_router
+from domains.domain_mail import send_mail
 
 
 PAYMENT_STATUS_ERROR_MESSAGE = 'This payment intent is not paid yet'
@@ -46,6 +50,7 @@ async def checkout(
     cart_uuid: str,
     payment_intent: str,
     payment_method: str,
+    user: Any,
     bootstrap: Any = Depends(get_bootstrap),
 ) -> str:
     """Checkout cart with payment intent."""
@@ -53,6 +58,7 @@ async def checkout(
         f'Checkout cart start{cart_uuid} with intent {payment_intent} concluded with success',
     )
     try:
+        import ipdb; ipdb.set_trace()
         cache = bootstrap.cache
         cache_cart = cache.get(cart_uuid)
         if not cache_cart:
@@ -68,26 +74,28 @@ async def checkout(
                     coupon,
                 )
         cart.calculate_subtotal(discount=coupon.discount if cart.coupon else 0)
-        order_id = create_order(
+        order_id = await create_order(
             cart=cart,
             affiliate=affiliate,
             discount=coupon.discount if cart.coupon else 0,
+            bootstrap=bootstrap,
         )
         if not order_id:
             msg = f'Is not possible create order with cart {cart.uuid}'
             raise OrderNotFound(
                 msg,
             )
-        payment_id = create_pending_payment(
+        payment_id = await create_pending_payment(
             order_id=order_id,
-            payment_intent=payment_intent,
+            cart=cart,
+            user_id=user.user_id,
         )
         if not payment_id:
             msg = f'Is not possible create payment with order {order_id}'
             raise CreatePaymentError(
                 msg,
             )
-        order_status_step_id = create_order_status_step(
+        order_status_step_id = await create_order_status_step(
             order_id=order_id,
             status='pending',
         )
@@ -99,31 +107,34 @@ async def checkout(
         payment_accept = confirm_payment_intent(
             payment_intent_id=payment_intent,
             payment_method=payment_method,
-            receipt_email='contact@jonatasoliveira.dev',
+            receipt_email=user.email,
         )
-        if payment_accept.get('error'):
-            raise PaymentAcceptError(payment_accept['error'])
-        status = validate_payment(
+        validate_payment(
             payment_accept,
-            PaymentGateway[settings.PAYMENT_GATEWAY],
         )
-        if not status == 'succeeded':
-            raise PaymentStatusError
-
-        decrease_inventory(cart=cart)
-        update_order(order_id=order_id, order_status='paid')
-        update_payment_status(payment_id=payment_id, payment_status='paid')
-        create_order_status_step(
+        await decrease_inventory(cart=cart)
+        await update_order(
+                order_update=OrderDBUpdate(
+                    order_id=order_id,
+                    status=OrderStatus.PAYMENT_PAID,
+                    customer_id=cart.customer_id
+                )
+        )
+        payment_id = await update_payment(payment_id=payment_id, payment_status=PaymentStatus.PAID)
+        await create_order_status_step(
             order_id=order_id,
-            status='paid',
+            status=OrderStatus.PAYMENT_PAID,
             send_mail=True,
         )
-        payment_id = 1
         logger.info(
             f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success',
         )
+        bootstrap.cache.delete(cart_uuid)
         return f'{payment_id} is paid'
     except PaymentAcceptError:
         return PAYMENT_STATUS_ERROR_MESSAGE
     except PaymentGatewayRequestError:
         return PAYMENT_REQUEST_ERROR_MESSAGE
+    except Exception as e:
+        logger.error(f'Error in checkout: {e}')
+        raise e

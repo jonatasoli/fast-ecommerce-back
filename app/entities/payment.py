@@ -38,10 +38,16 @@ class PaymentGateway(enum.Enum):
     PAGARME: AbsctractPaymentGateway = ProcessPagarmePayment()
 
 
+class PaymentDBUpdate(BaseModel):
+    """Payment DB Update."""
+
+    status: str
+
+
 def validate_payment(
     payment_accept: Any,
-    gateway: AbsctractPaymentGateway,
 ) -> str:
     """Validate payment."""
-    _ = payment_accept, gateway
+    if not getattr(payment_accept, 'status') == 'succeeded':
+        raise ValueError('Payment not succeeded')
     return 'succeeded'

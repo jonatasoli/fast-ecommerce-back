@@ -77,7 +77,7 @@ class ProductFactory(factory.Factory):
 
     name = fake.name()
     price = fake.pyint()
-    description = fake.pystr()
+    description = fake.json()
     direct_sales = fake.pybool()
     installments_config = SelfAttribute(
         'installment_config.credit_card_fee_config_id'

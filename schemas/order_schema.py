@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import ConfigDict, BaseModel, SecretStr
+from pydantic import ConfigDict, BaseModel, Json, SecretStr
 
 
 class ProductSchema(BaseModel):
@@ -8,7 +8,7 @@ class ProductSchema(BaseModel):
     uri: str
     price: int
     direct_sales: bool | None = None
-    description: dict | None
+    description: Json | None
     image_path: str | None = None
     installments_config: int | None = None
     installments_list: dict | None = None
@@ -31,7 +31,7 @@ class ProductFullResponse(BaseModel):
     uri: str
     price: int
     direct_sales: bool | None = None
-    description: dict | None = None
+    description: Json | None = None
     image_path: str | None = None
     installments_config: int | None = None
     installments_list: dict | None = None
@@ -52,7 +52,7 @@ class ProductInDB(BaseModel):
     uri: str
     price: int
     direct_sales: bool | None = None
-    description: dict | None = None
+    description: Json | None = None
     image_path: str | None = None
     installments_config: int | None = None
     installments_list: dict | None = None

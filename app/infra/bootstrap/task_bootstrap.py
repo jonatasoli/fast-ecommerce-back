@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.infra import stripe
 from app.cart.repository import AbstractRepository, SqlAlchemyRepository
 from app.order import repository as order_repository
+from app.inventory import repository as inventory_repository
+from app.payment import repository as payment_repository
 from app.infra import redis
 from app.freight import freight_gateway as freight
 from app.cart.uow import get_session
@@ -19,6 +21,8 @@ class Command(BaseModel):
     db: sessionmaker
     cart_repository: Any
     order_repository: Any
+    inventory_repository: Any
+    payment_repository: Any
     cache: redis.MemoryClient | cache_client.Redis
     broker: Broker
     freight: freight.AbstractFreight
@@ -35,6 +39,8 @@ async def bootstrap(  # noqa: PLR0913
     db: Session = get_session(),
     cart_repository: Any = SqlAlchemyRepository,
     order_repository: Any = order_repository.SqlAlchemyRepository,
+    inventory_repository: Any = inventory_repository.SqlAlchemyRepository,
+    payment_repository: Any = payment_repository.SqlAlchemyRepository,
     cache: redis.AbstractCache = redis.RedisCache(),
     broker: Broker = mq_broker,
     freight: freight.AbstractFreight = freight.MemoryFreight(),
@@ -48,7 +54,9 @@ async def bootstrap(  # noqa: PLR0913
     return Command(
         db=db,
         cart_repository=cart_repository,
-        order_repository=order_repository,
+        order_repository=order_repository(db),
+        inventory_repository=inventory_repository,
+        payment_repository=payment_repository,
         cache=_cache,
         broker=broker,
         freight=freight,

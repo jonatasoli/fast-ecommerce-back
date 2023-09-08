@@ -1,11 +1,7 @@
 import abc
-from typing import TypeVar
-from typing import ClassVar
+from typing import ClassVar, Self
 from config import settings
 import redis
-
-
-Self = TypeVar('Self')
 
 
 class AbstractCache(abc.ABC):
@@ -38,6 +34,10 @@ class MemoryClient:
 
     def get(self: Self, key: str) -> dict:
         return self.cache.get(key)
+
+    def delete(self: Self, key: str) -> dict:
+        del self.cache[key]
+        return self.cache
 
 
 class MemoryCache(AbstractCache):

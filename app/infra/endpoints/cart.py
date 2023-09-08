@@ -141,7 +141,6 @@ async def add_payment_information_to_cart(
     *,
     cart: CartShipping,
     payment: CreatePaymentMethod,
-    installments: int,
     token: str = Depends(oauth2_scheme),
     bootstrap: Command = Depends(get_bootstrap),
 ) -> CartShipping:
