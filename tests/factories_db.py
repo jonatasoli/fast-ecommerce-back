@@ -100,12 +100,14 @@ class OrderFactory(factory.Factory):
     class Params:
         user = SubFactory(UserFactory)
 
+    cart_uuid = fake.uuid4()
     order_date = fake.date_time()
     tracking_number = fake.pystr()
     order_status = OrderStatus.PAYMENT_PENDING.value
     last_updated = fake.date_time()
     checked = fake.pybool()
     customer_id = SelfAttribute('user.user_id')
+    discount = fake.pyint()
 
 
 class PaymentFactory(factory.Factory):
