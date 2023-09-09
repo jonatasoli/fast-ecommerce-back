@@ -60,6 +60,7 @@ async def update_order(order_update: OrderDBUpdate, transaction: SessionTransact
     return order
 
 
+@database_uow()
 async def create_order_status_step(
     order_id: int,
     status: str,
@@ -67,11 +68,10 @@ async def create_order_status_step(
     send_mail: bool = False,
     bootstrap=bootstrap(),
 ) -> int:
-    async with bootstrap.db() as session:
-        order_status_step = await bootstrap.order_repository.create_order_status_step(
-            order_id=order_id,
-            status=status,
-            sending=send_mail,
-            transaction=transaction,
-        )
+    order_status_step = await bootstrap.order_repository.create_order_status_step(
+        order_id=order_id,
+        status=status,
+        sending=send_mail,
+        transaction=transaction,
+    )
     return order_status_step.id

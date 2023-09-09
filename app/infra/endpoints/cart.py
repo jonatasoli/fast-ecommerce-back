@@ -12,7 +12,7 @@ from app.entities.product import ProductCart
 from app.infra.bootstrap.cart_bootstrap import Command, bootstrap
 from app.infra.deps import get_db
 from payment.schema import InstallmentSchema, PaymentResponse
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from loguru import logger
 
 from domains import domain_order
@@ -34,7 +34,7 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
-@cart.post('/', response_model=CartBase, status_code=200)
+@cart.post('/', response_model=CartBase, status_code=status.HTTP_201_CREATED)
 def create_cart(
     *,
     bootstrap: Command = Depends(get_bootstrap),
