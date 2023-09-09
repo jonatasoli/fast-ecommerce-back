@@ -23,7 +23,7 @@ from app.order.tasks import (
 )
 from app.payment.entities import CreatePaymentError, PaymentAcceptError
 from app.payment.tasks import create_pending_payment, update_payment
-from app.infra.worker import task_cart_router
+from app.infra.worker import task_message_bus
 from domains.domain_mail import send_mail
 
 
@@ -45,7 +45,7 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
-@task_cart_router.event('checkout')
+@task_message_bus.event('checkout')
 async def checkout(
     cart_uuid: str,
     payment_intent: str,
@@ -58,7 +58,6 @@ async def checkout(
         f'Checkout cart start{cart_uuid} with intent {payment_intent} concluded with success',
     )
     try:
-        import ipdb; ipdb.set_trace()
         cache = bootstrap.cache
         cache_cart = cache.get(cart_uuid)
         if not cache_cart:
@@ -78,8 +77,10 @@ async def checkout(
             cart=cart,
             affiliate=affiliate,
             discount=coupon.discount if cart.coupon else 0,
+            user=user,
             bootstrap=bootstrap,
         )
+        import ipdb;ipdb.set_trace()
         if not order_id:
             msg = f'Is not possible create order with cart {cart.uuid}'
             raise OrderNotFound(

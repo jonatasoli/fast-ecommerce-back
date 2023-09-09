@@ -1,11 +1,12 @@
+from sqlalchemy.exc import SQLAlchemyError
 from app.infra.database import get_session
 
 
 def get_db() -> None:
     """Get db."""
-    sessionlocal = get_session()
-    db = sessionlocal()
+    local_session = get_session()
+    db = local_session()
     try:
         yield db
-    finally:
-        db.close()
+    except SQLAlchemyError:
+        raise

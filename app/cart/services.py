@@ -116,7 +116,7 @@ async def add_user_to_cart(
     """Must validate token user if is valid add user id in cart."""
     user = bootstrap.user.get_current_user(token)
     if not user.customer_id:
-        await bootstrap.broker.payment.publish(
+        await bootstrap.message.broker.publish(
             {'user_id': user.user_id},
             queue=RabbitQueue('create_customer'),
         )
@@ -152,7 +152,7 @@ async def add_address_to_cart(
             address_id,
             user_id,
         )
-    if not address_id:
+    if not user_address_id:
         user_address_id = await bootstrap.uow.create_address(
             address.user_address,
             cache_cart.user_data,
@@ -255,7 +255,7 @@ async def checkout(
 
     logger.info(f'{uuid}, {cache_cart.payment_intent} ')
     user = UserDBGet.model_validate(user)
-    checkout_task = await bootstrap.broker.cart.publish(
+    checkout_task = await bootstrap.message.broker.publish(
         {
             'cart_uuid': uuid,
             'payment_intent': cache_cart.payment_intent,

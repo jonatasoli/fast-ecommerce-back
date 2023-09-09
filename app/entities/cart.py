@@ -1,6 +1,6 @@
 import json
 from decimal import Decimal
-from typing import TypeVar
+from typing import Self
 from uuid import UUID, uuid4
 from loguru import logger
 
@@ -9,8 +9,6 @@ from app.entities.freight import ShippingAddress
 from app.entities.product import ProductCart
 from app.entities.user import UserAddress, UserData
 from pydantic import BaseModel
-
-Self = TypeVar('Self')
 
 
 class CartNotFoundPriceError(Exception):

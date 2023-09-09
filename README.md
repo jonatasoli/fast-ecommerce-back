@@ -97,12 +97,12 @@ suggest test product
   "uri": "/test",
   "price": 10000,
   "direct_sales": 0,
-  "description": "Test Product",
+  "description": {"content": "Teste", "composition": "test composition", "how_to_use": "test how to use"},
   "image_path": "https://i.pinimg.com/originals/e4/34/2a/e4342a4e0e968344b75cf50cf1936c09.jpg",
   "installments_config": 1,
   "category_id": 1,
   "discount": 100,
-  "sku": "sku01"
+  "sku": "sku0"
 }
 ```
 

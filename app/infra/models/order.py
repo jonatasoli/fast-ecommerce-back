@@ -14,6 +14,8 @@ class Category(Base):
     category_id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     path: Mapped[str]
+    menu: Mapped[bool] = mapped_column(default=False)
+    showcase: Mapped[bool] = mapped_column(default=False)
 
 
 class Product(Base):
@@ -63,14 +65,16 @@ class Order(Base):
     __tablename__ = 'order'
 
     order_id: Mapped[int] = mapped_column(primary_key=True)
-    customer_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
     user = relationship(
         'User',
-        foreign_keys=[customer_id],
+        foreign_keys=[user_id],
         backref='Order',
         cascade='all,delete',
         uselist=False,
     )
+    affiliate_id: Mapped[int | None]
+    customer_id: Mapped[str]
     order_date: Mapped[datetime]
     cart_uuid: Mapped[str]
     discount: Mapped[Decimal]
@@ -102,6 +106,8 @@ class OrderItems(Base):
         foreign_keys=[product_id],
     )
     quantity: Mapped[int]
+    price: Mapped[Decimal]
+    discount_price: Mapped[Decimal]
 
 
 class OrderStatusSteps(Base):

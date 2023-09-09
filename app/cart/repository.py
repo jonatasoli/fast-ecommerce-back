@@ -1,5 +1,5 @@
 import abc
-from typing import Any, TypeVar
+from typing import Any, Self
 from loguru import logger
 
 from sqlalchemy import select
@@ -9,7 +9,6 @@ from app.infra.models import order
 from app.infra.models import users
 
 
-Self = TypeVar('Self')
 
 
 class ProductNotFoundError(Exception):
@@ -82,14 +81,14 @@ class AbstractRepository(abc.ABC):
         return self._get_user_by_email(email)
 
     @abc.abstractmethod
-    def _get_product_by_sku(
+    async def _get_product_by_sku(
         self: Self,
         sku: str,
     ) -> order.Product:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _get_product_by_id(self: Self, product_id: int) -> order.Product:
+    async def _get_product_by_id(self: Self, product_id: int) -> order.Product:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -141,7 +140,7 @@ class SqlAlchemyRepository(AbstractRepository):
         self: Self,
         sku: str,
     ) -> order.Product:
-        """Queery must return a valid product in search by sku."""
+        """Query must return a valid product in search by sku."""
         async with self.session().begin() as session:
             product = await session.execute(
                 select(order.Product).where(order.Product.sku == sku),

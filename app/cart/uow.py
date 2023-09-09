@@ -2,7 +2,7 @@
 from __future__ import annotations
 import abc
 from decimal import Decimal
-from typing import TypeVar, TYPE_CHECKING
+from typing import Self, TYPE_CHECKING
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -13,6 +13,7 @@ from app.entities.coupon import CouponBase
 
 from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
+from app.entities.user import UserAddress
 
 
 from config import settings
@@ -20,9 +21,6 @@ from config import settings
 if TYPE_CHECKING:
     from app.entities.user import UserData
     from app.entities.address import AddressBase
-
-
-Self = TypeVar('Self')
 
 
 class AbstractUnitOfWork(abc.ABC):
@@ -127,6 +125,7 @@ def get_session() -> sessionmaker:
     """Create a new session."""
     return sessionmaker(
         bind=get_engine(),
+        autocommit=False,
         expire_on_commit=False,
         class_=AsyncSession,
     )
@@ -164,13 +163,16 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         self: Self,
         address_id: int,
         user_address_id: int,
-    ) -> None:
+    ) -> UserAddress | None:
         """Must return a address by id."""
         address_db = await self.cart.get_address_by_id(
             address_id=address_id,
             user_address_id=user_address_id,
         )
-        return address_db.address_id
+        address_id = None
+        if address_db:
+            address_id = address_db.address_id
+        return address_id
 
     async def _create_address(
         self: Self,

@@ -53,7 +53,5 @@ def get_session() -> sessionmaker:
     """
     _engine = get_engine()
     return sessionmaker(
-        autocommit=False,
-        autoflush=False,
         bind=_engine,
     )

@@ -29,9 +29,11 @@ from app.infra.endpoints.default import (
     campaing,
     sales,
 )
-from app.cart.tasks import task_cart_router
+from app.cart.tasks import task_message_bus
+from app.payment.tasks import task_message_bus
+from app.infra.worker import task_message_bus
 
-app = FastAPI(lifespan=task_cart_router.lifespan_context)
+app = FastAPI(lifespan=task_message_bus.lifespan_context)
 
 
 class InterceptHandler(logging.Handler):
@@ -97,7 +99,7 @@ app.include_router(coupons)
 app.include_router(reports)
 app.include_router(campaing)
 app.include_router(sales)
-app.include_router(task_cart_router)
+app.include_router(task_message_bus)
 
 
 def create_app():
