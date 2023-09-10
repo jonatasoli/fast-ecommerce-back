@@ -115,6 +115,7 @@ async def checkout(
         validate_payment(
             payment_accept,
         )
+        # TODO: check if order is in inventory for decrease
         await decrease_inventory(cart=cart, order_id=order_id, bootstrap=bootstrap)
         await update_order(
             order_update=OrderDBUpdate(
