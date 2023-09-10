@@ -73,9 +73,7 @@ async def get_order_by_cart_uuid(
     transaction: SessionTransaction,
 ) -> Order | None:
     """Get an order by its cart uuid."""
-    order_query = select(Order).where(
-        Order.cart_uuid == str(cart_uuid)
-    )
+    order_query = select(Order).where(Order.cart_uuid == str(cart_uuid))
     order_db = await transaction.session.execute(order_query)
     return order_db.scalar_one_or_none()
 

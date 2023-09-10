@@ -6,7 +6,12 @@ from app.inventory import repository as inventory_repository
 
 
 @database_uow()
-async def uow_decrease_inventory(cart: CartPayment, order_id: int, bootstrap: Any, transaction: SessionTransaction) -> None:
+async def uow_decrease_inventory(
+    cart: CartPayment,
+    order_id: int,
+    bootstrap: Any,
+    transaction: SessionTransaction,
+) -> None:
     """Decrease inventory by specific cart."""
     if not transaction:
         raise Exception('Transaction not found')

@@ -27,7 +27,7 @@ async def create_pending_payment(
 async def update_payment(
     payment_id: int,
     payment_status: str,
-    bootstrap:Any,
+    bootstrap: Any,
 ):
     """Update payment status."""
     await bootstrap.payment_uow.uow_update_payment(

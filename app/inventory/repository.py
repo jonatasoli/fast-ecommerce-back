@@ -20,16 +20,20 @@ async def increase_inventory(
     transaction.session.add(inventory)
     return inventory
 
+
 async def total_inventory(
     product_id: int,
     *,
     transaction: SessionTransaction,
-        ) -> int:
+) -> int:
     """Get total inventory by product_id."""
-    products_query = select(func.sum(order.Inventory.quantity)).where(order.Inventory.product_id == product_id)
+    products_query = select(func.sum(order.Inventory.quantity)).where(
+        order.Inventory.product_id == product_id
+    )
     products = await transaction.session.execute(products_query)
     total = products.fetchone()
     return total[0]
+
 
 async def decrease_inventory(
     product_id: int,
@@ -44,7 +48,7 @@ async def decrease_inventory(
         quantity=-quantity,
         operation=InventoryOperation.DECREASE.value,
         order_id=order_id,
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
     transaction.session.add(inventory)
     await transaction.session.flush()
