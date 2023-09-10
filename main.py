@@ -1,9 +1,12 @@
 import logging
 import sys
+from propan.brokers.rabbit import RabbitQueue
+from propan.fastapi import RabbitRouter
+from pydantic import BaseModel
 
 import sentry_sdk
 from dynaconf import settings
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
@@ -26,15 +29,17 @@ from app.infra.endpoints.default import (
     campaing,
     sales,
 )
+from app.cart.tasks import task_message_bus
+from app.payment.tasks import task_message_bus
+from app.infra.worker import task_message_bus
+
+app = FastAPI(lifespan=task_message_bus.lifespan_context)
 
 
 class InterceptHandler(logging.Handler):
     def emit(self, record):
         logger_opt = logger.opt(depth=6, exception=record.exc_info)
         logger_opt.log(record.levelno, record.getMessage())
-
-
-app = FastAPI()
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
@@ -94,6 +99,7 @@ app.include_router(coupons)
 app.include_router(reports)
 app.include_router(campaing)
 app.include_router(sales)
+app.include_router(task_message_bus)
 
 
 def create_app():

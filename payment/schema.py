@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import ConfigDict, BaseModel, SecretStr
+from pydantic import ConfigDict, BaseModel, Json, SecretStr
 
 
 class CreditCardPayment(BaseModel):
@@ -73,7 +73,7 @@ class ProductSchema(BaseModel):
     uri: str
     price: int
     direct_sales: bool | None = None
-    description: str
+    description: dict
     image_path: str
     installments_config: int | None = None
     installments_list: dict | None = None
@@ -99,7 +99,7 @@ class ProductInDB(BaseModel):
     price: int
     direct_sales: bool | None = None
     upsell: list | None = None
-    description: str
+    description: Json
     image_path: str
     installments_config: int | None = None
     installments_list: list | None = None

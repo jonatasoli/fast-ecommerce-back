@@ -6,7 +6,7 @@ from app.entities.cart import CartBase
 
 from app.entities.product import ProductCart
 from app.cart.services import add_product_to_cart, calculate_cart
-from app.infra.bootstrap import Command
+from app.infra.bootstrap.cart_bootstrap import Command
 from app.infra.redis import MemoryCache
 from tests.fake_functions import fake
 

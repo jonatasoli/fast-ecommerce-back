@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from pydantic import Json
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 from sqlalchemy.types import JSON
@@ -13,6 +14,8 @@ class Category(Base):
     category_id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     path: Mapped[str]
+    menu: Mapped[bool] = mapped_column(default=False)
+    showcase: Mapped[bool] = mapped_column(default=False)
 
 
 class Product(Base):
@@ -24,7 +27,7 @@ class Product(Base):
     price: Mapped[Decimal]
     active: Mapped[bool] = mapped_column(default=False)
     direct_sales: Mapped[bool] = mapped_column(default=False)
-    description: Mapped[str]
+    description: Mapped[Json] = mapped_column(JSON, nullable=True)
     image_path: Mapped[str | None]
     installments_config: Mapped[int]
     installments_list: Mapped[dict] = mapped_column(JSON, nullable=True)
@@ -62,15 +65,19 @@ class Order(Base):
     __tablename__ = 'order'
 
     order_id: Mapped[int] = mapped_column(primary_key=True)
-    customer_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
     user = relationship(
         'User',
-        foreign_keys=[customer_id],
+        foreign_keys=[user_id],
         backref='Order',
         cascade='all,delete',
         uselist=False,
     )
+    affiliate_id: Mapped[int | None]
+    customer_id: Mapped[str]
     order_date: Mapped[datetime]
+    cart_uuid: Mapped[str]
+    discount: Mapped[Decimal]
     tracking_number: Mapped[str | None]
     payment_id: Mapped[int | None] = mapped_column(
         ForeignKey('payment.payment_id'),
@@ -99,6 +106,8 @@ class OrderItems(Base):
         foreign_keys=[product_id],
     )
     quantity: Mapped[int]
+    price: Mapped[Decimal]
+    discount_price: Mapped[Decimal]
 
 
 class OrderStatusSteps(Base):
@@ -118,3 +127,26 @@ class ImageGallery(Base):
     category_id: Mapped[int] = mapped_column(primary_key=True)
     url: Mapped[str]
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
+
+
+class Inventory(Base):
+    __tablename__ = 'inventory'
+
+    inventory_id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
+    product = relationship(
+        'Product',
+        backref=backref('inventory', uselist=False),
+        cascade='all,delete',
+        foreign_keys=[product_id],
+    )
+    order_id: Mapped[int | None] = mapped_column(ForeignKey('order.order_id'))
+    order = relationship(
+        'Order',
+        backref=backref('inventory', uselist=False),
+        cascade='all,delete',
+        foreign_keys=[order_id],
+    )
+    quantity: Mapped[int]
+    operation: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now())

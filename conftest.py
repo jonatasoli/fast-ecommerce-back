@@ -20,13 +20,12 @@ root_dir = d(abspath(__file__))
 print(f'ROOT {root_dir}')
 sys.path.append(root_dir)
 
-from dynaconf import settings
+from config import settings
 
 from app.infra.base import Base
 from app.infra.database import get_engine
 from main import app
 from app.infra.deps import get_db
-
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -98,7 +97,6 @@ def override_get_db():
 @pytest.fixture(scope='function')
 def db() -> Generator:
     _engine = get_engine()
-    # import ipdb; ipdb.set_trace()
     Base.metadata.drop_all(bind=_engine)
     Base.metadata.create_all(bind=_engine)
     TestingSessionLocal = sessionmaker(
@@ -111,7 +109,6 @@ def db() -> Generator:
 
 @pytest.fixture(scope='session')
 def db_models(clean_db) -> Generator:
-    _engine = get_engine()
     logger.info('-----GENERATE DB------')
     _engine = get_engine()
     TestingSessionLocal = sessionmaker(

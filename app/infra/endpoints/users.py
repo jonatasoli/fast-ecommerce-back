@@ -25,7 +25,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 
 
 @user.post('/signup', status_code=201, response_model=SignUpResponse)
-async def signup(
+def signup(
     *,
     db: Session = Depends(get_db),
     user_in: SignUp,
