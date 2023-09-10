@@ -56,16 +56,26 @@ def checkout(
     ).process_checkout()
 
 
-@payment.post('/create-config', status_code=201, response_model=ConfigCreditCardResponse)
-def create_config(*, config_data: ConfigCreditCardInDB) -> ConfigCreditCardResponse:
+@payment.post(
+    '/create-config', status_code=201, response_model=ConfigCreditCardResponse
+)
+def create_config(
+    *, config_data: ConfigCreditCardInDB
+) -> ConfigCreditCardResponse:
     """Create config."""
     return repositories.CreditCardConfig(
         config_data=config_data,
     ).create_installment_config()
 
 
-@payment.post('/gateway-payment-credit-card', status_code=201, response_model=ResponseGateway)
-async def payment_credit_card(*, payment_data: CreditCardPayment) -> ResponseGateway:
+@payment.post(
+    '/gateway-payment-credit-card',
+    status_code=201,
+    response_model=ResponseGateway,
+)
+async def payment_credit_card(
+    *, payment_data: CreditCardPayment
+) -> ResponseGateway:
     """Payment credit card."""
     return gateway.credit_card_payment(payment=payment_data)
 

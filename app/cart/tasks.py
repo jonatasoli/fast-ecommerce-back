@@ -1,14 +1,15 @@
 # ruff:  noqa: D202 D205 T201 D212
 from typing import Any, Self
 from fastapi import Depends
-from app.entities.user import UserDBGet
 from app.infra.constants import OrderStatus, PaymentStatus
-from app.infra.models.users import User
-from config import settings
 
-from app.entities.payment import PaymentGateway, validate_payment
+from app.entities.payment import validate_payment
 from app.inventory.tasks import decrease_inventory
-from app.order.entities import CreateOrderStatusStepError, OrderDBUpdate, OrderNotFound
+from app.order.entities import (
+    CreateOrderStatusStepError,
+    OrderDBUpdate,
+    OrderNotFound,
+)
 from loguru import logger
 
 from app.entities.cart import CartPayment
@@ -80,7 +81,6 @@ async def checkout(
             user=user,
             bootstrap=bootstrap,
         )
-        import ipdb;ipdb.set_trace()
         if not order_id:
             msg = f'Is not possible create order with cart {cart.uuid}'
             raise OrderNotFound(
@@ -89,7 +89,8 @@ async def checkout(
         payment_id = await create_pending_payment(
             order_id=order_id,
             cart=cart,
-            user_id=user.user_id,
+            user_id=user['user_id'],
+            bootstrap=bootstrap,
         )
         if not payment_id:
             msg = f'Is not possible create payment with order {order_id}'
@@ -99,6 +100,7 @@ async def checkout(
         order_status_step_id = await create_order_status_step(
             order_id=order_id,
             status='pending',
+            bootstrap=bootstrap,
         )
         if not order_status_step_id:
             msg = f'Is not possible create order_status_step with order {order_id}'
@@ -108,24 +110,29 @@ async def checkout(
         payment_accept = confirm_payment_intent(
             payment_intent_id=payment_intent,
             payment_method=payment_method,
-            receipt_email=user.email,
+            receipt_email=user['email'],
         )
         validate_payment(
             payment_accept,
         )
-        await decrease_inventory(cart=cart)
+        await decrease_inventory(cart=cart, order_id=order_id, bootstrap=bootstrap)
         await update_order(
-                order_update=OrderDBUpdate(
-                    order_id=order_id,
-                    status=OrderStatus.PAYMENT_PAID,
-                    customer_id=cart.customer_id
-                )
+            order_update=OrderDBUpdate(
+                order_id=order_id,
+                order_status=OrderStatus.PAYMENT_PAID.value,
+                customer_id=cart.customer_id,
+            ),
+            bootstrap=bootstrap,
         )
-        payment_id = await update_payment(payment_id=payment_id, payment_status=PaymentStatus.PAID)
+        payment_id = await update_payment(
+            payment_id=payment_id, payment_status=PaymentStatus.PAID.value,
+            bootstrap=bootstrap,
+        )
         await create_order_status_step(
             order_id=order_id,
-            status=OrderStatus.PAYMENT_PAID,
+            status=OrderStatus.PAYMENT_PAID.value,
             send_mail=True,
+            bootstrap=bootstrap,
         )
         logger.info(
             f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success',

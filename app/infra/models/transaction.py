@@ -43,6 +43,13 @@ class Payment(Base):
         cascade='all,delete',
         uselist=False,
     )
+    order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
+    order: Mapped['Order'] = relationship(  # noqa: F821
+        foreign_keys=[order_id],
+        backref='payment',
+        cascade='all,delete',
+        uselist=False,
+    )
     amount: Mapped[int]
     token: Mapped[str]
     gateway_id: Mapped[int]

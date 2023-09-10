@@ -9,8 +9,6 @@ from app.infra.models import order
 from app.infra.models import users
 
 
-
-
 class ProductNotFoundError(Exception):
     """Raised when a product is not found in the repository."""
 

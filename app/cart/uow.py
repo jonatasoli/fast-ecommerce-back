@@ -3,20 +3,14 @@ from __future__ import annotations
 import abc
 from decimal import Decimal
 from typing import Self, TYPE_CHECKING
-from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
-    AsyncSession,
-    create_async_engine,
-)
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import SessionTransaction, sessionmaker
 from app.entities.coupon import CouponBase
 
 from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
 from app.entities.user import UserAddress
+from app.infra.database import get_async_session
 
-
-from config import settings
 
 if TYPE_CHECKING:
     from app.entities.user import UserData
@@ -111,37 +105,13 @@ class AbstractUnitOfWork(abc.ABC):
         ...
 
 
-def get_engine() -> AsyncEngine:
-    """Create a new engine."""
-    return create_async_engine(
-        settings.DATABASE_URI,
-        pool_size=10,
-        max_overflow=0,
-        echo=True,
-    )
-
-
-def get_session() -> sessionmaker:
-    """Create a new session."""
-    return sessionmaker(
-        bind=get_engine(),
-        autocommit=False,
-        expire_on_commit=False,
-        class_=AsyncSession,
-    )
-
-
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     def __init__(
         self: Self,
-        session_factory: sessionmaker = get_session(),  # noqa: B008
+        session_factory: sessionmaker = get_async_session(),  # noqa: B008
     ) -> None:
         self.session = session_factory
         self.cart = repository.SqlAlchemyRepository(session_factory)
-
-    async def get(self: Self) -> None:
-        async with self._session() as session, session.begin():
-            await session.execute('SELECT 1')
 
     async def _get_product_by_id(self: Self, product_id: int) -> ProductInDB:
         """Must return a product by id."""
@@ -293,3 +263,11 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
         payment_method: str,
     ) -> None:
         ...
+
+
+async def get_coupon_by_code(
+    code: str, *, transaction: SessionTransaction
+) -> CouponBase:
+    """Must return a coupon by code."""
+    coupon_db = await repository.get_coupon_by_code(code=code)
+    return CouponBase.model_validate(coupon_db)

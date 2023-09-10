@@ -1,9 +1,7 @@
 from decimal import Decimal
 
-from typing import TypeVar
+from typing import Any, Self
 from pydantic import BaseModel, ConfigDict, Json
-
-Self = TypeVar('Self')
 
 
 class ProductCart(BaseModel):
@@ -32,7 +30,7 @@ class ProductInDB(BaseModel):
     price: int
     active: bool
     direct_sales: bool
-    description: Json | None
+    description: Json | Any | None
     image_path: str | None
     installments_config: int | None
     installments_list: dict[str, str] | None

@@ -1,6 +1,8 @@
 from typing import Any
 
 from sqlalchemy import Engine, create_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import sessionmaker
 
@@ -8,19 +10,12 @@ from config import settings
 
 
 def get_engine() -> Engine:
-    """Return an instance of a database connection engine using SQLAlchemy.
+    """Return an instance of a database connection sync engine using SQLAlchemy.
 
     Return:
     ------
         sqlalchemy.engine.base.Engine: An instance of the configured SQLAlchemy
-        connection engine.
-
-    Example:
-    -------
-        engine = get_engine()
-        connection = engine.connect()
-        result = connection.execute("SELECT * FROM table")
-        connection.close()
+        connection sync engine.
     """
     sqlalchemy_database_url = settings.DATABASE_URL
 
@@ -32,17 +27,12 @@ def get_engine() -> Engine:
 
 
 def get_session() -> sessionmaker:
-    """Return a SQLAlchemy session factory with a configured engine.
+    """Return a SQLAlchemy sync session factory with a configured engine.
 
     Return:
     ------
-        sqlalchemy.orm.session.Session: A session factory configured to interact with
+        sqlalchemy.orm.session.Session: A sync session factory configured to interact with
         the database using the specified engine.
-
-    Example:
-    -------
-        session_factory = get_session()
-        session = session_factory()
 
     Note:
     ----
@@ -54,4 +44,43 @@ def get_session() -> sessionmaker:
     _engine = get_engine()
     return sessionmaker(
         bind=_engine,
+    )
+
+
+def get_async_engine() -> AsyncEngine:
+    """Return an instance of a database connection async engine using SQLAlchemy.
+
+    Return:
+    ------
+        sqlalchemy.ext.asyncio.AsyncEngine: An instance of the configured SQLAlchemy
+        connection async engine.
+    """
+    return create_async_engine(
+        settings.DATABASE_URI,
+        pool_size=10,
+        max_overflow=0,
+        echo=True,
+    )
+
+
+def get_async_session() -> sessionmaker:
+    """Return a SQLAlchemy async session factory with a configured engine.
+
+    Return:
+    ------
+        sqlalchemy.orm.session.Session: A async session factory configured to interact with
+        the database using the specified async engine with class AsyncSession.
+
+    Note:
+    ----
+        To use this function, ensure that the 'get_async_engine()' function is correctly
+        implemented and that the necessary database URI is provided in the project's
+        settings.
+
+    """
+    return sessionmaker(
+        bind=get_async_engine(),
+        autocommit=False,
+        expire_on_commit=False,
+        class_=AsyncSession,
     )

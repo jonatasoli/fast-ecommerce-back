@@ -47,7 +47,7 @@ def fake_dict() -> dict[str, Any]:
     return cast(dict[str, Any], fake.pydict())
 
 
-def fake_json() ->  list[Any]:
+def fake_json() -> list[Any]:
     return [json.dumps(fake.pydict())]
 
 

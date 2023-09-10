@@ -140,6 +140,13 @@ class Inventory(Base):
         cascade='all,delete',
         foreign_keys=[product_id],
     )
+    order_id: Mapped[int | None] = mapped_column(ForeignKey('order.order_id'))
+    order = relationship(
+        'Order',
+        backref=backref('inventory', uselist=False),
+        cascade='all,delete',
+        foreign_keys=[order_id],
+    )
     quantity: Mapped[int]
     operation: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(default=datetime.now())
