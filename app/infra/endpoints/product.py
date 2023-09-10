@@ -1,6 +1,8 @@
+from typing import Any
 from fastapi import APIRouter, Depends, File, UploadFile
 from loguru import logger
 from sqlalchemy.orm import Session
+from app.entities.product import ProductInDB
 
 from domains import domain_order
 from app.infra import deps
@@ -20,19 +22,18 @@ catalog = APIRouter(
 )
 
 
-@product.post('/create-product', status_code=201)
-async def create_product(
+@product.post('/create-product', status_code=201, response_model=ProductSchema)
+def create_product(
     *,
     db: Session = Depends(deps.get_db),
     product_data: ProductSchema,
-) -> None:
+) -> ProductSchema:
     """Create product."""
-    product = domain_order.create_product(db=db, product_data=product_data)
-    return ProductSchema.from_orm(product)
+    return domain_order.create_product(db=db, product_data=product_data)
 
 
 @product.post('/upload-image/{product_id}', status_code=200)
-async def upload_image(
+def upload_image(
     product_id: int,
     db: Session = Depends(get_db),
     image: UploadFile = File(...),
@@ -45,7 +46,7 @@ async def upload_image(
 
 
 @product.post('/upload-image-gallery/', status_code=200)
-async def upload_image_gallery(
+def upload_image_gallery(
     product_id: int,
     db: Session = Depends(get_db),
     imagegallery: UploadFile = File(...),
@@ -58,7 +59,7 @@ async def upload_image_gallery(
 
 
 @catalog.get('/showcase/all', status_code=200)
-async def get_showcase(*, db: Session = Depends(get_db)) -> None:
+def get_showcase(*, db: Session = Depends(get_db)) -> Any:
     """Get showcase."""
     try:
         return domain_order.get_showcase(db)
@@ -68,7 +69,7 @@ async def get_showcase(*, db: Session = Depends(get_db)) -> None:
 
 
 @product.get('/images/gallery/{uri}', status_code=200)
-async def get_images_gallery(uri: str, db: Session = Depends(get_db)) -> None:
+def get_images_gallery(uri: str, db: Session = Depends(get_db)) -> None:
     """Get images gallery."""
     try:
         return domain_order.get_images_gallery(db, uri)
@@ -77,7 +78,7 @@ async def get_images_gallery(uri: str, db: Session = Depends(get_db)) -> None:
 
 
 @product.delete('/delete/image-gallery/{id}', status_code=200)
-async def delete_image(id: int, db: Session = Depends(get_db)) -> None:
+def delete_image(id: int, db: Session = Depends(get_db)) -> None:
     """Delete image."""
     try:
         return domain_order.delete_image_gallery(id, db)
@@ -86,7 +87,7 @@ async def delete_image(id: int, db: Session = Depends(get_db)) -> None:
 
 
 @product.get('/{uri}', status_code=200)
-async def get_product_uri(uri: str, db: Session = Depends(get_db)) -> None:
+def get_product_uri(uri: str, db: Session = Depends(get_db)) -> None:
     """GET product uri."""
     try:
         return domain_order.get_product(db, uri)
@@ -96,7 +97,7 @@ async def get_product_uri(uri: str, db: Session = Depends(get_db)) -> None:
 
 
 @catalog.get('/all', status_code=200)
-async def get_products_all(db: Session = Depends(get_db)) -> None:
+def get_products_all(db: Session = Depends(get_db)) -> None:
     """Get products all."""
     try:
         return domain_order.get_product_all(db)
@@ -106,7 +107,7 @@ async def get_products_all(db: Session = Depends(get_db)) -> None:
 
 
 @product.put('/update/{id}', status_code=200)
-async def put_product(
+def put_product(
     id: int,
     value: ProductFullResponse,
     db: Session = Depends(get_db),
@@ -119,7 +120,7 @@ async def put_product(
 
 
 @product.delete('/delete/{id}', status_code=200)
-async def delete_product(id: int, db: Session = Depends(get_db)) -> None:
+def delete_product(id: int, db: Session = Depends(get_db)) -> None:
     """Delete product."""
     try:
         return domain_order.delete_product(db, id)
@@ -128,7 +129,7 @@ async def delete_product(id: int, db: Session = Depends(get_db)) -> None:
 
 
 @catalog.get('/all/categorys', status_code=200)
-async def get_categorys(db: Session = Depends(get_db)) -> None:
+def get_categorys(db: Session = Depends(get_db)) -> None:
     """GET categorys."""
     try:
         return domain_order.get_category(db)
@@ -138,7 +139,7 @@ async def get_categorys(db: Session = Depends(get_db)) -> None:
 
 
 @catalog.get('/category/products/{path}', status_code=200)
-async def get_product_category(
+def get_product_category(
     path: str,
     db: Session = Depends(get_db),
 ) -> None:

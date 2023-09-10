@@ -101,16 +101,14 @@ def get_images_gallery(db: Session, uri):
 
 def get_showcase(db: Session):
     with db:
-        showcases_query = select(Product).where(Product.showcase is True)
+        showcases_query = select(Product).where(Product.showcase == True)
         showcases = db.execute(showcases_query).scalars().all()
         products = []
 
         for showcase in showcases:
-            products.append(ProductInDB.from_orm(showcase))
+            products.append(ProductInDB.model_validate(showcase))
 
-        if showcases:
-            return {'products': products}
-        return {'products': []}
+        return products
 
 
 def get_installments(db: Session, cart):

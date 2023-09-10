@@ -1,9 +1,22 @@
+from typing import Self
+from loguru import logger
 import stripe
+from stripe.error import InvalidRequestError
 from app.entities.cart import CreatePaymentMethod
+from app.payment.entities import PaymentAcceptError
 from config import settings
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+class PaymentGatewayRequestError(Exception):
+    """Payment gateway request error."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('Payment status in internal analysis')
+
+    ...
 
 
 def create_customer(email: str) -> stripe.Customer:
@@ -13,19 +26,30 @@ def create_customer(email: str) -> stripe.Customer:
     )
 
 
+def update_customer(customer_id: str, payment_method) -> stripe.Customer:
+    """Must update a customer."""
+    return stripe.Customer.modify(
+        customer_id,
+        invoice_settings={
+            'default_payment_method': payment_method,
+        },
+    )
+
+
 def create_payment_intent(
     amount: int,
     currency: str,
     customer_id: str,
     payment_method: str,
+    installments: int,
 ) -> stripe.PaymentIntent:
     """Must create a payment intent."""
+    _ = installments
     return stripe.PaymentIntent.create(
         amount=amount,
         currency=currency,
         customer=customer_id,
         payment_method=payment_method,
-        confirm=True,
     )
 
 
@@ -35,10 +59,28 @@ def confirm_payment_intent(
     receipt_email: str,
 ) -> stripe.PaymentIntent:
     """Must confirm a payment intent."""
-    return stripe.PaymentIntent.confirm(
-        payment_intent_id,
-        payment_method=payment_method,
-        receipt_email=receipt_email,
+    try:
+        payment_accept = stripe.PaymentIntent.confirm(
+            payment_intent_id,
+            payment_method=payment_method,
+            receipt_email=receipt_email,
+        )
+        if payment_accept.get('error'):
+            raise PaymentAcceptError(payment_accept['error'])
+        return payment_accept
+    except InvalidRequestError as error:
+        logger.error(error)
+        raise PaymentGatewayRequestError
+
+
+def attach_customer_in_payment_method(
+    payment_method_id: str,
+    customer_id: str,
+) -> stripe.PaymentMethod:
+    """Must attach a customer in payment method."""
+    return stripe.PaymentMethod.attach(
+        payment_method_id,
+        customer=customer_id,
     )
 
 

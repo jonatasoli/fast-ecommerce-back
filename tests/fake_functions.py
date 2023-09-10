@@ -1,3 +1,4 @@
+import json
 import datetime as dt
 from decimal import Decimal
 from typing import Any, cast
@@ -44,6 +45,10 @@ def fake_date_time() -> dt.datetime:
 
 def fake_dict() -> dict[str, Any]:
     return cast(dict[str, Any], fake.pydict())
+
+
+def fake_json() -> list[Any]:
+    return [json.dumps(fake.pydict())]
 
 
 def fake_url() -> str:

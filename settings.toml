@@ -1,6 +1,5 @@
 [default]
-REDIS_HOST="localhost"
-REDIS_PORT=6379
+REDIS_URL="redis://:@localhost:6379"
 REDIS_DB=0
 SECRET_KEY="NOT_SECURE_SECRET_KEY"
 CONFIRMATION_KEY="NOT_SECURE_CONFIRMATION_KEY"
@@ -13,10 +12,11 @@ COMPANY="MY_COMPANY"
 ENVIRONMENT="development"
 ZIP_CODE_SOURCE ="47590000"
 SETRY_DSN = "SENTRY_DSN"
+PAYMENT_GATEWAY = "STRIPE"
 
 
 [testing]
-DATABASE_URL="postgresql://postgres_user:pass123@localhost/ecommerce"
+DATABASE_URL="postgresql://postgres_user:pass123@localhost/ecommerce-test"
 DATABASE_URI="postgresql+asyncpg://postgres_user:pass123@localhost/ecommerce-test"
 API_MAIL_URL="https://testapi.com/"
 ACCESS_TOKEN_EXPIRE_MINUTES=15

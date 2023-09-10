@@ -7,8 +7,6 @@ CLS = TypeVar('CLS')
 
 @as_declarative()
 class Base:
-    id: Any
-    __name__: str
     # Generate __tablename__ automatically
     @declared_attr
     def __tablename__(cls: CLS) -> str:   # noqa: N805

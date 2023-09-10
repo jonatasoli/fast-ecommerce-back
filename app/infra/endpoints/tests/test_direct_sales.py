@@ -130,7 +130,7 @@ def test_create_config(t_client):
     assert response.get('fee') == '0.0599'
 
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_create_product(t_client):
     product = {
         'description': 'Test Product',

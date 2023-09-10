@@ -1,5 +1,6 @@
+import json
 from decimal import Decimal
-from typing import TypeVar
+from typing import Self
 from uuid import UUID, uuid4
 from loguru import logger
 
@@ -8,8 +9,6 @@ from app.entities.freight import ShippingAddress
 from app.entities.product import ProductCart
 from app.entities.user import UserAddress, UserData
 from pydantic import BaseModel
-
-Self = TypeVar('Self')
 
 
 class CartNotFoundPriceError(Exception):
@@ -33,6 +32,20 @@ class CartInconsistencyError(Exception):
         super().__init__('Cart is diferent to product list to check')
 
 
+class CartNotFoundError(Exception):
+    """Raise when cart not found."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('Cart not found')
+
+
+class InvalidCartFormatError(Exception):
+    """Raise when cart is invalid."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('Invalid cart format')
+
+
 def generate_cart_uuid() -> UUID:
     """Generate UUID to Cart."""
     return uuid4()
@@ -42,6 +55,7 @@ class CartBase(BaseModel):
     """Cart first step representation."""
 
     uuid: UUID
+    affiliate: str | None = None
     cart_items: list[ProductCart] = []
     coupon: str | None = None
     discount: Decimal = Decimal(0)
@@ -167,6 +181,9 @@ class CartPayment(CartShipping):
 
     payment_method: str
     payment_method_id: str
+    payment_intent: str | None = None
+    customer_id: str | None = None
+    installments: int = 1
 
 
 class CreatePaymentMethod(BaseModel):
@@ -177,6 +194,7 @@ class CreatePaymentMethod(BaseModel):
     exp_year: int
     cvc: str
     name: str
+    installments: int = 1
 
 
 class AddressCreate(BaseModel):
@@ -223,3 +241,14 @@ def generate_new_cart(
         cart_items=[product],
         subtotal=convert_price_to_decimal(price * quantity),
     )
+
+
+def validate_cache_cart(cache_cart: bytes | None):
+    if not cache_cart:
+        raise CartNotFoundError
+    if not isinstance(cache_cart, bytes):
+        raise InvalidCartFormatError
+    try:
+        cache_cart = json.loads(cache_cart)
+    except json.JSONDecodeError:
+        raise InvalidCartFormatError

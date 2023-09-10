@@ -1,11 +1,7 @@
 import abc
-from typing import TypeVar
-from typing import ClassVar
+from typing import ClassVar, Self
 from config import settings
 import redis
-
-
-Self = TypeVar('Self')
 
 
 class AbstractCache(abc.ABC):
@@ -19,9 +15,8 @@ class AbstractCache(abc.ABC):
 
 class RedisCache(AbstractCache):
     def __init__(self: Self) -> None:
-        self.pool = redis.ConnectionPool(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
+        self.pool = redis.ConnectionPool.from_url(
+            url=settings.REDIS_URL,
             db=settings.REDIS_DB,
         )
         self.redis = redis.Redis(connection_pool=self.pool)
@@ -39,6 +34,10 @@ class MemoryClient:
 
     def get(self: Self, key: str) -> dict:
         return self.cache.get(key)
+
+    def delete(self: Self, key: str) -> dict:
+        del self.cache[key]
+        return self.cache
 
 
 class MemoryCache(AbstractCache):

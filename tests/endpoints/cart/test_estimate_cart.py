@@ -7,7 +7,7 @@ from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from config import settings
 from app.infra.endpoints.cart import get_bootstrap
-from app.infra.bootstrap import bootstrap
+from app.infra.bootstrap import cart_bootstrap as bootstrap
 from fastapi.encoders import jsonable_encoder
 import redis
 
@@ -61,9 +61,8 @@ async def test_estimate_products_in_cart(client, db) -> None:
         cart_items=cart_items,
         subtotal=Decimal('300.00'),
     )
-    pool = redis.ConnectionPool(
-        host=settings.REDIS_HOST,
-        port=settings.REDIS_PORT,
+    pool = redis.ConnectionPool.from_url(
+        url=settings.REDIS_URL,
         db=settings.REDIS_DB,
     )
     cache = redis.Redis(connection_pool=pool)
