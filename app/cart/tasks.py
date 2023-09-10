@@ -14,7 +14,6 @@ from loguru import logger
 
 from app.entities.cart import CartPayment
 from app.infra.stripe import PaymentGatewayRequestError, confirm_payment_intent
-from config import settings
 
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 from app.order.tasks import (
@@ -25,7 +24,6 @@ from app.order.tasks import (
 from app.payment.entities import CreatePaymentError, PaymentAcceptError
 from app.payment.tasks import create_pending_payment, update_payment
 from app.infra.worker import task_message_bus
-from domains.domain_mail import send_mail
 
 
 PAYMENT_STATUS_ERROR_MESSAGE = 'This payment intent is not paid yet'
@@ -117,7 +115,7 @@ async def checkout(
         )
         # TODO: check if order is in inventory for decrease
         await decrease_inventory(
-            cart=cart, order_id=order_id, bootstrap=bootstrap
+            cart=cart, order_id=order_id, bootstrap=bootstrap,
         )
         await update_order(
             order_update=OrderDBUpdate(
@@ -149,4 +147,4 @@ async def checkout(
         return PAYMENT_REQUEST_ERROR_MESSAGE
     except Exception as e:
         logger.error(f'Error in checkout: {e}')
-        raise e
+        raise

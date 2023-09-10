@@ -2,8 +2,6 @@ from typing import Any
 
 from loguru import logger
 from app.entities.cart import CartPayment
-from app.entities.payment import PaymentDBUpdate
-from app.infra.bootstrap.task_bootstrap import Command, bootstrap
 from app.infra.worker import task_message_bus
 
 
@@ -15,13 +13,12 @@ async def create_pending_payment(
     bootstrap: Any,
 ) -> int:
     """Create a new payment."""
-    payment_id = await bootstrap.payment_uow.uow_create_pending_payment(
+    return await bootstrap.payment_uow.uow_create_pending_payment(
         order_id,
         cart=cart,
         user_id=user_id,
         bootstrap=bootstrap,
     )
-    return payment_id
 
 
 async def update_payment(

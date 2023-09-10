@@ -3,16 +3,16 @@ from __future__ import annotations
 import abc
 from decimal import Decimal
 from typing import Self, TYPE_CHECKING
-from sqlalchemy.orm import SessionTransaction, sessionmaker
 from app.entities.coupon import CouponBase
 
 from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
-from app.entities.user import UserAddress
 from app.infra.database import get_async_session
 
 
 if TYPE_CHECKING:
+    from app.entities.user import UserAddress
+    from sqlalchemy.orm import SessionTransaction, sessionmaker
     from app.entities.user import UserData
     from app.entities.address import AddressBase
 
@@ -266,7 +266,7 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
 
 
 async def get_coupon_by_code(
-    code: str, *, transaction: SessionTransaction
+    code: str, *, transaction: SessionTransaction,
 ) -> CouponBase:
     """Must return a coupon by code."""
     coupon_db = await repository.get_coupon_by_code(code=code)

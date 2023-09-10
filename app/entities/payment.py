@@ -48,6 +48,7 @@ def validate_payment(
     payment_accept: Any,
 ) -> str:
     """Validate payment."""
-    if not getattr(payment_accept, 'status') == 'succeeded':
-        raise ValueError('Payment not succeeded')
+    if payment_accept.status != 'succeeded':
+        msg = 'Payment not succeeded'
+        raise ValueError(msg)
     return 'succeeded'

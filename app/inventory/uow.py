@@ -14,7 +14,8 @@ async def uow_decrease_inventory(
 ) -> None:
     """Decrease inventory by specific cart."""
     if not transaction:
-        raise Exception('Transaction not found')
+        msg = 'Transaction not found'
+        raise Exception(msg)
     for item in cart.cart_items:
         await inventory_repository.decrease_inventory(
             item.product_id,
@@ -27,4 +28,5 @@ async def uow_decrease_inventory(
             transaction=transaction,
         )
         if total < 0:
-            raise Exception('Product not available')
+            msg = 'Product not available'
+            raise Exception(msg)

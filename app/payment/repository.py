@@ -1,4 +1,3 @@
-from decimal import Decimal
 from sqlalchemy import update
 
 from sqlalchemy.orm import SessionTransaction

@@ -1,9 +1,7 @@
-import abc
 from decimal import Decimal
-from typing import Self
 from sqlalchemy import update
 
-from sqlalchemy.orm import SessionTransaction, sessionmaker
+from sqlalchemy.orm import SessionTransaction
 from datetime import datetime
 
 from sqlalchemy.sql import select
@@ -39,7 +37,7 @@ async def create_order(
 
 
 async def get_order_by_id(
-    order_id: int, *, transaction: SessionTransaction
+    order_id: int, *, transaction: SessionTransaction,
 ) -> Order:
     """Get an order by its id."""
     order_query = select(Order).where(
@@ -49,7 +47,7 @@ async def get_order_by_id(
 
 
 async def update_order(
-    order: OrderDBUpdate, transaction: SessionTransaction
+    order: OrderDBUpdate, transaction: SessionTransaction,
 ) -> Order:
     """Update an existing order."""
     update_query = (

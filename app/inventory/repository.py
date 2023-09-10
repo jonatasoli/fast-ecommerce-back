@@ -28,7 +28,7 @@ async def total_inventory(
 ) -> int:
     """Get total inventory by product_id."""
     products_query = select(func.sum(order.Inventory.quantity)).where(
-        order.Inventory.product_id == product_id
+        order.Inventory.product_id == product_id,
     )
     products = await transaction.session.execute(products_query)
     total = products.fetchone()

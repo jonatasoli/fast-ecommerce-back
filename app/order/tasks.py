@@ -15,18 +15,17 @@ async def create_order(
     bootstrap: Command,
 ) -> int:
     """Create a new order."""
-    order_id = await bootstrap.order_uow.uow_create_order(
+    return await bootstrap.order_uow.uow_create_order(
         cart,
         affiliate=affiliate,
         discount=discount,
         user=user,
         bootstrap=bootstrap,
     )
-    return order_id
 
 
 async def update_order(
-    order_update: OrderDBUpdate, bootstrap: Command
+    order_update: OrderDBUpdate, bootstrap: Command,
 ) -> order.Order:
     return await bootstrap.order_uow.uow_update_paid_order(
         order_update,
@@ -40,10 +39,9 @@ async def create_order_status_step(
     bootstrap: Command,
     send_mail: bool = False,
 ) -> int:
-    order_step_id = await bootstrap.order_uow.uow_create_order_status_step(
+    return await bootstrap.order_uow.uow_create_order_status_step(
         order_id,
         status=status,
         send_mail=send_mail,
         bootstrap=bootstrap,
     )
-    return order_step_id

@@ -22,13 +22,14 @@ async def uow_create_order(
 ) -> int:
     """Create a new order."""
     if not transaction:
-        raise ValueError('Transaction must be provided')
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
     order = await order_repository.get_order_by_cart_uuid(
-        cart.uuid, transaction=transaction
+        cart.uuid, transaction=transaction,
     )
     affiliate_id = None
     affiliate = await user_repository.get_user_by_username(
-        affiliate, transaction=transaction
+        affiliate, transaction=transaction,
     )
     if affiliate:
         affiliate_id = affiliate.user_id
@@ -60,13 +61,13 @@ async def uow_update_paid_order(
     bootstrap: Any,
 ) -> order.Order:
     if not transaction:
-        raise ValueError('Transaction must be provided')
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
 
-    order = await order_repository.update_order(
+    return await order_repository.update_order(
         order_update,
         transaction=transaction,
     )
-    return order
 
 
 @database_uow()
@@ -79,11 +80,11 @@ async def uow_create_order_status_step(
     send_mail: bool = False,
 ) -> int:
     if not transaction:
-        raise ValueError('Transaction must be provided')
-    order_status_step_id = await order_repository.create_order_status_step(
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
+    return await order_repository.create_order_status_step(
         order_id=order_id,
         status=status,
         sending=send_mail,
         transaction=transaction,
     )
-    return order_status_step_id
