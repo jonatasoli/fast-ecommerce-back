@@ -98,9 +98,10 @@ async def calculate_cart(
             cart.zipcode,
             products=products_db,
         )
-        cart.freight_price = await bootstrap.freight.get_freight(
-            freight_cart=freight_cart,
-            zipcode=cart.zipcode,
+        cart.freight = await bootstrap.freight.get_freight(
+            cart.zipcode,
+            volume=freight_cart.volume,
+            weight=freight_cart.weight,
         )
     cart.calculate_subtotal(discount=coupon.coupon_fee if cart.coupon else 0)
     cache.set(str(cart.uuid), cart.model_dump_json())

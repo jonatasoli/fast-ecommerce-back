@@ -1,11 +1,8 @@
 from abc import ABC, abstractmethod
 from decimal import Decimal
-from typing import TypeVar
+from typing import Self
 
 from pydantic import BaseModel
-
-
-Self = TypeVar('Self')
 
 
 class FreightCart(BaseModel):
@@ -20,23 +17,28 @@ class AbstractFreight(ABC):
 
     async def calculate_volume_weight(
         self: Self,
+        zipcode: str,
+        *,
         products: list,
     ) -> FreightCart:
         """Calculate volume and weight from cart."""
-        return await self._calculate_volume_weight(products)
+        return await self._calculate_volume_weight(zipcode, products=products)
 
     async def get_freight(
         self: Self,
+        zipcode: str,
+        *,
         volume: float,
         weight: float,
-        zipcode: str,
     ) -> Decimal:
         """Get freight from zip code."""
-        return await self._get_freight(volume, weight, zipcode)
+        return await self._get_freight(zipcode, volume=volume, weight=weight)
 
     @abstractmethod
     async def _calculate_volume_weight(
         self: Self,
+        zipcode: str,
+        *,
         products: list,
     ) -> FreightCart:
         """Calculate volume and weight from cart."""
@@ -45,9 +47,10 @@ class AbstractFreight(ABC):
     @abstractmethod
     async def _get_freight(
         self: Self,
+        zipcode: str,
+        *,
         volume: float,
         weight: float,
-        zipcode: str,
     ) -> Decimal:
         """Get freight from zip code."""
         ...
@@ -58,10 +61,12 @@ class MemoryFreight(AbstractFreight):
 
     async def _calculate_volume_weight(
         self: Self,
+        zipcode: str,
+        *,
         products: list,
     ) -> FreightCart:
         """Calculate volume and weight from cart."""
-        _ = products
+        _ = products, zipcode
         return FreightCart(
             volume=0.0,
             weight=0.0,
@@ -69,9 +74,11 @@ class MemoryFreight(AbstractFreight):
 
     async def _get_freight(
         self: Self,
-        freight_cart: FreightCart,
         zipcode: str,
+        *,
+        volume: float,
+        weight: float,
     ) -> Decimal:
         """Get freight from zip code."""
-        _ = freight_cart, zipcode
+        _ = volume, weight, zipcode
         return Decimal('10.0')
