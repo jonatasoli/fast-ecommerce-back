@@ -17,11 +17,14 @@ async def uow_create_customer(
         msg = 'Transaction must be provided'
         raise ValueError(msg)
     user = await user_repository.get_user_by_id(
-        user_id, transaction=transaction,
+        user_id,
+        transaction=transaction,
     )
     customer = bootstrap.payment.create_customer(email=user.email)
     user.customer_id = customer['id']
     updated_user = await user_repository.update_user(
-        user_id, user=user, transaction=transaction,
+        user_id,
+        user=user,
+        transaction=transaction,
     )
     return updated_user.customer_id

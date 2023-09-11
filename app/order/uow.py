@@ -25,11 +25,13 @@ async def uow_create_order(
         msg = 'Transaction must be provided'
         raise ValueError(msg)
     order = await order_repository.get_order_by_cart_uuid(
-        cart.uuid, transaction=transaction,
+        cart.uuid,
+        transaction=transaction,
     )
     affiliate_id = None
     affiliate = await user_repository.get_user_by_username(
-        affiliate, transaction=transaction,
+        affiliate,
+        transaction=transaction,
     )
     if affiliate:
         affiliate_id = affiliate.user_id

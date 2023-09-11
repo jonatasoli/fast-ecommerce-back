@@ -25,7 +25,8 @@ async def create_order(
 
 
 async def update_order(
-    order_update: OrderDBUpdate, bootstrap: Command,
+    order_update: OrderDBUpdate,
+    bootstrap: Command,
 ) -> order.Order:
     return await bootstrap.order_uow.uow_update_paid_order(
         order_update,
