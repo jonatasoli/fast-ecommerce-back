@@ -5,7 +5,7 @@ from propan.fastapi import RabbitRouter
 from pydantic import BaseModel
 
 import sentry_sdk
-from dynaconf import settings
+from config import settings
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
