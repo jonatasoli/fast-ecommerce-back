@@ -5,7 +5,7 @@ from propan.fastapi import RabbitRouter
 from pydantic import BaseModel
 
 import sentry_sdk
-from dynaconf import settings
+from config import settings
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -16,7 +16,7 @@ from app.infra.endpoints.direct_sales import direct_sales
 from app.infra.endpoints.mail import mail
 from app.infra.endpoints.order import order
 from app.infra.endpoints.product import product
-from app.infra.endpoints.product import catalog
+from app.infra.endpoints.catalog import catalog
 from app.infra.endpoints.shipping import shipping
 from app.infra.endpoints.users import user
 from app.infra.endpoints.payment import payment
