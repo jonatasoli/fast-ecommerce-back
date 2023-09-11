@@ -57,10 +57,13 @@ def checkout(
 
 
 @payment.post(
-    '/create-config', status_code=201, response_model=ConfigCreditCardResponse,
+    '/create-config',
+    status_code=201,
+    response_model=ConfigCreditCardResponse,
 )
 def create_config(
-    *, config_data: ConfigCreditCardInDB,
+    *,
+    config_data: ConfigCreditCardInDB,
 ) -> ConfigCreditCardResponse:
     """Create config."""
     return repositories.CreditCardConfig(
@@ -74,7 +77,8 @@ def create_config(
     response_model=ResponseGateway,
 )
 async def payment_credit_card(
-    *, payment_data: CreditCardPayment,
+    *,
+    payment_data: CreditCardPayment,
 ) -> ResponseGateway:
     """Payment credit card."""
     return gateway.credit_card_payment(payment=payment_data)

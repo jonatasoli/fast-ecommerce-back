@@ -14,7 +14,8 @@ ZIP_CODE_SOURCE ="47590000"
 SETRY_DSN = "SENTRY_DSN"
 PAYMENT_GATEWAY = "STRIPE"
 FREIGHT_GATEWAY = "CORREIOS"
-FREIGHT_API_URL = "https://api.correios.com.br/token/v3/api-docs"
+CORREIOSBR_API_URL = "https://api.correios.com.br/token"
+CLIENT_API_TIMEOUT = 10
 
 
 [testing]

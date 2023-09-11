@@ -37,7 +37,9 @@ async def create_order(
 
 
 async def get_order_by_id(
-    order_id: int, *, transaction: SessionTransaction,
+    order_id: int,
+    *,
+    transaction: SessionTransaction,
 ) -> Order:
     """Get an order by its id."""
     order_query = select(Order).where(
@@ -47,7 +49,8 @@ async def get_order_by_id(
 
 
 async def update_order(
-    order: OrderDBUpdate, transaction: SessionTransaction,
+    order: OrderDBUpdate,
+    transaction: SessionTransaction,
 ) -> Order:
     """Update an existing order."""
     update_query = (

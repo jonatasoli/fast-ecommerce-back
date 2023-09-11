@@ -5,7 +5,9 @@ from app.infra.models import users
 
 
 async def get_user_by_id(
-    user_id: int, *, transaction: SessionTransaction,
+    user_id: int,
+    *,
+    transaction: SessionTransaction,
 ) -> users.User:
     """Get an user by its id."""
     user_query = select(users.User).where(users.User.user_id == user_id)
@@ -13,7 +15,9 @@ async def get_user_by_id(
 
 
 async def get_user_by_username(
-    username: str, *, transaction: SessionTransaction,
+    username: str,
+    *,
+    transaction: SessionTransaction,
 ) -> users.User | None:
     """Get an user by its username."""
     user_query = select(users.User).where(users.User.username == username)
@@ -21,7 +25,10 @@ async def get_user_by_username(
 
 
 async def update_user(
-    user_id: int, *, user: users.User, transaction: SessionTransaction,
+    user_id: int,
+    *,
+    user: users.User,
+    transaction: SessionTransaction,
 ) -> users.User:
     """Update an user."""
     user_query = (
