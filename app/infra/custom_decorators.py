@@ -10,7 +10,9 @@ def database_uow():
             try:
                 async with kwargs['bootstrap'].db().begin() as inner_session:
                     result = await func(
-                        *args, transaction=inner_session, **kwargs,
+                        *args,
+                        transaction=inner_session,
+                        **kwargs,
                     )
                     await inner_session.session.commit()  # Comita a transação explicitamente
                     logger.info('Transaction committed')

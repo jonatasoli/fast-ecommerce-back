@@ -1,8 +1,6 @@
-from typing import Any
 from fastapi import APIRouter, Depends, File, UploadFile
 from loguru import logger
 from sqlalchemy.orm import Session
-from app.entities.product import ProductInDB
 
 from domains import domain_order
 from app.infra import deps
@@ -15,10 +13,6 @@ from schemas.order_schema import (
 product = APIRouter(
     prefix='/product',
     tags=['product'],
-)
-catalog = APIRouter(
-    prefix='/catalog',
-    tags=['catalog'],
 )
 
 
@@ -58,16 +52,6 @@ def upload_image_gallery(
         raise
 
 
-@catalog.get('/showcase/all', status_code=200)
-def get_showcase(*, db: Session = Depends(get_db)) -> Any:
-    """Get showcase."""
-    try:
-        return domain_order.get_showcase(db)
-    except Exception as e:
-        logger.error(f'Erro em obter os produtos - { e }')
-        raise
-
-
 @product.get('/images/gallery/{uri}', status_code=200)
 def get_images_gallery(uri: str, db: Session = Depends(get_db)) -> None:
     """Get images gallery."""
@@ -96,16 +80,6 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> None:
         raise
 
 
-@catalog.get('/all', status_code=200)
-def get_products_all(db: Session = Depends(get_db)) -> None:
-    """Get products all."""
-    try:
-        return domain_order.get_product_all(db)
-    except Exception as e:
-        logger.error(f'Erro em obter os produtos - { e }')
-        raise
-
-
 @product.put('/update/{id}', status_code=200)
 def put_product(
     id: int,
@@ -124,27 +98,5 @@ def delete_product(id: int, db: Session = Depends(get_db)) -> None:
     """Delete product."""
     try:
         return domain_order.delete_product(db, id)
-    except Exception:
-        raise
-
-
-@catalog.get('/all/categorys', status_code=200)
-def get_categorys(db: Session = Depends(get_db)) -> None:
-    """GET categorys."""
-    try:
-        return domain_order.get_category(db)
-    except Exception as e:
-        logger.error(f'Erro em obter as categorias - { e }')
-        raise
-
-
-@catalog.get('/category/products/{path}', status_code=200)
-def get_product_category(
-    path: str,
-    db: Session = Depends(get_db),
-) -> None:
-    """Get product category."""
-    try:
-        return domain_order.get_products_category(db, path)
     except Exception:
         raise
