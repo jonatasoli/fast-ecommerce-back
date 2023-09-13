@@ -38,11 +38,11 @@ class ProductInDB(BaseModel):
     category_id: int
     showcase: bool
     show_discount: bool
-    height: Decimal | None
-    width: Decimal | None
-    weight: Decimal | None
-    length: Decimal | None
-    diameter: Decimal | None
-    sku: str | None
+    height: int
+    width: int
+    weight: int
+    length: int
+    diameter: int | None
+    sku: str
 
     model_config = ConfigDict(from_attributes=True)

@@ -16,6 +16,7 @@ from app.entities.cart import (
 from app.entities.product import ProductCart
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
+import zipcode
 
 
 class UserAddressNotFoundError(Exception):
@@ -94,14 +95,20 @@ async def calculate_cart(
             detail='Coupon not found',
         )
     if cart.zipcode:
-        freight_cart = await bootstrap.freight.calculate_volume_weight(
-            cart.zipcode,
+        freight_package = bootstrap.freight.calculate_volume_weight(
             products=products_db,
         )
-        cart.freight_price = await bootstrap.freight.get_freight(
-            freight_cart=freight_cart,
+        if not cart.freight_product_code:
+            raise HTTPException(
+                status_code=400,
+                detail='Freight product code not found',
+            )
+        freight = bootstrap.freight.get_freight(
+            cart.freight_product_code,
+            freight_package=freight_package,
             zipcode=cart.zipcode,
         )
+        cart.freight = freight
     cart.calculate_subtotal(discount=coupon.coupon_fee if cart.coupon else 0)
     cache.set(str(cart.uuid), cart.model_dump_json())
     return cart

@@ -58,17 +58,6 @@ class DeliveryPriceResponse(BaseModel):
     price: Decimal
 
 
-price_test = DeliveryPriceParams(
-    cepOrigem=settings.CORREIOSBR_CEP_ORIGIN,
-    psObjeto='300',
-    tpObjeto=PACKAGE_TYPE,
-    comprimento=str(MIN_LENGTH),
-    largura=str(MIN_WIDTH),
-    altura=str(MIN_HEIGHT),
-    cepDestino='18120000',
-)
-
-
 def get_client(timeout: int = settings.CLIENT_API_TIMEOUT):
     return httpx.Client(timeout=timeout)
 
@@ -114,13 +103,13 @@ def get_token(redis_client: redis.AbstractCache = redis.RedisCache()):
 
 
 def calculate_delivery_time(
-    zip_code_destiny: str, product: str = PAC_AG
+    zip_code_destiny: str, product_code: str = PAC_AG
 ) -> DeliveryParamsResponse:
     """Calculate delivery time"""
     zip_code_origin = settings.CORREIOSBR_CEP_ORIGIN
     url = base_url + '/prazo/v1/nacional'
     delivery_params = DeliveryParams(
-        coProduto=product,
+        coProduto=product_code,
         cepOrigem=zip_code_origin,
         cepDestino=zip_code_destiny,
     )

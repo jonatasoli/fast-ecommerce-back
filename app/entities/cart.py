@@ -10,6 +10,8 @@ from app.entities.product import ProductCart
 from app.entities.user import UserAddress, UserData
 from pydantic import BaseModel
 
+from app.freight.entities import Freight
+
 
 class CartNotFoundPriceError(Exception):
     """Raise when cart not found price."""
@@ -59,8 +61,9 @@ class CartBase(BaseModel):
     cart_items: list[ProductCart] = []
     coupon: str | None = None
     discount: Decimal = Decimal(0)
-    freight: Decimal = Decimal(0)
     zipcode: str | None = None
+    freight_product_code: str | None = None
+    freight: Freight | None = None
     subtotal: Decimal
 
     def increase_quantity(self: Self, product_id: int) -> Self:
