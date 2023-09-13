@@ -3,6 +3,16 @@ from decimal import Decimal
 from typing import Self
 
 from pydantic import BaseModel
+from app.entities.product import ProductInDB
+
+from app.freight.entities import Freight, FreightPackage, calculate_package
+from app.infra.freight.correios_br import (
+    PACKAGE_TYPE,
+    DeliveryPriceParams,
+    calculate_delivery_time,
+    calculate_delivery_price,
+)
+from config import settings
 
 
 class FreightCart(BaseModel):
@@ -12,73 +22,39 @@ class FreightCart(BaseModel):
     weight: float
 
 
-class AbstractFreight(ABC):
-    """Abstract class to implement a freight gateway."""
-
-    async def calculate_volume_weight(
-        self: Self,
-        zipcode: str,
-        *,
-        products: list,
-    ) -> FreightCart:
-        """Calculate volume and weight from cart."""
-        return await self._calculate_volume_weight(zipcode, products=products)
-
-    async def get_freight(
-        self: Self,
-        zipcode: str,
-        *,
-        volume: float,
-        weight: float,
-    ) -> Decimal:
-        """Get freight from zip code."""
-        return await self._get_freight(zipcode, volume=volume, weight=weight)
-
-    @abstractmethod
-    async def _calculate_volume_weight(
-        self: Self,
-        zipcode: str,
-        *,
-        products: list,
-    ) -> FreightCart:
-        """Calculate volume and weight from cart."""
-        ...
-
-    @abstractmethod
-    async def _get_freight(
-        self: Self,
-        zipcode: str,
-        *,
-        volume: float,
-        weight: float,
-    ) -> Decimal:
-        """Get freight from zip code."""
-        ...
+def calculate_volume_weight(
+    products: list[ProductInDB],
+) -> FreightPackage:
+    """Get freight from zip code."""
+    return calculate_package(products)
 
 
-class MemoryFreight(AbstractFreight):
-    """Memory implementation of freight gateway."""
-
-    async def _calculate_volume_weight(
-        self: Self,
-        zipcode: str,
-        *,
-        products: list,
-    ) -> FreightCart:
-        """Calculate volume and weight from cart."""
-        _ = products, zipcode
-        return FreightCart(
-            volume=0.0,
-            weight=0.0,
-        )
-
-    async def _get_freight(
-        self: Self,
-        zipcode: str,
-        *,
-        volume: float,
-        weight: float,
-    ) -> Decimal:
-        """Get freight from zip code."""
-        _ = volume, weight, zipcode
-        return Decimal('10.0')
+def get_freight(
+    product_code: str,
+    *,
+    freight_package: FreightPackage,
+    zipcode: str,
+) -> Freight:
+    """Get freight from zip code."""
+    package_delivery = calculate_delivery_time(
+        zipcode,
+        product_code=product_code,
+    )
+    package_price_params = DeliveryPriceParams(
+        psObjeto=freight_package.weight,
+        comprimento=freight_package.length,
+        largura=freight_package.width,
+        altura=freight_package.height,
+        cepOrigem=settings.CORREIOSBR_CEP_ORIGIN,
+        cepDestino=zipcode,
+        tpObjeto=PACKAGE_TYPE,
+    )
+    price = calculate_delivery_price(
+        product_code,
+        package=package_price_params,
+    )
+    return Freight(
+        price=price.price,
+        delivery_time=package_delivery.delivery_time,
+        max_date=package_delivery.max_date,
+    )

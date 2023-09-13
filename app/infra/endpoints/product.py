@@ -77,8 +77,8 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> None:
         product = domain_order.get_product(db, uri)
         if not product:
             raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail='Product not found',
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Product not found',
             )
 
     except Exception as e:
