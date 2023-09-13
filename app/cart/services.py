@@ -56,7 +56,7 @@ async def add_product_to_cart(
         cart = cache.get(cart_uuid)
     if None or not cart:
         cart = generate_new_cart(
-            product=product,
+            product=_product_db,
             price=product_db.price,
             quantity=product.quantity,
         )
@@ -66,6 +66,8 @@ async def add_product_to_cart(
         cart.add_product(
             product_id=product.product_id,
             quantity=product.quantity,
+            name=product_db.name,
+            image_path=product_db.image_path,
         )
     cache.set(str(cart.uuid), cart.model_dump_json())
     return cart

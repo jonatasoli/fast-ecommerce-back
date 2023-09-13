@@ -208,6 +208,8 @@ class CategoryInDB(BaseModel):
     id: int
     name: str
     path: str
+    menu: bool
+    showcase: bool
     model_config = ConfigDict(from_attributes=True)
 
 

@@ -6,7 +6,7 @@ from loguru import logger
 
 
 from app.entities.freight import ShippingAddress
-from app.entities.product import ProductCart
+from app.entities.product import ProductCart, ProductInDB
 from app.entities.user import UserAddress, UserData
 from pydantic import BaseModel
 
@@ -94,15 +94,28 @@ class CartBase(BaseModel):
             return self
         return self
 
-    def add_product(self: Self, product_id: int, quantity: int) -> Self:
+    def add_product(
+        self: Self,
+        product_id: int,
+        quantity: int,
+        name: str | None,
+        image_path: str | None,
+    ) -> Self:
         """Add a product to the cart."""
         for item in self.cart_items:
             if item.product_id == product_id:
+                item.name = name
+                item.image_path = image_path
                 item.quantity += quantity
                 return self
 
         self.cart_items.append(
-            ProductCart(product_id=product_id, quantity=quantity),
+            ProductCart(
+                product_id=product_id,
+                quantity=quantity,
+                name=name,
+                image_path=image_path,
+            ),
         )
         return self
 
@@ -160,6 +173,8 @@ class CartBase(BaseModel):
             if product_id in product_dict:
                 product = product_dict[product_id]
                 self.cart_items[index].price = product.price
+                self.cart_items[index].name = product.name
+                self.cart_items[index].image_path = product.image_path
                 self.cart_items[index].discount_price = (
                     product.discount if product.discount else Decimal('0')
                 )
@@ -230,7 +245,7 @@ def generate_empty_cart() -> CartBase:
 
 
 def generate_new_cart(
-    product: ProductCart,
+    product: ProductInDB,
     price: int,
     quantity: int,
 ) -> CartBase:
