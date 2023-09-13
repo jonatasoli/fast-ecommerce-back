@@ -43,7 +43,9 @@ def get_products_all(db: Session = Depends(get_db)) -> Any:
 
 
 @catalog.get(
-    '/categories', status_code=status.HTTP_200_OK, response_model=Categories,
+    '/categories',
+    status_code=status.HTTP_200_OK,
+    response_model=Categories,
 )
 async def get_categories(
     menu: bool = False,
@@ -53,7 +55,9 @@ async def get_categories(
     """GET categories."""
     try:
         return await get_categories_by_filter(
-            menu=menu, showcase=showcase, bootstrap=bootstrap,
+            menu=menu,
+            showcase=showcase,
+            bootstrap=bootstrap,
         )
     except Exception as e:
         logger.error(f'Erro em obter as categorias - { e }')

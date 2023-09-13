@@ -4,7 +4,9 @@ from sqlalchemy import select
 
 
 async def get_categories(
-    menu: bool, showcase: bool, transaction: SessionTransaction,
+    menu: bool,
+    showcase: bool,
+    transaction: SessionTransaction,
 ) -> list[Category]:
     """Get categories by filters."""
     categorys_query = select(Category)

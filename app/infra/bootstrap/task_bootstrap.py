@@ -26,7 +26,7 @@ class Command(BaseModel):
     inventory_uow: Any
     cache: redis.MemoryClient | cache_client.Redis
     message: RabbitRouter
-    freight: freight.AbstractFreight
+    freight: Any
     user: Any
     payment: Any
 
@@ -44,7 +44,7 @@ async def bootstrap(  # noqa: PLR0913
     inventory_uow: Any = inventory_uow,
     cache: redis.AbstractCache = redis.RedisCache(),
     message: RabbitRouter = task_message_bus,
-    freight: freight.AbstractFreight = freight.MemoryFreight(),
+    freight: Any = freight,
     user: Any = user_gateway,  # noqa: ANN401
     payment: Any = stripe,  # noqa: ANN401
 ) -> Command:
