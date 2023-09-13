@@ -266,7 +266,9 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
 
 
 async def get_coupon_by_code(
-    code: str, *, transaction: SessionTransaction,
+    code: str,
+    *,
+    transaction: SessionTransaction,
 ) -> CouponBase:
     """Must return a coupon by code."""
     coupon_db = await repository.get_coupon_by_code(code=code)
