@@ -8,6 +8,8 @@ class ProductCart(BaseModel):
     """Product Representation in Cart."""
 
     product_id: int
+    name: str | None
+    image_path: str | None
     quantity: int
     price: Decimal | None = None
     discount_price: Decimal = Decimal(0)
@@ -16,6 +18,8 @@ class ProductCart(BaseModel):
         return ProductCart(
             product_id=self.product_id,
             quantity=self.quantity,
+            name=self.name,
+            image_path=self.image_path,
             price=new_price,
             discount_price=self.discount_price,
         )

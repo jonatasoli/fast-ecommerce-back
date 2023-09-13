@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from loguru import logger
 from sqlalchemy.orm import Session
 
@@ -74,7 +74,13 @@ def delete_image(id: int, db: Session = Depends(get_db)) -> None:
 def get_product_uri(uri: str, db: Session = Depends(get_db)) -> None:
     """GET product uri."""
     try:
-        return domain_order.get_product(db, uri)
+        product = domain_order.get_product(db, uri)
+        if not product:
+            raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Product not found',
+            )
+
     except Exception as e:
         logger.error(f'Erro em obter os produto - { e }')
         raise
