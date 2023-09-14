@@ -3,16 +3,12 @@ from typing import Any, Self
 from loguru import logger
 
 from sqlalchemy import select
+from sqlalchemy.orm import SessionTransaction
 from app.entities.address import AddressBase
+from app.entities.cart import ProductNotFoundError
 
 from app.infra.models import order
 from app.infra.models import users
-
-
-class ProductNotFoundError(Exception):
-    """Raised when a product is not found in the repository."""
-
-    ...
 
 
 class AddressNotFoundError(Exception):
@@ -267,3 +263,17 @@ class SqlAlchemyRepository(AbstractRepository):
                 raise UserNotFoundError(msg)
 
             return user.scalars().first()
+
+
+async def get_coupon_by_code(
+    code: str, *, transaction: SessionTransaction
+) -> order.Coupons:
+    """Must return a coupon by code."""
+    coupon = await transaction.session.scalar(
+        select(order.Coupons).where(order.Coupons.code == code),
+    )
+    if not coupon:
+        msg = f'No coupon with code {code}'
+        raise ProductNotFoundError()
+
+    return coupon

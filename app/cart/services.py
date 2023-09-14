@@ -13,6 +13,7 @@ from app.entities.cart import (
     generate_new_cart,
     validate_cache_cart,
 )
+from app.entities.coupon import CouponBase, CouponResponse
 from app.entities.product import ProductCart
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
@@ -278,3 +279,18 @@ async def checkout(
         message=str(checkout_task),
         status='processing',
     )
+
+
+async def get_coupon(code: str, bootstrap: Command) -> CouponResponse:
+    """Must get coupon and return cart."""
+    async with bootstrap.db().begin() as transaction:
+        coupon = await bootstrap.cart_uow.get_coupon_by_code(
+            code, transaction=transaction
+        )
+        if not coupon:
+            raise HTTPException(
+                status_code=400,
+                detail='Coupon not found',
+            )
+    return coupon
+    return coupon

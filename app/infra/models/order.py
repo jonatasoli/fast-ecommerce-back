@@ -55,6 +55,16 @@ class Coupons(Base):
     __tablename__ = 'coupons'
 
     coupon_id: Mapped[int] = mapped_column(primary_key=True)
+    affiliate_id: Mapped[int | None] = mapped_column(
+        ForeignKey('user.user_id')
+    )
+    user = relationship(
+        'User',
+        foreign_keys=[affiliate_id],
+        backref='Coupons',
+        cascade='all,delete',
+        uselist=False,
+    )
     code: Mapped[str]
     discount: Mapped[Decimal]
     qty: Mapped[int]

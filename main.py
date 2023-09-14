@@ -1,12 +1,14 @@
 import logging
 import sys
+from fastapi.responses import JSONResponse
 from propan.brokers.rabbit import RabbitQueue
 from propan.fastapi import RabbitRouter
 from pydantic import BaseModel
 
 import sentry_sdk
+from app.entities.cart import ProductNotFoundError
 from config import settings
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
@@ -62,6 +64,13 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
+@app.exception_handler(ProductNotFoundError)
+async def product_not_found_exception_handler(_: Request, exc: ProductNotFoundError):
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={'message': f'{exc.args[0]}'},
+    )
 
 # set loguru format for root logger
 logging.getLogger().handlers = [InterceptHandler()]

@@ -8,6 +8,7 @@ from app.entities.cart import (
     CreateCheckoutResponse,
     CreatePaymentMethod,
 )
+from app.entities.coupon import CouponBase, CouponResponse
 from app.entities.product import ProductCart
 from app.infra.bootstrap.cart_bootstrap import Command, bootstrap
 from app.infra.deps import get_db
@@ -32,6 +33,21 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 async def get_bootstrap() -> Command:
     """Get bootstrap."""
     return await bootstrap()
+
+
+@cart.get(
+    '/{coupon}', status_code=status.HTTP_200_OK, response_model=CouponResponse
+)
+async def get_coupon(
+    coupon: str,
+    *,
+    bootstrap: Command = Depends(get_bootstrap),
+) -> CouponResponse:
+    """Get coupon."""
+    return await services.get_coupon(
+        code=coupon,
+        bootstrap=bootstrap,
+    )
 
 
 @cart.post('/', response_model=CartBase, status_code=status.HTTP_201_CREATED)

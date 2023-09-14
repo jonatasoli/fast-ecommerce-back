@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 from decimal import Decimal
 from typing import Self, TYPE_CHECKING
-from app.entities.coupon import CouponBase
+from app.entities.coupon import CouponBase, CouponResponse
 
 from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
@@ -269,7 +269,9 @@ async def get_coupon_by_code(
     code: str,
     *,
     transaction: SessionTransaction,
-) -> CouponBase:
+) -> CouponResponse:
     """Must return a coupon by code."""
-    coupon_db = await repository.get_coupon_by_code(code=code)
-    return CouponBase.model_validate(coupon_db)
+    coupon_db = await repository.get_coupon_by_code(
+        code, transaction=transaction
+    )
+    return CouponResponse.model_validate(coupon_db)
