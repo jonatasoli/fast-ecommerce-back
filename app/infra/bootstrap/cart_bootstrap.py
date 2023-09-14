@@ -20,6 +20,7 @@ class Command(BaseModel):
 
     db: sessionmaker
     uow: uow.AbstractUnitOfWork
+    cart_uow: Any
     cache: redis.MemoryClient | cache_client.Redis
     message: RabbitRouter
     freight: Any
@@ -35,6 +36,7 @@ class Command(BaseModel):
 async def bootstrap(  # noqa: PLR0913
     db: sessionmaker = get_session(),
     uow: uow.AbstractUnitOfWork = None,
+    cart_uow: Any = uow,
     cache: redis.AbstractCache = redis.RedisCache(),
     message: RabbitRouter = task_message_bus,
     freight: Any = freight,
@@ -51,6 +53,7 @@ async def bootstrap(  # noqa: PLR0913
     return Command(
         db=db,
         uow=uow,
+        cart_uow=cart_uow,
         cache=_cache,
         message=message,
         freight=freight,
