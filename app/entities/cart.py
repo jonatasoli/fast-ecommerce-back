@@ -58,7 +58,7 @@ class CartBase(BaseModel):
 
     uuid: UUID
     affiliate: str | None = None
-    cart_items: list[ProductCart] = []
+    cart_items: list[ProductCart | None] = []
     coupon: str | None = None
     discount: Decimal = Decimal(0)
     zipcode: str | None = None

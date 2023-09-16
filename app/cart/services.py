@@ -112,7 +112,8 @@ async def calculate_cart(
             zipcode=cart.zipcode,
         )
         cart.freight = freight
-    cart.calculate_subtotal(discount=coupon.coupon_fee if cart.coupon else 0)
+    if cart.cart_items:
+        cart.calculate_subtotal(discount=coupon.coupon_fee if cart.coupon else 0)
     cache.set(str(cart.uuid), cart.model_dump_json())
     return cart
 
