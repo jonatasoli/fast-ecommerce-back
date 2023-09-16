@@ -106,7 +106,7 @@ def calculate_delivery_time(
     zip_code_destiny: str, product_code: str = PAC_AG
 ) -> DeliveryParamsResponse:
     """Calculate delivery time"""
-    zip_code_origin = settings.CORREIOSBR_CEP_ORIGIN
+    zip_code_origin = str(settings.CORREIOSBR_CEP_ORIGIN)
     url = base_url + '/prazo/v1/nacional'
     delivery_params = DeliveryParams(
         coProduto=product_code,
