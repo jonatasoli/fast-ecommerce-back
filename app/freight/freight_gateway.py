@@ -45,7 +45,7 @@ def get_freight(
         comprimento=freight_package.length,
         largura=freight_package.width,
         altura=freight_package.height,
-        cepOrigem=settings.CORREIOSBR_CEP_ORIGIN,
+        cepOrigem=str(settings.CORREIOSBR_CEP_ORIGIN),
         cepDestino=zipcode,
         tpObjeto=PACKAGE_TYPE,
     )
