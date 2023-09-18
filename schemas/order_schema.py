@@ -8,7 +8,7 @@ class ProductSchema(BaseModel):
     uri: str
     price: int
     direct_sales: bool | None = None
-    description: Json | None
+    description: dict | None
     image_path: str | None = None
     installments_config: int | None = None
     installments_list: dict | None = None
@@ -21,6 +21,22 @@ class ProductSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ProductSchemaResponse(BaseModel):
+    name: str
+    uri: str
+    price: int
+    direct_sales: bool | None = None
+    description: Json | None
+    image_path: str | None = None
+    installments_config: int | None = None
+    installments_list: dict | None = None
+    category_id: int
+    discount: int | None = None
+    heigth: float | None = None
+    width: float | None = None
+    weigth: float | None = None
+    length: float | None = None
+    model_config = ConfigDict(from_attributes=True)
 class ProductResponseSchema(ProductSchema):
     product_id: int
 

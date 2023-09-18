@@ -34,7 +34,7 @@ class ProductInDB(BaseModel):
     price: int
     active: bool
     direct_sales: bool
-    description: Json | Any | None
+    description: Json | dict | None
     image_path: str | None
     installments_config: int | None
     installments_list: dict[str, str] | None
