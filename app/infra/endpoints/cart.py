@@ -1,3 +1,4 @@
+from os import WSTOPSIG
 from fastapi.security import OAuth2PasswordBearer
 from app.entities.address import CreateAddress
 from app.entities.cart import (
@@ -6,7 +7,9 @@ from app.entities.cart import (
     CartShipping,
     CartUser,
     CreateCheckoutResponse,
-    CreatePaymentMethod,
+    CreateCreditCardPaymentMethod,
+    CreateCreditCardTokenPaymentMethod,
+    CreatePixPaymentMethod,
 )
 from app.entities.coupon import CouponBase, CouponResponse
 from app.entities.product import ProductCart
@@ -151,18 +154,20 @@ async def add_address_to_cart(
     )
 
 
-@cart.post('/{uuid}/payment', status_code=201, response_model=CartPayment)
+@cart.post('/{uuid}/payment/{payment_method}', status_code=201, response_model=CartPayment)
 async def add_payment_information_to_cart(
     uuid: str,
+    payment_method: str,
     *,
     cart: CartShipping,
-    payment: CreatePaymentMethod,
+    payment: CreateCreditCardPaymentMethod | CreatePixPaymentMethod | CreateCreditCardTokenPaymentMethod,
     token: str = Depends(oauth2_scheme),
     bootstrap: Command = Depends(get_bootstrap),
 ) -> CartShipping:
     """Add user to cart."""
     return await services.add_payment_information(
         uuid=uuid,
+        payment_method=payment_method,
         cart=cart,
         payment=payment,
         token=token,

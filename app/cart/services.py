@@ -8,7 +8,9 @@ from app.entities.cart import (
     CartShipping,
     CartPayment,
     CreateCheckoutResponse,
-    CreatePaymentMethod,
+    CreateCreditCardPaymentMethod,
+    CreateCreditCardTokenPaymentMethod,
+    CreatePixPaymentMethod,
     generate_empty_cart,
     generate_new_cart,
     validate_cache_cart,
@@ -17,6 +19,7 @@ from app.entities.coupon import CouponBase, CouponResponse
 from app.entities.product import ProductCart
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
+from app.infra.constants import PaymentGateway, PaymentMethod
 import zipcode
 
 
@@ -112,7 +115,8 @@ async def calculate_cart(
             zipcode=cart.zipcode,
         )
         cart.freight = freight
-    cart.calculate_subtotal(discount=coupon.coupon_fee if cart.coupon else 0)
+    if cart.cart_items:
+        cart.calculate_subtotal(discount=coupon.coupon_fee if cart.coupon else 0)
     cache.set(str(cart.uuid), cart.model_dump_json())
     return cart
 
@@ -125,7 +129,15 @@ async def add_user_to_cart(
 ) -> CartUser:
     """Must validate token user if is valid add user id in cart."""
     user = bootstrap.user.get_current_user(token)
-    if not user.customer_id:
+    customer_stripe_uuid = await bootstrap.cart_uow.get_customer(
+        user.user_id,
+        payment_gateway=PaymentGateway.STRIPE.name,
+            )
+    customer_mercadopago_uuid = await bootstrap.cart_uow.get_customer(
+        user.user_id,
+        payment_gateway=PaymentGateway.MERCADOPAGO.name,
+    )
+    if not customer_stripe_uuid and not customer_mercadopago_uuid:
         await bootstrap.message.broker.publish(
             {'user_id': user.user_id},
             queue=RabbitQueue('create_customer'),
@@ -187,46 +199,49 @@ async def add_address_to_cart(
 
 async def add_payment_information(  # noqa: PLR0913
     uuid: str,
+    payment_method: str,
     cart: CartShipping,
-    payment: CreatePaymentMethod,
+    payment: CreateCreditCardPaymentMethod | CreatePixPaymentMethod | CreateCreditCardTokenPaymentMethod,
     token: str,
     bootstrap: Command,
-    payment_method: str = 'card',
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
     user = bootstrap.user.get_current_user(token)
-    installments = payment.installments
-    cache_cart = bootstrap.cache.get(uuid)
-    cache_cart = CartShipping.model_validate_json(cache_cart)
-    if cache_cart.uuid != cart.uuid:
-        raise HTTPException(
-            status_code=400,
-            detail='Cart uuid is not the same as the cache uuid',
+    if payment_method == PaymentMethod.CREDIT_CARD.name and isinstance(payment, CreateCreditCardPaymentMethod | CreateCreditCardTokenPaymentMethod):
+        installments = payment.installments
+        cache_cart = bootstrap.cache.get(uuid)
+        cache_cart = CartShipping.model_validate_json(cache_cart)
+        if cache_cart.uuid != cart.uuid:
+            raise HTTPException(
+                status_code=400,
+                detail='Cart uuid is not the same as the cache uuid',
+            )
+        # TODO: create payment method need check if pix or credit_card and get payment gateway to redirect for correct payment payment_gateway
+        # create_payment_method needs config in payment_gateway module
+        _payment = bootstrap.payment[payment.payment_gateway].create_payment_method(payment)
+        payment_method_id = _payment.get('id')
+        if not payment_method_id:
+            raise HTTPException(
+                status_code=400,
+                detail='Payment method id not found',
+            )
+        bootstrap.payment[payment.payment_gateway].attach_customer_in_payment_method(
+            payment_method_id,
+            user.customer_id,
         )
-    payment = bootstrap.payment.create_payment_method(payment)
-    payment_method_id = payment.get('id')
-    if not payment_method_id:
-        raise HTTPException(
-            status_code=400,
-            detail='Payment method id not found',
+        cart = CartPayment(
+            **cache_cart.model_dump(),
+            payment_method=payment_method,
+            payment_method_id=payment_method_id,
+            customer_id=user.customer_id,
+            installments=installments,
         )
-    bootstrap.payment.attach_customer_in_payment_method(
-        payment_method_id,
-        user.customer_id,
-    )
-    cart = CartPayment(
-        **cache_cart.model_dump(),
-        payment_method=payment_method,
-        payment_method_id=payment_method_id,
-        customer_id=user.customer_id,
-        installments=installments,
-    )
-    bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
-    await bootstrap.uow.update_payment_method_to_user(
-        user.user_id,
-        payment.get('id'),
-    )
-    return cart
+        bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
+        await bootstrap.uow.update_payment_method_to_user(
+            user.user_id,
+            _payment.get('id'),
+        )
+        return cart
 
 
 async def preview(

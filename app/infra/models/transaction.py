@@ -32,6 +32,25 @@ class Transaction(Base):
     affiliate_quota: Mapped[int | None]
 
 
+class Customer(Base):
+    __tablename__ = 'customer'
+
+    customer_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    user: Mapped['User'] = relationship(  # noqa: F821
+        foreign_keys=[user_id],
+        backref='customer',
+        cascade='all,delete',
+        uselist=False,
+    )
+    customer_uuid: Mapped[str]
+    payment_gateway: Mapped[str]
+    payment_method: Mapped[str]
+    token: Mapped[str]
+    issuer_id: Mapped[str]
+    status: Mapped[bool]
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+
 class Payment(Base):
     __tablename__ = 'payment'
 

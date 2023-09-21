@@ -2,19 +2,19 @@
 from __future__ import annotations
 import abc
 from decimal import Decimal
-from typing import Self, TYPE_CHECKING
+from typing import Self
 from app.entities.coupon import CouponBase, CouponResponse
 
 from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
+from app.infra.custom_decorators import database_uow
 from app.infra.database import get_async_session
 
-
-if TYPE_CHECKING:
-    from app.entities.user import UserAddress
-    from sqlalchemy.orm import SessionTransaction, sessionmaker
-    from app.entities.user import UserData
-    from app.entities.address import AddressBase
+from app.entities.user import UserAddress
+from sqlalchemy.orm import SessionTransaction, sessionmaker
+from app.entities.user import UserData
+from app.entities.address import AddressBase
+from app.payment import repository as payment_repository
 
 
 class AbstractUnitOfWork(abc.ABC):
@@ -275,3 +275,23 @@ async def get_coupon_by_code(
         code, transaction=transaction
     )
     return CouponResponse.model_validate(coupon_db)
+
+
+@database_uow()
+async def get_customer(
+    user_id: int,
+    *,
+    payment_gateway: str,
+    bootstrap: Any,
+    transaction: SessionTransaction | None,
+) -> int | None:
+    """Must return a customer by user id."""
+    if not transaction:
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
+    customer = await payment_repository.get_customer(
+        user_id,
+        payment_gateway=payment_gateway,
+        transaction=transaction
+    )
+    return customer.customer_uuid

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from loguru import logger
 from sqlalchemy.orm import Session
+from app.entities.product import ProductInDB
 
 from domains import domain_order
 from app.infra import deps
@@ -8,6 +9,7 @@ from app.infra.deps import get_db
 from payment.schema import ProductSchema
 from schemas.order_schema import (
     ProductFullResponse,
+    ProductSchemaResponse,
 )
 
 product = APIRouter(
@@ -16,7 +18,7 @@ product = APIRouter(
 )
 
 
-@product.post('/create-product', status_code=201, response_model=ProductSchema)
+@product.post('/create-product', status_code=201, response_model=ProductSchemaResponse)
 def create_product(
     *,
     db: Session = Depends(deps.get_db),
@@ -70,8 +72,8 @@ def delete_image(id: int, db: Session = Depends(get_db)) -> None:
         raise
 
 
-@product.get('/{uri}', status_code=200)
-def get_product_uri(uri: str, db: Session = Depends(get_db)) -> None:
+@product.get('/{uri}', status_code=200, response_model=ProductInDB)
+def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
     """GET product uri."""
     try:
         product = domain_order.get_product(db, uri)
@@ -81,6 +83,7 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> None:
                 detail='Product not found',
             )
 
+        return product
     except Exception as e:
         logger.error(f'Erro em obter os produto - { e }')
         raise

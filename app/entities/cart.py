@@ -58,7 +58,7 @@ class CartBase(BaseModel):
 
     uuid: UUID
     affiliate: str | None = None
-    cart_items: list[ProductCart] = []
+    cart_items: list[ProductCart | None] = []
     coupon: str | None = None
     discount: Decimal = Decimal(0)
     zipcode: str | None = None
@@ -201,18 +201,36 @@ class CartPayment(CartShipping):
     payment_method_id: str
     payment_intent: str | None = None
     customer_id: str | None = None
+    card_token: str | None = None
+    pix_qr_code: str | None = None
+    gateway_provider: str
     installments: int = 1
 
 
-class CreatePaymentMethod(BaseModel):
-    """Create payment method."""
+class CreateCreditCardPaymentMethod(BaseModel):
+    """Create credit card payment method."""
 
+    payment_gateway: str
     number: str
     exp_month: int
     exp_year: int
     cvc: str
     name: str
     installments: int = 1
+
+
+class CreateCreditCardTokenPaymentMethod(BaseModel):
+    """Create credit card token payment method."""
+
+    payment_gateway: str
+    cart_token: str
+    installments: int = 1
+
+
+class CreatePixPaymentMethod(BaseModel):
+    """Create pix payment method."""
+
+    payment_gateway: str
 
 
 class AddressCreate(BaseModel):

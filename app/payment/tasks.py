@@ -2,6 +2,7 @@ from typing import Any
 
 from loguru import logger
 from app.entities.cart import CartPayment
+from app.infra.constants import PaymentGateway
 from app.infra.worker import task_message_bus
 
 
@@ -39,9 +40,15 @@ async def create_customer(
     user_id: int,
     bootstrap: Any,
 ) -> None:
-    """Create a customer in stripe."""
-    customer_id = await bootstrap.payment_uow.uow_create_customer(
+    """Create a customer in stripe and mercado pago."""
+    customer_id_stripe = await bootstrap.payment_uow.uow_create_customer(
         user_id,
+        payment_gateway=PaymentGateway.STRIPE,
         bootstrap=bootstrap,
     )
-    logger.info(f'Customer {customer_id} from {user_id} created with success')
+    customer_id_mercadopago = await bootstrap.payment_uow.uow_create_customer(
+        user_id,
+        payment_gateway=PaymentGateway.MERCADOPAGO,
+        bootstrap=bootstrap,
+    )
+    logger.info(f'Customer {customer_id_stripe} and {customer_id_mercadopago} from {user_id} created with success')

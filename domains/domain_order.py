@@ -10,6 +10,7 @@ from app.infra.optimize_image import optimize_image
 from app.infra.models.order import Category, ImageGallery, Order, Product
 from app.infra.models.transaction import Payment, Transaction
 from app.infra.models.users import Address, User
+from app.entities.product import ProductInDB
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,
@@ -18,25 +19,30 @@ from schemas.order_schema import (
     OrderSchema,
     OrdersPaidFullResponse,
     ProductFullResponse,
-    ProductInDB,
     ProductSchema,
+    ProductSchemaResponse,
     ProductsResponseOrder,
     TrackingFullResponse,
 )
 
 
-def get_product(db: Session, uri):
+def get_product(db: Session, uri) -> ProductInDB | None:
     with db:
         query_product = select(Product).where(Product.uri == uri)
-        return db.execute(query_product).scalars().first()
+        product_db = db.scalar(query_product)
+        if product_db:
+            return ProductInDB.model_validate(product_db)
+        return product_db
 
 
 def create_product(db: Session, product_data: ProductSchema):
-    db_product = Product(**product_data.model_dump())
+    db_product = Product(**product_data.model_dump(exclude={'description'}))
+    db_product.description = json.dumps(product_data.description)
+    import ipdb; ipdb.set_trace()
     with db:
         db.add(db_product)
         db.commit()
-        return ProductSchema.model_validate(db_product)
+        return ProductSchemaResponse.model_validate(db_product)
 
 
 def put_product(db: Session, id, product_data: ProductFullResponse):

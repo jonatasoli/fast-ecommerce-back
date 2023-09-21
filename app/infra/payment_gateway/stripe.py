@@ -2,7 +2,7 @@ from typing import Self
 from loguru import logger
 import stripe
 from stripe.error import InvalidRequestError
-from app.entities.cart import CreatePaymentMethod
+from app.entities.cart import CreateCreditCardPaymentMethod
 from app.payment.entities import PaymentAcceptError
 from config import settings
 
@@ -109,7 +109,7 @@ def create_credit_card(  # noqa: PLR0913
 
 
 def create_payment_method(
-    payment: CreatePaymentMethod,
+    payment: CreateCreditCardPaymentMethod,
 ) -> stripe.PaymentMethod:
     """Must create a payment method."""
     return stripe.PaymentMethod.create(
