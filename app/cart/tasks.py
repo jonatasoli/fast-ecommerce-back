@@ -13,7 +13,7 @@ from app.order.entities import (
 from loguru import logger
 
 from app.entities.cart import CartPayment
-from app.infra.stripe import PaymentGatewayRequestError, confirm_payment_intent
+from app.infra.payment_gateway.stripe import PaymentGatewayRequestError, confirm_payment_intent
 
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 from app.order.tasks import (

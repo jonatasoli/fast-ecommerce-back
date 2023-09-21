@@ -43,6 +43,7 @@ stripe = "^5.5.0"
 pydantic-settings = "^2.0.2"
 factory-boy = "^3.3.0"
 propan = {version = "^0.1.5.18", extras = ["async-rabbit"]}
+mercadopago = "^2.2.1"
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"

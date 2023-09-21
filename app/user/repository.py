@@ -2,6 +2,7 @@ from sqlalchemy import select, update
 
 from sqlalchemy.orm import SessionTransaction
 from app.infra.models import users
+from app.infra.models.transaction import Customer
 
 
 async def get_user_by_id(
