@@ -217,7 +217,14 @@ class CreateCreditCardPaymentMethod(BaseModel):
     cvc: str
     name: str
     installments: int = 1
-    cart_token: str | None = None
+
+
+class CreateCreditCardTokenPaymentMethod(BaseModel):
+    """Create credit card token payment method."""
+
+    payment_gateway: str
+    cart_token: str
+    installments: int = 1
 
 
 class CreatePixPaymentMethod(BaseModel):

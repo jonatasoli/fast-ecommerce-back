@@ -9,6 +9,7 @@ from app.entities.cart import (
     CartPayment,
     CreateCheckoutResponse,
     CreateCreditCardPaymentMethod,
+    CreateCreditCardTokenPaymentMethod,
     CreatePixPaymentMethod,
     generate_empty_cart,
     generate_new_cart,
@@ -200,13 +201,13 @@ async def add_payment_information(  # noqa: PLR0913
     uuid: str,
     payment_method: str,
     cart: CartShipping,
-    payment: CreateCreditCardPaymentMethod | CreatePixPaymentMethod,
+    payment: CreateCreditCardPaymentMethod | CreatePixPaymentMethod | CreateCreditCardTokenPaymentMethod,
     token: str,
     bootstrap: Command,
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
     user = bootstrap.user.get_current_user(token)
-    if payment_method == PaymentMethod.CREDIT_CARD.name and isinstance(payment, CreateCreditCardPaymentMethod):
+    if payment_method == PaymentMethod.CREDIT_CARD.name and isinstance(payment, CreateCreditCardPaymentMethod | CreateCreditCardTokenPaymentMethod):
         installments = payment.installments
         cache_cart = bootstrap.cache.get(uuid)
         cache_cart = CartShipping.model_validate_json(cache_cart)

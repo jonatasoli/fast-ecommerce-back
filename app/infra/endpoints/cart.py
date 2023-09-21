@@ -8,6 +8,7 @@ from app.entities.cart import (
     CartUser,
     CreateCheckoutResponse,
     CreateCreditCardPaymentMethod,
+    CreateCreditCardTokenPaymentMethod,
     CreatePixPaymentMethod,
 )
 from app.entities.coupon import CouponBase, CouponResponse
@@ -159,7 +160,7 @@ async def add_payment_information_to_cart(
     payment_method: str,
     *,
     cart: CartShipping,
-    payment: CreateCreditCardPaymentMethod | CreatePixPaymentMethod,
+    payment: CreateCreditCardPaymentMethod | CreatePixPaymentMethod | CreateCreditCardTokenPaymentMethod,
     token: str = Depends(oauth2_scheme),
     bootstrap: Command = Depends(get_bootstrap),
 ) -> CartShipping:
