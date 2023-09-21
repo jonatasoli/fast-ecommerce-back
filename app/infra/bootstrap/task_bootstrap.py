@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 import redis as cache_client
 from sqlalchemy.orm import sessionmaker
-from app.infra import stripe
+from app.infra.payment_gateway import stripe
 from app.infra import redis
 from app.freight import freight_gateway as freight
 from app.infra.database import get_async_session as get_session

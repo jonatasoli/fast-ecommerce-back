@@ -11,6 +11,19 @@ class Roles(enum.Enum):
     PARTNER = 3
 
 
+class PaymentGateway(enum.Enum):
+    MERCADOPAGO = 'MERCADOPAGO'
+    STRIPE = 'STRIPE'
+
+
+class PaymentMethod(enum.Enum):
+    CREDIT_CARD = 'CREDIT_CARD'
+    BOLETO = 'BOLETO'
+    PIX = 'PIX'
+    DEBIT_CARD = 'DEBIT_CARD'
+    CASH = 'CASH'
+
+
 class StepsOrder(enum.Enum):
     PAYMENT_PENDING = 'PAYMENT_PENDING'
     ORDER_CANCELLED = 'ORDER_CANCELLED'
