@@ -1,10 +1,10 @@
 from propan.fastapi import RabbitRouter
+from app.infra.payment_gateway import payment_gateway
 from app.infra.worker import task_message_bus
 from pydantic import BaseModel
 
 import redis as cache_client
 from sqlalchemy.orm import sessionmaker
-from app.infra.payment_gateway import stripe
 from app.infra import redis
 from app.freight import freight_gateway as freight
 from app.infra.database import get_async_session as get_session
@@ -46,7 +46,7 @@ async def bootstrap(  # noqa: PLR0913
     message: RabbitRouter = task_message_bus,
     freight: Any = freight,
     user: Any = user_gateway,  # noqa: ANN401
-    payment: Any = stripe,  # noqa: ANN401
+    payment: Any = payment_gateway,  # noqa: ANN401
 ) -> Command:
     """Create a command function to use in the application."""
     _cache = cache.client()

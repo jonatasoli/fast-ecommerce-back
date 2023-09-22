@@ -1,10 +1,16 @@
 from typing import Any
+from fastapi import Depends
 
 from loguru import logger
 from app.entities.cart import CartPayment
-from app.infra.constants import PaymentGateway
+from app.infra.bootstrap.task_bootstrap import Command, bootstrap
+from app.infra.constants import PaymentGatewayAvailable
 from app.infra.worker import task_message_bus
 
+
+async def get_bootstrap() -> Command:
+    """Get bootstrap."""
+    return await bootstrap()
 
 async def create_pending_payment(
     order_id: int,
@@ -38,17 +44,19 @@ async def update_payment(
 @task_message_bus.event('create_customer')
 async def create_customer(
     user_id: int,
-    bootstrap: Any,
+    user_email: str,
+    bootstrap: Any = Depends(get_bootstrap),
 ) -> None:
     """Create a customer in stripe and mercado pago."""
-    customer_id_stripe = await bootstrap.payment_uow.uow_create_customer(
-        user_id,
-        payment_gateway=PaymentGateway.STRIPE,
-        bootstrap=bootstrap,
-    )
-    customer_id_mercadopago = await bootstrap.payment_uow.uow_create_customer(
-        user_id,
-        payment_gateway=PaymentGateway.MERCADOPAGO,
-        bootstrap=bootstrap,
-    )
-    logger.info(f'Customer {customer_id_stripe} and {customer_id_mercadopago} from {user_id} created with success')
+    customers = bootstrap.payment.create_customer_in_gateway(user_email=user_email)
+    customers_ids = []
+    for payment_gateway in PaymentGatewayAvailable:
+        id = await bootstrap.payment_uow.uow_create_customer(
+            user_id,
+            customer_id=customers[payment_gateway.value]['id'],
+            payment_gateway=payment_gateway.value,
+            bootstrap=bootstrap,
+        )
+        customers_ids.append(id)
+    for customer in customers_ids: 
+        logger.info(f'Customer {customer} from {user_id} created with success')

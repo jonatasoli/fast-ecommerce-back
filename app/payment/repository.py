@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import update
 
 from sqlalchemy.orm import SessionTransaction
+from sqlalchemy.orm.exc import NoResultFound
 
 from sqlalchemy.sql import select
 
@@ -86,11 +87,11 @@ async def create_customer(
     user_id: int,
     customer_uuid: str,
     payment_gateway: str,
+    transaction: SessionTransaction,
     payment_method: str = PaymentMethod.CREDIT_CARD.name,
     token: str = '',
     issuer_id: str = '',
     status: bool = True,
-    transaction: SessionTransaction,
 ) -> Customer:
     """Create a new customer."""
     customer = Customer(
@@ -106,6 +107,8 @@ async def create_customer(
 
     transaction.session.add(customer)
     await transaction.session.flush()
+    if not customer:
+        raise NoResultFound('Customer not found')
     return customer
 
 

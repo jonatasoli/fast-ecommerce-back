@@ -11,7 +11,7 @@ class Roles(enum.Enum):
     PARTNER = 3
 
 
-class PaymentGateway(enum.Enum):
+class PaymentGatewayAvailable(enum.Enum):
     MERCADOPAGO = 'MERCADOPAGO'
     STRIPE = 'STRIPE'
 

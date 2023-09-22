@@ -51,3 +51,31 @@ async def uow_update_payment(
         payment=PaymentDBUpdate(status=payment_status),
         transaction=transaction,
     )
+
+
+@database_uow()
+async def uow_create_customer(
+    user_id: int,
+    *,
+    customer_id: str,
+    payment_gateway: str,
+    bootstrap: Any,
+    transaction: SessionTransaction | None,
+) -> str:
+    """Create a new customer."""
+    if not transaction:
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
+    customer_db = await payment_repository.get_customer(
+        user_id,
+        payment_gateway=payment_gateway,
+        transaction=transaction,
+    )
+    if not customer_db:
+        customer_db = await payment_repository.create_customer(
+            user_id=user_id,
+            customer_uuid=customer_id,
+            payment_gateway=payment_gateway,
+            transaction=transaction,
+        )
+    customer_id = customer_db.customer_uuid

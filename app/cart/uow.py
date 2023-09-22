@@ -284,7 +284,7 @@ async def get_customer(
     payment_gateway: str,
     bootstrap: Any,
     transaction: SessionTransaction | None,
-) -> int | None:
+) -> str | None:
     """Must return a customer by user id."""
     if not transaction:
         msg = 'Transaction must be provided'
@@ -294,4 +294,7 @@ async def get_customer(
         payment_gateway=payment_gateway,
         transaction=transaction
     )
-    return customer.customer_uuid
+    custumer_uuid = None
+    if customer:
+        custumer_uuid = customer.customer_uuid
+    return custumer_uuid

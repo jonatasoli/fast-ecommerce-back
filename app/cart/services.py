@@ -19,8 +19,7 @@ from app.entities.coupon import CouponBase, CouponResponse
 from app.entities.product import ProductCart
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
-from app.infra.constants import PaymentGateway, PaymentMethod
-import zipcode
+from app.infra.constants import PaymentGatewayAvailable, PaymentMethod
 
 
 class UserAddressNotFoundError(Exception):
@@ -131,15 +130,17 @@ async def add_user_to_cart(
     user = bootstrap.user.get_current_user(token)
     customer_stripe_uuid = await bootstrap.cart_uow.get_customer(
         user.user_id,
-        payment_gateway=PaymentGateway.STRIPE.name,
-            )
+        payment_gateway=PaymentGatewayAvailable.STRIPE.name,
+        bootstrap=bootstrap,
+        )
     customer_mercadopago_uuid = await bootstrap.cart_uow.get_customer(
         user.user_id,
-        payment_gateway=PaymentGateway.MERCADOPAGO.name,
+        payment_gateway=PaymentGatewayAvailable.MERCADOPAGO.name,
+        bootstrap=bootstrap,
     )
-    if not customer_stripe_uuid and not customer_mercadopago_uuid:
+    if not customer_stripe_uuid or not customer_mercadopago_uuid:
         await bootstrap.message.broker.publish(
-            {'user_id': user.user_id},
+            {'user_id': user.user_id, 'user_email': user.email},
             queue=RabbitQueue('create_customer'),
         )
     user_data = UserData.model_validate(user)

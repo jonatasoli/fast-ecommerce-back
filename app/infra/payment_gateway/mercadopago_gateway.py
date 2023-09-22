@@ -1,3 +1,4 @@
+from contextlib import suppress
 from mercadopago import SDK
 from config import settings
 
@@ -9,9 +10,18 @@ def create_customer(email, client: SDK=get_payment_client()):
     customer_data = {
       "email": email
     }
+    filters = {
+        "email": email
+    }
 
-    customer_response = client.customer().create(customer_data)
-    customer = customer_response["response"]
+    customers_response = client.customer().search(filters=filters)
+    get_customer = customers_response["response"]
+    customer = None
+    with suppress(IndexError):
+        customer = get_customer.get('results')[0]
+    if not customer:
+        customer_response = client.customer().create(customer_data)
+        customer = customer_response["response"]
     return customer
 
 def attach_customer_in_payment_method(customer, token, issuer_id, payment_method_id, client: SDK=get_payment_client()):
