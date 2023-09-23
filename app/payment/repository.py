@@ -108,7 +108,8 @@ async def create_customer(
     transaction.session.add(customer)
     await transaction.session.flush()
     if not customer:
-        raise NoResultFound('Customer not found')
+        msg = 'Customer not found'
+        raise NoResultFound(msg)
     return customer
 
 
@@ -119,5 +120,9 @@ async def get_customer(
     transaction: SessionTransaction,
 ) -> Customer:
     """Get an customers from user by its id and payment_gateway."""
-    customer_query = select(Customer).where(Customer.user_id == user_id).where(Customer.payment_gateway == payment_gateway)
+    customer_query = (
+        select(Customer)
+        .where(Customer.user_id == user_id)
+        .where(Customer.payment_gateway == payment_gateway)
+    )
     return await transaction.session.scalar(customer_query)

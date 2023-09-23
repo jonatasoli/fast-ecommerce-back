@@ -2,7 +2,7 @@
 from __future__ import annotations
 import abc
 from decimal import Decimal
-from typing import Self
+from typing import Self, TYPE_CHECKING
 from app.entities.coupon import CouponBase, CouponResponse
 
 from app.entities.product import ProductCart, ProductInDB
@@ -10,11 +10,13 @@ from app.cart import repository
 from app.infra.custom_decorators import database_uow
 from app.infra.database import get_async_session
 
-from app.entities.user import UserAddress
-from sqlalchemy.orm import SessionTransaction, sessionmaker
-from app.entities.user import UserData
-from app.entities.address import AddressBase
 from app.payment import repository as payment_repository
+
+if TYPE_CHECKING:
+    from app.entities.user import UserData
+    from app.entities.user import UserAddress
+    from app.entities.address import AddressBase
+    from sqlalchemy.orm import SessionTransaction, sessionmaker
 
 
 class AbstractUnitOfWork(abc.ABC):
@@ -272,7 +274,7 @@ async def get_coupon_by_code(
 ) -> CouponResponse:
     """Must return a coupon by code."""
     coupon_db = await repository.get_coupon_by_code(
-        code, transaction=transaction
+        code, transaction=transaction,
     )
     return CouponResponse.model_validate(coupon_db)
 
@@ -290,9 +292,7 @@ async def get_customer(
         msg = 'Transaction must be provided'
         raise ValueError(msg)
     customer = await payment_repository.get_customer(
-        user_id,
-        payment_gateway=payment_gateway,
-        transaction=transaction
+        user_id, payment_gateway=payment_gateway, transaction=transaction,
     )
     custumer_uuid = None
     if customer:

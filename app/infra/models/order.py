@@ -40,6 +40,7 @@ class Product(Base):
         backref='Product',
         cascade='all,delete',
         uselist=False,
+        lazy='joined',
     )
     showcase: Mapped[bool] = mapped_column(default=False)
     show_discount: Mapped[bool] = mapped_column(default=False)
@@ -56,7 +57,7 @@ class Coupons(Base):
 
     coupon_id: Mapped[int] = mapped_column(primary_key=True)
     affiliate_id: Mapped[int | None] = mapped_column(
-        ForeignKey('user.user_id')
+        ForeignKey('user.user_id'),
     )
     user = relationship(
         'User',

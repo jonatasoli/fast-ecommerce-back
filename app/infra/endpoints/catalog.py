@@ -42,6 +42,16 @@ def get_products_all(db: Session = Depends(get_db)) -> Any:
         raise
 
 
+@catalog.get('/search', status_code=200)
+def get_products_all(search: str, db: Session = Depends(get_db)) -> Any:
+    """Get products all."""
+    try:
+        return domain_order.search_products(search, db)
+    except Exception as e:
+        logger.error(f'Erro em obter os produtos - { e }')
+        raise
+
+
 @catalog.get(
     '/categories',
     status_code=status.HTTP_200_OK,

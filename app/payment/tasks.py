@@ -12,6 +12,7 @@ async def get_bootstrap() -> Command:
     """Get bootstrap."""
     return await bootstrap()
 
+
 async def create_pending_payment(
     order_id: int,
     *,
@@ -48,7 +49,9 @@ async def create_customer(
     bootstrap: Any = Depends(get_bootstrap),
 ) -> None:
     """Create a customer in stripe and mercado pago."""
-    customers = bootstrap.payment.create_customer_in_gateway(user_email=user_email)
+    customers = bootstrap.payment.create_customer_in_gateway(
+        user_email=user_email,
+    )
     customers_ids = []
     for payment_gateway in PaymentGatewayAvailable:
         id = await bootstrap.payment_uow.uow_create_customer(
@@ -58,5 +61,5 @@ async def create_customer(
             bootstrap=bootstrap,
         )
         customers_ids.append(id)
-    for customer in customers_ids: 
+    for customer in customers_ids:
         logger.info(f'Customer {customer} from {user_id} created with success')

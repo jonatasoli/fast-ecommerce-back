@@ -16,7 +16,6 @@ class PaymentGatewayRequestError(Exception):
     def __init__(self: Self) -> None:
         super().__init__('Payment status in internal analysis')
 
-    ...
 
 
 def create_customer(email: str) -> stripe.Customer:

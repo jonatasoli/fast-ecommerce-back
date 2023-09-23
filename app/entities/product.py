@@ -1,7 +1,8 @@
 from decimal import Decimal
 
-from typing import Any, Self
+from typing import Self
 from pydantic import BaseModel, ConfigDict, Json
+from schemas.order_schema import CategoryInDB
 
 
 class ProductCart(BaseModel):
@@ -40,6 +41,33 @@ class ProductInDB(BaseModel):
     installments_list: dict[str, str] | None
     discount: int | None
     category_id: int
+    showcase: bool
+    show_discount: bool
+    height: int
+    width: int
+    weight: int
+    length: int
+    diameter: int | None
+    sku: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProductCategoryInDB(BaseModel):
+    """Product Category Representation in DB."""
+
+    product_id: int
+    name: str
+    uri: str
+    price: int
+    active: bool
+    direct_sales: bool
+    description: Json | dict | None
+    image_path: str | None
+    installments_config: int | None
+    installments_list: dict[str, str] | None
+    discount: int | None
+    category: CategoryInDB
     showcase: bool
     show_discount: bool
     height: int

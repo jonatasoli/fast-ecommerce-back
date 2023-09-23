@@ -51,6 +51,7 @@ class Customer(Base):
     status: Mapped[bool]
     created_at: Mapped[datetime] = mapped_column(default=func.now())
 
+
 class Payment(Base):
     __tablename__ = 'payment'
 

@@ -14,13 +14,11 @@ from app.infra.models import users
 class AddressNotFoundError(Exception):
     """Raised when a product is not found in the repository."""
 
-    ...
 
 
 class UserNotFoundError(Exception):
     """Raised when a product is not found in the repository."""
 
-    ...
 
 
 class AbstractRepository(abc.ABC):
@@ -266,14 +264,13 @@ class SqlAlchemyRepository(AbstractRepository):
 
 
 async def get_coupon_by_code(
-    code: str, *, transaction: SessionTransaction
+    code: str, *, transaction: SessionTransaction,
 ) -> order.Coupons:
     """Must return a coupon by code."""
     coupon = await transaction.session.scalar(
         select(order.Coupons).where(order.Coupons.code == code),
     )
     if not coupon:
-        msg = f'No coupon with code {code}'
-        raise ProductNotFoundError()
+        raise ProductNotFoundError
 
     return coupon

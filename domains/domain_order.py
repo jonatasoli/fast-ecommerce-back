@@ -10,7 +10,7 @@ from app.infra.optimize_image import optimize_image
 from app.infra.models.order import Category, ImageGallery, Order, Product
 from app.infra.models.transaction import Payment, Transaction
 from app.infra.models.users import Address, User
-from app.entities.product import ProductInDB
+from app.entities.product import ProductCategoryInDB, ProductInDB
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,
@@ -112,7 +112,7 @@ def get_showcase(db: Session):
         products = []
 
         for showcase in showcases:
-            products.append(ProductInDB.model_validate(showcase))
+            products.append(ProductCategoryInDB.model_validate(showcase))
 
         return products
 
@@ -442,11 +442,26 @@ def get_product_all(db: Session):
     products = None
     with db:
         products = select(Product)
-        products = db.execute(products).scalars().all()
+        products = db.scalars(products).all()
     products_list = []
 
     for product in products:
-        products_list.append(ProductInDB.model_validate(product))
+        products_list.append(ProductCategoryInDB.model_validate(product))
+
+    if products:
+        return {'products': products_list}
+    return {'products': []}
+
+
+def search_products(search:str, db: Session):
+    products = None
+    with db:
+        products = select(Product).where(Product.name.ilike(f"%{search}%"))
+        products = db.scalars(products).all()
+    products_list = []
+
+    for product in products:
+        products_list.append(ProductCategoryInDB.model_validate(product))
 
     if products:
         return {'products': products_list}

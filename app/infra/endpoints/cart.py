@@ -39,7 +39,7 @@ async def get_bootstrap() -> Command:
 
 
 @cart.get(
-    '/{coupon}', status_code=status.HTTP_200_OK, response_model=CouponResponse
+    '/{coupon}', status_code=status.HTTP_200_OK, response_model=CouponResponse,
 )
 async def get_coupon(
     coupon: str,
@@ -154,13 +154,19 @@ async def add_address_to_cart(
     )
 
 
-@cart.post('/{uuid}/payment/{payment_method}', status_code=201, response_model=CartPayment)
+@cart.post(
+    '/{uuid}/payment/{payment_method}',
+    status_code=201,
+    response_model=CartPayment,
+)
 async def add_payment_information_to_cart(
     uuid: str,
     payment_method: str,
     *,
     cart: CartShipping,
-    payment: CreateCreditCardPaymentMethod | CreatePixPaymentMethod | CreateCreditCardTokenPaymentMethod,
+    payment: CreateCreditCardPaymentMethod
+    | CreatePixPaymentMethod
+    | CreateCreditCardTokenPaymentMethod,
     token: str = Depends(oauth2_scheme),
     bootstrap: Command = Depends(get_bootstrap),
 ) -> CartShipping:

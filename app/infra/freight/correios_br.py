@@ -63,7 +63,7 @@ def get_client(timeout: int = settings.CLIENT_API_TIMEOUT):
 
 
 def generate_bacth_id(redis_client: redis.AbstractCache = redis.RedisCache()):
-    """Generate batch id"""
+    """Generate batch id."""
     redis = redis_client.client()
     if not (batch_id := redis.get('correiosbr_batch_id')):
         batch_id = 1
@@ -74,17 +74,15 @@ def generate_bacth_id(redis_client: redis.AbstractCache = redis.RedisCache()):
 
 
 def get_token(redis_client: redis.AbstractCache = redis.RedisCache()):
-    """Get correios token if exists or create a new one"""
+    """Get correios token if exists or create a new one."""
     _redis = redis_client.client()
 
     if not (token := _redis.get('correiosbr_token')):
         url = base_url + '/token/v1/autentica/cartaopostagem'
         data = jsonable_encoder(
-            {'numero': str(settings.CORREIOSBR_POSTAL_CART)}
+            {'numero': str(settings.CORREIOSBR_POSTAL_CART)},
         )
-        basic_auth = f'{settings.CORREIOSBR_USER}:{settings.CORREIOSBR_API_SECRET}'.encode(
-            'utf-8'
-        )
+        basic_auth = f'{settings.CORREIOSBR_USER}:{settings.CORREIOSBR_API_SECRET}'.encode()
         credenciais_base64 = base64.b64encode(basic_auth).decode('utf-8')
         headers = {
             'accept': 'application/json',
@@ -93,7 +91,8 @@ def get_token(redis_client: redis.AbstractCache = redis.RedisCache()):
         }
         client = get_client()
         if not (response := client.post(url, json=data, headers=headers)):
-            raise TimeoutException(f'Erro to connect with corrios api')
+            msg = 'Erro to connect with corrios api'
+            raise TimeoutException(msg)
         token = response.json()['token']
         _redis.set('correiosbr_token', token, ex=82800)
 
@@ -103,9 +102,9 @@ def get_token(redis_client: redis.AbstractCache = redis.RedisCache()):
 
 
 def calculate_delivery_time(
-    zip_code_destiny: str, product_code: str = PAC_AG
+    zip_code_destiny: str, product_code: str = PAC_AG,
 ) -> DeliveryParamsResponse:
-    """Calculate delivery time"""
+    """Calculate delivery time."""
     zip_code_origin = str(settings.CORREIOSBR_CEP_ORIGIN)
     url = base_url + '/prazo/v1/nacional'
     delivery_params = DeliveryParams(
@@ -114,7 +113,7 @@ def calculate_delivery_time(
         cepDestino=zip_code_destiny,
     )
     delivery_time = DeliveryTime(
-        idLote=generate_bacth_id(), parametrosPrazo=[delivery_params]
+        idLote=generate_bacth_id(), parametrosPrazo=[delivery_params],
     )
     client = get_client()
     token = get_token()
@@ -125,22 +124,24 @@ def calculate_delivery_time(
     }
     data = jsonable_encoder(delivery_time)
     if not (response := client.post(url, json=data, headers=headers)):
-        raise TimeoutException(f'Erro to connect with corrios api')
+        msg = 'Erro to connect with corrios api'
+        raise TimeoutException(msg)
     _response = response.json()
     if not (delivery_time_response := _response[0]['prazoEntrega']):
-        raise Exception(f'Error to calculate delivery time')
+        msg = 'Error to calculate delivery time'
+        raise Exception(msg)
     max_date = datetime.strptime(
-        _response[0]['dataMaxima'], '%Y-%m-%dT%H:%M:%S'
+        _response[0]['dataMaxima'], '%Y-%m-%dT%H:%M:%S',
     )
     return DeliveryParamsResponse(
-        delivery_time=delivery_time_response, max_date=max_date
+        delivery_time=delivery_time_response, max_date=max_date,
     )
 
 
 def calculate_delivery_price(
-    product_code: str, *, package: DeliveryPriceParams
+    product_code: str, *, package: DeliveryPriceParams,
 ) -> DeliveryPriceResponse:
-    """Calculate delivery price with correios api"""
+    """Calculate delivery price with correios api."""
     client = get_client()
     token = get_token()
     url = base_url + f'/preco/v1/nacional/{product_code}'
@@ -153,9 +154,11 @@ def calculate_delivery_price(
     params = package.model_dump()
 
     if not (response := client.get(url, params=params, headers=headers)):
-        raise TimeoutException(f'Erro to connect with corrios api')
+        msg = 'Erro to connect with corrios api'
+        raise TimeoutException(msg)
     _response = response.json()
     if not (price := _response['pcFinal']):
-        raise Exception(f'Error to calculate delivery price')
+        msg = 'Error to calculate delivery price'
+        raise Exception(msg)
     _price = Decimal(price.replace(',', '.'))
     return DeliveryPriceResponse(price=_price)
