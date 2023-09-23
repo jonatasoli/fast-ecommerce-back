@@ -42,7 +42,7 @@ def get_products_all(db: Session = Depends(get_db)) -> Any:
         raise
 
 
-@catalog.get('/search', status_code=200)
+@catalog.get('/', status_code=200)
 def get_products_all(search: str, db: Session = Depends(get_db)) -> Any:
     """Get products all."""
     try:
