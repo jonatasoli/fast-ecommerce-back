@@ -15,10 +15,8 @@ class AddressNotFoundError(Exception):
     """Raised when a product is not found in the repository."""
 
 
-
 class UserNotFoundError(Exception):
     """Raised when a product is not found in the repository."""
-
 
 
 class AbstractRepository(abc.ABC):
@@ -264,7 +262,9 @@ class SqlAlchemyRepository(AbstractRepository):
 
 
 async def get_coupon_by_code(
-    code: str, *, transaction: SessionTransaction,
+    code: str,
+    *,
+    transaction: SessionTransaction,
 ) -> order.Coupons:
     """Must return a coupon by code."""
     coupon = await transaction.session.scalar(

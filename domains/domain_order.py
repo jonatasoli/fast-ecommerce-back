@@ -1,7 +1,7 @@
 import json
 from collections import defaultdict
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from loguru import logger
 from sqlalchemy import Date, cast
 from sqlalchemy.orm import Session
@@ -436,6 +436,7 @@ def get_products_category(offset: int, page: int, path: str, db: Session) -> Pro
                 Product.category_id == category.category_id,
             )
         )
+        total_records = db.scalar(select(func.count(Product.product_id)).where(Product.category_id == category.category_id))
         if page > 1:
             products_query = products_query.offset((page - 1) * offset)
         products_query = products_query.limit(offset)
@@ -445,13 +446,21 @@ def get_products_category(offset: int, page: int, path: str, db: Session) -> Pro
         for product in products:
             products_category.append(ProductCategoryInDB.model_validate(product))
 
-    return ProductsResponse(products=products_category)
+    return ProductsResponse(
+        total_records=total_records if total_records else 0,
+        total_pages= total_records // offset if total_records else 0,
+        page=page,
+        offset=offset,
+        products=products_category
+    )
 
 
 def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
     products = None
+    total_records = 0
     with db:
         products = select(Product)
+        total_records = db.scalar(select(func.count(Product.product_id)))
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
@@ -462,13 +471,20 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
     for product in products:
         products_list.append(ProductCategoryInDB.model_validate(product))
 
-    return ProductsResponse(products=products_list)
+    return ProductsResponse(
+        total_records=total_records if total_records else 0,
+        total_pages= total_records // offset if total_records else 0,
+        page=page,
+        offset=offset,
+        products=products_list
+    )
 
 
 def get_latest_products(offset: int, page: int, db: Session) -> ProductsResponse:
     products = None
     with db:
         products = select(Product)
+        total_records = db.scalar(select(func.count(Product.product_id)))
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
@@ -480,13 +496,20 @@ def get_latest_products(offset: int, page: int, db: Session) -> ProductsResponse
     for product in products:
         products_list.append(ProductCategoryInDB.model_validate(product))
 
-    return ProductsResponse(products=products_list)
+    return ProductsResponse(
+        total_records=total_records if total_records else 0,
+        total_pages= total_records // offset if total_records else 0,
+        page=page,
+        offset=offset,
+        products=products_list
+    )
 
 
 def get_featured_products(offset: int, page: int, db: Session) -> ProductsResponse:
     products = None
     with db:
         products = select(Product).where(Product.feature == True)
+        total_records = db.scalar(select(func.count(Product.product_id)))
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
@@ -497,13 +520,20 @@ def get_featured_products(offset: int, page: int, db: Session) -> ProductsRespon
     for product in products:
         products_list.append(ProductCategoryInDB.model_validate(product))
 
-    return ProductsResponse(products=products_list)
+    return ProductsResponse(
+        total_records=total_records if total_records else 0,
+        total_pages= total_records // offset if total_records else 0,
+        page=page,
+        offset=offset,
+        products=products_list
+    )
 
 
 def search_products(search:str, offset: int, page: int,  db: Session):
     products = None
     with db:
         products = select(Product).where(Product.name.ilike(f"%{search}%"))
+        total_records = db.scalar(select(func.count(Product.product_id)).where(Product.name.ilike(f"%{search}%")))
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
@@ -513,4 +543,10 @@ def search_products(search:str, offset: int, page: int,  db: Session):
     for product in products:
         products_list.append(ProductCategoryInDB.model_validate(product))
 
-    return ProductsResponse(products=products_list)
+    return ProductsResponse(
+        total_records=total_records if total_records else 0,
+        total_pages= total_records // offset if total_records else 0,
+        page=page,
+        offset=offset,
+        products=products_list
+    )

@@ -25,10 +25,10 @@ async def get_bootstrap() -> Command:
 
 @catalog.get(
     '/showcase/all',
-    summary="Get products in showcase",
-    description="Return all products in flag with shoucase in ProductDB",
-    status_code=status.HTTP_200_OK
-    )
+    summary='Get products in showcase',
+    description='Return all products in flag with shoucase in ProductDB',
+    status_code=status.HTTP_200_OK,
+)
 def get_showcase(*, db: Session = Depends(get_db)) -> Any:
     """Get showcase."""
     try:
@@ -40,16 +40,14 @@ def get_showcase(*, db: Session = Depends(get_db)) -> Any:
 
 @catalog.get(
     '/all',
-    summary="Get all products",
-    description="Return all products in ProductDB",
+    summary='Get all products',
+    description='Return all products in ProductDB',
     status_code=status.HTTP_200_OK,
     response_model=ProductsResponse,
-    )
+)
 def get_products_all(
-        offset: int = 10,
-        page: int = 1,
-        db: Session = Depends(get_db)
-    ) -> ProductsResponse:
+    offset: int = 10, page: int = 1, db: Session = Depends(get_db)
+) -> ProductsResponse:
     """Get products all."""
 
     return domain_order.get_product_all(page=page, offset=offset, db=db)
@@ -57,32 +55,29 @@ def get_products_all(
 
 @catalog.get(
     '/latest',
-    summary="Get latest products",
-    description="Return latest add products in ProductDB",
+    summary='Get latest products',
+    description='Return latest add products in ProductDB',
     status_code=status.HTTP_200_OK,
     response_model=ProductsResponse,
-    )
+)
 def get_latest_products(
-        offset: int = 10,
-        page: int = 1,
-        db: Session = Depends(get_db)
-    ) -> ProductsResponse:
+    offset: int = 10, page: int = 1, db: Session = Depends(get_db)
+) -> ProductsResponse:
     """Get latest products."""
 
     return domain_order.get_latest_products(page=page, offset=offset, db=db)
 
+
 @catalog.get(
     '/featured',
-    summary="Get featured products",
-    description="Return products is flagged with feature in ProductDB limited for offset",
+    summary='Get featured products',
+    description='Return products is flagged with feature in ProductDB limited for offset',
     status_code=status.HTTP_200_OK,
     response_model=ProductsResponse,
-    )
+)
 def get_products_all(
-        offset: int = 2,
-        page: int = 1,
-        db: Session = Depends(get_db)
-    ) -> ProductsResponse:
+    offset: int = 2, page: int = 1, db: Session = Depends(get_db)
+) -> ProductsResponse:
     """Get products all."""
 
     return domain_order.get_featured_products(page=page, offset=offset, db=db)
@@ -90,20 +85,19 @@ def get_products_all(
 
 @catalog.get(
     '/',
-    summary="Get searched term products",
-    description="Return products with machted term in ProductDB",
+    summary='Get searched term products',
+    description='Return products with machted term in ProductDB',
     status_code=status.HTTP_200_OK,
     response_model=ProductsResponse,
-    )
+)
 def search_products(
-        search: str,
-        offset: int = 2,
-        page: int = 1,
-        db: Session = Depends(get_db)
-    ) -> ProductsResponse:
+    search: str, offset: int = 2, page: int = 1, db: Session = Depends(get_db)
+) -> ProductsResponse:
     """Get search term products."""
 
-    return domain_order.search_products(search=search, offset=offset, page=page, db=db)
+    return domain_order.search_products(
+        search=search, offset=offset, page=page, db=db
+    )
 
 
 @catalog.get(

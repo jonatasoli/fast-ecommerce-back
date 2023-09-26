@@ -26,7 +26,6 @@ class UserAddressNotFoundError(Exception):
     """User address not found."""
 
 
-
 def create_or_get_cart(
     uuid: str | None,
     token: str | None,
@@ -312,7 +311,8 @@ async def get_coupon(code: str, bootstrap: Command) -> CouponResponse:
     """Must get coupon and return cart."""
     async with bootstrap.db().begin() as transaction:
         coupon = await bootstrap.cart_uow.get_coupon_by_code(
-            code, transaction=transaction,
+            code,
+            transaction=transaction,
         )
         if not coupon:
             raise HTTPException(

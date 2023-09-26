@@ -40,10 +40,10 @@ async def get_bootstrap() -> Command:
 
 @cart.get(
     '/{coupon}',
-    summary="Get coupon",
-    description="Search coupon by code and return the coupon if exists",
+    summary='Get coupon',
+    description='Search coupon by code and return the coupon if exists',
     status_code=status.HTTP_200_OK,
-    response_description="Search Coupon",
+    response_description='Search Coupon',
     response_model=CouponResponse,
     # responses={
     #     status.HTTP_400_BAD_REQUEST: {

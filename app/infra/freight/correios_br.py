@@ -102,7 +102,8 @@ def get_token(redis_client: redis.AbstractCache = redis.RedisCache()):
 
 
 def calculate_delivery_time(
-    zip_code_destiny: str, product_code: str = PAC_AG,
+    zip_code_destiny: str,
+    product_code: str = PAC_AG,
 ) -> DeliveryParamsResponse:
     """Calculate delivery time."""
     zip_code_origin = str(settings.CORREIOSBR_CEP_ORIGIN)
@@ -113,7 +114,8 @@ def calculate_delivery_time(
         cepDestino=zip_code_destiny,
     )
     delivery_time = DeliveryTime(
-        idLote=generate_bacth_id(), parametrosPrazo=[delivery_params],
+        idLote=generate_bacth_id(),
+        parametrosPrazo=[delivery_params],
     )
     client = get_client()
     token = get_token()
@@ -131,15 +133,19 @@ def calculate_delivery_time(
         msg = 'Error to calculate delivery time'
         raise Exception(msg)
     max_date = datetime.strptime(
-        _response[0]['dataMaxima'], '%Y-%m-%dT%H:%M:%S',
+        _response[0]['dataMaxima'],
+        '%Y-%m-%dT%H:%M:%S',
     )
     return DeliveryParamsResponse(
-        delivery_time=delivery_time_response, max_date=max_date,
+        delivery_time=delivery_time_response,
+        max_date=max_date,
     )
 
 
 def calculate_delivery_price(
-    product_code: str, *, package: DeliveryPriceParams,
+    product_code: str,
+    *,
+    package: DeliveryPriceParams,
 ) -> DeliveryPriceResponse:
     """Calculate delivery price with correios api."""
     client = get_client()

@@ -19,7 +19,9 @@ product = APIRouter(
 
 
 @product.post(
-    '/create-product', status_code=201, response_model=ProductSchemaResponse,
+    '/create-product',
+    status_code=201,
+    response_model=ProductSchemaResponse,
 )
 def create_product(
     *,

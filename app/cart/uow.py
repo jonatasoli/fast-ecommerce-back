@@ -274,7 +274,8 @@ async def get_coupon_by_code(
 ) -> CouponResponse:
     """Must return a coupon by code."""
     coupon_db = await repository.get_coupon_by_code(
-        code, transaction=transaction,
+        code,
+        transaction=transaction,
     )
     return CouponResponse.model_validate(coupon_db)
 
@@ -292,7 +293,9 @@ async def get_customer(
         msg = 'Transaction must be provided'
         raise ValueError(msg)
     customer = await payment_repository.get_customer(
-        user_id, payment_gateway=payment_gateway, transaction=transaction,
+        user_id,
+        payment_gateway=payment_gateway,
+        transaction=transaction,
     )
     custumer_uuid = None
     if customer:

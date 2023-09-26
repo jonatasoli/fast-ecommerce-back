@@ -57,6 +57,10 @@ class ProductsResponse(BaseModel):
     """Products Response."""
 
     products: list[ProductInDB] | list
+    page: int
+    offset: int
+    total_records: int
+    total_pages: int
 
 
 class ProductCategoryInDB(BaseModel):

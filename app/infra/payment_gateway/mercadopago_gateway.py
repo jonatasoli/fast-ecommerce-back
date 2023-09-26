@@ -65,7 +65,8 @@ def accept_payment(payment_id, client: SDK = get_payment_client()):
 
 
 def cancel_credit_card_reservation(
-    payment_id, client: SDK = get_payment_client(),
+    payment_id,
+    client: SDK = get_payment_client(),
 ):
     payment_data = {'status': 'cancelled'}
     payment_response = client.payment().update(payment_id, payment_data)
