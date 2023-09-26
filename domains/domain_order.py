@@ -10,7 +10,7 @@ from app.infra.optimize_image import optimize_image
 from app.infra.models.order import Category, ImageGallery, Order, Product
 from app.infra.models.transaction import Payment, Transaction
 from app.infra.models.users import Address, User
-from app.entities.product import ProductCategoryInDB, ProductInDB
+from app.entities.product import ProductCategoryInDB, ProductInDB, ProductsResponse
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,
@@ -414,55 +414,103 @@ def get_category(db: Session):
     return {'category': category_list}
 
 
-def get_products_category(db: Session, path):
+class NotFoundCategoryException(Exception):
+    """Not Found Category Exception."""
+    ...
+
+def get_products_category(offset: int, page: int, path: str, db: Session) -> ProductsResponse:
     products = None
     products_category = []
     with db:
         category_query = select(Category).where(Category.path == path)
-        category = db.execute(category_query).scalars().first()
+        category = db.scalar(category_query)
+
+        if not category:
+            raise NotFoundCategoryException()
 
         logger.info(category.path, category.category_id)
+
         products_query = (
             select(Product)
             .where(
                 Product.category_id == category.category_id,
             )
         )
-        products = db.execute(products_query).scalars().all()
+        if page > 1:
+            products_query = products_query.offset((page - 1) * offset)
+        products_query = products_query.limit(offset)
+
+        products = db.scalars(products_query)
 
         for product in products:
-            products_category.append(product)
+            products_category.append(ProductCategoryInDB.model_validate(product))
 
-    if products:
-        return {'product': products_category}
-    return {'product': []}
+    return ProductsResponse(products=products_category)
 
 
-def get_product_all(db: Session):
+def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
     products = None
     with db:
         products = select(Product)
+        if page > 1:
+            products = products.offset((page - 1) * offset)
+        products = products.limit(offset)
+
         products = db.scalars(products).all()
     products_list = []
 
     for product in products:
         products_list.append(ProductCategoryInDB.model_validate(product))
 
-    if products:
-        return {'products': products_list}
-    return {'products': []}
+    return ProductsResponse(products=products_list)
 
 
-def search_products(search:str, db: Session):
+def get_latest_products(offset: int, page: int, db: Session) -> ProductsResponse:
+    products = None
+    with db:
+        products = select(Product)
+        if page > 1:
+            products = products.offset((page - 1) * offset)
+        products = products.limit(offset)
+        prouducts = products.order_by(Product.product_id.desc())
+
+        products = db.scalars(products).all()
+    products_list = []
+
+    for product in products:
+        products_list.append(ProductCategoryInDB.model_validate(product))
+
+    return ProductsResponse(products=products_list)
+
+
+def get_featured_products(offset: int, page: int, db: Session) -> ProductsResponse:
+    products = None
+    with db:
+        products = select(Product).where(Product.feature == True)
+        if page > 1:
+            products = products.offset((page - 1) * offset)
+        products = products.limit(offset)
+
+        products = db.scalars(products).all()
+    products_list = []
+
+    for product in products:
+        products_list.append(ProductCategoryInDB.model_validate(product))
+
+    return ProductsResponse(products=products_list)
+
+
+def search_products(search:str, offset: int, page: int,  db: Session):
     products = None
     with db:
         products = select(Product).where(Product.name.ilike(f"%{search}%"))
+        if page > 1:
+            products = products.offset((page - 1) * offset)
+        products = products.limit(offset)
         products = db.scalars(products).all()
     products_list = []
 
     for product in products:
         products_list.append(ProductCategoryInDB.model_validate(product))
 
-    if products:
-        return {'products': products_list}
-    return {'products': []}
+    return ProductsResponse(products=products_list)

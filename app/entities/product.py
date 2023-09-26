@@ -53,6 +53,12 @@ class ProductInDB(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ProductsResponse(BaseModel):
+    """Products Response."""
+
+    products: list[ProductInDB] | list
+
+
 class ProductCategoryInDB(BaseModel):
     """Product Category Representation in DB."""
 
