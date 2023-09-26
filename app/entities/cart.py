@@ -98,6 +98,7 @@ class CartBase(BaseModel):
         self: Self,
         product_id: int,
         quantity: int,
+        price: Decimal,
         name: str | None,
         image_path: str | None,
     ) -> Self:
@@ -107,12 +108,14 @@ class CartBase(BaseModel):
                 item.name = name
                 item.image_path = image_path
                 item.quantity += quantity
+                item.price += price
                 return self
 
         self.cart_items.append(
             ProductCart(
                 product_id=product_id,
                 quantity=quantity,
+                price=price,
                 name=name,
                 image_path=image_path,
             ),
