@@ -52,6 +52,7 @@ async def add_product_to_cart(
     """Must add product to new cart and return cart."""
     cache = bootstrap.cache
     product_db = await bootstrap.uow.get_product_by_id(product.product_id)
+    logger.info(f"product_db: {product_db}")
     cart = None
     if cart_uuid:
         cart = cache.get(cart_uuid)
@@ -68,6 +69,7 @@ async def add_product_to_cart(
             product_id=product.product_id,
             quantity=product.quantity,
             name=product_db.name,
+            price=product_db.price,
             image_path=product_db.image_path,
         )
     cache.set(str(cart.uuid), cart.model_dump_json())
