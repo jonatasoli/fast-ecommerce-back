@@ -1,6 +1,8 @@
+from decimal import Decimal
 import json
 import math
 from collections import defaultdict
+from fastapi import HTTPException, status
 
 from sqlalchemy import func, select
 from loguru import logger
@@ -118,25 +120,24 @@ def get_showcase(db: Session):
         return products
 
 
-def get_installments(db: Session, cart):
+def get_installments(product_id: int, *, db: Session):
     with db:
-        _cart = cart.dict()
-        _product_id = _cart['cart'][0]['product_id']
         _product_config_query = select(Product).where(
-            Product.id == int(_product_id),
+            Product.product_id == product_id,
         )
-        _product = db.execute(_product_config_query).scalars().first()
+        product = db.scalar(_product_config_query)
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Product not found',
+            )
         _total_amount = 0
         _total_amount_fee = 0
         _installments = []
 
-        for item in _cart['cart']:
-            _total_amount += item['amount'] * item['qty']
-
-        logger.debug(f'Total da soma {_total_amount}')
         for n in range(1, 13):
             if n <= 3:
-                _installment = (_total_amount / n) / 100
+                _installment = (product.price / n) / 100
                 _installments.append(
                     {
                         'name': f'{n} x R${round(_installment, 2)}',
@@ -145,7 +146,7 @@ def get_installments(db: Session, cart):
                 )
                 logger.debug(f'Parcela sem juros {_installment}')
             else:
-                _total_amount_fee = _total_amount * (1 + 0.0199) ** n
+                _total_amount_fee = int(product.price) * (1 + (0.0199 * n))
                 _installment = (_total_amount_fee / n) / 100
                 _installments.append(
                     {

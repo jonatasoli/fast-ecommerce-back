@@ -88,17 +88,3 @@ async def payment_credit_card(
 def payment_bank_slip(*, payment_data: SlipPayment) -> None:
     """Payment bank slip."""
     return gateway.slip_payment(payment=payment_data)
-
-
-@cart.post('/cart/installments', status_code=200)
-async def get_installments(
-    *,
-    db: Session = Depends(get_db),
-    cart: InstallmentSchema,
-) -> None:
-    """Get installments."""
-    try:
-        return domain_order.get_installments(db, cart=cart)
-    except Exception as e:
-        logger.error(f'Erro ao coletar o parcelamento - {e}')
-        raise

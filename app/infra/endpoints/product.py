@@ -1,3 +1,4 @@
+from typing import Any
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from loguru import logger
 from sqlalchemy.orm import Session
@@ -112,4 +113,18 @@ def delete_product(id: int, db: Session = Depends(get_db)) -> None:
     try:
         return domain_order.delete_product(db, id)
     except Exception:
+        raise
+
+
+@product.get('/cart/installments', status_code=200)
+def get_installments(
+    *,
+    db: Session = Depends(get_db),
+    product_id: int,
+) -> Any:
+    """Get installments."""
+    try:
+        return domain_order.get_installments(product_id, db=db)
+    except Exception as e:
+        logger.error(f'Erro ao coletar o parcelamento - {e}')
         raise
