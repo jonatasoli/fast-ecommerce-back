@@ -52,7 +52,7 @@ async def add_product_to_cart(
     """Must add product to new cart and return cart."""
     cache = bootstrap.cache
     product_db = await bootstrap.uow.get_product_by_id(product.product_id)
-    logger.info(f"product_db: {product_db}")
+    logger.info(f'product_db: {product_db}')
     cart = None
     if cart_uuid:
         cart = cache.get(cart_uuid)

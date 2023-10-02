@@ -1,4 +1,5 @@
 import json
+import math
 from collections import defaultdict
 
 from sqlalchemy import func, select
@@ -473,7 +474,7 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
-        total_pages= total_records // offset if total_records else 0,
+        total_pages= math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
         products=products_list
@@ -488,7 +489,7 @@ def get_latest_products(offset: int, page: int, db: Session) -> ProductsResponse
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
-        prouducts = products.order_by(Product.product_id.desc())
+        products = products.order_by(Product.product_id.desc())
 
         products = db.scalars(products).all()
     products_list = []
@@ -498,7 +499,7 @@ def get_latest_products(offset: int, page: int, db: Session) -> ProductsResponse
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
-        total_pages= total_records // offset if total_records else 0,
+        total_pages= math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
         products=products_list
@@ -522,7 +523,7 @@ def get_featured_products(offset: int, page: int, db: Session) -> ProductsRespon
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
-        total_pages= total_records // offset if total_records else 0,
+        total_pages= math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
         products=products_list
@@ -545,7 +546,7 @@ def search_products(search:str, offset: int, page: int,  db: Session):
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
-        total_pages= total_records // offset if total_records else 0,
+        total_pages= math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
         products=products_list
