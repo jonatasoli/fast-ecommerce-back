@@ -27,10 +27,10 @@ from app.infra.endpoints.default import (
     inventory,
     reviews,
     coupons,
-    reports,
     campaing,
     sales,
 )
+from app.infra.endpoints.report import report
 from app.cart.tasks import task_message_bus
 from app.payment.tasks import task_message_bus
 from app.infra.worker import task_message_bus
@@ -105,7 +105,7 @@ app.include_router(cart)
 app.include_router(inventory)
 app.include_router(reviews)
 app.include_router(coupons)
-app.include_router(reports)
+app.include_router(report)
 app.include_router(campaing)
 app.include_router(sales)
 app.include_router(task_message_bus)

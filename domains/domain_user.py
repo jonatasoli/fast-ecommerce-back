@@ -156,6 +156,60 @@ def get_current_user(
     return user
 
 
+def get_affiliate(
+    token: str,
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials',
+        headers={'WWW-Authenticate': 'Bearer'},
+    )
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+        document: str = payload.get('sub')
+        if document is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    db = get_session()()
+
+    user = _get_user(db, document=document)
+    if user is None or user.role_id == Roles.USER.value:
+        raise credentials_exception
+    return user
+
+
+def get_admin(
+    token: str,
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials',
+        headers={'WWW-Authenticate': 'Bearer'},
+    )
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+        document: str = payload.get('sub')
+        if document is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    db = get_session()()
+
+    user = _get_user(db, document=document)
+    if user is None or user.role_id != Roles.ADMIN.value:
+        raise credentials_exception
+    return user
+
+
 def _get_user(db: Session, document: str):
     with db:
         user_query = select(User).where(User.document == document)

@@ -1,9 +1,10 @@
 from datetime import timedelta
 
 from dynaconf import settings
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from app.entities.user import UserCouponResponse
 
 from domains import domain_user
 from domains.domain_user import check_token
@@ -14,6 +15,7 @@ from schemas.user_schema import (
     Token,
     UserResponseResetPassword,
 )
+from app.user import services
 
 user = APIRouter(
     prefix='/user',
@@ -22,6 +24,24 @@ user = APIRouter(
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
+
+
+@user.get(
+        '/affiliate',
+        summary='Get user affiliate coupons',
+        description='Return coupons to affiliated user',
+        status_code=status.HTTP_200_OK,
+        response_model=UserCouponResponse,
+)
+async def get_affiliate_user(
+    *,
+    request: Request,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> UserCouponResponse:
+    """Get user."""
+    user = domain_user.get_affiliate(token)
+    return services.get_affiliate_urls(user=user, base_url=request.base_url)
 
 
 @user.post('/signup', status_code=201, response_model=SignUpResponse)
