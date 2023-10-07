@@ -47,6 +47,7 @@ app.mount('/static', StaticFiles(directory='static'), name='static')
 
 origins = [
     '*',
+    settings.FRONTEND_URL,
 ]
 
 if settings.ENVIRONMENT == 'production':
