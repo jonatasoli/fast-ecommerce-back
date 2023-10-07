@@ -243,7 +243,7 @@ def check_token(f):
 def get_role_user(db: Session, user_role_id: int):
     with db:
         role_query = select(Role).where(Role.role_id == user_role_id)
-        _role = db.execute(role_query).scalars().first()
+        _role = db.scalar(role_query)
         return _role.role
 
 

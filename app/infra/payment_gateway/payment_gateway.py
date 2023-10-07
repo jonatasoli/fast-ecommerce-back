@@ -2,7 +2,6 @@ import enum
 from typing import Any
 from app.infra.constants import PaymentGatewayAvailable
 from app.infra.payment_gateway import stripe_gateway, mercadopago_gateway
-from pydantic import BaseModel
 
 
 class PaymentGatewayCommmand(enum.Enum):

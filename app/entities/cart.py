@@ -201,7 +201,7 @@ class CartPayment(CartShipping):
     """Cart fourth step representation with payment information."""
 
     payment_method: str
-    payment_method_id: str
+    payment_method_id: str | None = None
     payment_intent: str | None = None
     customer_id: str | None = None
     card_token: str | None = None

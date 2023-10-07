@@ -212,6 +212,41 @@ async def add_payment_information(  # noqa: PLR0913
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
     user = bootstrap.user.get_current_user(token)
+    cache_cart = bootstrap.cache.get(uuid)
+    cache_cart = CartShipping.model_validate_json(cache_cart)
+    if cache_cart.uuid != cart.uuid:
+        raise HTTPException(
+            status_code=400,
+            detail='Cart uuid is not the same as the cache uuid',
+        )
+    if not payment.payment_gateway:
+        raise HTTPException(
+            status_code=400,
+            detail='Payment not defined',
+        )
+    customer = await bootstrap.cart_uow.get_customer(
+        user.user_id,
+        payment_gateway=payment.payment_gateway,
+        bootstrap=bootstrap,
+    )
+    if payment_method == 'pix' and isinstance(
+        payment,
+        CreatePixPaymentMethod,
+    ):
+        payment_gateway = 'mercadopago_gateway'
+        _payment = getattr(bootstrap.payment, payment_gateway).create_pix(
+            amount=int(cache_cart.subtotal),
+            customer_id=customer,
+        )
+        qr_code = _payment['point_of_interaction']['transaction_data']['qr_code_base64']
+        cart = CartPayment(
+            **cache_cart.model_dump(),
+            payment_method=payment_method,
+            gateway_provider=payment.payment_gateway,
+            customer_id=customer,
+            pix_qr_code=qr_code,
+        )
+        return cart
     if payment_method == PaymentMethod.CREDIT_CARD.name and isinstance(
         payment,
         CreateCreditCardPaymentMethod | CreateCreditCardTokenPaymentMethod,

@@ -185,7 +185,7 @@ async def add_payment_information_to_cart(
     | CreateCreditCardTokenPaymentMethod,
     token: str = Depends(oauth2_scheme),
     bootstrap: Command = Depends(get_bootstrap),
-) -> CartShipping:
+) -> CartPayment:
     """Add user to cart."""
     return await services.add_payment_information(
         uuid=uuid,
