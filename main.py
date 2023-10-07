@@ -1,14 +1,11 @@
 import logging
 import sys
 from fastapi.responses import JSONResponse
-from propan.brokers.rabbit import RabbitQueue
-from propan.fastapi import RabbitRouter
-from pydantic import BaseModel
 
 import sentry_sdk
 from app.entities.cart import ProductNotFoundError
 from config import settings
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
@@ -50,6 +47,7 @@ origins = [
     settings.FRONTEND_URLS,
 ]
 
+logger.info(f'Environment: {settings.ENVIRONMENT}')
 if settings.ENVIRONMENT == 'production':
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
