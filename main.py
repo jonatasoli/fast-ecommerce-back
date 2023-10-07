@@ -46,7 +46,6 @@ class InterceptHandler(logging.Handler):
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
 origins = [
-    '*',
     settings.FRONTEND_URL,
 ]
 
