@@ -1,5 +1,5 @@
 [default]
-FRONTEND_URL="http://localhost:3000"
+FRONTEND_URLS= ["http://localhost:3000"]
 REDIS_URL="redis://:@localhost:6379"
 REDIS_DB=0
 SECRET_KEY="NOT_SECURE_SECRET_KEY"

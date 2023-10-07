@@ -27,11 +27,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 
 
 @user.get(
-        '/affiliate',
-        summary='Get user affiliate coupons',
-        description='Return coupons to affiliated user',
-        status_code=status.HTTP_200_OK,
-        response_model=UserCouponResponse,
+    '/affiliate',
+    summary='Get user affiliate coupons',
+    description='Return coupons to affiliated user',
+    status_code=status.HTTP_200_OK,
+    response_model=UserCouponResponse,
 )
 async def get_affiliate_user(
     *,

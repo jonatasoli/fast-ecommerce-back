@@ -32,5 +32,3 @@ async def get_user_sales_comissions(
     """Get report sales comissions."""
     user = domain_user.get_affiliate(token)
     return services.get_user_sales_comissions(user=user, paid=paid, db=db)
-
-

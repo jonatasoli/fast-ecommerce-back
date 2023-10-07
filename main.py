@@ -45,10 +45,6 @@ class InterceptHandler(logging.Handler):
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
-origins = [
-    settings.FRONTEND_URL,
-]
-
 if settings.ENVIRONMENT == 'production':
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
@@ -59,7 +55,7 @@ app.add_middleware(SentryAsgiMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=settings.FRONTEND_URLS,
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],

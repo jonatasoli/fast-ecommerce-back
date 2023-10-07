@@ -16,7 +16,7 @@ class SalesComission(Base):
         backref='transaction',
         cascade='all,delete',
         uselist=False,
-        lazy='joined', 
+        lazy='joined',
     )
     order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
     order: Mapped['Order'] = relationship(  # noqa: F821
