@@ -46,7 +46,8 @@ class InterceptHandler(logging.Handler):
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
 origins = [
-    settings.FRONTEND_URLS.split(','),
+    'http://localhost:3000',
+    settings.FRONTEND_URLS,
 ]
 
 if settings.ENVIRONMENT == 'production':
