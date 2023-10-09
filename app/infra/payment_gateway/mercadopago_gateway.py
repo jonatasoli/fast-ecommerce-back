@@ -23,20 +23,23 @@ def create_customer(email, client: SDK = get_payment_client()):
 
 
 def attach_customer_in_payment_method(
-    customer,
-    token,
-    issuer_id,
-    payment_method_id,
+    customer_uuid: str,
+    payment_method_id: str,
+    card_token: str,
     client: SDK = get_payment_client(),
 ):
+    """Attach a customer in payment method in stripe and mercado pago."""
+
+    _ = payment_method_id
 
     card_data = {
-        'token': token,
-        'issuer_id': issuer_id,
-        'payment_method_id': payment_method_id,
+        'token': card_token,
     }
-    card_response = client.card().create(customer['id'], card_data)
-    return card_response['response']
+    card_response = None
+    card_response = client.card().create(customer_uuid, card_data)
+    if card_response['status'] != 201:
+        raise Exception(card_response)
+    return card_response['response']['id']
 
 
 def create_credit_card_payment(

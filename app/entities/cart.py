@@ -226,7 +226,7 @@ class CreateCreditCardTokenPaymentMethod(BaseModel):
     """Create credit card token payment method."""
 
     payment_gateway: str
-    cart_token: str
+    card_token: str
     installments: int = 1
 
 

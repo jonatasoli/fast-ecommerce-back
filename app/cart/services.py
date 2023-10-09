@@ -229,7 +229,7 @@ async def add_payment_information(  # noqa: PLR0913
         payment_gateway=payment.payment_gateway,
         bootstrap=bootstrap,
     )
-    if payment_method == 'pix' and isinstance(
+    if payment_method == PaymentMethod.PIX.value and isinstance(
         payment,
         CreatePixPaymentMethod,
     ):
@@ -238,7 +238,9 @@ async def add_payment_information(  # noqa: PLR0913
             amount=int(cache_cart.subtotal),
             customer_id=customer,
         )
-        qr_code = _payment['point_of_interaction']['transaction_data']['qr_code_base64']
+        qr_code = _payment['point_of_interaction']['transaction_data'][
+            'qr_code_base64'
+        ]
         cart = CartPayment(
             **cache_cart.model_dump(),
             payment_method=payment_method,
@@ -246,50 +248,43 @@ async def add_payment_information(  # noqa: PLR0913
             customer_id=customer,
             pix_qr_code=qr_code,
         )
+        bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
         return cart
-    if payment_method == PaymentMethod.CREDIT_CARD.name and isinstance(
+    if not isinstance(
         payment,
         CreateCreditCardPaymentMethod | CreateCreditCardTokenPaymentMethod,
     ):
-        installments = payment.installments
-        cache_cart = bootstrap.cache.get(uuid)
-        cache_cart = CartShipping.model_validate_json(cache_cart)
-        if cache_cart.uuid != cart.uuid:
-            raise HTTPException(
-                status_code=400,
-                detail='Cart uuid is not the same as the cache uuid',
-            )
-        # TODO: create payment method need check if pix or credit_card and get payment gateway to redirect for correct payment payment_gateway
-        # create_payment_method needs config in payment_gateway module
-        _payment = bootstrap.payment[
-            payment.payment_gateway
-        ].create_payment_method(payment)
-        payment_method_id = _payment.get('id')
-        if not payment_method_id:
-            raise HTTPException(
-                status_code=400,
-                detail='Payment method id not found',
-            )
-        bootstrap.payment[
-            payment.payment_gateway
-        ].attach_customer_in_payment_method(
-            payment_method_id,
-            user.customer_id,
+        raise HTTPException(
+            status_code=400,
+            detail='Payment method not found',
         )
-        cart = CartPayment(
-            **cache_cart.model_dump(),
-            payment_method=payment_method,
-            payment_method_id=payment_method_id,
-            customer_id=user.customer_id,
-            installments=installments,
+    installments = payment.installments
+    payment_method_id = bootstrap.payment.attach_customer_in_payment_method(
+        payment_gateway=payment.payment_gateway,
+        card_token=payment.card_token,
+        customer_uuid=customer,
+        email=user.email,
+    )
+    if not payment_method_id:
+        raise HTTPException(
+            status_code=400,
+            detail='Payment method id not found',
         )
-        bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
-        await bootstrap.uow.update_payment_method_to_user(
-            user.user_id,
-            _payment.get('id'),
-        )
-        return cart
-    return None
+    cart = CartPayment(
+        **cache_cart.model_dump(),
+        payment_method=PaymentMethod.CREDIT_CARD.value,
+        payment_method_id=payment_method_id,
+        gateway_provider=payment.payment_gateway,
+        card_token=payment.card_token,
+        customer_id=customer,
+        installments=installments,
+    )
+    bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
+    await bootstrap.uow.update_payment_method_to_user(
+        user.user_id,
+        payment_method_id,
+    )
+    return cart
 
 
 async def preview(

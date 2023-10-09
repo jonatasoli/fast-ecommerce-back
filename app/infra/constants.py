@@ -17,11 +17,11 @@ class PaymentGatewayAvailable(enum.Enum):
 
 
 class PaymentMethod(enum.Enum):
-    CREDIT_CARD = 'CREDIT_CARD'
-    BOLETO = 'BOLETO'
-    PIX = 'PIX'
-    DEBIT_CARD = 'DEBIT_CARD'
-    CASH = 'CASH'
+    CREDIT_CARD = 'credit_card'
+    BOLETO = 'boleto'
+    PIX = 'pix'
+    DEBIT_CARD = 'debit_card'
+    CASH = 'cash'
 
 
 class StepsOrder(enum.Enum):

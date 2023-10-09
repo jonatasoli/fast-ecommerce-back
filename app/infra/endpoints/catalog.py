@@ -131,6 +131,8 @@ def get_product_category(
 ) -> None:
     """Get product category."""
     try:
-        return domain_order.get_products_category(offset=offset, page=page, path=path, db=db)
+        return domain_order.get_products_category(
+            offset=offset, page=page, path=path, db=db
+        )
     except Exception:
         raise
