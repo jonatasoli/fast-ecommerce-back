@@ -420,7 +420,7 @@ class NotFoundCategoryException(Exception):
     """Not Found Category Exception."""
     ...
 
-def get_products_category(offset: int, page: int, path: str, db: Session) -> ProductsResponse:
+def get_products_category(*, offset: int, page: int, path: str, db: Session) -> ProductsResponse:
     products = None
     products_category = []
     with db:
@@ -450,7 +450,7 @@ def get_products_category(offset: int, page: int, path: str, db: Session) -> Pro
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
-        total_pages= total_records // offset if total_records else 0,
+        total_pages= math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
         products=products_category

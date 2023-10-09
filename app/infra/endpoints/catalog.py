@@ -125,10 +125,12 @@ async def get_categories(
 @catalog.get('/category/products/{path}', status_code=200)
 def get_product_category(
     path: str,
+    offset: int = 2,
+    page: int = 1,
     db: Session = Depends(get_db),
 ) -> None:
     """Get product category."""
     try:
-        return domain_order.get_products_category(db, path)
+        return domain_order.get_products_category(offset=offset, page=page, path=path, db=db)
     except Exception:
         raise
