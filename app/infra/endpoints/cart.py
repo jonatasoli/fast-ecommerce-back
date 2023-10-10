@@ -45,15 +45,10 @@ async def get_bootstrap() -> Command:
     status_code=status.HTTP_200_OK,
     response_description='Search Coupon',
     response_model=CouponResponse,
-    # responses={
     #     status.HTTP_400_BAD_REQUEST: {
-    #         "description": "Could not find coupon code "
     #         "coupon is invalid",
-    #         "model": CouponErrorResponse,
     #     },
     #     status.HTTP_500_INTERNAL_SERVER_ERROR: {
-    #         "description": "Could not get the coupon due to an internal error",
-    #         "model": CouponErrorResponse,,
     #     },
     # },
 )

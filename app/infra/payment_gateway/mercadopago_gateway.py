@@ -29,7 +29,6 @@ def attach_customer_in_payment_method(
     client: SDK = get_payment_client(),
 ):
     """Attach a customer in payment method in stripe and mercado pago."""
-
     _ = payment_method_id
 
     card_data = {

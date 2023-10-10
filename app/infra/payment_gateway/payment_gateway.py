@@ -27,7 +27,6 @@ def create_method_credit_card(
     user_email: str,
 ) -> dict:
     """Create a credit card payment in stripe and mercado pago."""
-    payments = {}
     gateway = PaymentGatewayCommmand[payment_gateway].value
     return gateway.create_credit_card_payment(
         payment_method=payment_method,
@@ -44,9 +43,40 @@ def attach_customer_in_payment_method(
     """Attach a customer in payment method in stripe and mercado pago."""
     _ = email
     gateway = PaymentGatewayCommmand[payment_gateway].value
-    payment_method_id = gateway.attach_customer_in_payment_method(
+    return gateway.attach_customer_in_payment_method(
         card_token=card_token,
         payment_method_id=PaymentMethod.CREDIT_CARD.value,
         customer_uuid=customer_uuid,
     )
-    return payment_method_id
+
+
+def create_credit_card_payment(
+    payment_gateway: str,
+    customer_id: str,
+    amount: int,
+    card_token: str,
+    installments: int,
+) -> dict:
+    """Create a credit card payment in stripe and mercado pago."""
+    gateway = PaymentGatewayCommmand[payment_gateway].value
+    return gateway.create_credit_card_payment(
+        customer_id=customer_id,
+        amount=amount,
+        card_token=card_token,
+        installments=installments,
+    )
+
+
+def accept_payment(
+    payment_gateway: str,
+    payment_id: str,
+) -> dict:
+    """Accept a payment in stripe and mercado pago."""
+    gateway = PaymentGatewayCommmand[payment_gateway].value
+    payment = gateway.accept_payment(
+        payment_id=payment_id,
+    )
+    if not payment:
+        msg = 'Payment not found'
+        raise Exception(msg)
+    return payment

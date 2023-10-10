@@ -296,14 +296,15 @@ async def preview(
     user = bootstrap.user.get_current_user(token)
     cart = bootstrap.cache.get(uuid)
     cache_cart = CartPayment.model_validate_json(cart)
-    payment_intent = bootstrap.payment.create_payment_intent(
-        amount=cache_cart.subtotal,
-        currency='brl',
-        customer_id=user.customer_id,
-        payment_method=cache_cart.payment_method_id,
-        installments=cache_cart.installments,
-    )
-    cache_cart.payment_intent = payment_intent['id']
+    if cache_cart.gateway_provider == PaymentGatewayAvailable.STRIPE.name:
+        payment_intent = bootstrap.payment.create_payment_intent(
+            amount=cache_cart.subtotal,
+            currency='brl',
+            customer_id=user.customer_id,
+            payment_method=cache_cart.payment_method_id,
+            installments=cache_cart.installments,
+        )
+        cache_cart.payment_intent = payment_intent['id']
     bootstrap.cache.set(str(cache_cart.uuid), cache_cart.model_dump_json())
     return cache_cart
 
@@ -320,6 +321,15 @@ async def checkout(
     cache_cart = bootstrap.cache.get(uuid)
     validate_cache_cart(cache_cart)
     cache_cart = CartPayment.model_validate_json(cache_cart)
+
+    if (
+        cache_cart.payment_method != PaymentMethod.CREDIT_CARD.value
+        and cache_cart.payment_method != PaymentMethod.PIX.value
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail='Payment method not found',
+        )
 
     logger.info(f'{uuid}, {cache_cart.payment_intent} ')
     user = UserDBGet.model_validate(user)
@@ -351,5 +361,4 @@ async def get_coupon(code: str, bootstrap: Command) -> CouponResponse:
                 status_code=400,
                 detail='Coupon not found',
             )
-    return coupon
     return coupon

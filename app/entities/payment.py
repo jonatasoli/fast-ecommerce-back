@@ -11,7 +11,25 @@ class CreditCardInformation(BaseModel):
     installments: int | None = None
 
 
-class AbsctractPaymentGateway:
+class PaymentNotificationData(BaseModel):
+    """Payment notification data."""
+
+    id: str
+
+
+class PaymentNotification(BaseModel):
+    """Payment notification."""
+
+    id: int
+    live_mode: bool
+    type: str
+    user_id: str
+    api_version: str
+    action: str
+    data: PaymentNotificationData
+
+
+class AbstractPaymentGateway:
     """Abstract class to process payment."""
 
     def process_credit_card(self):
@@ -19,14 +37,14 @@ class AbsctractPaymentGateway:
         raise NotImplementedError
 
 
-class ProcessStripePayment(AbsctractPaymentGateway):
+class ProcessStripePayment(AbstractPaymentGateway):
     """Process payment with Stripe."""
 
     def process_credit_card(self):
         """Process credit card with Stripe."""
 
 
-class ProcessPagarmePayment(AbsctractPaymentGateway):
+class ProcessPagarmePayment(AbstractPaymentGateway):
     """Process payment with Pagarme."""
 
     def process_credit_card(self):
@@ -34,8 +52,8 @@ class ProcessPagarmePayment(AbsctractPaymentGateway):
 
 
 class PaymentGateway(enum.Enum):
-    STRIPE: AbsctractPaymentGateway = ProcessStripePayment()
-    PAGARME: AbsctractPaymentGateway = ProcessPagarmePayment()
+    STRIPE: AbstractPaymentGateway = ProcessStripePayment()
+    PAGARME: AbstractPaymentGateway = ProcessPagarmePayment()
 
 
 class PaymentDBUpdate(BaseModel):

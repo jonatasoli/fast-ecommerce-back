@@ -46,10 +46,11 @@ def get_showcase(*, db: Session = Depends(get_db)) -> Any:
     response_model=ProductsResponse,
 )
 def get_products_all(
-    offset: int = 10, page: int = 1, db: Session = Depends(get_db)
+    offset: int = 10,
+    page: int = 1,
+    db: Session = Depends(get_db),
 ) -> ProductsResponse:
     """Get products all."""
-
     return domain_order.get_product_all(page=page, offset=offset, db=db)
 
 
@@ -61,10 +62,11 @@ def get_products_all(
     response_model=ProductsResponse,
 )
 def get_latest_products(
-    offset: int = 10, page: int = 1, db: Session = Depends(get_db)
+    offset: int = 10,
+    page: int = 1,
+    db: Session = Depends(get_db),
 ) -> ProductsResponse:
     """Get latest products."""
-
     return domain_order.get_latest_products(page=page, offset=offset, db=db)
 
 
@@ -76,10 +78,11 @@ def get_latest_products(
     response_model=ProductsResponse,
 )
 def get_products_all(
-    offset: int = 2, page: int = 1, db: Session = Depends(get_db)
+    offset: int = 2,
+    page: int = 1,
+    db: Session = Depends(get_db),
 ) -> ProductsResponse:
     """Get products all."""
-
     return domain_order.get_featured_products(page=page, offset=offset, db=db)
 
 
@@ -91,12 +94,17 @@ def get_products_all(
     response_model=ProductsResponse,
 )
 def search_products(
-    search: str, offset: int = 2, page: int = 1, db: Session = Depends(get_db)
+    search: str,
+    offset: int = 2,
+    page: int = 1,
+    db: Session = Depends(get_db),
 ) -> ProductsResponse:
     """Get search term products."""
-
     return domain_order.search_products(
-        search=search, offset=offset, page=page, db=db
+        search=search,
+        offset=offset,
+        page=page,
+        db=db,
     )
 
 
@@ -132,7 +140,10 @@ def get_product_category(
     """Get product category."""
     try:
         return domain_order.get_products_category(
-            offset=offset, page=page, path=path, db=db
+            offset=offset,
+            page=page,
+            path=path,
+            db=db,
         )
     except Exception:
         raise
