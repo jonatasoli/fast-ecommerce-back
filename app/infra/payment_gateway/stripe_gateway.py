@@ -7,7 +7,7 @@ from app.payment.entities import PaymentAcceptError
 from config import settings
 
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = getattr(settings, "STRIPE_SECRET_KEY")
 
 
 class PaymentGatewayRequestError(Exception):
