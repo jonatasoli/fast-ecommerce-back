@@ -22,6 +22,7 @@ FREIGHT_GATEWAY = "CORREIOS"
 CORREIOSBR_API_URL = "https://api.correios.com.br"
 CLIENT_API_TIMEOUT = 10
 PAYMENT_NOTIFICATION_URL = "https://localhost:8001/payment/callback"
+STRIPE_SECRET_KEY = "pk_test_xxxx"
 
 
 [testing]
