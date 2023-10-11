@@ -23,6 +23,8 @@ CORREIOSBR_API_URL = "https://api.correios.com.br"
 CLIENT_API_TIMEOUT = 10
 PAYMENT_NOTIFICATION_URL = "https://localhost:8001/payment/callback"
 STRIPE_SECRET_KEY = "pk_test_xxxx"
+BROKER_URL = "amqp://guest:guest@localhost:5672//"
+RESULT_BACKEND = "rpc://"
 
 
 [testing]
