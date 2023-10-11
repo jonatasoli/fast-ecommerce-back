@@ -14,6 +14,7 @@ from app.order import uow as order_uow
 from app.user import uow as user_uow
 from app.payment import uow as payment_uow
 from app.inventory import uow as inventory_uow
+from app.cart import uow as cart_uow
 
 
 class Command(BaseModel):
@@ -21,6 +22,7 @@ class Command(BaseModel):
 
     db: sessionmaker
     order_uow: Any
+    cart_uow: Any
     user_uow: Any
     payment_uow: Any
     inventory_uow: Any
@@ -38,6 +40,7 @@ class Command(BaseModel):
 
 async def bootstrap(  # noqa: PLR0913
     db: sessionmaker = get_session(),
+    cart_uow: Any = cart_uow,
     order_uow: Any = order_uow,
     user_uow: Any = user_uow,
     payment_uow: Any = payment_uow,
@@ -54,6 +57,7 @@ async def bootstrap(  # noqa: PLR0913
 
     return Command(
         db=db,
+        cart_uow=cart_uow,
         order_uow=order_uow,
         user_uow=user_uow,
         payment_uow=payment_uow,

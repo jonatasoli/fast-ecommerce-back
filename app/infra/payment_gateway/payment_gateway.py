@@ -1,3 +1,4 @@
+from decimal import Decimal
 import enum
 from typing import Any
 from app.infra.constants import PaymentGatewayAvailable, PaymentMethod
@@ -53,7 +54,7 @@ def attach_customer_in_payment_method(
 def create_credit_card_payment(
     payment_gateway: str,
     customer_id: str,
-    amount: int,
+    amount: Decimal,
     card_token: str,
     installments: int,
 ) -> dict:

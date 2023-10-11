@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 
 import sentry_sdk
 from app.entities.cart import ProductNotFoundError
+from app.infra.payment_gateway.mercadopago_gateway import CardAlreadyUseError
 from config import settings
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -68,6 +69,13 @@ app.add_middleware(
 async def product_not_found_exception_handler(_: Request, exc: ProductNotFoundError):
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
+        content={'message': f'{exc.args[0]}'},
+    )
+
+@app.exception_handler(CardAlreadyUseError)
+async def card_already_use_exception_handler(_: Request, exc: CardAlreadyUseError):
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
         content={'message': f'{exc.args[0]}'},
     )
 

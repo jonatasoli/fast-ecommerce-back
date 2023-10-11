@@ -16,6 +16,11 @@ class PaymentGatewayAvailable(enum.Enum):
     STRIPE = 'STRIPE'
 
 
+class PaymentGatewayDB(enum.Enum):
+    MERCADOPAGO = 1
+    STRIPE = 2
+
+
 class PaymentMethod(enum.Enum):
     CREDIT_CARD = 'credit_card'
     BOLETO = 'boleto'

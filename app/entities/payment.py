@@ -60,6 +60,8 @@ class PaymentDBUpdate(BaseModel):
     """Payment DB Update."""
 
     status: str
+    payment_gateway: str
+    authorization: str | None = None
 
 
 def validate_payment(

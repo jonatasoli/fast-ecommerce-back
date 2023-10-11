@@ -7,7 +7,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import select
 
 from app.entities.cart import CartPayment
-from app.entities.payment import PaymentGateway, PaymentDBUpdate
+from app.entities.payment import PaymentDBUpdate
 from app.infra.constants import PaymentMethod, PaymentStatus
 from app.infra.models.transaction import Customer, Payment
 
@@ -17,6 +17,8 @@ async def create_payment(
     *,
     user_id: int,
     order_id: int,
+    payment_gateway: str,
+    authorization: str,
     transaction: SessionTransaction,
 ) -> Payment:
     """Create a new order."""
@@ -24,12 +26,12 @@ async def create_payment(
         user_id=user_id,
         order_id=order_id,
         amount=cart.subtotal,
-        token=cart.payment_intent,
+        token=cart.card_token if cart.card_token else cart.pix_qr_code,
         gateway_id=1,
         status=PaymentStatus.PENDING.value,
-        authorization=cart.payment_intent,
-        payment_method=cart.payment_method_id,
-        payment_gateway=PaymentGateway.STRIPE.name,
+        authorization=authorization,
+        payment_method=cart.payment_method,
+        payment_gateway=payment_gateway,
         installments=cart.installments,
     )
 

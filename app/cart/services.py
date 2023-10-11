@@ -336,8 +336,8 @@ async def checkout(
     checkout_task = await bootstrap.message.broker.publish(
         {
             'cart_uuid': uuid,
-            'payment_intent': cache_cart.payment_intent,
-            'payment_method': cache_cart.payment_method_id,
+            'payment_gateway': cache_cart.gateway_provider,
+            'payment_method': cache_cart.payment_method,
             'user': user,
         },
         queue=RabbitQueue('checkout'),

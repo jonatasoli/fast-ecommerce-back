@@ -2,7 +2,7 @@
 from __future__ import annotations
 import abc
 from decimal import Decimal
-from typing import Self, TYPE_CHECKING
+from typing import Any, Self, TYPE_CHECKING
 from app.entities.coupon import CouponBase, CouponResponse
 
 from app.entities.product import ProductCart, ProductInDB
@@ -301,3 +301,21 @@ async def get_customer(
     if customer:
         custumer_uuid = customer.customer_uuid
     return custumer_uuid
+
+
+@database_uow()
+async def get_products(
+    products: list,
+    bootstrap: Any,
+    transaction: SessionTransaction | None,
+) -> list[ProductCart]:
+    """Must return a products in list."""
+    if not transaction:
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
+    product_ids: list[int] = [item.product_id for item in products]
+    products_db = await repository.get_products(
+        products=product_ids,
+        transaction=transaction,
+    )
+    return [ProductInDB.model_validate(product) for product in products_db]

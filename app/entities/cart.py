@@ -267,7 +267,7 @@ def generate_empty_cart() -> CartBase:
 
 def generate_new_cart(
     product: ProductInDB,
-    price: int,
+    price: Decimal,
     quantity: int,
 ) -> CartBase:
     """Generate new cart."""
@@ -278,7 +278,7 @@ def generate_new_cart(
     return CartBase(
         uuid=generate_cart_uuid(),
         cart_items=[product],
-        subtotal=convert_price_to_decimal(price * quantity),
+        subtotal=price * quantity,
     )
 
 

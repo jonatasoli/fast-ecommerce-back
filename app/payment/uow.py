@@ -13,6 +13,8 @@ async def uow_create_pending_payment(
     *,
     cart: CartPayment,
     user_id: int,
+    authorization: str,
+    payment_gateway: str,
     bootstrap: Any,
     transaction: SessionTransaction | None,
 ) -> int:
@@ -29,6 +31,8 @@ async def uow_create_pending_payment(
             cart,
             order_id=order_id,
             user_id=user_id,
+            authorization=authorization,
+            payment_gateway=payment_gateway,
             transaction=transaction,
         )
     return payment.payment_id
@@ -39,6 +43,8 @@ async def uow_update_payment(
     payment_id: int,
     *,
     payment_status: str,
+    authorization: str,
+    payment_gateway: str,
     bootstrap: Any,
     transaction: SessionTransaction | None,
 ) -> None:
@@ -48,7 +54,11 @@ async def uow_update_payment(
         raise ValueError(msg)
     await payment_repository.update_payment(
         payment_id,
-        payment=PaymentDBUpdate(status=payment_status),
+        payment=PaymentDBUpdate(
+            status=payment_status,
+            authorization=authorization,
+            payment_gateway=payment_gateway,
+        ),
         transaction=transaction,
     )
 

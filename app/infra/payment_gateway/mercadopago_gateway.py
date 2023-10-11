@@ -1,6 +1,30 @@
 from contextlib import suppress
+from decimal import Decimal
 from mercadopago import SDK
+from pydantic import BaseModel
 from config import settings
+
+
+class CardAlreadyUseError(Exception):
+    """Raise when card already use."""
+
+
+class MercadoPagoPaymentResponse(BaseModel):
+    """Mercado Pago payment response."""
+
+    id: int
+    date_created: str
+    date_approved: str | None = None
+    payment_method: dict
+    status: str
+    status_detail: str | None
+    currency_id: str
+    authorization_code: str
+    transaction_amount: Decimal
+    installments: int
+    payer: dict
+    card: dict | None = None
+    amounts: dict | None = None
 
 
 def get_payment_client():
@@ -36,8 +60,11 @@ def attach_customer_in_payment_method(
     }
     card_response = None
     card_response = client.card().create(customer_uuid, card_data)
+    if card_response.get('error'):
+        raise CardAlreadyUseError(card_response.get('message'))
     if card_response['status'] != 201:
         raise Exception(card_response)
+
     return card_response['response']['id']
 
 
@@ -49,21 +76,28 @@ def create_credit_card_payment(
     client: SDK = get_payment_client(),
 ):
     payment_data = {
-        'transaction_amount': amount,
+        'transaction_amount': float(amount),
         'token': card_token,
         'installments': installments,
         'payer': {'type': 'customer', 'id': customer_id},
         'capture': False,
     }
-
     payment_response = client.payment().create(payment_data)
-    return payment_response['response']
+    if payment_response.get('error'):
+        raise Exception(payment_response)
+    if payment_response['status'] == 400:
+        raise CardAlreadyUseError(payment_response.get('message'))
+    return MercadoPagoPaymentResponse.model_validate(
+        payment_response['response'],
+    )
 
 
 def accept_payment(payment_id, client: SDK = get_payment_client()):
     payment_data = {'capture': True}
     payment_response = client.payment().update(payment_id, payment_data)
-    return payment_response['response']
+    return MercadoPagoPaymentResponse.model_validate(
+        payment_response['response'],
+    )
 
 
 def cancel_credit_card_reservation(

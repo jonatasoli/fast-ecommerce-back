@@ -167,22 +167,12 @@ class SqlAlchemyRepository(AbstractRepository):
                         order.Product.product_id.in_(products),
                     ),
                 )
-                await self._check_products_db(products_db, products)
+                await _check_products_db(products_db, products)
 
                 return products_db.scalars().all()
         except Exception as e:
             logger.error(f'Error in _get_products: {e}')
             raise
-
-    @staticmethod
-    async def _check_products_db(
-        products_db: list,
-        products: list[int],
-    ) -> None:
-        """Must check if all products are in db."""
-        if not products_db:
-            msg = f'No products with ids {products}'
-            raise ProductNotFoundError(msg)
 
     async def _get_coupon_by_code(self: Self, code: str) -> order.Coupons:
         """Must return a coupon by code."""
@@ -274,3 +264,32 @@ async def get_coupon_by_code(
         raise ProductNotFoundError
 
     return coupon
+
+
+async def get_products(
+    products: list[int],
+    transaction: SessionTransaction,
+) -> list[order.Product]:
+    """Must return updated products in db."""
+    try:
+        products_db = await transaction.session.execute(
+            select(order.Product).where(
+                order.Product.product_id.in_(products),
+            ),
+        )
+        await _check_products_db(products_db, products)
+
+        return products_db.scalars().all()
+    except Exception as e:
+        logger.error(f'Error in _get_products: {e}')
+        raise
+
+
+async def _check_products_db(
+    products_db: list,
+    products: list[int],
+) -> None:
+    """Must check if all products are in db."""
+    if not products_db:
+        msg = f'No products with ids {products}'
+        raise ProductNotFoundError(msg)

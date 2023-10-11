@@ -17,6 +17,8 @@ async def create_pending_payment(
     order_id: int,
     *,
     cart: CartPayment,
+    authorization: str,
+    payment_gateway: str,
     user_id: int,
     bootstrap: Any,
 ) -> int:
@@ -25,6 +27,8 @@ async def create_pending_payment(
         order_id,
         cart=cart,
         user_id=user_id,
+        authorization=authorization,
+        payment_gateway=payment_gateway,
         bootstrap=bootstrap,
     )
 
@@ -32,12 +36,16 @@ async def create_pending_payment(
 async def update_payment(
     payment_id: int,
     payment_status: str,
+    authorization: str,
+    payment_gateway: str,
     bootstrap: Any,
 ):
     """Update payment status."""
     await bootstrap.payment_uow.uow_update_payment(
         payment_id,
         payment_status=payment_status,
+        authorization=authorization,
+        payment_gateway=payment_gateway,
         bootstrap=bootstrap,
     )
 

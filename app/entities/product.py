@@ -32,7 +32,7 @@ class ProductInDB(BaseModel):
     product_id: int
     name: str
     uri: str
-    price: int
+    price: Decimal
     active: bool
     direct_sales: bool
     description: Json | dict | None

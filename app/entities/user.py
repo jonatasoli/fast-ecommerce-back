@@ -30,7 +30,7 @@ class UserDBGet(BaseModel):
     role_id: int
     document: str
     phone: str
-    customer_id: str
+    customer_id: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
