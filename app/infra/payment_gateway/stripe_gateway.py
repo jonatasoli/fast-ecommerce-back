@@ -8,7 +8,7 @@ from config import settings
 
 
 # stripe.api_key = getattr(settings, "STRIPE_SECRET_KEY", None)
-stripe.api_key =  None
+stripe.api_key = None
 
 
 class PaymentGatewayRequestError(Exception):
