@@ -238,15 +238,18 @@ async def add_payment_information(  # noqa: PLR0913
             amount=int(cache_cart.subtotal),
             customer_id=customer,
         )
-        qr_code = _payment['point_of_interaction']['transaction_data'][
-            'qr_code_base64'
-        ]
+        import ipdb; ipdb.set_trace()
+        qr_code = _payment.point_of_interaction.qr_code
+        qr_code_base64 = _payment.point_of_interaction.qr_code_base64
+        payment_id = _payment.id
         cart = CartPayment(
             **cache_cart.model_dump(),
             payment_method=payment_method,
             gateway_provider=payment.payment_gateway,
             customer_id=customer,
             pix_qr_code=qr_code,
+            pix_qr_code_base4=qr_code_base64,
+            pix_payment_id=payment_id,
         )
         bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
         return cart

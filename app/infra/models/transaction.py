@@ -72,7 +72,7 @@ class Payment(Base):
     )
     amount: Mapped[int]
     token: Mapped[str]
-    gateway_id: Mapped[int]
+    gateway_payment_id: Mapped[int]
     status: Mapped[str]
     authorization: Mapped[str]
     payment_method: Mapped[str]

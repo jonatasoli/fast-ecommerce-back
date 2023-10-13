@@ -206,6 +206,8 @@ class CartPayment(CartShipping):
     customer_id: str | None = None
     card_token: str | None = None
     pix_qr_code: str | None = None
+    pix_qr_code_base4: str | None = None
+    pix_payment_id: int | None = None
     gateway_provider: str
     installments: int = 1
 

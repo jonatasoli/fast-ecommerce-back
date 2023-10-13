@@ -62,6 +62,7 @@ class PaymentDBUpdate(BaseModel):
     status: str
     payment_gateway: str
     authorization: str | None = None
+    gateway_payment_id: int | str | None = None
 
 
 def validate_payment(

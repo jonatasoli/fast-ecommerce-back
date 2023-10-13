@@ -82,14 +82,6 @@ async def checkout(
 
         match cart.payment_method:
             case (PaymentMethod.CREDIT_CARD.value):
-                payment_id, order_id = await create_pending_payment_and_order(
-                    cart=cart,
-                    affiliate=affiliate,
-                    coupon=coupon,
-                    user=user,
-                    payment_gateway=cart.gateway_provider,
-                    bootstrap=bootstrap,
-                )
                 payment_response = (
                     bootstrap.payment.create_credit_card_payment(
                         payment_gateway=cart.gateway_provider,
@@ -98,6 +90,16 @@ async def checkout(
                         card_token=cart.card_token,
                         installments=cart.installments,
                     )
+                )
+                payment_id, order_id = await create_pending_payment_and_order(
+                    cart=cart,
+                    affiliate=affiliate,
+                    coupon=coupon,
+                    user=user,
+                    payment_gateway=cart.gateway_provider,
+                    gateway_payment_id=payment_response.id,
+                    authorization=payment_response.authorization_code,
+                    bootstrap=bootstrap,
                 )
                 cart.payment_intent = payment_response.id
                 authorization = payment_response.authorization_code
@@ -146,6 +148,7 @@ async def checkout(
                     coupon=coupon,
                     payment_gateway=cart.gateway_provider,
                     user=user,
+                    payment_id=cart.pix_payment_id,
                     bootstrap=bootstrap,
                 )
                 logger.info(
@@ -171,6 +174,7 @@ async def create_pending_payment_and_order(
     coupon: Coupons | None,
     user: Any,
     payment_gateway: str,
+    gateway_payment_id: int,
     bootstrap: Any,
     authorization: str = 'PENDING',
 ) -> tuple[int, int]:
@@ -194,6 +198,7 @@ async def create_pending_payment_and_order(
             user_id=user['user_id'],
             authorization=authorization,
             payment_gateway=payment_gateway,
+            gateway_payment_id=gateway_payment_id,
             bootstrap=bootstrap,
         )
         if not payment_id:

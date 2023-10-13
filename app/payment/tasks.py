@@ -19,6 +19,7 @@ async def create_pending_payment(
     cart: CartPayment,
     authorization: str,
     payment_gateway: str,
+    gateway_payment_id: int | str,
     user_id: int,
     bootstrap: Any,
 ) -> int:
@@ -29,6 +30,7 @@ async def create_pending_payment(
         user_id=user_id,
         authorization=authorization,
         payment_gateway=payment_gateway,
+        gateway_payment_id=gateway_payment_id,
         bootstrap=bootstrap,
     )
 

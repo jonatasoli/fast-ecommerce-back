@@ -9,7 +9,37 @@ class CardAlreadyUseError(Exception):
     """Raise when card already use."""
 
 
+class TransactionPixData(BaseModel):
+    """Pix qr codes"""
+
+    qr_code: str
+    qr_code_base64: str
+
+
+class PointOfInteraction(BaseModel):
+    """Point Of interaction model"""
+    transaction_data: TransactionPixData
+
+
 class MercadoPagoPaymentResponse(BaseModel):
+    """Mercado Pago payment response."""
+
+    id: int
+    authorization_code: str
+    date_created: str
+    date_approved: str | None = None
+    currency_id: str
+    payment_method: dict
+    status: str
+    status_detail: str | None
+    currency_id: str
+    transaction_amount: Decimal
+    payer: dict
+    card: dict | None = None
+    amounts: dict | None = None
+
+
+class MercadoPagoPixPaymentResponse(BaseModel):
     """Mercado Pago payment response."""
 
     id: int
@@ -19,11 +49,10 @@ class MercadoPagoPaymentResponse(BaseModel):
     status: str
     status_detail: str | None
     currency_id: str
-    authorization_code: str
+    currency_id: str
     transaction_amount: Decimal
-    installments: int
     payer: dict
-    card: dict | None = None
+    point_of_interaction: PointOfInteraction
     amounts: dict | None = None
 
 
@@ -106,7 +135,9 @@ def cancel_credit_card_reservation(
 ):
     payment_data = {'status': 'cancelled'}
     payment_response = client.payment().update(payment_id, payment_data)
-    return payment_response['response']
+    return MercadoPagoPaymentResponse.model_validate(
+        payment_response['response'],
+    )
 
 
 def create_pix(customer_id, amount, client: SDK = get_payment_client()):
@@ -117,4 +148,8 @@ def create_pix(customer_id, amount, client: SDK = get_payment_client()):
     }
 
     payment_response = client.payment().create(payment_data)
-    return payment_response['response']
+    _payment = MercadoPagoPixPaymentResponse.model_validate(
+        payment_response['response'],
+    )
+    import ipdb; ipdb.set_trace() 
+    return _payment
