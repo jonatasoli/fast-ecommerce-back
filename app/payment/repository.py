@@ -19,6 +19,7 @@ async def create_payment(
     order_id: int,
     payment_gateway: str,
     authorization: str,
+    gateway_payment_id: int | str,
     transaction: SessionTransaction,
 ) -> Payment:
     """Create a new order."""
@@ -27,11 +28,11 @@ async def create_payment(
         order_id=order_id,
         amount=cart.subtotal,
         token=cart.card_token if cart.card_token else cart.pix_qr_code,
-        gateway_id=1,
         status=PaymentStatus.PENDING.value,
         authorization=authorization,
         payment_method=cart.payment_method,
         payment_gateway=payment_gateway,
+        gateway_payment_id=gateway_payment_id,
         installments=cart.installments,
     )
 

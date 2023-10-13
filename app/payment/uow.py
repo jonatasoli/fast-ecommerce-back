@@ -16,6 +16,7 @@ async def uow_create_pending_payment(
     authorization: str,
     payment_gateway: str,
     bootstrap: Any,
+    gateway_payment_id: int | str,
     transaction: SessionTransaction | None,
 ) -> int:
     """Create a new payment."""
@@ -33,6 +34,7 @@ async def uow_create_pending_payment(
             user_id=user_id,
             authorization=authorization,
             payment_gateway=payment_gateway,
+            gateway_payment_id=gateway_payment_id,
             transaction=transaction,
         )
     return payment.payment_id

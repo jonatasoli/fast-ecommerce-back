@@ -139,7 +139,7 @@ async def checkout(
                         bootstrap=bootstrap,
                     )
                 logger.info(
-                    f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success',
+                    f'Checkout cart {cart_uuid} with payment {payment_id} processed with success',
                 )
             case (PaymentMethod.PIX.value):
                 payment_id, order_id = await create_pending_payment_and_order(
@@ -148,7 +148,7 @@ async def checkout(
                     coupon=coupon,
                     payment_gateway=cart.gateway_provider,
                     user=user,
-                    payment_id=cart.pix_payment_id,
+                    gateway_payment_id=cart.pix_payment_id,
                     bootstrap=bootstrap,
                 )
                 logger.info(
@@ -158,7 +158,7 @@ async def checkout(
                 raise Exception('Payment method not found')
 
         bootstrap.cache.delete(cart_uuid)
-        return f'{payment_id} is paid'
+        return f'{payment_id} is processed'
     except PaymentAcceptError:
         return PAYMENT_STATUS_ERROR_MESSAGE
     except PaymentGatewayRequestError:

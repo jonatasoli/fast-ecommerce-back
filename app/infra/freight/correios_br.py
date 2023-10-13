@@ -129,6 +129,7 @@ def calculate_delivery_time(
         msg = 'Erro to connect with corrios api'
         raise TimeoutException(msg)
     _response = response.json()
+    import ipdb; ipdb.set_trace()
     if not (delivery_time_response := _response[0]['prazoEntrega']):
         msg = 'Error to calculate delivery time'
         raise Exception(msg)

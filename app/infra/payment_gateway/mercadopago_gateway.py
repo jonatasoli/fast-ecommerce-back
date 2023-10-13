@@ -151,5 +151,4 @@ def create_pix(customer_id, amount, client: SDK = get_payment_client()):
     _payment = MercadoPagoPixPaymentResponse.model_validate(
         payment_response['response'],
     )
-    import ipdb; ipdb.set_trace() 
     return _payment
