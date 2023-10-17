@@ -72,7 +72,7 @@ class Payment(Base):
     )
     amount: Mapped[Decimal]
     token: Mapped[str]
-    gateway_payment_id: Mapped[int] = mapped_column(server_default="0")
+    gateway_payment_id: Mapped[int] = mapped_column(server_default='0')
     status: Mapped[str]
     authorization: Mapped[str]
     payment_method: Mapped[str]

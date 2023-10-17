@@ -18,6 +18,7 @@ class TransactionPixData(BaseModel):
 
 class PointOfInteraction(BaseModel):
     """Point Of interaction model"""
+
     transaction_data: TransactionPixData
 
 

@@ -239,7 +239,9 @@ async def add_payment_information(  # noqa: PLR0913
             customer_id=customer,
         )
         qr_code = _payment.point_of_interaction.transaction_data.qr_code
-        qr_code_base64 = _payment.point_of_interaction.transaction_data.qr_code_base64
+        qr_code_base64 = (
+            _payment.point_of_interaction.transaction_data.qr_code_base64
+        )
         payment_id = _payment.id
         cart = CartPayment(
             **cache_cart.model_dump(),
