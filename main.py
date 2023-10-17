@@ -1,14 +1,12 @@
 import logging
 import sys
 from fastapi.responses import JSONResponse
-from propan.brokers.rabbit import RabbitQueue
-from propan.fastapi import RabbitRouter
-from pydantic import BaseModel
 
 import sentry_sdk
 from app.entities.cart import ProductNotFoundError
+from app.infra.payment_gateway.mercadopago_gateway import CardAlreadyUseError
 from config import settings
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
@@ -27,10 +25,10 @@ from app.infra.endpoints.default import (
     inventory,
     reviews,
     coupons,
-    reports,
     campaing,
     sales,
 )
+from app.infra.endpoints.report import report
 from app.cart.tasks import task_message_bus
 from app.payment.tasks import task_message_bus
 from app.infra.worker import task_message_bus
@@ -46,9 +44,11 @@ class InterceptHandler(logging.Handler):
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
 origins = [
-    '*',
+    'http://localhost:3000',
+    settings.FRONTEND_URLS,
 ]
 
+logger.info(f'Environment: {settings.ENVIRONMENT}')
 if settings.ENVIRONMENT == 'production':
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
@@ -69,6 +69,13 @@ app.add_middleware(
 async def product_not_found_exception_handler(_: Request, exc: ProductNotFoundError):
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
+        content={'message': f'{exc.args[0]}'},
+    )
+
+@app.exception_handler(CardAlreadyUseError)
+async def card_already_use_exception_handler(_: Request, exc: CardAlreadyUseError):
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
         content={'message': f'{exc.args[0]}'},
     )
 
@@ -105,7 +112,7 @@ app.include_router(cart)
 app.include_router(inventory)
 app.include_router(reviews)
 app.include_router(coupons)
-app.include_router(reports)
+app.include_router(report)
 app.include_router(campaing)
 app.include_router(sales)
 app.include_router(task_message_bus)

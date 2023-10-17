@@ -13,7 +13,7 @@ from app.infra.models.users import User, Address, UserResetPassword
 from app.infra.models.order import Category, Product, Coupons, Order, OrderItems, OrderStatusSteps, ImageGallery
 from app.infra.models.transaction import Transaction, Payment, CreditCardFeeConfig
 from app.infra.models.uploadedimage import UploadedImage
-from app.infra.models.commissions import CommissionsTransactions, CommissionsWallet
+from app.infra.models.commissions import SalesComission
 from app.infra.models.franchise import Franchise
 
 # this is the Alembic Config object, which provides

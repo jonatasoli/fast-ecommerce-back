@@ -51,6 +51,7 @@ class Customer(Base):
     status: Mapped[bool]
     created_at: Mapped[datetime] = mapped_column(default=func.now())
 
+
 class Payment(Base):
     __tablename__ = 'payment'
 
@@ -69,9 +70,9 @@ class Payment(Base):
         cascade='all,delete',
         uselist=False,
     )
-    amount: Mapped[int]
+    amount: Mapped[Decimal]
     token: Mapped[str]
-    gateway_id: Mapped[int]
+    gateway_payment_id: Mapped[int] = mapped_column(server_default="0")
     status: Mapped[str]
     authorization: Mapped[str]
     payment_method: Mapped[str]

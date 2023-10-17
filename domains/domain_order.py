@@ -1,7 +1,10 @@
+from decimal import Decimal
 import json
+import math
 from collections import defaultdict
+from fastapi import HTTPException, status
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from loguru import logger
 from sqlalchemy import Date, cast
 from sqlalchemy.orm import Session
@@ -10,7 +13,7 @@ from app.infra.optimize_image import optimize_image
 from app.infra.models.order import Category, ImageGallery, Order, Product
 from app.infra.models.transaction import Payment, Transaction
 from app.infra.models.users import Address, User
-from app.entities.product import ProductInDB
+from app.entities.product import ProductCategoryInDB, ProductInDB, ProductsResponse
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,
@@ -38,7 +41,6 @@ def get_product(db: Session, uri) -> ProductInDB | None:
 def create_product(db: Session, product_data: ProductSchema):
     db_product = Product(**product_data.model_dump(exclude={'description'}))
     db_product.description = json.dumps(product_data.description)
-    import ipdb; ipdb.set_trace()
     with db:
         db.add(db_product)
         db.commit()
@@ -112,30 +114,29 @@ def get_showcase(db: Session):
         products = []
 
         for showcase in showcases:
-            products.append(ProductInDB.model_validate(showcase))
+            products.append(ProductCategoryInDB.model_validate(showcase))
 
         return products
 
 
-def get_installments(db: Session, cart):
+def get_installments(product_id: int, *, db: Session):
     with db:
-        _cart = cart.dict()
-        _product_id = _cart['cart'][0]['product_id']
         _product_config_query = select(Product).where(
-            Product.id == int(_product_id),
+            Product.product_id == product_id,
         )
-        _product = db.execute(_product_config_query).scalars().first()
+        product = db.scalar(_product_config_query)
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Product not found',
+            )
         _total_amount = 0
         _total_amount_fee = 0
         _installments = []
 
-        for item in _cart['cart']:
-            _total_amount += item['amount'] * item['qty']
-
-        logger.debug(f'Total da soma {_total_amount}')
         for n in range(1, 13):
             if n <= 3:
-                _installment = (_total_amount / n) / 100
+                _installment = (product.price / n) / 100
                 _installments.append(
                     {
                         'name': f'{n} x R${round(_installment, 2)}',
@@ -144,7 +145,7 @@ def get_installments(db: Session, cart):
                 )
                 logger.debug(f'Parcela sem juros {_installment}')
             else:
-                _total_amount_fee = _total_amount * (1 + 0.0199) ** n
+                _total_amount_fee = int(product.price) * (1 + (0.0199 * n))
                 _installment = (_total_amount_fee / n) / 100
                 _installments.append(
                     {
@@ -414,40 +415,139 @@ def get_category(db: Session):
     return {'category': category_list}
 
 
-def get_products_category(db: Session, path):
+class NotFoundCategoryException(Exception):
+    """Not Found Category Exception."""
+    ...
+
+def get_products_category(*, offset: int, page: int, path: str, db: Session) -> ProductsResponse:
     products = None
     products_category = []
     with db:
         category_query = select(Category).where(Category.path == path)
-        category = db.execute(category_query).scalars().first()
+        category = db.scalar(category_query)
+
+        if not category:
+            raise NotFoundCategoryException()
 
         logger.info(category.path, category.category_id)
+
         products_query = (
             select(Product)
             .where(
                 Product.category_id == category.category_id,
             )
         )
-        products = db.execute(products_query).scalars().all()
+        total_records = db.scalar(select(func.count(Product.product_id)).where(Product.category_id == category.category_id))
+        if page > 1:
+            products_query = products_query.offset((page - 1) * offset)
+        products_query = products_query.limit(offset)
+
+        products = db.scalars(products_query)
 
         for product in products:
-            products_category.append(product)
+            products_category.append(ProductCategoryInDB.model_validate(product))
 
-    if products:
-        return {'product': products_category}
-    return {'product': []}
+    return ProductsResponse(
+        total_records=total_records if total_records else 0,
+        total_pages= math.ceil(total_records / offset) if total_records else 1,
+        page=page,
+        offset=offset,
+        products=products_category
+    )
 
 
-def get_product_all(db: Session):
+def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
     products = None
+    total_records = 0
     with db:
         products = select(Product)
-        products = db.execute(products).scalars().all()
+        total_records = db.scalar(select(func.count(Product.product_id)))
+        if page > 1:
+            products = products.offset((page - 1) * offset)
+        products = products.limit(offset)
+
+        products = db.scalars(products).all()
     products_list = []
 
     for product in products:
-        products_list.append(ProductInDB.model_validate(product))
+        products_list.append(ProductCategoryInDB.model_validate(product))
 
-    if products:
-        return {'products': products_list}
-    return {'products': []}
+    return ProductsResponse(
+        total_records=total_records if total_records else 0,
+        total_pages= math.ceil(total_records / offset) if total_records else 1,
+        page=page,
+        offset=offset,
+        products=products_list
+    )
+
+
+def get_latest_products(offset: int, page: int, db: Session) -> ProductsResponse:
+    products = None
+    with db:
+        products = select(Product)
+        total_records = db.scalar(select(func.count(Product.product_id)))
+        if page > 1:
+            products = products.offset((page - 1) * offset)
+        products = products.limit(offset)
+        products = products.order_by(Product.product_id.desc())
+
+        products = db.scalars(products).all()
+    products_list = []
+
+    for product in products:
+        products_list.append(ProductCategoryInDB.model_validate(product))
+
+    return ProductsResponse(
+        total_records=total_records if total_records else 0,
+        total_pages= math.ceil(total_records / offset) if total_records else 1,
+        page=page,
+        offset=offset,
+        products=products_list
+    )
+
+
+def get_featured_products(offset: int, page: int, db: Session) -> ProductsResponse:
+    products = None
+    with db:
+        products = select(Product).where(Product.feature == True)
+        total_records = db.scalar(select(func.count(Product.product_id)))
+        if page > 1:
+            products = products.offset((page - 1) * offset)
+        products = products.limit(offset)
+
+        products = db.scalars(products).all()
+    products_list = []
+
+    for product in products:
+        products_list.append(ProductCategoryInDB.model_validate(product))
+
+    return ProductsResponse(
+        total_records=total_records if total_records else 0,
+        total_pages= math.ceil(total_records / offset) if total_records else 1,
+        page=page,
+        offset=offset,
+        products=products_list
+    )
+
+
+def search_products(search:str, offset: int, page: int,  db: Session):
+    products = None
+    with db:
+        products = select(Product).where(Product.name.ilike(f"%{search}%"))
+        total_records = db.scalar(select(func.count(Product.product_id)).where(Product.name.ilike(f"%{search}%")))
+        if page > 1:
+            products = products.offset((page - 1) * offset)
+        products = products.limit(offset)
+        products = db.scalars(products).all()
+    products_list = []
+
+    for product in products:
+        products_list.append(ProductCategoryInDB.model_validate(product))
+
+    return ProductsResponse(
+        total_records=total_records if total_records else 0,
+        total_pages= math.ceil(total_records / offset) if total_records else 1,
+        page=page,
+        offset=offset,
+        products=products_list
+    )

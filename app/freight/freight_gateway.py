@@ -1,7 +1,3 @@
-from abc import ABC, abstractmethod
-from decimal import Decimal
-from typing import Self
-
 from pydantic import BaseModel
 from app.entities.product import ProductInDB
 

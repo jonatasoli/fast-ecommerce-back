@@ -1,3 +1,5 @@
+from datetime import datetime
+from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
 
 
@@ -28,6 +30,23 @@ class UserDBGet(BaseModel):
     role_id: int
     document: str
     phone: str
-    customer_id: str
+    customer_id: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserCouponResponse(BaseModel):
+    urls: list[str]
+
+
+class Comission(BaseModel):
+    order_id: int
+    user_name: str
+    commission: Decimal
+    date_created: datetime
+    released: bool
+    paid: bool
+
+
+class UserSalesComissions(BaseModel):
+    comissions: list[Comission] | list[None]

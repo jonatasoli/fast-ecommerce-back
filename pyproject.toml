@@ -46,7 +46,7 @@ propan = {version = "^0.1.5.18", extras = ["async-rabbit"]}
 mercadopago = "^2.2.1"
 
 [tool.poetry.group.dev.dependencies]
-blue = "*"
+blue = "^0.9.1"
 isort = "*"
 ruff = "*"
 coverage = "*"

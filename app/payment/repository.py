@@ -2,11 +2,12 @@ from datetime import datetime
 from sqlalchemy import update
 
 from sqlalchemy.orm import SessionTransaction
+from sqlalchemy.orm.exc import NoResultFound
 
 from sqlalchemy.sql import select
 
 from app.entities.cart import CartPayment
-from app.entities.payment import PaymentGateway, PaymentDBUpdate
+from app.entities.payment import PaymentDBUpdate
 from app.infra.constants import PaymentMethod, PaymentStatus
 from app.infra.models.transaction import Customer, Payment
 
@@ -16,6 +17,9 @@ async def create_payment(
     *,
     user_id: int,
     order_id: int,
+    payment_gateway: str,
+    authorization: str,
+    gateway_payment_id: int | str,
     transaction: SessionTransaction,
 ) -> Payment:
     """Create a new order."""
@@ -23,12 +27,12 @@ async def create_payment(
         user_id=user_id,
         order_id=order_id,
         amount=cart.subtotal,
-        token=cart.payment_intent,
-        gateway_id=1,
+        token=cart.card_token if cart.card_token else cart.pix_qr_code,
         status=PaymentStatus.PENDING.value,
-        authorization=cart.payment_intent,
-        payment_method=cart.payment_method_id,
-        payment_gateway=PaymentGateway.STRIPE.name,
+        authorization=authorization,
+        payment_method=cart.payment_method,
+        payment_gateway=payment_gateway,
+        gateway_payment_id=gateway_payment_id,
         installments=cart.installments,
     )
 
@@ -86,11 +90,11 @@ async def create_customer(
     user_id: int,
     customer_uuid: str,
     payment_gateway: str,
+    transaction: SessionTransaction,
     payment_method: str = PaymentMethod.CREDIT_CARD.name,
     token: str = '',
     issuer_id: str = '',
     status: bool = True,
-    transaction: SessionTransaction,
 ) -> Customer:
     """Create a new customer."""
     customer = Customer(
@@ -106,6 +110,9 @@ async def create_customer(
 
     transaction.session.add(customer)
     await transaction.session.flush()
+    if not customer:
+        msg = 'Customer not found'
+        raise NoResultFound(msg)
     return customer
 
 
@@ -116,5 +123,9 @@ async def get_customer(
     transaction: SessionTransaction,
 ) -> Customer:
     """Get an customers from user by its id and payment_gateway."""
-    customer_query = select(Customer).where(Customer.user_id == user_id).where(Customer.payment_gateway == payment_gateway)
+    customer_query = (
+        select(Customer)
+        .where(Customer.user_id == user_id)
+        .where(Customer.payment_gateway == payment_gateway)
+    )
     return await transaction.session.scalar(customer_query)

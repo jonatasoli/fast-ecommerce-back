@@ -98,6 +98,7 @@ class CartBase(BaseModel):
         self: Self,
         product_id: int,
         quantity: int,
+        price: Decimal,
         name: str | None,
         image_path: str | None,
     ) -> Self:
@@ -107,12 +108,14 @@ class CartBase(BaseModel):
                 item.name = name
                 item.image_path = image_path
                 item.quantity += quantity
+                item.price += price
                 return self
 
         self.cart_items.append(
             ProductCart(
                 product_id=product_id,
                 quantity=quantity,
+                price=price,
                 name=name,
                 image_path=image_path,
             ),
@@ -198,11 +201,13 @@ class CartPayment(CartShipping):
     """Cart fourth step representation with payment information."""
 
     payment_method: str
-    payment_method_id: str
+    payment_method_id: str | None = None
     payment_intent: str | None = None
     customer_id: str | None = None
     card_token: str | None = None
     pix_qr_code: str | None = None
+    pix_qr_code_base4: str | None = None
+    pix_payment_id: int | None = None
     gateway_provider: str
     installments: int = 1
 
@@ -223,7 +228,7 @@ class CreateCreditCardTokenPaymentMethod(BaseModel):
     """Create credit card token payment method."""
 
     payment_gateway: str
-    cart_token: str
+    card_token: str
     installments: int = 1
 
 
@@ -264,7 +269,7 @@ def generate_empty_cart() -> CartBase:
 
 def generate_new_cart(
     product: ProductInDB,
-    price: int,
+    price: Decimal,
     quantity: int,
 ) -> CartBase:
     """Generate new cart."""
@@ -275,7 +280,7 @@ def generate_new_cart(
     return CartBase(
         uuid=generate_cart_uuid(),
         cart_items=[product],
-        subtotal=convert_price_to_decimal(price * quantity),
+        subtotal=price * quantity,
     )
 
 
