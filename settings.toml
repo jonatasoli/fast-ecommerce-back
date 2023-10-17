@@ -1,4 +1,7 @@
 [default]
+DATABASE_URL="postgresql://postgres_user:pass@localhost/ecommerce"
+DATABASE_URI="postgresql+asyncpg://postgres_user:pass@localhost/ecommerce"
+FRONTEND_URLS= "https://localhost:3000"
 REDIS_URL="redis://:@localhost:6379"
 REDIS_DB=0
 SECRET_KEY="NOT_SECURE_SECRET_KEY"

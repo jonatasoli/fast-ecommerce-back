@@ -15,18 +15,15 @@ from app.entities.cart import (
     generate_new_cart,
     validate_cache_cart,
 )
-from app.entities.coupon import CouponBase, CouponResponse
+from app.entities.coupon import CouponResponse
 from app.entities.product import ProductCart
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
-from app.infra.constants import PaymentGateway, PaymentMethod
-import zipcode
+from app.infra.constants import PaymentGatewayAvailable, PaymentMethod
 
 
 class UserAddressNotFoundError(Exception):
     """User address not found."""
-
-    ...
 
 
 def create_or_get_cart(
@@ -55,6 +52,7 @@ async def add_product_to_cart(
     """Must add product to new cart and return cart."""
     cache = bootstrap.cache
     product_db = await bootstrap.uow.get_product_by_id(product.product_id)
+    logger.info(f'product_db: {product_db}')
     cart = None
     if cart_uuid:
         cart = cache.get(cart_uuid)
@@ -71,6 +69,7 @@ async def add_product_to_cart(
             product_id=product.product_id,
             quantity=product.quantity,
             name=product_db.name,
+            price=product_db.price,
             image_path=product_db.image_path,
         )
     cache.set(str(cart.uuid), cart.model_dump_json())
@@ -116,7 +115,9 @@ async def calculate_cart(
         )
         cart.freight = freight
     if cart.cart_items:
-        cart.calculate_subtotal(discount=coupon.coupon_fee if cart.coupon else 0)
+        cart.calculate_subtotal(
+            discount=coupon.coupon_fee if cart.coupon else 0,
+        )
     cache.set(str(cart.uuid), cart.model_dump_json())
     return cart
 
@@ -131,15 +132,17 @@ async def add_user_to_cart(
     user = bootstrap.user.get_current_user(token)
     customer_stripe_uuid = await bootstrap.cart_uow.get_customer(
         user.user_id,
-        payment_gateway=PaymentGateway.STRIPE.name,
-            )
+        payment_gateway=PaymentGatewayAvailable.STRIPE.name,
+        bootstrap=bootstrap,
+    )
     customer_mercadopago_uuid = await bootstrap.cart_uow.get_customer(
         user.user_id,
-        payment_gateway=PaymentGateway.MERCADOPAGO.name,
+        payment_gateway=PaymentGatewayAvailable.MERCADOPAGO.name,
+        bootstrap=bootstrap,
     )
-    if not customer_stripe_uuid and not customer_mercadopago_uuid:
+    if not customer_stripe_uuid or not customer_mercadopago_uuid:
         await bootstrap.message.broker.publish(
-            {'user_id': user.user_id},
+            {'user_id': user.user_id, 'user_email': user.email},
             queue=RabbitQueue('create_customer'),
         )
     user_data = UserData.model_validate(user)
@@ -201,47 +204,89 @@ async def add_payment_information(  # noqa: PLR0913
     uuid: str,
     payment_method: str,
     cart: CartShipping,
-    payment: CreateCreditCardPaymentMethod | CreatePixPaymentMethod | CreateCreditCardTokenPaymentMethod,
+    payment: CreateCreditCardPaymentMethod
+    | CreatePixPaymentMethod
+    | CreateCreditCardTokenPaymentMethod,
     token: str,
     bootstrap: Command,
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
     user = bootstrap.user.get_current_user(token)
-    if payment_method == PaymentMethod.CREDIT_CARD.name and isinstance(payment, CreateCreditCardPaymentMethod | CreateCreditCardTokenPaymentMethod):
-        installments = payment.installments
-        cache_cart = bootstrap.cache.get(uuid)
-        cache_cart = CartShipping.model_validate_json(cache_cart)
-        if cache_cart.uuid != cart.uuid:
-            raise HTTPException(
-                status_code=400,
-                detail='Cart uuid is not the same as the cache uuid',
-            )
-        # TODO: create payment method need check if pix or credit_card and get payment gateway to redirect for correct payment payment_gateway
-        # create_payment_method needs config in payment_gateway module
-        _payment = bootstrap.payment[payment.payment_gateway].create_payment_method(payment)
-        payment_method_id = _payment.get('id')
-        if not payment_method_id:
-            raise HTTPException(
-                status_code=400,
-                detail='Payment method id not found',
-            )
-        bootstrap.payment[payment.payment_gateway].attach_customer_in_payment_method(
-            payment_method_id,
-            user.customer_id,
+    cache_cart = bootstrap.cache.get(uuid)
+    cache_cart = CartShipping.model_validate_json(cache_cart)
+    if cache_cart.uuid != cart.uuid:
+        raise HTTPException(
+            status_code=400,
+            detail='Cart uuid is not the same as the cache uuid',
         )
+    if not payment.payment_gateway:
+        raise HTTPException(
+            status_code=400,
+            detail='Payment not defined',
+        )
+    customer = await bootstrap.cart_uow.get_customer(
+        user.user_id,
+        payment_gateway=payment.payment_gateway,
+        bootstrap=bootstrap,
+    )
+    if payment_method == PaymentMethod.PIX.value and isinstance(
+        payment,
+        CreatePixPaymentMethod,
+    ):
+        payment_gateway = 'mercadopago_gateway'
+        _payment = getattr(bootstrap.payment, payment_gateway).create_pix(
+            amount=int(cache_cart.subtotal),
+            customer_id=customer,
+        )
+        qr_code = _payment.point_of_interaction.transaction_data.qr_code
+        qr_code_base64 = _payment.point_of_interaction.transaction_data.qr_code_base64
+        payment_id = _payment.id
         cart = CartPayment(
             **cache_cart.model_dump(),
             payment_method=payment_method,
-            payment_method_id=payment_method_id,
-            customer_id=user.customer_id,
-            installments=installments,
+            gateway_provider=payment.payment_gateway,
+            customer_id=customer,
+            pix_qr_code=qr_code,
+            pix_qr_code_base4=qr_code_base64,
+            pix_payment_id=payment_id,
         )
         bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
-        await bootstrap.uow.update_payment_method_to_user(
-            user.user_id,
-            _payment.get('id'),
-        )
         return cart
+    if not isinstance(
+        payment,
+        CreateCreditCardPaymentMethod | CreateCreditCardTokenPaymentMethod,
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail='Payment method not found',
+        )
+    installments = payment.installments
+    payment_method_id = bootstrap.payment.attach_customer_in_payment_method(
+        payment_gateway=payment.payment_gateway,
+        card_token=payment.card_token,
+        customer_uuid=customer,
+        email=user.email,
+    )
+    if not payment_method_id:
+        raise HTTPException(
+            status_code=400,
+            detail='Payment method id not found',
+        )
+    cart = CartPayment(
+        **cache_cart.model_dump(),
+        payment_method=PaymentMethod.CREDIT_CARD.value,
+        payment_method_id=payment_method_id,
+        gateway_provider=payment.payment_gateway,
+        card_token=payment.card_token,
+        customer_id=customer,
+        installments=installments,
+    )
+    bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
+    await bootstrap.uow.update_payment_method_to_user(
+        user.user_id,
+        payment_method_id,
+    )
+    return cart
 
 
 async def preview(
@@ -253,14 +298,15 @@ async def preview(
     user = bootstrap.user.get_current_user(token)
     cart = bootstrap.cache.get(uuid)
     cache_cart = CartPayment.model_validate_json(cart)
-    payment_intent = bootstrap.payment.create_payment_intent(
-        amount=cache_cart.subtotal,
-        currency='brl',
-        customer_id=user.customer_id,
-        payment_method=cache_cart.payment_method_id,
-        installments=cache_cart.installments,
-    )
-    cache_cart.payment_intent = payment_intent['id']
+    if cache_cart.gateway_provider == PaymentGatewayAvailable.STRIPE.name:
+        payment_intent = bootstrap.payment.create_payment_intent(
+            amount=cache_cart.subtotal,
+            currency='brl',
+            customer_id=user.customer_id,
+            payment_method=cache_cart.payment_method_id,
+            installments=cache_cart.installments,
+        )
+        cache_cart.payment_intent = payment_intent['id']
     bootstrap.cache.set(str(cache_cart.uuid), cache_cart.model_dump_json())
     return cache_cart
 
@@ -278,13 +324,22 @@ async def checkout(
     validate_cache_cart(cache_cart)
     cache_cart = CartPayment.model_validate_json(cache_cart)
 
+    if (
+        cache_cart.payment_method != PaymentMethod.CREDIT_CARD.value
+        and cache_cart.payment_method != PaymentMethod.PIX.value
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail='Payment method not found',
+        )
+
     logger.info(f'{uuid}, {cache_cart.payment_intent} ')
     user = UserDBGet.model_validate(user)
     checkout_task = await bootstrap.message.broker.publish(
         {
             'cart_uuid': uuid,
-            'payment_intent': cache_cart.payment_intent,
-            'payment_method': cache_cart.payment_method_id,
+            'payment_gateway': cache_cart.gateway_provider,
+            'payment_method': cache_cart.payment_method,
             'user': user,
         },
         queue=RabbitQueue('checkout'),
@@ -300,12 +355,12 @@ async def get_coupon(code: str, bootstrap: Command) -> CouponResponse:
     """Must get coupon and return cart."""
     async with bootstrap.db().begin() as transaction:
         coupon = await bootstrap.cart_uow.get_coupon_by_code(
-            code, transaction=transaction
+            code,
+            transaction=transaction,
         )
         if not coupon:
             raise HTTPException(
                 status_code=400,
                 detail='Coupon not found',
             )
-    return coupon
     return coupon

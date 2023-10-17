@@ -2,7 +2,7 @@
 from __future__ import annotations
 import abc
 from decimal import Decimal
-from typing import Self
+from typing import Any, Self, TYPE_CHECKING
 from app.entities.coupon import CouponBase, CouponResponse
 
 from app.entities.product import ProductCart, ProductInDB
@@ -10,11 +10,13 @@ from app.cart import repository
 from app.infra.custom_decorators import database_uow
 from app.infra.database import get_async_session
 
-from app.entities.user import UserAddress
-from sqlalchemy.orm import SessionTransaction, sessionmaker
-from app.entities.user import UserData
-from app.entities.address import AddressBase
 from app.payment import repository as payment_repository
+
+if TYPE_CHECKING:
+    from app.entities.user import UserData
+    from app.entities.user import UserAddress
+    from app.entities.address import AddressBase
+    from sqlalchemy.orm import SessionTransaction, sessionmaker
 
 
 class AbstractUnitOfWork(abc.ABC):
@@ -272,7 +274,8 @@ async def get_coupon_by_code(
 ) -> CouponResponse:
     """Must return a coupon by code."""
     coupon_db = await repository.get_coupon_by_code(
-        code, transaction=transaction
+        code,
+        transaction=transaction,
     )
     return CouponResponse.model_validate(coupon_db)
 
@@ -284,7 +287,7 @@ async def get_customer(
     payment_gateway: str,
     bootstrap: Any,
     transaction: SessionTransaction | None,
-) -> int | None:
+) -> str | None:
     """Must return a customer by user id."""
     if not transaction:
         msg = 'Transaction must be provided'
@@ -292,6 +295,27 @@ async def get_customer(
     customer = await payment_repository.get_customer(
         user_id,
         payment_gateway=payment_gateway,
-        transaction=transaction
+        transaction=transaction,
     )
-    return customer.customer_uuid
+    custumer_uuid = None
+    if customer:
+        custumer_uuid = customer.customer_uuid
+    return custumer_uuid
+
+
+@database_uow()
+async def get_products(
+    products: list,
+    bootstrap: Any,
+    transaction: SessionTransaction | None,
+) -> list[ProductCart]:
+    """Must return a products in list."""
+    if not transaction:
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
+    product_ids: list[int] = [item.product_id for item in products]
+    products_db = await repository.get_products(
+        products=product_ids,
+        transaction=transaction,
+    )
+    return [ProductInDB.model_validate(product) for product in products_db]

@@ -16,6 +16,7 @@ class Category(Base):
     path: Mapped[str]
     menu: Mapped[bool] = mapped_column(default=False)
     showcase: Mapped[bool] = mapped_column(default=False)
+    image_path: Mapped[str | None]
 
 
 class Product(Base):
@@ -40,8 +41,10 @@ class Product(Base):
         backref='Product',
         cascade='all,delete',
         uselist=False,
+        lazy='joined',
     )
     showcase: Mapped[bool] = mapped_column(default=False)
+    feature: Mapped[bool] = mapped_column(default=False, server_default='0')
     show_discount: Mapped[bool] = mapped_column(default=False)
     height: Mapped[Decimal | None]
     width: Mapped[Decimal | None]
@@ -56,7 +59,7 @@ class Coupons(Base):
 
     coupon_id: Mapped[int] = mapped_column(primary_key=True)
     affiliate_id: Mapped[int | None] = mapped_column(
-        ForeignKey('user.user_id')
+        ForeignKey('user.user_id'),
     )
     user = relationship(
         'User',

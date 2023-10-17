@@ -1,9 +1,9 @@
 # ruff:  noqa: D202 D205 T201 D212
 from typing import Any, Self
 from fastapi import Depends
-from app.infra.constants import OrderStatus, PaymentStatus
+from app.infra.constants import OrderStatus, PaymentMethod
 
-from app.entities.payment import validate_payment
+from app.infra.models.order import Coupons
 from app.inventory.tasks import decrease_inventory
 from app.order.entities import (
     CreateOrderStatusStepError,
@@ -13,7 +13,9 @@ from app.order.entities import (
 from loguru import logger
 
 from app.entities.cart import CartPayment
-from app.infra.payment_gateway.stripe import PaymentGatewayRequestError, confirm_payment_intent
+from app.infra.payment_gateway.stripe_gateway import (
+    PaymentGatewayRequestError,
+)
 
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 from app.order.tasks import (
@@ -47,14 +49,14 @@ async def get_bootstrap() -> Command:
 @task_message_bus.event('checkout')
 async def checkout(
     cart_uuid: str,
-    payment_intent: str,
     payment_method: str,
+    payment_gateway: str,
     user: Any,
     bootstrap: Any = Depends(get_bootstrap),
 ) -> str:
     """Checkout cart with payment intent."""
     logger.info(
-        f'Checkout cart start{cart_uuid} with intent {payment_intent} concluded with success',
+        f'Checkout cart start{cart_uuid} with gateway {payment_gateway} with success',
     )
     try:
         cache = bootstrap.cache
@@ -71,7 +73,113 @@ async def checkout(
                     session,
                     coupon,
                 )
+                products_db = await bootstrap.cart_repository.get_products(
+                    products=cart.cart_items,
+                    transaction=session,
+                )
+                cart.get_products_price_and_discounts(products_db)
         cart.calculate_subtotal(discount=coupon.discount if cart.coupon else 0)
+
+        match cart.payment_method:
+            case (PaymentMethod.CREDIT_CARD.value):
+                payment_response = (
+                    bootstrap.payment.create_credit_card_payment(
+                        payment_gateway=cart.gateway_provider,
+                        customer_id=cart.customer_id,
+                        amount=cart.subtotal,
+                        card_token=cart.card_token,
+                        installments=cart.installments,
+                    )
+                )
+                payment_id, order_id = await create_pending_payment_and_order(
+                    cart=cart,
+                    affiliate=affiliate,
+                    coupon=coupon,
+                    user=user,
+                    payment_gateway=cart.gateway_provider,
+                    gateway_payment_id=payment_response.id,
+                    authorization=payment_response.authorization_code,
+                    bootstrap=bootstrap,
+                )
+                cart.payment_intent = payment_response.id
+                authorization = payment_response.authorization_code
+                payment_accept = bootstrap.payment.accept_payment(
+                    payment_gateway=cart.gateway_provider,
+                    payment_id=cart.payment_intent,
+                )
+
+                logger.info(f'Payment response: {payment_accept}')
+
+                # TODO: check if order is in inventory for decrease
+                await decrease_inventory(
+                    cart=cart,
+                    order_id=order_id,
+                    bootstrap=bootstrap,
+                )
+                if payment_accept.status == 'approved':
+                    await update_order(
+                        order_update=OrderDBUpdate(
+                            order_id=order_id,
+                            order_status=OrderStatus.PAYMENT_PAID.value,
+                            customer_id=cart.customer_id,
+                        ),
+                        bootstrap=bootstrap,
+                    )
+                    payment_id = await update_payment(
+                        payment_id=payment_id,
+                        payment_gateway=cart.gateway_provider,
+                        authorization=authorization,
+                        payment_status=payment_accept.status,
+                        bootstrap=bootstrap,
+                    )
+                    await create_order_status_step(
+                        order_id=order_id,
+                        status=OrderStatus.PAYMENT_PAID.value,
+                        send_mail=True,
+                        bootstrap=bootstrap,
+                    )
+                logger.info(
+                    f'Checkout cart {cart_uuid} with payment {payment_id} processed with success',
+                )
+            case (PaymentMethod.PIX.value):
+                payment_id, order_id = await create_pending_payment_and_order(
+                    cart=cart,
+                    affiliate=affiliate,
+                    coupon=coupon,
+                    payment_gateway=cart.gateway_provider,
+                    user=user,
+                    gateway_payment_id=cart.pix_payment_id,
+                    bootstrap=bootstrap,
+                )
+                logger.info(
+                    f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success',
+                )
+            case (_):
+                raise Exception('Payment method not found')
+
+        bootstrap.cache.delete(cart_uuid)
+        return f'{payment_id} is processed'
+    except PaymentAcceptError:
+        return PAYMENT_STATUS_ERROR_MESSAGE
+    except PaymentGatewayRequestError:
+        return PAYMENT_REQUEST_ERROR_MESSAGE
+    except Exception as e:
+        logger.error(f'Error in checkout: {e}')
+        raise
+
+
+async def create_pending_payment_and_order(
+    cart: CartPayment,
+    affiliate: str | None,
+    coupon: Coupons | None,
+    user: Any,
+    payment_gateway: str,
+    gateway_payment_id: int,
+    bootstrap: Any,
+    authorization: str = 'PENDING',
+) -> tuple[int, int]:
+    """Create pending payment and order."""
+    try:
         order_id = await create_order(
             cart=cart,
             affiliate=affiliate,
@@ -88,6 +196,9 @@ async def checkout(
             order_id=order_id,
             cart=cart,
             user_id=user['user_id'],
+            authorization=authorization,
+            payment_gateway=payment_gateway,
+            gateway_payment_id=gateway_payment_id,
             bootstrap=bootstrap,
         )
         if not payment_id:
@@ -105,48 +216,8 @@ async def checkout(
             raise CreateOrderStatusStepError(
                 msg,
             )
-        payment_accept = confirm_payment_intent(
-            payment_intent_id=payment_intent,
-            payment_method=payment_method,
-            receipt_email=user['email'],
-        )
-        validate_payment(
-            payment_accept,
-        )
-        # TODO: check if order is in inventory for decrease
-        await decrease_inventory(
-            cart=cart,
-            order_id=order_id,
-            bootstrap=bootstrap,
-        )
-        await update_order(
-            order_update=OrderDBUpdate(
-                order_id=order_id,
-                order_status=OrderStatus.PAYMENT_PAID.value,
-                customer_id=cart.customer_id,
-            ),
-            bootstrap=bootstrap,
-        )
-        payment_id = await update_payment(
-            payment_id=payment_id,
-            payment_status=PaymentStatus.PAID.value,
-            bootstrap=bootstrap,
-        )
-        await create_order_status_step(
-            order_id=order_id,
-            status=OrderStatus.PAYMENT_PAID.value,
-            send_mail=True,
-            bootstrap=bootstrap,
-        )
-        logger.info(
-            f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success',
-        )
-        bootstrap.cache.delete(cart_uuid)
-        return f'{payment_id} is paid'
-    except PaymentAcceptError:
-        return PAYMENT_STATUS_ERROR_MESSAGE
-    except PaymentGatewayRequestError:
-        return PAYMENT_REQUEST_ERROR_MESSAGE
+
+        return payment_id, order_id
     except Exception as e:
-        logger.error(f'Error in checkout: {e}')
+        logger.error(f'Error in create pending payment and order: {e}')
         raise

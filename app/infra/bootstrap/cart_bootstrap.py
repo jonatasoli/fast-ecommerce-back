@@ -1,10 +1,9 @@
-from propan import RabbitBroker
 from propan.fastapi import RabbitRouter
 from pydantic import BaseModel
 
 import redis as cache_client
 from sqlalchemy.orm import sessionmaker
-from app.infra.payment_gateway.payment_gateway import PaymentGatewayCommmand
+from app.infra.payment_gateway import payment_gateway
 from app.cart import uow
 from app.cart.uow import SqlAlchemyUnitOfWork
 from app.infra.database import get_async_session as get_session
@@ -41,7 +40,7 @@ async def bootstrap(  # noqa: PLR0913
     message: RabbitRouter = task_message_bus,
     freight: Any = freight,
     user=user_gateway,
-    payment: PaymentGatewayCommmand = PaymentGatewayCommmand(),  # noqa: ANN401
+    payment: Any = payment_gateway,  # noqa: ANN401
 ) -> Command:
     """Create a command function to use in the application."""
     if uow is None:

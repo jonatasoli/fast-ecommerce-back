@@ -28,7 +28,7 @@ class Freight(BaseModel):
 
 
 def calculate_package(products: list[ProductInDB]) -> FreightPackage:
-    """Calculate package weight and volume"""
+    """Calculate package weight and volume."""
     weight, volume = 0, 0
     for product in products:
         weight += product.weight

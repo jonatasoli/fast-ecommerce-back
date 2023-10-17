@@ -16,7 +16,7 @@ from app.entities.product import ProductCart
 from app.infra.bootstrap.cart_bootstrap import Command, bootstrap
 from app.infra.deps import get_db
 from payment.schema import InstallmentSchema, PaymentResponse
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from loguru import logger
 
 from domains import domain_order
@@ -39,7 +39,18 @@ async def get_bootstrap() -> Command:
 
 
 @cart.get(
-    '/{coupon}', status_code=status.HTTP_200_OK, response_model=CouponResponse
+    '/{coupon}',
+    summary='Get coupon',
+    description='Search coupon by code and return the coupon if exists',
+    status_code=status.HTTP_200_OK,
+    response_description='Search Coupon',
+    response_model=CouponResponse,
+    #     status.HTTP_400_BAD_REQUEST: {
+    #         "coupon is invalid",
+    #     },
+    #     status.HTTP_500_INTERNAL_SERVER_ERROR: {
+    #     },
+    # },
 )
 async def get_coupon(
     coupon: str,
@@ -154,16 +165,22 @@ async def add_address_to_cart(
     )
 
 
-@cart.post('/{uuid}/payment/{payment_method}', status_code=201, response_model=CartPayment)
+@cart.post(
+    '/{uuid}/payment/{payment_method}',
+    status_code=201,
+    response_model=CartPayment,
+)
 async def add_payment_information_to_cart(
     uuid: str,
     payment_method: str,
     *,
     cart: CartShipping,
-    payment: CreateCreditCardPaymentMethod | CreatePixPaymentMethod | CreateCreditCardTokenPaymentMethod,
+    payment: CreateCreditCardPaymentMethod
+    | CreateCreditCardTokenPaymentMethod
+    | CreatePixPaymentMethod,
     token: str = Depends(oauth2_scheme),
     bootstrap: Command = Depends(get_bootstrap),
-) -> CartShipping:
+) -> CartPayment:
     """Add user to cart."""
     return await services.add_payment_information(
         uuid=uuid,
