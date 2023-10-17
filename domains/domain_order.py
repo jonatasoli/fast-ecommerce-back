@@ -41,7 +41,6 @@ def get_product(db: Session, uri) -> ProductInDB | None:
 def create_product(db: Session, product_data: ProductSchema):
     db_product = Product(**product_data.model_dump(exclude={'description'}))
     db_product.description = json.dumps(product_data.description)
-    import ipdb; ipdb.set_trace()
     with db:
         db.add(db_product)
         db.commit()
