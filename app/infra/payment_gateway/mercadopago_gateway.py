@@ -3,6 +3,11 @@ from decimal import Decimal
 from mercadopago import SDK
 from pydantic import BaseModel
 from config import settings
+from httpx import Client
+
+
+class PaymentStatusError(Exception):
+    """Raise payment error."""
 
 
 class CardAlreadyUseError(Exception):
@@ -10,14 +15,14 @@ class CardAlreadyUseError(Exception):
 
 
 class TransactionPixData(BaseModel):
-    """Pix qr codes"""
+    """Pix qr codes."""
 
     qr_code: str
     qr_code_base64: str
 
 
 class PointOfInteraction(BaseModel):
-    """Point Of interaction model"""
+    """Point Of interaction model."""
 
     transaction_data: TransactionPixData
 
@@ -33,7 +38,6 @@ class MercadoPagoPaymentResponse(BaseModel):
     payment_method: dict
     status: str
     status_detail: str | None
-    currency_id: str
     transaction_amount: Decimal
     payer: dict
     card: dict | None = None
@@ -50,7 +54,6 @@ class MercadoPagoPixPaymentResponse(BaseModel):
     status: str
     status_detail: str | None
     currency_id: str
-    currency_id: str
     transaction_amount: Decimal
     payer: dict
     point_of_interaction: PointOfInteraction
@@ -59,6 +62,16 @@ class MercadoPagoPixPaymentResponse(BaseModel):
 
 def get_payment_client():
     return SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+
+
+def get_client(timeout: int = 10) -> Client:
+    """Get httpx client."""
+    return Client(
+        timeout=timeout,
+        headers={
+            'Authentication': f'Bearer {settings.MERCADO_PAGO_ACCESS_TOKEN}',
+        },
+    )
 
 
 def create_customer(email, client: SDK = get_payment_client()):
@@ -149,7 +162,20 @@ def create_pix(customer_id, amount, client: SDK = get_payment_client()):
     }
 
     payment_response = client.payment().create(payment_data)
-    _payment = MercadoPagoPixPaymentResponse.model_validate(
+    return MercadoPagoPixPaymentResponse.model_validate(
         payment_response['response'],
     )
-    return _payment
+
+
+def get_payment(
+    payment_id: str,
+    client: Client = get_client(),
+):
+    """Get payment from mercadopago."""
+    payment = client.post(
+        f'{settings.MERCADO_PAGO_URL}/v1/payments/{payment_id}',
+    )
+    if payment.status_code != 200 or payment.status_code != 201:
+        msg = 'payment not found'
+        raise PaymentStatusError(msg)
+    return payment.json()
