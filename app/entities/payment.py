@@ -1,6 +1,7 @@
 import enum
 from typing import Any
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from typing import Self
 
 
 class CreditCardInformation(BaseModel):
@@ -20,7 +21,7 @@ class PaymentNotificationData(BaseModel):
 class PaymentNotification(BaseModel):
     """Payment notification."""
 
-    id: int
+    idw01: int
     live_mode: bool
     type: str
     user_id: str
@@ -29,10 +30,20 @@ class PaymentNotification(BaseModel):
     data: PaymentNotificationData
 
 
+class PaymentStatusResponse(BaseModel):
+    """Payment response."""
+
+    payment_id: int
+    gateway_payment_id: int | str
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class AbstractPaymentGateway:
     """Abstract class to process payment."""
 
-    def process_credit_card(self):
+    def process_credit_card(self: Self):
         """Process credit card."""
         raise NotImplementedError
 

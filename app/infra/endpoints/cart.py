@@ -1,4 +1,3 @@
-from os import WSTOPSIG
 from fastapi.security import OAuth2PasswordBearer
 from app.entities.address import CreateAddress
 from app.entities.cart import (
@@ -11,18 +10,12 @@ from app.entities.cart import (
     CreateCreditCardTokenPaymentMethod,
     CreatePixPaymentMethod,
 )
-from app.entities.coupon import CouponBase, CouponResponse
+from app.entities.coupon import CouponResponse
 from app.entities.product import ProductCart
 from app.infra.bootstrap.cart_bootstrap import Command, bootstrap
-from app.infra.deps import get_db
-from payment.schema import InstallmentSchema, PaymentResponse
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, status
 from loguru import logger
 
-from domains import domain_order
-from app.infra import deps
-from payment.service import Checkout
-from schemas.order_schema import CheckoutReceive
 from app.cart import services
 
 cart = APIRouter(
