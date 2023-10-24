@@ -60,7 +60,8 @@ class MercadoPagoPixPaymentResponse(BaseModel):
     amounts: dict | None = None
 
 
-def get_payment_client():
+def get_payment_client() -> SDK:
+    """Get mercado pago cli sdk."""
     return SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
 
 
@@ -69,12 +70,14 @@ def get_client(timeout: int = 10) -> Client:
     return Client(
         timeout=timeout,
         headers={
-            'Authentication': f'Bearer {settings.MERCADO_PAGO_ACCESS_TOKEN}',
+            'Authorization': f'Bearer {settings.MERCADO_PAGO_ACCESS_TOKEN}',
+            'Content-Type': 'application/json',
         },
     )
 
 
-def create_customer(email, client: SDK = get_payment_client()):
+def create_customer(email: str, client: SDK = get_payment_client()) -> dict:
+    """Create customer."""
     customer_data = {'email': email}
     filters = {'email': email}
 
@@ -167,15 +170,15 @@ def create_pix(customer_id, amount, client: SDK = get_payment_client()):
     )
 
 
-def get_payment(
+def get_payment_status(
     payment_id: str,
     client: Client = get_client(),
-):
+) -> dict:
     """Get payment from mercadopago."""
-    payment = client.post(
+    payment = client.get(
         f'{settings.MERCADO_PAGO_URL}/v1/payments/{payment_id}',
     )
-    if payment.status_code != 200 or payment.status_code != 201:
+    if payment.status_code != 200 and payment.status_code != 201:
         msg = 'payment not found'
         raise PaymentStatusError(msg)
     return payment.json()

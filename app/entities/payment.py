@@ -21,7 +21,7 @@ class PaymentNotificationData(BaseModel):
 class PaymentNotification(BaseModel):
     """Payment notification."""
 
-    idw01: int
+    id: int | None
     live_mode: bool
     type: str
     user_id: str
