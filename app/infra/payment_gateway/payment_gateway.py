@@ -81,3 +81,14 @@ def accept_payment(
         msg = 'Payment not found'
         raise Exception(msg)
     return payment
+
+
+def get_payment_status(
+    payment_id: str | int,
+    payment_gateway: str,
+) -> dict:
+    """Get payment status in gateway."""
+    gateway = PaymentGatewayCommmand[payment_gateway].value
+    return gateway.get_payment_status(
+        payment_id=payment_id,
+    )

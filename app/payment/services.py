@@ -1,10 +1,22 @@
-from app.entities.payment import PaymentStatusResponse
+from app.entities.payment import PaymentNotification, PaymentStatusResponse
 from typing import Any
 
 
-async def update_payment():
+async def update_payment(
+    payment_data: PaymentNotification,
+    bootstrap: Any,
+) -> None:
     """Update payment."""
-    ...
+    payment = bootstrap.payment.get_payment_status(
+        payment_id=payment_data.data.id,
+        payment_gateway='MERCADOPAGO',
+    )
+    async with bootstrap.db().begin() as session:
+        await bootstrap.payment_repository.update_payment_status(
+            payment_data.data.id,
+            payment_status=payment['status'],
+            transaction=session,
+        )
 
 
 async def get_payment_status(

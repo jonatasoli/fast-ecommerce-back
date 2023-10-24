@@ -131,21 +131,24 @@ async def get_customer(
     return await transaction.session.scalar(customer_query)
 
 
-async def update_payment_callback(
-    payment_id: int,
+async def update_payment_status(
+    gateway_payment_id: int,
     *,
     payment_status: str,
     transaction: SessionTransaction,
-):
+) -> Payment:
     """Update payment to callback."""
     update_query = (
         update(Payment)
-        .where(Payment.payment_id == payment_id)
+        .where(
+            Payment.gateway_payment_id == int(gateway_payment_id),
+        )
         .values(
             status=payment_status,
-        ),
-    ).returning(Payment)
-    return await transaction.session.execute(update_query)
+        )
+    )
+    payment_update = await transaction.session.execute(update_query)
+    return payment_update
 
 
 async def get_payment(

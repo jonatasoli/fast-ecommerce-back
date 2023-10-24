@@ -8,6 +8,7 @@ from app.infra.database import get_async_session as get_session
 from app.infra import redis
 from typing import Any
 from app.infra.worker import task_message_bus
+from app.infra.payment_gateway import payment_gateway
 
 
 class Command(BaseModel):
@@ -17,6 +18,7 @@ class Command(BaseModel):
     cache: redis.MemoryClient | cache_client.Redis
     message: RabbitRouter
     payment_repository: Any
+    payment: Any
 
     class Config:
         """Pydantic configs."""
@@ -28,7 +30,8 @@ async def bootstrap(
     db: sessionmaker = get_session(),
     cache: redis.AbstractCache = redis.RedisCache(),
     message: RabbitRouter = task_message_bus,
-    payment: Any = payment_repository,  # noqa: ANN401
+    payment_repository: Any = payment_repository,  # noqa: ANN401
+    payment: Any = payment_gateway,  # noqa: ANN401
 ) -> Command:
     """Create a command function to use in the application."""
     _cache = cache.client()
@@ -37,5 +40,6 @@ async def bootstrap(
         db=db,
         cache=_cache,
         message=message,
-        payment_repository=payment,
+        payment_repository=payment_repository,
+        payment=payment,
     )

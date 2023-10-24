@@ -39,10 +39,13 @@ def create_config(
     '/callback',
     status_code=status.HTTP_201_CREATED,
 )
-def payment_callback(payment_data: PaymentNotification):
+async def payment_callback(
+    payment_data: PaymentNotification,
+    bootstrap: Command = Depends(get_bootstrap),
+) -> None:
     """Payment notifications callback."""
     logger.info(payment_data)
-    ...
+    return await services.update_payment(payment_data, bootstrap=bootstrap)
 
 
 @payment.post(
