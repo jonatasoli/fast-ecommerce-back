@@ -84,6 +84,7 @@ async def calculate_cart(
     """Must calculate cart and return cart."""
     cache = bootstrap.cache
     cache_cart = cache.get(uuid)
+    logger.info(cache_cart)
     cache_cart = CartBase.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
         raise HTTPException(
