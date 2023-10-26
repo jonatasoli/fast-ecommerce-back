@@ -131,6 +131,8 @@ def calculate_delivery_time(
         raise TimeoutException(msg)
     _response = response.json()
     logger.info(_response)
+    if not _response[0]:
+        raise Exception(f'not return correios valid response {_response}')
     if not (delivery_time_response := _response[0]['prazoEntrega']):
         msg = 'Error to calculate delivery time'
         raise Exception(msg)
