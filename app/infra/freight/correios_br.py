@@ -7,6 +7,7 @@ from config import settings
 from httpx import Auth, TimeoutException
 import base64
 from app.infra import redis
+from loguru import logger
 
 
 base_url = settings.CORREIOSBR_API_URL
@@ -129,6 +130,7 @@ def calculate_delivery_time(
         msg = 'Erro to connect with corrios api'
         raise TimeoutException(msg)
     _response = response.json()
+    logger.info(_response)
     if not (delivery_time_response := _response[0]['prazoEntrega']):
         msg = 'Error to calculate delivery time'
         raise Exception(msg)
