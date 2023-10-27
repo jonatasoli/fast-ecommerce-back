@@ -26,6 +26,9 @@ class UserAddressNotFoundError(Exception):
     """User address not found."""
 
 
+DEFAULT_CART_EXPIRE = 600_000
+
+
 def create_or_get_cart(
     uuid: str | None,
     token: str | None,
@@ -40,7 +43,11 @@ def create_or_get_cart(
         cart = cache.get(uuid)
     else:
         cart = generate_empty_cart()
-        cache.set(str(cart.uuid), cart.model_dump_json())
+        cache.set(
+            str(cart.uuid),
+            cart.model_dump_json(),
+            ex=DEFAULT_CART_EXPIRE,
+        )
     return cart
 
 
@@ -72,7 +79,7 @@ async def add_product_to_cart(
             price=product_db.price,
             image_path=product_db.image_path,
         )
-    cache.set(str(cart.uuid), cart.model_dump_json())
+    cache.set(str(cart.uuid), cart.model_dump_json(), ex=DEFAULT_CART_EXPIRE)
     return cart
 
 
@@ -119,7 +126,11 @@ async def calculate_cart(
         cart.calculate_subtotal(
             discount=coupon.coupon_fee if cart.coupon else 0,
         )
-    cache.set(str(cart.uuid), cart.model_dump_json())
+    cache.set(
+        str(cart.uuid),
+        cart.model_dump_json(),
+        ex=DEFAULT_CART_EXPIRE,
+    )
     return cart
 
 
@@ -150,7 +161,11 @@ async def add_user_to_cart(
     cart_user = CartUser(**cart.model_dump(), user_data=user_data)
     cache = bootstrap.cache
     cache.get(uuid)
-    cache.set(str(cart.uuid), cart_user.model_dump_json())
+    cache.set(
+        str(cart.uuid),
+        cart_user.model_dump_json(),
+        ex=DEFAULT_CART_EXPIRE,
+    )
     return cart_user
 
 
@@ -197,7 +212,11 @@ async def add_address_to_cart(
         user_address_id=user_address_id,
         shipping_address_id=shipping_address_id,
     )
-    bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
+    bootstrap.cache.set(
+        str(cart.uuid),
+        cart.model_dump_json(),
+        ex=DEFAULT_CART_EXPIRE,
+    )
     return cart
 
 
@@ -253,7 +272,11 @@ async def add_payment_information(  # noqa: PLR0913
             pix_qr_code_base4=qr_code_base64,
             pix_payment_id=payment_id,
         )
-        bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
+        bootstrap.cache.set(
+            str(cart.uuid),
+            cart.model_dump_json(),
+            ex=DEFAULT_CART_EXPIRE,
+        )
         return cart
     if not isinstance(
         payment,
@@ -284,7 +307,9 @@ async def add_payment_information(  # noqa: PLR0913
         customer_id=customer,
         installments=installments,
     )
-    bootstrap.cache.set(str(cart.uuid), cart.model_dump_json())
+    bootstrap.cache.set(
+        str(cart.uuid), cart.model_dump_json(), ex=DEFAULT_CART_EXPIRE
+    )
     await bootstrap.uow.update_payment_method_to_user(
         user.user_id,
         payment_method_id,
@@ -310,7 +335,11 @@ async def preview(
             installments=cache_cart.installments,
         )
         cache_cart.payment_intent = payment_intent['id']
-    bootstrap.cache.set(str(cache_cart.uuid), cache_cart.model_dump_json())
+    bootstrap.cache.set(
+        str(cache_cart.uuid),
+        cache_cart.model_dump_json(),
+        ex=DEFAULT_CART_EXPIRE,
+    )
     return cache_cart
 
 

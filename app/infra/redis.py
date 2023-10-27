@@ -28,7 +28,8 @@ class RedisCache(AbstractCache):
 class MemoryClient:
     cache: ClassVar[dict] = {}
 
-    def set(self: Self, key: str, value: str) -> dict:
+    def set(self: Self, key: str, value: str, ex: int) -> dict:
+        _ = ex
         self.cache[key] = value
         return self.cache
 
