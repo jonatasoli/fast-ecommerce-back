@@ -276,10 +276,17 @@ def generate_new_cart(
     if not product:
         logger.error('Product not found in database')
         raise ProductNotFoundError
-    product.quantity = quantity
+    _product = ProductCart(
+        product_id=product.product_id,
+        name=product.name,
+        image_path=product.image_path,
+        quantity=quantity,
+        price=product.price,
+        discount_price=product.discount,
+    )
     return CartBase(
         uuid=generate_cart_uuid(),
-        cart_items=[product],
+        cart_items=[_product],
         subtotal=price * quantity,
     )
 
