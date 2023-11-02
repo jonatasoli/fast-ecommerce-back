@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 
 import sentry_sdk
 from app.entities.cart import ProductNotFoundError
+from app.entities.user import CredentialError
 from app.infra.payment_gateway.mercadopago_gateway import CardAlreadyUseError
 from config import settings
 from fastapi import FastAPI, Request, status
@@ -41,6 +42,7 @@ class InterceptHandler(logging.Handler):
         logger_opt = logger.opt(depth=6, exception=record.exc_info)
         logger_opt.log(record.levelno, record.getMessage())
 
+
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
 origins = [
@@ -65,6 +67,7 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+
 @app.exception_handler(ProductNotFoundError)
 async def product_not_found_exception_handler(_: Request, exc: ProductNotFoundError):
     return JSONResponse(
@@ -72,11 +75,31 @@ async def product_not_found_exception_handler(_: Request, exc: ProductNotFoundEr
         content={'message': f'{exc.args[0]}'},
     )
 
+
 @app.exception_handler(CardAlreadyUseError)
-async def card_already_use_exception_handler(_: Request, exc: CardAlreadyUseError):
+async def card_already_use_exception_handler(
+        _: Request,
+        exc: CardAlreadyUseError,
+) -> JSONResponse:
+    """Capture CardAlreadyUseError and raise status code 409."""
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={'message': f'{exc.args[0]}'},
+    )
+
+
+@app.exception_handler(CredentialError)
+async def credential_exception_handler(
+        _: Request,
+        exc: CredentialError,
+) -> JSONResponse:
+    """Capture CredentialError and raise status code 401."""
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={
+            'detail': 'Could not validate credentials',
+            'stackerror': f'{exc.args[0]}',
+        },
     )
 
 # set loguru format for root logger

@@ -230,7 +230,10 @@ def check_token(f):
                 settings.SECRET_KEY,
                 algorithms=[settings.ALGORITHM],
             )
+            logger.info('Validação')
+            logger.info(payload)
             _user_credentials: str = payload.get('sub')
+            logger.info(_user_credentials)
             if not payload or _user_credentials is None:
                 raise credentials_exception
         except JWTError:
