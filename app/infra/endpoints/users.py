@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.entities.user import UserCouponResponse
+from app.infra.bootstrap.user_bootstrap import Command, bootstrap
+from loguru import logger
 
 from domains import domain_user
 from domains.domain_user import check_token
@@ -16,6 +18,13 @@ from schemas.user_schema import (
     UserResponseResetPassword,
 )
 from app.user import services
+from app.entities.user import CredentialError
+
+
+async def get_bootstrap() -> Command:
+    """Get bootstrap."""
+    return await bootstrap()
+
 
 user = APIRouter(
     prefix='/user',
@@ -104,6 +113,26 @@ async def login_for_access_token(
         'token_type': 'bearer',
         'role': role,
     }
+
+
+@user.get(
+    '/token',
+    summary='Verify token',
+    description='Send token to verify if is valid yet.',
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def verify_token_is_valid(
+    *,
+    req: Request,
+    db: Session = Depends(get_db),
+) -> None:
+    """Check for access token is valid."""
+    _ = db
+    if token := req.headers.get('authorization'):
+        if token.split()[1] != 'undefined':
+            logger.info(token)
+            return
+    raise CredentialError
 
 
 @user.get('/{document}', status_code=200)

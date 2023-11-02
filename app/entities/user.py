@@ -3,6 +3,10 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
 
 
+class CredentialError(Exception):
+    """Raise if token is not valid."""
+
+
 class UserData(BaseModel):
     name: str
     email: str
