@@ -16,7 +16,7 @@ class UserData(BaseModel):
 
 
 class UserAddress(BaseModel):
-    user_id: int
+    user_id: int | None
     address: str
     address_number: str
     address_complement: str
