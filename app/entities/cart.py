@@ -65,7 +65,7 @@ class CartBase(BaseModel):
     freight_product_code: str | None = None
     freight: Freight | None = None
     subtotal: Decimal
-    total: Decimal
+    total: Decimal = Decimal(0)
 
     def increase_quantity(self: Self, product_id: int) -> Self:
         """Increase quantity in a product."""
