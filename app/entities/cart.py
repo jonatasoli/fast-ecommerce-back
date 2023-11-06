@@ -65,6 +65,7 @@ class CartBase(BaseModel):
     freight_product_code: str | None = None
     freight: Freight | None = None
     subtotal: Decimal
+    total: Decimal
 
     def increase_quantity(self: Self, product_id: int) -> Self:
         """Increase quantity in a product."""
@@ -157,6 +158,8 @@ class CartBase(BaseModel):
                     item.discount_price = item.price * discount
                     self.discount += item.discount_price * item.quantity
             self.subtotal = subtotal
+            if self.freight and self.freight.price:
+                self.total = subtotal + self.freight.price
         except TypeError as err:
             logger.error('Price or quantity not found in cart item')
             raise CartNotFoundPriceError from err
