@@ -8,6 +8,7 @@ class CredentialError(Exception):
 
 
 class UserData(BaseModel):
+    user_id: int
     name: str
     email: str
     document: str
