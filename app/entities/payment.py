@@ -2,6 +2,7 @@ import enum
 from typing import Any
 from pydantic import BaseModel, ConfigDict
 from typing import Self
+from decimal import Decimal
 
 
 class CreditCardInformation(BaseModel):
@@ -74,6 +75,15 @@ class PaymentDBUpdate(BaseModel):
     payment_gateway: str
     authorization: str | None = None
     gateway_payment_id: int | str | None = None
+
+
+class ConfigFee(BaseModel):
+    """Credit card installment fee."""
+
+    credit_card_fee_config_id: int
+    min_installment_with_fee: int
+    max_installments: int
+    fee: Decimal
 
 
 def validate_payment(

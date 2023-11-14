@@ -213,6 +213,13 @@ class CartPayment(CartShipping):
     pix_payment_id: int | None = None
     gateway_provider: str
     installments: int = 1
+    subtotal_with_fee: Decimal = Decimal(0)
+    total_with_fee: Decimal = Decimal(0)
+
+    def calculate_fee(self: Self, fee: Decimal) -> None:
+        """Calculate installments fee."""
+        self.subtotal_with_fee = self.subtotal * (1 + fee)
+        self.total_with_fee = self.subtotal_with_fee + self.freight.price
 
 
 class CreateCreditCardPaymentMethod(BaseModel):

@@ -9,6 +9,7 @@ from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
 from app.infra.custom_decorators import database_uow
 from app.infra.database import get_async_session
+from app.entities.payment import ConfigFee
 
 from app.payment import repository as payment_repository
 
@@ -319,3 +320,17 @@ async def get_products(
         transaction=transaction,
     )
     return [ProductInDB.model_validate(product) for product in products_db]
+
+
+@database_uow()
+async def get_installment_fee(
+    transaction: SessionTransaction | None
+) -> ConfigFee:
+    """Must return a config fee."""
+    if not transaction:
+        msg = "Transaction must be provided"
+        raise ValueError(msg)
+    fee = await repository.get_installment_fee(
+        transaction=transaction
+    )
+    return ConfigFee.model_validate(fee)

@@ -307,6 +307,11 @@ async def add_payment_information(  # noqa: PLR0913
         customer_id=customer,
         installments=installments,
     )
+    _payment_installment_fee = await bootstrap.cart_uow.get_installment_fee(
+        bootstrap=bootstrap
+    )
+    if cart.installments >= _payment_installment_fee.min_installment_with_fee:
+        cart.calculate_fee(_payment_installment_fee.fee)
     bootstrap.cache.set(
         str(cart.uuid), cart.model_dump_json(), ex=DEFAULT_CART_EXPIRE
     )
