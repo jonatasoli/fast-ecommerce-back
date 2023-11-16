@@ -55,6 +55,7 @@ async def checkout(
     bootstrap: Any = Depends(get_bootstrap),
 ) -> str:
     """Checkout cart with payment intent."""
+    _ = payment_method
     logger.info(
         f'Checkout cart start{cart_uuid} with gateway {payment_gateway} with success',
     )

@@ -84,6 +84,7 @@ class ConfigFee(BaseModel):
     min_installment_with_fee: int
     max_installments: int
     fee: Decimal
+    model_config = ConfigDict(from_attributes=True)
 
 
 def validate_payment(

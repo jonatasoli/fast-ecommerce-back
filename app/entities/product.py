@@ -5,6 +5,11 @@ from pydantic import BaseModel, ConfigDict, Json
 from schemas.order_schema import CategoryInDB
 
 
+class ProductSoldOutError(Exception):
+    """Represent produt is Sold out."""
+    ...
+
+
 class ProductCart(BaseModel):
     """Product Representation in Cart."""
 

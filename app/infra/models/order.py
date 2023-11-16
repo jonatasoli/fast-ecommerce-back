@@ -52,6 +52,7 @@ class Product(Base):
     length: Mapped[Decimal | None]
     diameter: Mapped[Decimal | None]
     sku: Mapped[str]
+    currency: Mapped[str] = mapped_column(default='BRL', default_server='BRL')
 
 
 class Coupons(Base):
@@ -98,6 +99,8 @@ class Order(Base):
     order_status: Mapped[str]
     last_updated: Mapped[datetime]
     checked: Mapped[bool] = mapped_column(default=False)
+    cancelled_at: Mapped[datetime | None]
+    cancelled_reason: Mapped[str | None]
 
 
 class OrderItems(Base):
@@ -132,6 +135,7 @@ class OrderStatusSteps(Base):
     last_updated: Mapped[datetime]
     sending: Mapped[bool]
     active: Mapped[bool]
+    description: Mapped[str | None]
 
 
 class ImageGallery(Base):

@@ -33,6 +33,7 @@ from app.infra.endpoints.report import report
 from app.cart.tasks import task_message_bus
 from app.payment.tasks import task_message_bus
 from app.infra.worker import task_message_bus
+from app.entities.product import ProductSoldOutError
 
 app = FastAPI(lifespan=task_message_bus.lifespan_context)
 
@@ -69,7 +70,7 @@ app.add_middleware(
 
 
 @app.exception_handler(ProductNotFoundError)
-async def product_not_found_exception_handler(_: Request, exc: ProductNotFoundError):
+async def product_not_found_exception_handler(_: Request, exc: ProductNotFoundError) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={'message': f'{exc.args[0]}'},
@@ -98,6 +99,20 @@ async def credential_exception_handler(
         status_code=status.HTTP_401_UNAUTHORIZED,
         content={
             'detail': 'Could not validate credentials',
+            'stackerror': f'{exc.args[0]}',
+        },
+    )
+
+@app.exception_handler(ProductSoldOutError)
+async def product_sold_out_exception_handler(
+        _: Request,
+        exc: ProductSoldOutError,
+) -> JSONResponse:
+    """Capture ProductSoldOut and raise status code 404."""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            'detail': 'Product Sold Out.',
             'stackerror': f'{exc.args[0]}',
         },
     )

@@ -9,7 +9,7 @@ from app.entities.cart import ProductNotFoundError
 
 from app.infra.models import order
 from app.infra.models import users
-from app.infra.models import transaction
+from app.infra.models import transaction as transaction_model
 
 
 class AddressNotFoundError(Exception):
@@ -299,12 +299,12 @@ async def _check_products_db(
 async def get_installment_fee(
     transaction: SessionTransaction,
     fee_config: int = 1,
-) -> transaction.CreditCardFeeConfig:
+) -> transaction_model.CreditCardFeeConfig:
     """Must return config fee."""
     try:
         config = await transaction.session.scalar(
-            select(transaction.CreditCardFeeConfig).where(
-                transaction.CreditCardFeeConfig.credit_card_fee_config_id == fee_config
+            select(transaction_model.CreditCardFeeConfig).where(
+                transaction_model.CreditCardFeeConfig.credit_card_fee_config_id == fee_config
                 )
         )
         return config

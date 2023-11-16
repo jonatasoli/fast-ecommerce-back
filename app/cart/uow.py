@@ -324,6 +324,7 @@ async def get_products(
 
 @database_uow()
 async def get_installment_fee(
+    bootstrap: Any,
     transaction: SessionTransaction | None
 ) -> ConfigFee:
     """Must return a config fee."""
