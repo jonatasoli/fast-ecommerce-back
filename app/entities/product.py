@@ -7,7 +7,7 @@ from schemas.order_schema import CategoryInDB
 
 class ProductSoldOutError(Exception):
     """Represent produt is Sold out."""
-    ...
+
 
 
 class ProductCart(BaseModel):

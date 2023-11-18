@@ -304,8 +304,9 @@ async def get_installment_fee(
     try:
         config = await transaction.session.scalar(
             select(transaction_model.CreditCardFeeConfig).where(
-                transaction_model.CreditCardFeeConfig.credit_card_fee_config_id == fee_config
-                )
+                transaction_model.CreditCardFeeConfig.credit_card_fee_config_id
+                == fee_config,
+            ),
         )
         return config
     except Exception as e:

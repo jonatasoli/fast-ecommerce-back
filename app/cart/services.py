@@ -308,12 +308,12 @@ async def add_payment_information(  # noqa: PLR0913
         installments=installments,
     )
     _payment_installment_fee = await bootstrap.cart_uow.get_installment_fee(
-        bootstrap=bootstrap
+        bootstrap=bootstrap,
     )
     if cart.installments >= _payment_installment_fee.min_installment_with_fee:
         cart.calculate_fee(_payment_installment_fee.fee)
     bootstrap.cache.set(
-        str(cart.uuid), cart.model_dump_json(), ex=DEFAULT_CART_EXPIRE
+        str(cart.uuid), cart.model_dump_json(), ex=DEFAULT_CART_EXPIRE,
     )
     await bootstrap.uow.update_payment_method_to_user(
         user.user_id,
@@ -382,9 +382,17 @@ async def checkout(
         queue=RabbitQueue('checkout'),
         callback=True,
     )
+    order_id = None
+    if not isinstance(checkout_task, dict):
+        checkout_task = {}
+    else:
+        _order_id = checkout_task.get('order_id', None)
+        if isinstance(_order_id, list):
+            order_id = str(_order_id.pop())
     return CreateCheckoutResponse(
-        message=str(checkout_task),
+        message=str(checkout_task.get('message')),
         status='processing',
+        order_id=order_id,
     )
 
 

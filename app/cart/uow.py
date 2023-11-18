@@ -324,14 +324,11 @@ async def get_products(
 
 @database_uow()
 async def get_installment_fee(
-    bootstrap: Any,
-    transaction: SessionTransaction | None
+    bootstrap: Any, transaction: SessionTransaction | None,
 ) -> ConfigFee:
     """Must return a config fee."""
     if not transaction:
-        msg = "Transaction must be provided"
+        msg = 'Transaction must be provided'
         raise ValueError(msg)
-    fee = await repository.get_installment_fee(
-        transaction=transaction
-    )
+    fee = await repository.get_installment_fee(transaction=transaction)
     return ConfigFee.model_validate(fee)

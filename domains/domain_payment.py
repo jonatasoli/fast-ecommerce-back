@@ -14,7 +14,11 @@ from domains.domain_user import (
     register_shipping_address,
 )
 from app.infra.models.order import Order, OrderItems, Product
-from app.infra.models.transaction import CreditCardFeeConfig, Payment, Transaction
+from app.infra.models.transaction import (
+    CreditCardFeeConfig,
+    Payment,
+    Transaction,
+)
 from schemas.order_schema import (
     CheckoutSchema,
     ProductSchema,

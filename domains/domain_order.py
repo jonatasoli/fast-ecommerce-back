@@ -13,7 +13,11 @@ from app.infra.optimize_image import optimize_image
 from app.infra.models.order import Category, ImageGallery, Order, Product
 from app.infra.models.transaction import Payment, Transaction
 from app.infra.models.users import Address, User
-from app.entities.product import ProductCategoryInDB, ProductInDB, ProductsResponse
+from app.entities.product import (
+    ProductCategoryInDB,
+    ProductInDB,
+    ProductsResponse,
+)
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,
@@ -417,9 +421,13 @@ def get_category(db: Session):
 
 class NotFoundCategoryException(Exception):
     """Not Found Category Exception."""
+
     ...
 
-def get_products_category(*, offset: int, page: int, path: str, db: Session) -> ProductsResponse:
+
+def get_products_category(
+    *, offset: int, page: int, path: str, db: Session
+) -> ProductsResponse:
     products = None
     products_category = []
     with db:
@@ -431,13 +439,14 @@ def get_products_category(*, offset: int, page: int, path: str, db: Session) -> 
 
         logger.info(category.path, category.category_id)
 
-        products_query = (
-            select(Product)
-            .where(
-                Product.category_id == category.category_id,
+        products_query = select(Product).where(
+            Product.category_id == category.category_id,
+        )
+        total_records = db.scalar(
+            select(func.count(Product.product_id)).where(
+                Product.category_id == category.category_id
             )
         )
-        total_records = db.scalar(select(func.count(Product.product_id)).where(Product.category_id == category.category_id))
         if page > 1:
             products_query = products_query.offset((page - 1) * offset)
         products_query = products_query.limit(offset)
@@ -445,14 +454,16 @@ def get_products_category(*, offset: int, page: int, path: str, db: Session) -> 
         products = db.scalars(products_query)
 
         for product in products:
-            products_category.append(ProductCategoryInDB.model_validate(product))
+            products_category.append(
+                ProductCategoryInDB.model_validate(product)
+            )
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
-        total_pages= math.ceil(total_records / offset) if total_records else 1,
+        total_pages=math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
-        products=products_category
+        products=products_category,
     )
 
 
@@ -474,14 +485,16 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
-        total_pages= math.ceil(total_records / offset) if total_records else 1,
+        total_pages=math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
-        products=products_list
+        products=products_list,
     )
 
 
-def get_latest_products(offset: int, page: int, db: Session) -> ProductsResponse:
+def get_latest_products(
+    offset: int, page: int, db: Session
+) -> ProductsResponse:
     products = None
     with db:
         products = select(Product)
@@ -499,14 +512,16 @@ def get_latest_products(offset: int, page: int, db: Session) -> ProductsResponse
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
-        total_pages= math.ceil(total_records / offset) if total_records else 1,
+        total_pages=math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
-        products=products_list
+        products=products_list,
     )
 
 
-def get_featured_products(offset: int, page: int, db: Session) -> ProductsResponse:
+def get_featured_products(
+    offset: int, page: int, db: Session
+) -> ProductsResponse:
     products = None
     with db:
         products = select(Product).where(Product.feature == True)
@@ -523,18 +538,22 @@ def get_featured_products(offset: int, page: int, db: Session) -> ProductsRespon
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
-        total_pages= math.ceil(total_records / offset) if total_records else 1,
+        total_pages=math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
-        products=products_list
+        products=products_list,
     )
 
 
-def search_products(search:str, offset: int, page: int,  db: Session):
+def search_products(search: str, offset: int, page: int, db: Session):
     products = None
     with db:
-        products = select(Product).where(Product.name.ilike(f"%{search}%"))
-        total_records = db.scalar(select(func.count(Product.product_id)).where(Product.name.ilike(f"%{search}%")))
+        products = select(Product).where(Product.name.ilike(f'%{search}%'))
+        total_records = db.scalar(
+            select(func.count(Product.product_id)).where(
+                Product.name.ilike(f'%{search}%')
+            )
+        )
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
@@ -546,8 +565,8 @@ def search_products(search:str, offset: int, page: int,  db: Session):
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
-        total_pages= math.ceil(total_records / offset) if total_records else 1,
+        total_pages=math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
-        products=products_list
+        products=products_list,
     )

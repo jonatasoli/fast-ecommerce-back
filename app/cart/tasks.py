@@ -53,7 +53,7 @@ async def checkout(
     payment_gateway: str,
     user: Any,
     bootstrap: Any = Depends(get_bootstrap),
-) -> str:
+) -> dict:
     """Checkout cart with payment intent."""
     _ = payment_method
     logger.info(
@@ -159,7 +159,6 @@ async def checkout(
                 raise Exception('Payment method not found')
 
         bootstrap.cache.delete(cart_uuid)
-        return f'{payment_id} is processed'
     except PaymentAcceptError:
         return PAYMENT_STATUS_ERROR_MESSAGE
     except PaymentGatewayRequestError:
@@ -167,6 +166,7 @@ async def checkout(
     except Exception as e:
         logger.error(f'Error in checkout: {e}')
         raise
+    return {'order_id': {order_id}, 'message': 'processed'}
 
 
 async def create_pending_payment_and_order(

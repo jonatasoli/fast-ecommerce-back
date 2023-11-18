@@ -52,7 +52,6 @@ async def create_order_status_step(
     )
 
 
-
 async def get_bootstrap() -> Command:
     """Get bootstrap."""
     return await bootstrap()
