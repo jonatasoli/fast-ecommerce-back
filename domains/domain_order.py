@@ -7,10 +7,11 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from loguru import logger
 from sqlalchemy import Date, cast
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
+from sqlalchemy.sql.functions import coalesce
 
 from app.infra.optimize_image import optimize_image
-from app.infra.models.order import Category, ImageGallery, Order, Product
+from app.infra.models.order import Category, ImageGallery, Inventory, Order, Product
 from app.infra.models.transaction import Payment, Transaction
 from app.infra.models.users import Address, User
 from app.entities.product import (
@@ -35,11 +36,66 @@ from schemas.order_schema import (
 
 def get_product(db: Session, uri) -> ProductInDB | None:
     with db:
-        query_product = select(Product).where(Product.uri == uri)
-        product_db = db.scalar(query_product)
-        if product_db:
-            return ProductInDB.model_validate(product_db)
-        return product_db
+        category_alias = aliased(Category)
+        query_product = (
+            select(
+                Product.product_id,
+                Product.name,
+                Product.uri,
+                Product.price,
+                Product.active,
+                Product.direct_sales,
+                Product.description,
+                Product.image_path,
+                Product.installments_config,
+                Product.installments_list,
+                Product.discount,
+                Product.category_id,
+                Product.showcase,
+                Product.feature,
+                Product.show_discount,
+                Product.height,
+                Product.width,
+                Product.weight,
+                Product.length,
+                Product.diameter,
+                Product.sku,
+                Product.currency,
+                func.coalesce(func.sum(Inventory.quantity), 0).label('quantity'),
+                category_alias.category_id.label('category_id_1'),
+                category_alias.name.label('name_1'),
+                category_alias.path,
+                category_alias.menu,
+                category_alias.showcase.label('showcase_1'),
+                category_alias.image_path.label('image_path_1'),
+            )
+            .where(Product.uri == uri)
+            .outerjoin(Inventory, Inventory.product_id == Product.product_id)
+            .outerjoin(category_alias, Product.category_id == category_alias.category_id)
+            .group_by(Product.product_id, category_alias.category_id)
+        )
+        result = db.execute(query_product)
+        column_names = result.keys()
+        product = result.first()
+        product_dict = dict(zip(column_names, product))
+        if 'category_id_1' in product_dict:
+            product_dict['category'] = {
+                'category_id': product_dict['category_id_1'],
+                'name': product_dict['name_1'],
+                'path': product_dict['path'],
+                'menu': product_dict['menu'],
+                'showcase': product_dict['showcase_1'],
+                'image_path': product_dict['image_path_1'],
+            }
+            del product_dict['category_id_1']
+            del product_dict['name_1']
+            del product_dict['path']
+            del product_dict['menu']
+            del product_dict['showcase_1']
+            del product_dict['image_path_1']
+        if product_dict:
+            return ProductInDB.model_validate(product_dict)
+        return None
 
 
 def create_product(db: Session, product_data: ProductSchema):
@@ -115,12 +171,8 @@ def get_showcase(db: Session):
     with db:
         showcases_query = select(Product).where(Product.showcase == True)
         showcases = db.execute(showcases_query).scalars().all()
-        products = []
 
-        for showcase in showcases:
-            products.append(ProductCategoryInDB.model_validate(showcase))
-
-        return products
+        return [ProductCategoryInDB.model_validate(showcase) for showcase in showcases]
 
 
 def get_installments(product_id: int, *, db: Session):
@@ -471,17 +523,71 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
     products = None
     total_records = 0
     with db:
-        products = select(Product)
+        category_alias = aliased(Category)
+        products = (
+            select(
+                Product.product_id,
+                Product.name,
+                Product.uri,
+                Product.price,
+                Product.active,
+                Product.direct_sales,
+                Product.description,
+                Product.image_path,
+                Product.installments_config,
+                Product.installments_list,
+                Product.discount,
+                Product.category_id,
+                Product.showcase,
+                Product.feature,
+                Product.show_discount,
+                Product.height,
+                Product.width,
+                Product.weight,
+                Product.length,
+                Product.diameter,
+                Product.sku,
+                Product.currency,
+                func.coalesce(func.sum(Inventory.quantity), 0).label('quantity'),
+                category_alias.category_id.label('category_id_1'),
+                category_alias.name.label('name_1'),
+                category_alias.path,
+                category_alias.menu,
+                category_alias.showcase.label('showcase_1'),
+                category_alias.image_path.label('image_path_1'),
+            )
+            .outerjoin(Inventory, Inventory.product_id == Product.product_id)
+            .outerjoin(category_alias, Product.category_id == category_alias.category_id)
+            .group_by(Product.product_id, category_alias.category_id)
+        )
         total_records = db.scalar(select(func.count(Product.product_id)))
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
 
-        products = db.scalars(products).all()
+    result = db.execute(products)
+    column_names = result.keys()
+    products = result.fetchall()
     products_list = []
 
     for product in products:
-        products_list.append(ProductCategoryInDB.model_validate(product))
+        product_dict = dict(zip(column_names, product))
+        if 'category_id_1' in product_dict:
+            product_dict['category'] = {
+                'category_id': product_dict['category_id_1'],
+                'name': product_dict['name_1'],
+                'path': product_dict['path'],
+                'menu': product_dict['menu'],
+                'showcase': product_dict['showcase_1'],
+                'image_path': product_dict['image_path_1'],
+            }
+            del product_dict['category_id_1']
+            del product_dict['name_1']
+            del product_dict['path']
+            del product_dict['menu']
+            del product_dict['showcase_1']
+            del product_dict['image_path_1']
+        products_list.append(ProductCategoryInDB.model_validate(product_dict))
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
@@ -497,18 +603,72 @@ def get_latest_products(
 ) -> ProductsResponse:
     products = None
     with db:
-        products = select(Product)
+        category_alias = aliased(Category)
+        products = (
+            select(
+                Product.product_id,
+                Product.name,
+                Product.uri,
+                Product.price,
+                Product.active,
+                Product.direct_sales,
+                Product.description,
+                Product.image_path,
+                Product.installments_config,
+                Product.installments_list,
+                Product.discount,
+                Product.category_id,
+                Product.showcase,
+                Product.feature,
+                Product.show_discount,
+                Product.height,
+                Product.width,
+                Product.weight,
+                Product.length,
+                Product.diameter,
+                Product.sku,
+                Product.currency,
+                func.coalesce(func.sum(Inventory.quantity), 0).label('quantity'),
+                category_alias.category_id.label('category_id_1'),
+                category_alias.name.label('name_1'),
+                category_alias.path,
+                category_alias.menu,
+                category_alias.showcase.label('showcase_1'),
+                category_alias.image_path.label('image_path_1'),
+            )
+            .outerjoin(Inventory, Inventory.product_id == Product.product_id)
+            .outerjoin(category_alias, Product.category_id == category_alias.category_id)
+            .group_by(Product.product_id, category_alias.category_id)
+        )
         total_records = db.scalar(select(func.count(Product.product_id)))
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
         products = products.order_by(Product.product_id.desc())
 
-        products = db.scalars(products).all()
+        result = db.execute(products)
+        column_names = result.keys()
+        products = result.fetchall()
     products_list = []
 
     for product in products:
-        products_list.append(ProductCategoryInDB.model_validate(product))
+        product_dict = dict(zip(column_names, product))
+        if 'category_id_1' in product_dict:
+            product_dict['category'] = {
+                'category_id': product_dict['category_id_1'],
+                'name': product_dict['name_1'],
+                'path': product_dict['path'],
+                'menu': product_dict['menu'],
+                'showcase': product_dict['showcase_1'],
+                'image_path': product_dict['image_path_1'],
+            }
+            del product_dict['category_id_1']
+            del product_dict['name_1']
+            del product_dict['path']
+            del product_dict['menu']
+            del product_dict['showcase_1']
+            del product_dict['image_path_1']
+        products_list.append(ProductCategoryInDB.model_validate(product_dict))
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,

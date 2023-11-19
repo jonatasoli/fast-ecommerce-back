@@ -323,8 +323,27 @@ async def get_products(
 
 
 @database_uow()
+async def get_products_quantity(
+    products: list,
+    bootstrap: Any,
+    transaction: SessionTransaction | None,
+) -> list:
+    """Must return a products in list."""
+    if not transaction:
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
+    product_ids: list[int] = [item.product_id for item in products]
+    products_db = await repository.get_products_quantity(
+        products=product_ids,
+        transaction=transaction,
+    )
+    return products_db
+
+
+@database_uow()
 async def get_installment_fee(
-    bootstrap: Any, transaction: SessionTransaction | None,
+    bootstrap: Any,
+    transaction: SessionTransaction | None,
 ) -> ConfigFee:
     """Must return a config fee."""
     if not transaction:

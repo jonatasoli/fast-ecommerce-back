@@ -2,7 +2,7 @@ import abc
 from typing import Any, Self
 from loguru import logger
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import SessionTransaction
 from app.entities.address import AddressBase
 from app.entities.cart import ProductNotFoundError
@@ -281,6 +281,43 @@ async def get_products(
         await _check_products_db(products_db, products)
 
         return products_db.scalars().all()
+    except Exception as e:
+        logger.error(f'Error in _get_products: {e}')
+        raise
+
+
+async def get_products_quantity(
+    products: list[int],
+    transaction: SessionTransaction,
+) -> list[order.Product]:
+    """Must return products quantity."""
+    try:
+        quantity_query = (
+            select(
+                order.Inventory.product_id.label('product_id'),
+                func.coalesce(func.sum(order.Inventory.quantity), 0).label(
+                    'quantity',
+                ),
+            )
+            .outerjoin(
+                order.Product,
+                order.Product.product_id == order.Inventory.product_id,
+            )
+            .where(order.Product.product_id.in_(products))
+            .group_by(order.Inventory.product_id)
+        )
+        products_db = await transaction.session.execute(quantity_query)
+        await _check_products_db(products_db, products)
+
+        column_names = products_db.keys()
+        products = products_db.all()
+
+        products_list = []
+        for product in products:
+            product_dict = dict(zip(column_names, product))
+            products_list.append(product_dict)
+
+        return products_list
     except Exception as e:
         logger.error(f'Error in _get_products: {e}')
         raise
