@@ -27,7 +27,7 @@ async def update_payment(
                 'mail_to': 'contact@jonatasoliveira.dev',
                 'order_id': order_id if order_id else '',
             },
-            queue=RabbitQueue('notification-order-paid'),
+            queue=RabbitQueue('notification_order_paid'),
         )
     if payment['status'] == 'cancelled':
         await bootstrap.message.broker.publish(
@@ -35,7 +35,7 @@ async def update_payment(
                 'mail_to': 'contact@jonatasoliveira.dev',
                 'order_id': order_id if order_id else '',
             },
-            queue=RabbitQueue('notification-order-paid'),
+            queue=RabbitQueue('notification_order_paid'),
         )
 
 

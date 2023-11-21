@@ -168,7 +168,7 @@ async def checkout(
                 'order_id': order_id if order_id else '',
                 'reason': 'Dados do cartão incorreto ou sem limite disponível',
             },
-            queue=RabbitQueue('notification-order-cancelled'),
+            queue=RabbitQueue('notification_order_cancelled'),
         )
         return PAYMENT_STATUS_ERROR_MESSAGE
     except PaymentGatewayRequestError:
@@ -178,7 +178,7 @@ async def checkout(
                 'order_id': order_id if order_id else '',
                 'reason': 'Erro quando foi chamado o emissor do cartão tente novamente mais tarde',
             },
-            queue=RabbitQueue('notification-order-cancelled'),
+            queue=RabbitQueue('notification_order_cancelled'),
         )
         return PAYMENT_REQUEST_ERROR_MESSAGE
     except Exception as e:
@@ -189,7 +189,7 @@ async def checkout(
                 'order_id': order_id if order_id else '',
                 'reason': 'Erro desconhecido favor entre em contato conosco',
             },
-            queue=RabbitQueue('notification-order-cancelled'),
+            queue=RabbitQueue('notification_order_cancelled'),
         )
         raise
     return {'order_id': {order_id}, 'message': 'processed'}
@@ -249,7 +249,7 @@ async def create_pending_payment_and_order(
                 'mail_to': user.email,
                 'order_id': order_id if order_id else '',
             },
-            queue=RabbitQueue('notification-order-processed'),
+            queue=RabbitQueue('notification_order_processed'),
         )
 
         return payment_id, order_id

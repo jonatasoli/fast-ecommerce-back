@@ -32,6 +32,7 @@ from app.infra.endpoints.default import (
 from app.infra.endpoints.report import report
 from app.cart.tasks import task_message_bus
 from app.payment.tasks import task_message_bus
+from app.mail.tasks import task_message_bus
 from app.infra.worker import task_message_bus
 from app.entities.product import ProductSoldOutError
 
