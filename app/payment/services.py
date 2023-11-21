@@ -1,4 +1,6 @@
 from app.entities.payment import PaymentNotification, PaymentStatusResponse
+
+from propan.brokers.rabbit import RabbitQueue
 from typing import Any
 
 
@@ -16,6 +18,24 @@ async def update_payment(
             payment_data.data.id,
             payment_status=payment['status'],
             transaction=session,
+        )
+    order_id = ''
+    user = None
+    if payment['status'] == 'paid':
+        await bootstrap.message.broker.publish(
+            {
+                'mail_to': 'contact@jonatasoliveira.dev',
+                'order_id': order_id if order_id else '',
+            },
+            queue=RabbitQueue('notification-order-paid'),
+        )
+    if payment['status'] == 'cancelled':
+        await bootstrap.message.broker.publish(
+            {
+                'mail_to': 'contact@jonatasoliveira.dev',
+                'order_id': order_id if order_id else '',
+            },
+            queue=RabbitQueue('notification-order-paid'),
         )
 
 

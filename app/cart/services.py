@@ -100,7 +100,8 @@ async def calculate_cart(
         )
     products_db = await bootstrap.uow.get_products(cart.cart_items)
     products_inventory = await bootstrap.cart_uow.get_products_quantity(
-        cart.cart_items, bootstrap=bootstrap,
+        cart.cart_items,
+        bootstrap=bootstrap,
     )
     products_in_cart = []
     products_in_inventory = []
@@ -114,7 +115,10 @@ async def calculate_cart(
             ):
                 products_in_inventory.append(product.product_id)
             for item in products_inventory:
-                if cart_item.product_id == item['product_id'] and cart_item.quantity > item['quantity']:
+                if (
+                    cart_item.product_id == item['product_id']
+                    and cart_item.quantity > item['quantity']
+                ):
                     cart_quantities.append(cart_item.model_dump())
 
     products_not_in_both = list(
