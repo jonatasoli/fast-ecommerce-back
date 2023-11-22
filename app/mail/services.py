@@ -1,7 +1,6 @@
 from config import settings
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
-import os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 

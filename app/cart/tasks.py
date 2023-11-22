@@ -58,6 +58,7 @@ async def checkout(
 ) -> dict:
     """Checkout cart with payment intent."""
     _ = payment_method
+    order_id = None
     logger.info(
         f'Checkout cart start{cart_uuid} with gateway {payment_gateway} with success',
     )
@@ -133,6 +134,7 @@ async def checkout(
                         payment_gateway=cart.gateway_provider,
                         authorization=authorization,
                         payment_status=payment_accept.status,
+                        processed=True,
                         bootstrap=bootstrap,
                     )
                     await create_order_status_step(
@@ -164,7 +166,7 @@ async def checkout(
     except PaymentAcceptError:
         await bootstrap.message.broker.publish(
             {
-                'mail_to': user.email,
+                'mail_to': user['email'],
                 'order_id': order_id if order_id else '',
                 'reason': 'Dados do cartão incorreto ou sem limite disponível',
             },
@@ -174,7 +176,7 @@ async def checkout(
     except PaymentGatewayRequestError:
         await bootstrap.message.broker.publish(
             {
-                'mail_to': user.email,
+                'mail_to': user['email'],
                 'order_id': order_id if order_id else '',
                 'reason': 'Erro quando foi chamado o emissor do cartão tente novamente mais tarde',
             },
@@ -185,7 +187,7 @@ async def checkout(
         logger.error(f'Error in checkout: {e}')
         await bootstrap.message.broker.publish(
             {
-                'mail_to': user.email,
+                'mail_to': user['email'],
                 'order_id': order_id if order_id else '',
                 'reason': 'Erro desconhecido favor entre em contato conosco',
             },
@@ -246,7 +248,7 @@ async def create_pending_payment_and_order(
 
         await bootstrap.message.broker.publish(
             {
-                'mail_to': user.email,
+                'mail_to': user['email'],
                 'order_id': order_id if order_id else '',
             },
             queue=RabbitQueue('notification_order_processed'),

@@ -9,22 +9,26 @@ async def update_payment(
     bootstrap: Any,
 ) -> None:
     """Update payment."""
+    order_id, user = None, None
     payment = bootstrap.payment.get_payment_status(
         payment_id=payment_data.data.id,
         payment_gateway='MERCADOPAGO',
     )
     async with bootstrap.db().begin() as session:
-        await bootstrap.payment_repository.update_payment_status(
+        payment_db = await bootstrap.payment_repository.update_payment_status(
             payment_data.data.id,
             payment_status=payment['status'],
             transaction=session,
         )
-    order_id = ''
-    user = None
-    if payment['status'] == 'paid':
+        user = await bootstrap.user_repository.get_user_by_id(
+            payment_db.user_id,
+            transaction=session,
+        )
+        order_id = payment_db.order_id
+    if payment['status'] == 'authorized':
         await bootstrap.message.broker.publish(
             {
-                'mail_to': 'contact@jonatasoliveira.dev',
+                'mail_to': user.email,
                 'order_id': order_id if order_id else '',
             },
             queue=RabbitQueue('notification_order_paid'),
@@ -32,7 +36,7 @@ async def update_payment(
     if payment['status'] == 'cancelled':
         await bootstrap.message.broker.publish(
             {
-                'mail_to': 'contact@jonatasoliveira.dev',
+                'mail_to': user.email,
                 'order_id': order_id if order_id else '',
             },
             queue=RabbitQueue('notification_order_paid'),

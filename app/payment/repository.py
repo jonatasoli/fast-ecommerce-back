@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import update
 
 from sqlalchemy.orm import SessionTransaction
@@ -136,6 +136,7 @@ async def update_payment_status(
     *,
     payment_status: str,
     transaction: SessionTransaction,
+    processed: bool = False,
 ) -> Payment:
     """Update payment to callback."""
     update_query = (
@@ -145,6 +146,8 @@ async def update_payment_status(
         )
         .values(
             status=payment_status,
+            processed_at=datetime.now(tz=timezone.utc),
+            processed=processed,
         )
     )
     payment_update = await transaction.session.execute(update_query)

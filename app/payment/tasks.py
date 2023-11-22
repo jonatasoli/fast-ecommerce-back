@@ -40,6 +40,7 @@ async def update_payment(
     payment_status: str,
     authorization: str,
     payment_gateway: str,
+    processed: bool,
     bootstrap: Any,
 ):
     """Update payment status."""
@@ -48,6 +49,7 @@ async def update_payment(
         payment_status=payment_status,
         authorization=authorization,
         payment_gateway=payment_gateway,
+        processed=processed,
         bootstrap=bootstrap,
     )
 
