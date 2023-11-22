@@ -153,11 +153,12 @@ async def update_payment_status(
             processed_at=datetime.now(),
             processed=processed,
         )
+        .returning(Payment)
     )
     payment_update = await transaction.session.execute(update_query)
     logger.info("payment update")
     logger.info(payment_update)
-    return payment_update
+    return payment_update.fetchone()
 
 
 async def get_payment(
