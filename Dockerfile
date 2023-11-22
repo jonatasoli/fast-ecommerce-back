@@ -16,4 +16,4 @@ RUN apt-get update -y && apt install build-essential curl --no-install-recommend
 
 COPY . /app
 
-poetry install --without dev
+RUN poetry install --without dev
