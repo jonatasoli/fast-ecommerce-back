@@ -98,6 +98,8 @@ def send_order_paid(db, mail_data: MailOrderPaied):
         plain_text_content=str(template),
         html_content=template,
     )
+    logger.info('Message in Task')
+    logger.info(f'{message}')
     logger.debug(template)
     sended = send_email(message)
     if sended:

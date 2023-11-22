@@ -14,6 +14,7 @@ from app.mail.services import (
     send_order_processed,
 )
 from app.infra.worker import task_message_bus
+from loguru import logger
 
 
 def get_db():
@@ -29,6 +30,7 @@ def task_mail_order_cancelled(
     db: Session = Depends(get_db),
 ) -> None:
     """Send cancelled email."""
+    logger.info("Start task to send mail order cancelled.")
     mail_data = MailOrderCancelled(
         mail_to=mail_to,
         order_id=order_id,
@@ -44,6 +46,7 @@ def task_mail_order_processed(
     db: Session = Depends(get_db),
 ) -> None:
     """Send cancelled email."""
+    logger.info("Start task to send mail order processed.")
     mail_data = MailOrderProcessed(
         mail_to=mail_to,
         order_id=order_id,
@@ -58,6 +61,9 @@ def task_mail_order_paid(
     db: Session = Depends(get_db),
 ) -> None:
     """Send cancelled email."""
+    logger.info("Start task to send mail order paid.")
+    logger.info(f'{mail_to}')
+    logger.info(f'{order_id}')
     mail_data = MailOrderPaied(
         mail_to=mail_to,
         order_id=order_id,
