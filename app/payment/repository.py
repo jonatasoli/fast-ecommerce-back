@@ -152,7 +152,7 @@ async def update_payment_status(
         )
     )
     payment_update = await transaction.session.execute(update_query)
-    return payment_update
+    return payment_update.scalar()
 
 
 async def get_payment(
