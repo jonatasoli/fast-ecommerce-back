@@ -30,6 +30,7 @@ async def create_order(
         order_date=datetime.now(),
         order_status=OrderStatus.PAYMENT_PENDING.value,
         user_id=user_id,
+        freight=cart.freight_product_code,
     )
     transaction.session.add(_order)
     await transaction.session.flush()
