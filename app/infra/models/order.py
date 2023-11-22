@@ -108,6 +108,7 @@ class Order(Base):
     checked: Mapped[bool] = mapped_column(default=False)
     cancelled_at: Mapped[datetime | None]
     cancelled_reason: Mapped[str | None]
+    freight: Mapped[str | None]
 
 
 class OrderItems(Base):
