@@ -147,7 +147,7 @@ async def update_payment_status(
         )
         .values(
             status=payment_status,
-            processed_at=datetime.now(tz=timezone.utc),
+            processed_at=datetime.now(),
             processed=processed,
         )
     )
