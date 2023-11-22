@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy import update
 
 from sqlalchemy.orm import SessionTransaction
