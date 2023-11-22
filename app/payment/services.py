@@ -15,6 +15,8 @@ async def update_payment(
         payment_id=payment_data.data.id,
         payment_gateway='MERCADOPAGO',
     )
+    logger.info(f'Gateway {payment}')
+    logger.info(f'Status {payment["status"]}')
     async with bootstrap.db().begin() as session:
         payment_db = await bootstrap.payment_repository.update_payment_status(
             payment_data.data.id,
@@ -22,6 +24,8 @@ async def update_payment(
             transaction=session,
         )
         logger.info(f'Pagamento {payment_db}')
+        logger.info(f'Pagamento {payment_db[0].order_id}')
+        logger.info(f'Pagamento {payment_db[0].payment_status}')
         user = await bootstrap.user_repository.get_user_by_id(
             payment_db[0].user_id,
             transaction=session,
