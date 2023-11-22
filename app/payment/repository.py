@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy import update
 
 from sqlalchemy.orm import SessionTransaction
@@ -24,7 +24,7 @@ async def create_payment(
     transaction: SessionTransaction,
 ) -> Payment:
     """Create a new order."""
-    _freight_amount =  cart.total - cart.subtotal
+    _freight_amount = cart.total - cart.subtotal
     order = Payment(
         user_id=user_id,
         order_id=order_id,
@@ -37,7 +37,7 @@ async def create_payment(
         payment_gateway=payment_gateway,
         gateway_payment_id=gateway_payment_id,
         installments=cart.installments,
-        freight_amount=_freight_amount
+        freight_amount=_freight_amount,
     )
 
     transaction.session.add(order)
@@ -156,7 +156,7 @@ async def update_payment_status(
         .returning(Payment)
     )
     payment_update = await transaction.session.execute(update_query)
-    logger.info("payment update")
+    logger.info('payment update')
     logger.info(payment_update)
     return payment_update.fetchone()
 

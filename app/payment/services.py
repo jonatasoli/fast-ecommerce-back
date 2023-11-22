@@ -2,6 +2,7 @@ from app.entities.payment import PaymentNotification, PaymentStatusResponse
 
 from propan.brokers.rabbit import RabbitQueue
 from typing import Any
+from loguru import logger
 
 
 async def update_payment(
@@ -20,11 +21,12 @@ async def update_payment(
             payment_status=payment['status'],
             transaction=session,
         )
+        logger.info(f'Pagamento {payment_db}')
         user = await bootstrap.user_repository.get_user_by_id(
-            payment_db.user_id,
+            payment_db[0].user_id,
             transaction=session,
         )
-        order_id = payment_db.order_id
+        order_id = payment_db[0].order_id
     if payment['status'] == 'authorized':
         await bootstrap.message.broker.publish(
             {
