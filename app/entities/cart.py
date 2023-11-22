@@ -262,6 +262,7 @@ class CreateCheckoutResponse(BaseModel):
     status: str
     message: str
     order_id: str | None
+    gateway_payment_id: str | None
 
 
 def convert_price_to_decimal(price: int) -> Decimal:

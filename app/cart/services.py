@@ -1,3 +1,4 @@
+import re
 from fastapi import HTTPException
 from loguru import logger
 from propan.brokers.rabbit import RabbitQueue
@@ -142,6 +143,10 @@ async def calculate_cart(
             detail='Coupon not found',
         )
     if cart.zipcode:
+        zipcode = cart.zipcode
+        no_spaces = zipcode.replace(" ", "")
+        no_special_chars = re.sub(r"[^a-zA-Z0-9]", "", no_spaces)
+        cart.zipcode = no_special_chars
         freight_package = bootstrap.freight.calculate_volume_weight(
             products=products_db,
         )
@@ -423,12 +428,16 @@ async def checkout(
         checkout_task = {}
     else:
         _order_id = checkout_task.get('order_id', None)
+        _gateway_payment_id = checkout_task.get('gateway_payment_id', None)
         if isinstance(_order_id, list):
             order_id = str(_order_id.pop())
+        if isinstance(_gateway_payment_id, list):
+            _gateway_payment_id = str(_gateway_payment_id.pop())
     return CreateCheckoutResponse(
         message=str(checkout_task.get('message')),
         status='processing',
         order_id=order_id,
+        gateway_payment_id = _gateway_payment_id,
     )
 
 
