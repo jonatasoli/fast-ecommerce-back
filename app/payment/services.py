@@ -25,7 +25,7 @@ async def update_payment(
         )
         logger.info(f'Pagamento {payment_db}')
         logger.info(f'Pagamento {payment_db[0].order_id}')
-        logger.info(f'Pagamento {payment_db[0].payment_status}')
+        logger.info(f'Pagamento {payment_db[0].status}')
         user = await bootstrap.user_repository.get_user_by_id(
             payment_db[0].user_id,
             transaction=session,
