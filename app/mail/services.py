@@ -70,6 +70,8 @@ def send_order_processed(db, mail_data: MailOrderProcessed):
         plain_text_content=str(template),
         html_content=template,
     )
+    logger.info('Message in Task')
+    logger.info(f'{message}')
     logger.debug(template)
     sended = send_email(message)
     if sended:

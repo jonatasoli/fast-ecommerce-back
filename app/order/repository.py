@@ -118,5 +118,5 @@ async def create_order_item(
         discount_price=discount_price,
     )
     transaction.session.add(order_item)
-    transaction.session.flush()
+    await transaction.session.flush()
     return order_item.order_items_id
