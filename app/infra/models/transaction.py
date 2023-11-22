@@ -71,6 +71,7 @@ class Payment(Base):
         uselist=False,
     )
     amount: Mapped[Decimal]
+    amount_with_fee: Mapped[Decimal] = mapped_column(server_default='0')
     token: Mapped[str]
     gateway_payment_id: Mapped[int] = mapped_column(server_default='0')
     status: Mapped[str]

@@ -23,18 +23,25 @@ def get_db():
 
 @task_message_bus.event('notification_order_cancelled')
 def task_mail_order_cancelled(
-    mail_to: str, order_id: int, reason: str, db: Session = Depends(get_db),
+    mail_to: str,
+    order_id: int,
+    reason: str,
+    db: Session = Depends(get_db),
 ) -> None:
     """Send cancelled email."""
     mail_data = MailOrderCancelled(
-        mail_to=mail_to, order_id=order_id, reason=reason,
+        mail_to=mail_to,
+        order_id=order_id,
+        reason=reason,
     )
     send_order_cancelled(db=db, mail_data=mail_data)
 
 
 @task_message_bus.event('notification_order_processed')
 def task_mail_order_processed(
-    mail_to: str, order_id: int, db: Session = Depends(get_db),
+    mail_to: str,
+    order_id: int,
+    db: Session = Depends(get_db),
 ) -> None:
     """Send cancelled email."""
     mail_data = MailOrderProcessed(
@@ -46,7 +53,9 @@ def task_mail_order_processed(
 
 @task_message_bus.event('notification_order_paid')
 def task_mail_order_paid(
-    mail_to: str, order_id: int, db: Session = Depends(get_db),
+    mail_to: str,
+    order_id: int,
+    db: Session = Depends(get_db),
 ) -> None:
     """Send cancelled email."""
     mail_data = MailOrderPaied(

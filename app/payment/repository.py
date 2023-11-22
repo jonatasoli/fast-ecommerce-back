@@ -26,7 +26,8 @@ async def create_payment(
     order = Payment(
         user_id=user_id,
         order_id=order_id,
-        amount=cart.subtotal,
+        amount=cart.total,
+        amount_with_fee=cart.total_with_fee,
         token=cart.card_token if cart.card_token else cart.pix_qr_code,
         status=PaymentStatus.PENDING.value,
         authorization=authorization,
