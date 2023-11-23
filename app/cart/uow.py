@@ -130,7 +130,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     async def _get_coupon_by_code(self: Self, code: str) -> CouponBase:
         """Must return a coupon by code."""
         coupon_db = await self.cart.get_coupon_by_code(code=code)
-        return CouponBase.model_validate(coupon_db)
+        return CouponResponse.model_validate(coupon_db)
 
     async def _get_address_by_id(
         self: Self,
@@ -268,9 +268,11 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
         ...
 
 
+@database_uow()
 async def get_coupon_by_code(
     code: str,
     *,
+    bootstrap: Any,
     transaction: SessionTransaction,
 ) -> CouponResponse:
     """Must return a coupon by code."""
@@ -321,6 +323,23 @@ async def get_products(
     )
     return [ProductInDB.model_validate(product) for product in products_db]
 
+@database_uow()
+def sync_get_products(
+    products: list,
+    bootstrap: Any,
+    transaction: SessionTransaction | None,
+) -> list[ProductCart]:
+    """Must return a products in list."""
+    if not transaction:
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
+    product_ids: list[int] = [item.product_id for item in products]
+    products_db = repository.sync_get_products(
+        products=product_ids,
+        transaction=transaction,
+    )
+    return [ProductInDB.model_validate(product) for product in products_db]
+
 
 @database_uow()
 async def get_products_quantity(
@@ -339,6 +358,23 @@ async def get_products_quantity(
     )
     return products_db
 
+
+@database_uow()
+def sync_get_products_quantity(
+    products: list,
+    bootstrap: Any,
+    transaction: SessionTransaction | None,
+) -> list:
+    """Must return a products in list."""
+    if not transaction:
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
+    product_ids: list[int] = [item.product_id for item in products]
+    products_db = repository.get_products_quantity(
+        products=product_ids,
+        transaction=transaction,
+    )
+    return products_db
 
 @database_uow()
 async def get_installment_fee(

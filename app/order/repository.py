@@ -1,14 +1,14 @@
 from decimal import Decimal
 from sqlalchemy import update
 
-from sqlalchemy.orm import SessionTransaction
+from sqlalchemy.orm import Session, SessionTransaction, joinedload
 from datetime import datetime
 
 from sqlalchemy.sql import select
 
 from app.entities.cart import CartPayment
 from app.infra.constants import OrderStatus
-from app.infra.models.order import Order, OrderItems, OrderStatusSteps
+from app.infra.models.order import Order, OrderItems, OrderStatusSteps, Product
 from app.order.entities import OrderDBUpdate
 
 
@@ -120,3 +120,9 @@ async def create_order_item(
     transaction.session.add(order_item)
     await transaction.session.flush()
     return order_item.order_items_id
+
+def get_order_items(order_id: int, transaction: Session) -> list:
+    """Return Order Items."""
+    order_query = select(OrderItems).join(Product, OrderItems.product_id == Product.product_id).where(OrderItems.order_id == order_id)
+    order_db = transaction.session.execute(order_query)
+    return order_db.scalars().all()

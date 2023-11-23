@@ -4,6 +4,7 @@ from pydantic import Json
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 from sqlalchemy.types import JSON
+from app.infra.models.users import User
 
 from app.infra.models.base import Base
 

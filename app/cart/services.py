@@ -163,7 +163,7 @@ async def calculate_cart(
         cart.freight = freight
     if cart.cart_items:
         cart.calculate_subtotal(
-            discount=coupon.coupon_fee if cart.coupon else 0,
+            discount=coupon.discount if cart.coupon else 0,
         )
     cache.set(
         str(cart.uuid),
@@ -424,6 +424,7 @@ async def checkout(
         callback=True,
     )
     order_id = None
+    _gateway_payment_id = None
     if not isinstance(checkout_task, dict):
         checkout_task = {}
     else:
@@ -437,7 +438,7 @@ async def checkout(
         message=str(checkout_task.get('message')),
         status='processing',
         order_id=order_id,
-        gateway_payment_id = _gateway_payment_id,
+        gateway_payment_id = _gateway_payment_id if _gateway_payment_id else '',
     )
 
 

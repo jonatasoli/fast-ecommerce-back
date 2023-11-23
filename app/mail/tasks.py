@@ -25,7 +25,7 @@ def get_db():
 @task_message_bus.event('notification_order_cancelled')
 def task_mail_order_cancelled(
     mail_to: str,
-    order_id: int,
+    order_id: int | str,
     reason: str,
     db: Session = Depends(get_db),
 ) -> None:
