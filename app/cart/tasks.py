@@ -61,7 +61,7 @@ async def checkout(
     """Checkout cart with payment intent."""
     _ = payment_method
     order_id = None
-    payment_response = None
+    gateway_payment_id = None
     logger.info(
         f'Checkout cart start{cart_uuid} with gateway {payment_gateway} with success',
     )
@@ -164,6 +164,7 @@ async def checkout(
                     authorization=payment_response.authorization_code,
                     bootstrap=bootstrap,
                 )
+                gateway_payment_id = payment_response.authorization_code
                 cart.payment_intent = payment_response.id
                 authorization = payment_response.authorization_code
                 payment_accept = bootstrap.payment.accept_payment(
@@ -215,6 +216,7 @@ async def checkout(
                     gateway_payment_id=cart.pix_payment_id,
                     bootstrap=bootstrap,
                 )
+                gateway_payment_id = cart.pix_payment_id
                 logger.info(
                     f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success',
                 )
@@ -253,7 +255,7 @@ async def checkout(
             queue=RabbitQueue('notification_order_cancelled'),
         )
         raise
-    return {'order_id': {order_id}, 'gateway_payment_id': {getattr(payment_response, 'authorization_code', None)},  'message': 'processed'}
+    return {'order_id': {order_id}, 'gateway_payment_id': gateway_payment_id,  'message': 'processed'}
 
 
 async def create_pending_payment_and_order(
