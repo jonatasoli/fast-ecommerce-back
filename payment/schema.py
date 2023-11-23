@@ -85,6 +85,7 @@ class ProductSchema(BaseModel):
     length: int | None = None
     diameter: int | None = None
     sku: str | None = None
+    currency: str | None = None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -112,6 +113,7 @@ class ProductInDB(BaseModel):
     width: int | None = None
     weigth: int | None = None
     length: int | None = None
+    currency: str | None = None
     model_config = ConfigDict(from_attributes=True)
 
 

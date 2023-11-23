@@ -1,4 +1,5 @@
 from typing import Any
+from app.infra.models.transaction import Payment
 
 from sqlalchemy.orm import SessionTransaction
 from app.entities.cart import CartPayment
@@ -49,16 +50,18 @@ async def uow_update_payment(
     payment_gateway: str,
     bootstrap: Any,
     transaction: SessionTransaction | None,
-) -> None:
+    processed: bool = False,
+) -> Payment:
     """Update payment status."""
     if not transaction:
         msg = 'Transaction must be provided'
         raise ValueError(msg)
-    await payment_repository.update_payment(
+    return await payment_repository.update_payment(
         payment_id,
         payment=PaymentDBUpdate(
             status=payment_status,
             authorization=authorization,
+            processed=processed,
             payment_gateway=payment_gateway,
         ),
         transaction=transaction,

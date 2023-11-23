@@ -5,6 +5,10 @@ from pydantic import BaseModel, ConfigDict, Json
 from schemas.order_schema import CategoryInDB
 
 
+class ProductSoldOutError(Exception):
+    """Represent produt is Sold out."""
+
+
 class ProductCart(BaseModel):
     """Product Representation in Cart."""
 
@@ -48,6 +52,7 @@ class ProductInDB(BaseModel):
     weight: int
     length: int
     diameter: int | None
+    quantity: int = 0
     sku: str
 
     model_config = ConfigDict(from_attributes=True)
@@ -86,5 +91,6 @@ class ProductCategoryInDB(BaseModel):
     length: int
     diameter: int | None
     sku: str
+    quantity: int = 1
 
     model_config = ConfigDict(from_attributes=True)

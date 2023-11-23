@@ -3,6 +3,8 @@ from typing import Any, Self
 from fastapi import Depends
 from app.infra.constants import OrderStatus, PaymentMethod
 
+from propan.brokers.rabbit import RabbitQueue
+
 from app.infra.models.order import Coupons
 from app.inventory.tasks import decrease_inventory
 from app.order.entities import (
@@ -53,8 +55,11 @@ async def checkout(
     payment_gateway: str,
     user: Any,
     bootstrap: Any = Depends(get_bootstrap),
-) -> str:
+) -> dict:
     """Checkout cart with payment intent."""
+    _ = payment_method
+    order_id = None
+    payment_response = None
     logger.info(
         f'Checkout cart start{cart_uuid} with gateway {payment_gateway} with success',
     )
@@ -130,6 +135,7 @@ async def checkout(
                         payment_gateway=cart.gateway_provider,
                         authorization=authorization,
                         payment_status=payment_accept.status,
+                        processed=True,
                         bootstrap=bootstrap,
                     )
                     await create_order_status_step(
@@ -158,14 +164,38 @@ async def checkout(
                 raise Exception('Payment method not found')
 
         bootstrap.cache.delete(cart_uuid)
-        return f'{payment_id} is processed'
     except PaymentAcceptError:
+        await bootstrap.message.broker.publish(
+            {
+                'mail_to': user['email'],
+                'order_id': order_id if order_id else '',
+                'reason': 'Dados do cartão incorreto ou sem limite disponível',
+            },
+            queue=RabbitQueue('notification_order_cancelled'),
+        )
         return PAYMENT_STATUS_ERROR_MESSAGE
     except PaymentGatewayRequestError:
+        await bootstrap.message.broker.publish(
+            {
+                'mail_to': user['email'],
+                'order_id': order_id if order_id else '',
+                'reason': 'Erro quando foi chamado o emissor do cartão tente novamente mais tarde',
+            },
+            queue=RabbitQueue('notification_order_cancelled'),
+        )
         return PAYMENT_REQUEST_ERROR_MESSAGE
     except Exception as e:
         logger.error(f'Error in checkout: {e}')
+        await bootstrap.message.broker.publish(
+            {
+                'mail_to': user['email'],
+                'order_id': order_id if order_id else '',
+                'reason': 'Erro desconhecido favor entre em contato conosco',
+            },
+            queue=RabbitQueue('notification_order_cancelled'),
+        )
         raise
+    return {'order_id': {order_id}, 'gateway_payment_id': {getattr(payment_response, 'authorization_code', None)},  'message': 'processed'}
 
 
 async def create_pending_payment_and_order(
@@ -216,6 +246,14 @@ async def create_pending_payment_and_order(
             raise CreateOrderStatusStepError(
                 msg,
             )
+
+        await bootstrap.message.broker.publish(
+            {
+                'mail_to': user['email'],
+                'order_id': order_id if order_id else '',
+            },
+            queue=RabbitQueue('notification_order_processed'),
+        )
 
         return payment_id, order_id
     except Exception as e:

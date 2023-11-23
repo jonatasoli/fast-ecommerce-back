@@ -43,6 +43,13 @@ class Product(Base):
         uselist=False,
         lazy='joined',
     )
+    inventory = relationship(
+        'Inventory',
+        backref=backref('Product', uselist=False),
+        cascade='all,delete',
+        foreign_keys=[product_id],
+        primaryjoin='Product.product_id == Inventory.product_id',
+    )
     showcase: Mapped[bool] = mapped_column(default=False)
     feature: Mapped[bool] = mapped_column(default=False, server_default='0')
     show_discount: Mapped[bool] = mapped_column(default=False)
@@ -52,6 +59,7 @@ class Product(Base):
     length: Mapped[Decimal | None]
     diameter: Mapped[Decimal | None]
     sku: Mapped[str]
+    currency: Mapped[str] = mapped_column(default='BRL', default_server='BRL')
 
 
 class Coupons(Base):
@@ -98,6 +106,9 @@ class Order(Base):
     order_status: Mapped[str]
     last_updated: Mapped[datetime]
     checked: Mapped[bool] = mapped_column(default=False)
+    cancelled_at: Mapped[datetime | None]
+    cancelled_reason: Mapped[str | None]
+    freight: Mapped[str | None]
 
 
 class OrderItems(Base):
@@ -132,6 +143,7 @@ class OrderStatusSteps(Base):
     last_updated: Mapped[datetime]
     sending: Mapped[bool]
     active: Mapped[bool]
+    description: Mapped[str | None]
 
 
 class ImageGallery(Base):
@@ -147,12 +159,6 @@ class Inventory(Base):
 
     inventory_id: Mapped[int] = mapped_column(primary_key=True)
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
-    product = relationship(
-        'Product',
-        backref=backref('inventory', uselist=False),
-        cascade='all,delete',
-        foreign_keys=[product_id],
-    )
     order_id: Mapped[int | None] = mapped_column(ForeignKey('order.order_id'))
     order = relationship(
         'Order',

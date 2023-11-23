@@ -3,6 +3,7 @@ from sqlalchemy import update
 
 from sqlalchemy.orm import SessionTransaction
 from sqlalchemy.orm.exc import NoResultFound
+from loguru import logger
 
 from sqlalchemy.sql import select
 
@@ -23,10 +24,12 @@ async def create_payment(
     transaction: SessionTransaction,
 ) -> Payment:
     """Create a new order."""
+    _freight_amount = cart.total - cart.subtotal
     order = Payment(
         user_id=user_id,
         order_id=order_id,
-        amount=cart.subtotal,
+        amount=cart.total,
+        amount_with_fee=cart.total_with_fee,
         token=cart.card_token if cart.card_token else cart.pix_qr_code,
         status=PaymentStatus.PENDING.value,
         authorization=authorization,
@@ -34,6 +37,7 @@ async def create_payment(
         payment_gateway=payment_gateway,
         gateway_payment_id=gateway_payment_id,
         installments=cart.installments,
+        freight_amount=_freight_amount,
     )
 
     transaction.session.add(order)
@@ -136,6 +140,7 @@ async def update_payment_status(
     *,
     payment_status: str,
     transaction: SessionTransaction,
+    processed: bool = False,
 ) -> Payment:
     """Update payment to callback."""
     update_query = (
@@ -145,10 +150,15 @@ async def update_payment_status(
         )
         .values(
             status=payment_status,
+            processed_at=datetime.now(),
+            processed=processed,
         )
+        .returning(Payment)
     )
     payment_update = await transaction.session.execute(update_query)
-    return payment_update
+    logger.info('payment update')
+    logger.info(payment_update)
+    return payment_update.fetchone()
 
 
 async def get_payment(

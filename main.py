@@ -32,7 +32,9 @@ from app.infra.endpoints.default import (
 from app.infra.endpoints.report import report
 from app.cart.tasks import task_message_bus
 from app.payment.tasks import task_message_bus
+from app.mail.tasks import task_message_bus
 from app.infra.worker import task_message_bus
+from app.entities.product import ProductSoldOutError
 
 app = FastAPI(lifespan=task_message_bus.lifespan_context)
 
@@ -69,7 +71,9 @@ app.add_middleware(
 
 
 @app.exception_handler(ProductNotFoundError)
-async def product_not_found_exception_handler(_: Request, exc: ProductNotFoundError):
+async def product_not_found_exception_handler(
+    _: Request, exc: ProductNotFoundError
+) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={'message': f'{exc.args[0]}'},
@@ -78,8 +82,8 @@ async def product_not_found_exception_handler(_: Request, exc: ProductNotFoundEr
 
 @app.exception_handler(CardAlreadyUseError)
 async def card_already_use_exception_handler(
-        _: Request,
-        exc: CardAlreadyUseError,
+    _: Request,
+    exc: CardAlreadyUseError,
 ) -> JSONResponse:
     """Capture CardAlreadyUseError and raise status code 409."""
     return JSONResponse(
@@ -90,8 +94,8 @@ async def card_already_use_exception_handler(
 
 @app.exception_handler(CredentialError)
 async def credential_exception_handler(
-        _: Request,
-        exc: CredentialError,
+    _: Request,
+    exc: CredentialError,
 ) -> JSONResponse:
     """Capture CredentialError and raise status code 401."""
     return JSONResponse(
@@ -101,6 +105,22 @@ async def credential_exception_handler(
             'stackerror': f'{exc.args[0]}',
         },
     )
+
+
+@app.exception_handler(ProductSoldOutError)
+async def product_sold_out_exception_handler(
+    _: Request,
+    exc: ProductSoldOutError,
+) -> JSONResponse:
+    """Capture ProductSoldOut and raise status code 404."""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            'detail': 'Product Sold Out.',
+            'stackerror': f'{exc.args[0]}',
+        },
+    )
+
 
 # set loguru format for root logger
 logging.getLogger().handlers = [InterceptHandler()]

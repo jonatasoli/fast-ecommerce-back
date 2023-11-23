@@ -13,7 +13,7 @@ class MailOrderProcessed(BaseModel):
 
 
 class MailOrderPaied(BaseModel):
-    mailt_to: str
+    mail_to: str
     order_id: int
 
 

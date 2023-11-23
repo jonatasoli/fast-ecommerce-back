@@ -4,7 +4,11 @@ from decimal import Decimal
 from loguru import logger
 
 from app.infra.models.order import Order, OrderItems, Product
-from app.infra.models.transaction import CreditCardFeeConfig, Payment, Transaction
+from app.infra.models.transaction import (
+    CreditCardFeeConfig,
+    Payment,
+    Transaction,
+)
 from payment.adapter import get_db
 from payment.schema import (
     ConfigCreditCardResponse,

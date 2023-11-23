@@ -65,6 +65,7 @@ class CartBase(BaseModel):
     freight_product_code: str | None = None
     freight: Freight | None = None
     subtotal: Decimal
+    total: Decimal = Decimal(0)
 
     def increase_quantity(self: Self, product_id: int) -> Self:
         """Increase quantity in a product."""
@@ -157,6 +158,8 @@ class CartBase(BaseModel):
                     item.discount_price = item.price * discount
                     self.discount += item.discount_price * item.quantity
             self.subtotal = subtotal
+            if self.freight and self.freight.price:
+                self.total = subtotal + self.freight.price
         except TypeError as err:
             logger.error('Price or quantity not found in cart item')
             raise CartNotFoundPriceError from err
@@ -210,6 +213,13 @@ class CartPayment(CartShipping):
     pix_payment_id: int | None = None
     gateway_provider: str
     installments: int = 1
+    subtotal_with_fee: Decimal = Decimal(0)
+    total_with_fee: Decimal = Decimal(0)
+
+    def calculate_fee(self: Self, fee: Decimal) -> None:
+        """Calculate installments fee."""
+        self.subtotal_with_fee = self.subtotal * (1 + fee)
+        self.total_with_fee = self.subtotal_with_fee + self.freight.price
 
 
 class CreateCreditCardPaymentMethod(BaseModel):
@@ -251,6 +261,8 @@ class CreateCheckoutResponse(BaseModel):
 
     status: str
     message: str
+    order_id: str | None
+    gateway_payment_id: str | None
 
 
 def convert_price_to_decimal(price: int) -> Decimal:

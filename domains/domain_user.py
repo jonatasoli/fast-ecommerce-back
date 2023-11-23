@@ -48,7 +48,6 @@ def create_user(db: Session, obj_in: SignUp):
             msg = 'User not password'
             raise Exception(msg)
 
-
         with db:
             db_user = User(
                 name=obj_in.name,
@@ -99,7 +98,7 @@ def get_user(db: Session, document: str, password: str):
             logger.error(
                 f'User not finded {db_user.document}, {db_user.password}',
             )
-            raise HTTPException(status_code=403, detail="Access forbidden")
+            raise HTTPException(status_code=403, detail='Access forbidden')
     except Exception as e:
         raise e
 
