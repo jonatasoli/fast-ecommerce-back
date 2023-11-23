@@ -1,3 +1,4 @@
+import re
 from fastapi import HTTPException
 from loguru import logger
 from propan.brokers.rabbit import RabbitQueue
@@ -16,7 +17,7 @@ from app.entities.cart import (
     validate_cache_cart,
 )
 from app.entities.coupon import CouponResponse
-from app.entities.product import ProductCart
+from app.entities.product import ProductCart, ProductSoldOutError
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
 from app.infra.constants import PaymentGatewayAvailable, PaymentMethod
@@ -99,6 +100,40 @@ async def calculate_cart(
             detail='Cart uuid is not the same as the cache uuid',
         )
     products_db = await bootstrap.uow.get_products(cart.cart_items)
+    products_inventory = await bootstrap.cart_uow.get_products_quantity(
+        cart.cart_items,
+        bootstrap=bootstrap,
+    )
+    products_in_cart = []
+    products_in_inventory = []
+    cart_quantities = []
+    for product in products_db:
+        for cart_item in cache_cart.cart_items:
+            products_in_cart.append(product.product_id)
+            if any(
+                item['product_id'] == product.product_id
+                for item in products_inventory
+            ):
+                products_in_inventory.append(product.product_id)
+            for item in products_inventory:
+                if (
+                    cart_item.product_id == item['product_id']
+                    and cart_item.quantity > item['quantity']
+                ):
+                    cart_quantities.append(cart_item.model_dump())
+
+    products_not_in_both = list(
+        set(products_in_cart) ^ set(products_in_inventory),
+    )
+
+    if cart_quantities:
+        raise ProductSoldOutError(
+            f'Os seguintes items solicitados estão com um pedido acima dos nossos estoques {cart_quantities}',
+        )
+    if len(products_db) != len(products_inventory):
+        raise ProductSoldOutError(
+            f'Os seguintes produtos não possuem em estoque {products_not_in_both}',
+        )
     cart.get_products_price_and_discounts(products_db)
     if cart.coupon and not (
         coupon := await bootstrap.uow.get_coupon_by_code(cart.coupon)
@@ -108,6 +143,10 @@ async def calculate_cart(
             detail='Coupon not found',
         )
     if cart.zipcode:
+        zipcode = cart.zipcode
+        no_spaces = zipcode.replace(" ", "")
+        no_special_chars = re.sub(r"[^a-zA-Z0-9]", "", no_spaces)
+        cart.zipcode = no_special_chars
         freight_package = bootstrap.freight.calculate_volume_weight(
             products=products_db,
         )
@@ -307,8 +346,15 @@ async def add_payment_information(  # noqa: PLR0913
         customer_id=customer,
         installments=installments,
     )
+    _payment_installment_fee = await bootstrap.cart_uow.get_installment_fee(
+        bootstrap=bootstrap,
+    )
+    if cart.installments >= _payment_installment_fee.min_installment_with_fee:
+        cart.calculate_fee(_payment_installment_fee.fee)
     bootstrap.cache.set(
-        str(cart.uuid), cart.model_dump_json(), ex=DEFAULT_CART_EXPIRE
+        str(cart.uuid),
+        cart.model_dump_json(),
+        ex=DEFAULT_CART_EXPIRE,
     )
     await bootstrap.uow.update_payment_method_to_user(
         user.user_id,
@@ -377,9 +423,21 @@ async def checkout(
         queue=RabbitQueue('checkout'),
         callback=True,
     )
+    order_id = None
+    if not isinstance(checkout_task, dict):
+        checkout_task = {}
+    else:
+        _order_id = checkout_task.get('order_id', None)
+        _gateway_payment_id = checkout_task.get('gateway_payment_id', None)
+        if isinstance(_order_id, list):
+            order_id = str(_order_id.pop())
+        if isinstance(_gateway_payment_id, list):
+            _gateway_payment_id = str(_gateway_payment_id.pop())
     return CreateCheckoutResponse(
-        message=str(checkout_task),
+        message=str(checkout_task.get('message')),
         status='processing',
+        order_id=order_id,
+        gateway_payment_id = _gateway_payment_id,
     )
 
 

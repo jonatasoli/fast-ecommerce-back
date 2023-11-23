@@ -3,10 +3,34 @@ from jinja2 import Environment, FileSystemLoader
 from loguru import logger
 from mail_service.sendmail import SendMail, send_mail_sendgrid
 
-from schemas.mail_schema import MailFormCourses, MailTrackingNumber
+from schemas.mail_schema import MailFormCourses, MailOrderCancelled, MailTrackingNumber
 
 file_loader = FileSystemLoader('email-templates')
 env = Environment(loader=file_loader)
+
+
+def send_order_cancelled(db, mail_data: MailOrderCancelled):
+    template = get_mail_template_cancelled(
+        mail_template='mail_order_cancelled',
+        order_id=mail_data.order_id,
+        reason=mail_data.reason,
+        company=settings.COMPANY,
+    )
+    sended = send_mail(
+        from_email=settings.EMAIL_FROM,
+        to_emails=mail_data.mail_to,
+        subject='Seu pedido está a caminho!',
+        plain_text_content=str(template),
+        html_content=template,
+        send_mail=send_mail_sendgrid,
+    )
+    logger.debug(template)
+    if sended:
+        return True
+    return False
+
+def get_mail_template_cancelled(mail_template, **kwargs):
+    return env.get_template('mail_order_cancelled.html').render(**kwargs)
 
 
 def send_mail_tracking_number(db, mail_data: MailTrackingNumber):

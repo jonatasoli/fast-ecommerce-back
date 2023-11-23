@@ -107,6 +107,7 @@ def calculate_delivery_time(
     product_code: str = PAC_AG,
 ) -> DeliveryParamsResponse:
     """Calculate delivery time."""
+    product_code = SEDEX_AG if product_code == 'SEDEX' else PAC_AG
     zip_code_origin = str(settings.CORREIOSBR_CEP_ORIGIN)
     url = base_url + '/prazo/v1/nacional'
     delivery_params = DeliveryParams(
@@ -150,6 +151,7 @@ def calculate_delivery_price(
     package: DeliveryPriceParams,
 ) -> DeliveryPriceResponse:
     """Calculate delivery price with correios api."""
+    product_code = SEDEX_AG if product_code == 'SEDEX' else PAC_AG
     client = get_client()
     token = get_token()
     url = base_url + f'/preco/v1/nacional/{product_code}'

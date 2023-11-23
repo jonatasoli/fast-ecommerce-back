@@ -1,6 +1,7 @@
 from typing import Any
 from sqlalchemy.orm import SessionTransaction
 from app.entities.cart import CartPayment
+from app.entities.product import ProductSoldOutError
 from app.infra.custom_decorators import database_uow
 from app.inventory import repository as inventory_repository
 
@@ -29,4 +30,4 @@ async def uow_decrease_inventory(
         )
         if total < 0:
             msg = 'Product not available'
-            raise Exception(msg)
+            raise ProductSoldOutError(msg)

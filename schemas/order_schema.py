@@ -37,6 +37,8 @@ class ProductSchemaResponse(BaseModel):
     weigth: float | None = None
     length: float | None = None
     model_config = ConfigDict(from_attributes=True)
+
+
 class ProductResponseSchema(ProductSchema):
     product_id: int
 

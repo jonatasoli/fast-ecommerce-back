@@ -30,6 +30,7 @@ class Transaction(Base):
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
     affiliate: Mapped[int | None] = mapped_column(ForeignKey('user.user_id'))
     affiliate_quota: Mapped[int | None]
+    freight: Mapped[str | None]
 
 
 class Customer(Base):
@@ -71,6 +72,7 @@ class Payment(Base):
         uselist=False,
     )
     amount: Mapped[Decimal]
+    amount_with_fee: Mapped[Decimal] = mapped_column(server_default='0')
     token: Mapped[str]
     gateway_payment_id: Mapped[int] = mapped_column(server_default='0')
     status: Mapped[str]
@@ -80,6 +82,7 @@ class Payment(Base):
     installments: Mapped[int]
     processed: Mapped[bool] = mapped_column(default=False)
     processed_at: Mapped[datetime | None]
+    freight_amount: Mapped[Decimal] = mapped_column(server_default='0')
 
 
 class CreditCardFeeConfig(Base):

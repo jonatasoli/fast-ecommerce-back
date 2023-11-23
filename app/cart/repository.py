@@ -2,13 +2,14 @@ import abc
 from typing import Any, Self
 from loguru import logger
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import SessionTransaction
 from app.entities.address import AddressBase
 from app.entities.cart import ProductNotFoundError
 
 from app.infra.models import order
 from app.infra.models import users
+from app.infra.models import transaction as transaction_model
 
 
 class AddressNotFoundError(Exception):
@@ -285,6 +286,43 @@ async def get_products(
         raise
 
 
+async def get_products_quantity(
+    products: list[int],
+    transaction: SessionTransaction,
+) -> list[order.Product]:
+    """Must return products quantity."""
+    try:
+        quantity_query = (
+            select(
+                order.Inventory.product_id.label('product_id'),
+                func.coalesce(func.sum(order.Inventory.quantity), 0).label(
+                    'quantity',
+                ),
+            )
+            .outerjoin(
+                order.Product,
+                order.Product.product_id == order.Inventory.product_id,
+            )
+            .where(order.Product.product_id.in_(products))
+            .group_by(order.Inventory.product_id)
+        )
+        products_db = await transaction.session.execute(quantity_query)
+        await _check_products_db(products_db, products)
+
+        column_names = products_db.keys()
+        products = products_db.all()
+
+        products_list = []
+        for product in products:
+            product_dict = dict(zip(column_names, product))
+            products_list.append(product_dict)
+
+        return products_list
+    except Exception as e:
+        logger.error(f'Error in _get_products: {e}')
+        raise
+
+
 async def _check_products_db(
     products_db: list,
     products: list[int],
@@ -293,3 +331,21 @@ async def _check_products_db(
     if not products_db:
         msg = f'No products with ids {products}'
         raise ProductNotFoundError(msg)
+
+
+async def get_installment_fee(
+    transaction: SessionTransaction,
+    fee_config: int = 1,
+) -> transaction_model.CreditCardFeeConfig:
+    """Must return config fee."""
+    try:
+        config = await transaction.session.scalar(
+            select(transaction_model.CreditCardFeeConfig).where(
+                transaction_model.CreditCardFeeConfig.credit_card_fee_config_id
+                == fee_config,
+            ),
+        )
+        return config
+    except Exception as e:
+        logger.error(f'{e}')
+        raise
