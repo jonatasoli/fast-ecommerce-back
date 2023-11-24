@@ -323,6 +323,7 @@ async def get_products(
     )
     return [ProductInDB.model_validate(product) for product in products_db]
 
+
 @database_uow()
 def sync_get_products(
     products: list,
@@ -375,6 +376,7 @@ def sync_get_products_quantity(
         transaction=transaction,
     )
     return products_db
+
 
 @database_uow()
 async def get_installment_fee(

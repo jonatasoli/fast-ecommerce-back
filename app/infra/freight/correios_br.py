@@ -26,6 +26,10 @@ MIN_WIDTH = 11
 MIN_HEIGHT = 2
 
 
+class CorreiosInvalidReturnError(Exception):
+    """Return Invalid Error to API."""
+
+
 class DeliveryParams(BaseModel):
     coProduto: str
     nuRequisicao: str = '1'
@@ -74,7 +78,7 @@ def generate_bacth_id(redis_client: redis.AbstractCache = redis.RedisCache()):
     return str(batch_id)
 
 
-def get_token(redis_client: redis.AbstractCache = redis.RedisCache()):
+def get_token(redis_client: redis.AbstractCache = redis.RedisCache()) -> str:
     """Get correios token if exists or create a new one."""
     _redis = redis_client.client()
 
@@ -95,7 +99,7 @@ def get_token(redis_client: redis.AbstractCache = redis.RedisCache()):
             msg = 'Erro to connect with corrios api'
             raise TimeoutException(msg)
         token = response.json()['token']
-        _redis.set('correiosbr_token', token, ex=72000)
+        _redis.set('correiosbr_token', token, ex=43200)
 
     if isinstance(token, bytes):
         token = token.decode('utf-8')
@@ -132,6 +136,11 @@ def calculate_delivery_time(
         raise TimeoutException(msg)
     _response = response.json()
     logger.info(_response)
+    if isinstance(_response, list) and (
+        api_error := _response[0].get('txErro')
+    ):
+        raise CorreiosInvalidReturnError(api_error)
+
     if not (delivery_time_response := _response[0]['prazoEntrega']):
         msg = 'Error to calculate delivery time'
         raise Exception(msg)

@@ -3,12 +3,11 @@ from loguru import logger
 from sqlalchemy.orm import Session
 
 from constants import OrderStatus
-from domains import domain_order
+from app.order import services
 from app.infra.deps import get_db
 from gateway.payment_gateway import return_transaction
 from job_service.service import get_session
-from app.infra.models.order import Order
-from app.infra.models.transaction import Payment
+from app.infra.models import PaymentDB, OrderDB
 from schemas.order_schema import (
     OrderFullResponse,
     OrderSchema,
@@ -25,7 +24,7 @@ order = APIRouter(
 async def get_order(*, db: Session = Depends(get_db), id: int) -> None:
     """Get order."""
     try:
-        return domain_order.get_order(db, id)
+        return services.get_order(db, id)
     except Exception:
         raise
 
@@ -38,7 +37,7 @@ async def get_order_users_id(
 ) -> None:
     """Get order users id."""
     try:
-        return domain_order.get_order_users(db, id)
+        return services.get_order_users(db, id)
     except Exception:
         raise
 
@@ -52,7 +51,7 @@ async def get_orders_paid(
 ) -> None:
     """Get orders paid."""
     try:
-        return domain_order.get_orders_paid(db, dates, status, user_id)
+        return services.get_orders_paid(db, dates, status, user_id)
     except Exception:
         raise
 
@@ -66,7 +65,7 @@ async def put_order(
 ) -> None:
     """Put order."""
     try:
-        return domain_order.put_order(db, value, id)
+        return services.put_order(db, value, id)
     except Exception:
         raise
 
@@ -79,7 +78,7 @@ async def put_trancking_number(
 ) -> None:
     """Put trancking number."""
     try:
-        return domain_order.put_trancking_number(db, value, id)
+        return services.put_trancking_number(db, value, id)
     except Exception:
         raise
 
@@ -92,7 +91,7 @@ async def put_trancking_number(
 ) -> int:
     """Put trancking number."""
     try:
-        return domain_order.checked_order(db, id, check)
+        return services.checked_order(db, id, check)
     except Exception:
         raise
 
@@ -104,14 +103,14 @@ async def create_order(
     order_data: OrderSchema,
 ) -> None:
     """Create order."""
-    return domain_order.create_order(db=db, order_data=order_data)
+    return services.create_order(db=db, order_data=order_data)
 
 
 @order.post('/update-payment-and-order-status', status_code=200)
 def order_status() -> None:
     """Order status."""
     db = get_session()
-    orders = db.query(Order).filter(Order.id.isnot(None))
+    orders = db.query(OrderDB).filter(OrderDB.id.isnot(None))
     for order in orders:
         return {
             'order_id': order.id,
@@ -135,7 +134,7 @@ def status_pending() -> None:
     data = order_status()
     logger.debug(data)
     db = get_session()
-    payment = db.query(Payment).filter_by(id=data.get('payment_id')).first()
+    payment = db.query(PaymentDB).filter_by(id=data.get('payment_id')).first()
     return return_transaction(payment.gateway_id)
 
 

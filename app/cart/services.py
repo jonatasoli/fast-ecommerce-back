@@ -144,8 +144,8 @@ async def calculate_cart(
         )
     if cart.zipcode:
         zipcode = cart.zipcode
-        no_spaces = zipcode.replace(" ", "")
-        no_special_chars = re.sub(r"[^a-zA-Z0-9]", "", no_spaces)
+        no_spaces = zipcode.replace(' ', '')
+        no_special_chars = re.sub(r'[^a-zA-Z0-9]', '', no_spaces)
         cart.zipcode = no_special_chars
         freight_package = bootstrap.freight.calculate_volume_weight(
             products=products_db,
@@ -438,7 +438,7 @@ async def checkout(
         message=str(checkout_task.get('message')),
         status='processing',
         order_id=order_id,
-        gateway_payment_id = _gateway_payment_id if _gateway_payment_id else '',
+        gateway_payment_id=_gateway_payment_id if _gateway_payment_id else '',
     )
 
 

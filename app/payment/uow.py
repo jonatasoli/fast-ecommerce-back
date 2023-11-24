@@ -1,5 +1,5 @@
 from typing import Any
-from app.infra.models.transaction import Payment
+from app.infra.models import PaymentDB
 
 from sqlalchemy.orm import SessionTransaction
 from app.entities.cart import CartPayment
@@ -51,7 +51,7 @@ async def uow_update_payment(
     bootstrap: Any,
     transaction: SessionTransaction | None,
     processed: bool = False,
-) -> Payment:
+) -> PaymentDB:
     """Update payment status."""
     if not transaction:
         msg = 'Transaction must be provided'

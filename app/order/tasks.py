@@ -5,7 +5,7 @@ from fastapi import Depends
 
 from app.entities.cart import CartPayment
 from app.infra.bootstrap.task_bootstrap import Command
-from app.infra.models import order
+from app.infra.models import OrderDB
 from app.order.entities import OrderDBUpdate
 from app.infra.worker import task_message_bus
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command
@@ -31,7 +31,7 @@ async def create_order(
 async def update_order(
     order_update: OrderDBUpdate,
     bootstrap: Command,
-) -> order.Order:
+) -> OrderDB:
     return await bootstrap.order_uow.uow_update_paid_order(
         order_update,
         bootstrap=bootstrap,

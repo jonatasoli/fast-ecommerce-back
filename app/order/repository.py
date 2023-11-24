@@ -1,14 +1,19 @@
 from decimal import Decimal
 from sqlalchemy import update
 
-from sqlalchemy.orm import Session, SessionTransaction, joinedload
+from sqlalchemy.orm import Session, SessionTransaction
 from datetime import datetime
 
 from sqlalchemy.sql import select
 
 from app.entities.cart import CartPayment
 from app.infra.constants import OrderStatus
-from app.infra.models.order import Order, OrderItems, OrderStatusSteps, Product
+from app.infra.models import (
+    OrderDB,
+    OrderItemsDB,
+    OrderStatusStepsDB,
+    ProductDB,
+)
 from app.order.entities import OrderDBUpdate
 
 
@@ -19,9 +24,9 @@ async def create_order(
     user_id: int,
     transaction: SessionTransaction,
     affiliate_id: int | None,
-) -> Order:
+) -> OrderDB:
     """Create a new order."""
-    _order = Order(
+    _order = OrderDB(
         affiliate_id=affiliate_id,
         cart_uuid=str(cart.uuid),
         customer_id=cart.customer_id,
@@ -41,10 +46,10 @@ async def get_order_by_id(
     order_id: int,
     *,
     transaction: SessionTransaction,
-) -> Order:
+) -> OrderDB:
     """Get an order by its id."""
-    order_query = select(Order).where(
-        Order.order_id == order_id,
+    order_query = select(OrderDB).where(
+        OrderDB.order_id == order_id,
     )
     return await transaction.session.scalar(order_query)
 
@@ -52,11 +57,11 @@ async def get_order_by_id(
 async def update_order(
     order: OrderDBUpdate,
     transaction: SessionTransaction,
-) -> Order:
+) -> OrderDB:
     """Update an existing order."""
     update_query = (
-        update(Order)
-        .where(Order.order_id == order.order_id)
+        update(OrderDB)
+        .where(OrderDB.order_id == order.order_id)
         .values(
             **order.model_dump(
                 exclude_unset=True,
@@ -64,7 +69,7 @@ async def update_order(
             ),
             last_updated=datetime.now(),
         )
-        .returning(Order)
+        .returning(OrderDB)
     )
     return await transaction.session.execute(update_query)
 
@@ -73,9 +78,9 @@ async def get_order_by_cart_uuid(
     cart_uuid: str,
     *,
     transaction: SessionTransaction,
-) -> Order | None:
+) -> OrderDB | None:
     """Get an order by its cart uuid."""
-    order_query = select(Order).where(Order.cart_uuid == str(cart_uuid))
+    order_query = select(OrderDB).where(OrderDB.cart_uuid == str(cart_uuid))
     order_db = await transaction.session.execute(order_query)
     return order_db.scalar_one_or_none()
 
@@ -88,7 +93,7 @@ async def create_order_status_step(
     sending: bool = False,
 ) -> int:
     """Create a new order status step."""
-    order_status_step = OrderStatusSteps(
+    order_status_step = OrderStatusStepsDB(
         order_id=order_id,
         status=status,
         sending=sending,
@@ -110,7 +115,7 @@ async def create_order_item(
     transaction: SessionTransaction,
 ) -> int:
     """Create a new order item."""
-    order_item = OrderItems(
+    order_item = OrderItemsDB(
         order_id=order_id,
         product_id=product_id,
         quantity=quantity,
@@ -121,8 +126,13 @@ async def create_order_item(
     await transaction.session.flush()
     return order_item.order_items_id
 
+
 def get_order_items(order_id: int, transaction: Session) -> list:
     """Return Order Items."""
-    order_query = select(OrderItems).join(Product, OrderItems.product_id == Product.product_id).where(OrderItems.order_id == order_id)
+    order_query = (
+        select(OrderItemsDB)
+        .join(ProductDB, OrderItemsDB.product_id == ProductDB.product_id)
+        .where(OrderItemsDB.order_id == order_id)
+    )
     order_db = transaction.session.execute(order_query)
     return order_db.scalars().all()

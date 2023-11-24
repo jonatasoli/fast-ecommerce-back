@@ -7,7 +7,7 @@ from app.infra.constants import OrderStatus, PaymentMethod
 
 from propan.brokers.rabbit import RabbitQueue
 
-from app.infra.models.order import Coupons
+from app.infra.models import CouponsDB
 from app.inventory.tasks import decrease_inventory
 from app.order.entities import (
     CreateOrderStatusStepError,
@@ -86,9 +86,11 @@ async def checkout(
                 bootstrap=bootstrap,
             )
             cart.get_products_price_and_discounts(products_db)
-            products_inventory = await bootstrap.cart_uow.get_products_quantity(
-                cart.cart_items,
-                bootstrap=bootstrap,
+            products_inventory = (
+                await bootstrap.cart_uow.get_products_quantity(
+                    cart.cart_items,
+                    bootstrap=bootstrap,
+                )
             )
             products_in_cart = []
             products_in_inventory = []
@@ -124,8 +126,8 @@ async def checkout(
                 )
             cart.get_products_price_and_discounts(products_db)
             zipcode = cart.zipcode
-            no_spaces = zipcode.replace(" ", "")
-            no_special_chars = re.sub(r"[^a-zA-Z0-9]", "", no_spaces)
+            no_spaces = zipcode.replace(' ', '')
+            no_special_chars = re.sub(r'[^a-zA-Z0-9]', '', no_spaces)
             cart.zipcode = no_special_chars
             freight_package = bootstrap.freight.calculate_volume_weight(
                 products=products_db,
@@ -141,7 +143,9 @@ async def checkout(
                 zipcode=cart.zipcode,
             )
             cart.freight = freight
-            cart.calculate_subtotal(discount=coupon.discount if cart.coupon else 0)
+            cart.calculate_subtotal(
+                discount=coupon.discount if cart.coupon else 0,
+            )
 
         match cart.payment_method:
             case (PaymentMethod.CREDIT_CARD.value):
@@ -255,13 +259,17 @@ async def checkout(
             queue=RabbitQueue('notification_order_cancelled'),
         )
         raise
-    return {'order_id': {order_id}, 'gateway_payment_id': gateway_payment_id,  'message': 'processed'}
+    return {
+        'order_id': {order_id},
+        'gateway_payment_id': gateway_payment_id,
+        'message': 'processed',
+    }
 
 
 async def create_pending_payment_and_order(
     cart: CartPayment,
     affiliate: str | None,
-    coupon: Coupons | None,
+    coupon: CouponsDB | None,
     user: Any,
     payment_gateway: str,
     gateway_payment_id: int,

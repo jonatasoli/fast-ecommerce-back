@@ -1,11 +1,11 @@
 from typing import Any
 from app.entities.user import UserCouponResponse, CredentialError
-from app.infra.models.users import User
+from app.infra.models import UserDB
 from jose import JWTError, jwt
 from config import settings
 
 
-def get_affiliate_urls(user: User, base_url: str) -> UserCouponResponse:
+def get_affiliate_urls(user: UserDB, base_url: str) -> UserCouponResponse:
     """Get affiliate user and return code urls."""
     _ = user
     _urls = []
@@ -24,7 +24,7 @@ def verify_token_user_is_valid(token: str, bootstrap: Any) -> None:
 def get_current_user(
     token: str,
     bootstrap: Any,
-) -> User:
+) -> UserDB:
     """Must return user db."""
     try:
         payload = jwt.decode(

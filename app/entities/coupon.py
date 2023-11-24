@@ -2,6 +2,10 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
 
 
+class CouponNotFoundError(Exception):
+    """Coupon not exist in database."""
+
+
 class CouponBase(BaseModel):
     code: str
     model_config = ConfigDict(from_attributes=True)

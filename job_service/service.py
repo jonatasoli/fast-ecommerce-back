@@ -7,7 +7,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from app.infra.models.order import OrderStatusSteps
+from app.infra.models import OrderStatusStepsDB
 
 
 def get_session():
@@ -23,7 +23,7 @@ def post_order_status(url):
 
 def process():
     session = get_session()
-    result = session.query(OrderStatusSteps).filter_by(
+    result = session.query(OrderStatusStepsDB).filter_by(
         active=True,
         sending=False,
     )

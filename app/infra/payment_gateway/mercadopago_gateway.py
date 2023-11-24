@@ -1,5 +1,6 @@
 from contextlib import suppress
 from decimal import Decimal
+from loguru import logger
 from mercadopago import SDK
 from pydantic import BaseModel
 from config import settings
@@ -133,6 +134,8 @@ def create_credit_card_payment(
         raise Exception(payment_response)
     if payment_response['status'] == 400:
         raise CardAlreadyUseError(payment_response.get('message'))
+    logger.info('Gateway Response')
+    logger.info(f'{payment_response["response"]}')
     return MercadoPagoPaymentResponse.model_validate(
         payment_response['response'],
     )

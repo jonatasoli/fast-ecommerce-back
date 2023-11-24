@@ -65,7 +65,10 @@ def send_order_processed(db: Session, mail_data: MailOrderProcessed):
     order_items = None
     template = None
     with db.begin() as session:
-        order_items = order_repository.get_order_items(order_id=mail_data.order_id, transaction=session)
+        order_items = order_repository.get_order_items(
+            order_id=mail_data.order_id,
+            transaction=session,
+        )
         template = get_mail_template_order_processed(
             mail_template='mail_order_processed',
             order_id=mail_data.order_id,

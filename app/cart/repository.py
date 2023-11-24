@@ -3,13 +3,13 @@ from typing import Any, Self
 from loguru import logger
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session, SessionTransaction
+from sqlalchemy.orm import SessionTransaction
 from app.entities.address import AddressBase
 from app.entities.cart import ProductNotFoundError
+from sqlalchemy.exc import NoResultFound
+from app.entities.coupon import CouponNotFoundError
 
-from app.infra.models import order
-from app.infra.models import users
-from app.infra.models import transaction as transaction_model
+from app.infra import models
 
 
 class AddressNotFoundError(Exception):
@@ -24,42 +24,45 @@ class AbstractRepository(abc.ABC):
     def __init__(self: Self) -> None:
         self.seen = set()  # type: Set[order.Product]
 
-    async def get_product_by_id(self: Self, product_id: int) -> order.Product:
+    async def get_product_by_id(
+        self: Self,
+        product_id: int,
+    ) -> models.ProductDB:
         return await self._get_product_by_id(product_id)
 
     async def get_product_by_sku(
         self: Self,
         sku: str,
-    ) -> order.Product:
+    ) -> models.ProductDB:
         product = await self._get_product_by_sku(sku)
         self.seen.add(product)
         return product
 
-    def get_products(self: Self, products: list) -> order.Product:
+    def get_products(self: Self, products: list) -> models.ProductDB:
         return self._get_products(products)
 
-    def get_coupon_by_code(self: Self, code: str) -> order.Coupons:
+    def get_coupon_by_code(self: Self, code: str) -> models.CouponsDB:
         return self._get_coupon_by_code(code)
 
     def get_address_by_id(
         self: Self,
         address_id: int,
         user_address_id: int,
-    ) -> users.Address:
+    ) -> models.AddressDB:
         return self._get_address_by_id(address_id, user_address_id)
 
     def create_address(
         self: Self,
         address: AddressBase,
         user_id: int,
-    ) -> users.Address:
+    ) -> models.AddressDB:
         return self._create_address(address, user_id)
 
     def update_payment_method_to_user(
         self: Self,
         user_id: int,
         payment_method: str,
-    ) -> users.User:
+    ) -> models.UserDB:
         return self._update_payment_method_to_user(
             user_id=user_id,
             payment_method=payment_method,
@@ -68,26 +71,29 @@ class AbstractRepository(abc.ABC):
     def get_user_by_email(
         self: Self,
         email: str,
-    ) -> users.User:
+    ) -> models.UserDB:
         return self._get_user_by_email(email)
 
     @abc.abstractmethod
     async def _get_product_by_sku(
         self: Self,
         sku: str,
-    ) -> order.Product:
+    ) -> models.ProductDB:
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def _get_product_by_id(self: Self, product_id: int) -> order.Product:
+    async def _get_product_by_id(
+        self: Self,
+        product_id: int,
+    ) -> models.ProductDB:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _get_products(self: Self, products: list) -> order.Product:
+    def _get_products(self: Self, products: list) -> models.ProductDB:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _get_coupon_by_code(self: Self, code: str) -> order.Coupons:
+    def _get_coupon_by_code(self: Self, code: str) -> models.CouponsDB:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -95,15 +101,15 @@ class AbstractRepository(abc.ABC):
         self: Self,
         address_id: int,
         user_address_id: int,
-    ) -> users.Address:
+    ) -> models.AddressDB:
         raise NotImplementedError
 
     @abc.abstractmethod
     def _create_address(
         self: Self,
-        address: users.Address,
+        address: models.AddressDB,
         user_id: int,
-    ) -> users.Address:
+    ) -> models.AddressDB:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -111,14 +117,14 @@ class AbstractRepository(abc.ABC):
         self: Self,
         user_id: int,
         payment_method: str,
-    ) -> users.User:
+    ) -> models.UserDB:
         raise NotImplementedError
 
     @abc.abstractmethod
     def _get_user_by_email(
         self: Self,
         email: str,
-    ) -> users.User:
+    ) -> models.UserDB:
         raise NotImplementedError
 
 
@@ -130,11 +136,11 @@ class SqlAlchemyRepository(AbstractRepository):
     async def _get_product_by_sku(
         self: Self,
         sku: str,
-    ) -> order.Product:
+    ) -> models.ProductDB:
         """Query must return a valid product in search by sku."""
         async with self.session().begin() as session:
             product = await session.execute(
-                select(order.Product).where(order.Product.sku == sku),
+                select(models.ProductDB).where(models.ProductDB.sku == sku),
             )
             if not product:
                 msg = f'No product with sku {sku}'
@@ -142,12 +148,15 @@ class SqlAlchemyRepository(AbstractRepository):
 
             return product.fetchone()
 
-    async def _get_product_by_id(self: Self, product_id: int) -> order.Product:
+    async def _get_product_by_id(
+        self: Self,
+        product_id: int,
+    ) -> models.ProductDB:
         """Must return a product by id."""
         async with self.session() as session:
             product = await session.execute(
-                select(order.Product).where(
-                    order.Product.product_id == product_id,
+                select(models.ProductDB).where(
+                    models.ProductDB.product_id == product_id,
                 ),
             )
             if not product:
@@ -159,13 +168,13 @@ class SqlAlchemyRepository(AbstractRepository):
     async def _get_products(
         self: Self,
         products: list[int],
-    ) -> list[order.Product]:
+    ) -> list[models.ProductDB]:
         """Must return updated products in db."""
         try:
             async with self.session() as session:
                 products_db = await session.execute(
-                    select(order.Product).where(
-                        order.Product.product_id.in_(products),
+                    select(models.ProductDB).where(
+                        models.ProductDB.product_id.in_(products),
                     ),
                 )
                 await _check_products_db(products_db, products)
@@ -175,28 +184,33 @@ class SqlAlchemyRepository(AbstractRepository):
             logger.error(f'Error in _get_products: {e}')
             raise
 
-    async def _get_coupon_by_code(self: Self, code: str) -> order.Coupons:
+    async def _get_coupon_by_code(self: Self, code: str) -> models.CouponsDB:
         """Must return a coupon by code."""
-        async with self.session() as session:
-            coupon = await session.execute(
-                select(order.Coupons).where(order.Coupons.code == code),
-            )
-            if not coupon:
-                msg = f'No coupon with code {code}'
-                raise ProductNotFoundError(msg)
+        try:
+            async with self.session() as session:
+                coupon = await session.execute(
+                    select(models.CouponsDB).where(
+                        models.CouponsDB.code == code,
+                    ),
+                )
+                if not coupon:
+                    msg = f'No coupon with code {code}'
+                    raise ProductNotFoundError(msg)
 
-            return coupon.scalar_one()
+                return coupon.scalar_one()
+        except NoResultFound as nrf:
+            raise CouponNotFoundError from nrf
 
     async def _get_address_by_id(
         self: Self,
         address_id: int,
         user_address_id: int,
-    ) -> users.Address:
+    ) -> models.AddressDB:
         async with self.session() as session:
             address = await session.execute(
-                select(users.Address).where(
-                    users.Address.address_id == address_id,
-                    users.Address.user_id == user_address_id,
+                select(models.AddressDB).where(
+                    models.AddressDB.address_id == address_id,
+                    models.AddressDB.user_id == user_address_id,
                 ),
             )
             if not address:
@@ -207,12 +221,12 @@ class SqlAlchemyRepository(AbstractRepository):
 
     async def _create_address(
         self: Self,
-        address: users.Address,
+        address: models.AddressDB,
         user_id: int,
-    ) -> users.Address:
+    ) -> models.AddressDB:
         async with self.session() as session:
             address.user_id = user_id
-            address_db = users.Address(**address.model_dump())
+            address_db = models.AddressDB(**address.model_dump())
             session.add(address_db)
             await session.commit()
 
@@ -222,10 +236,10 @@ class SqlAlchemyRepository(AbstractRepository):
         self: Self,
         user_id: int,
         payment_method: str,
-    ) -> users.User:
+    ) -> models.UserDB:
         async with self.session() as session:
             user = await session.execute(
-                select(users.User).where(users.User.user_id == user_id),
+                select(models.UserDB).where(models.UserDB.user_id == user_id),
             )
             if not user:
                 msg = f'No user with id {user_id}'
@@ -239,11 +253,11 @@ class SqlAlchemyRepository(AbstractRepository):
     async def _get_user_by_email(
         self: Self,
         email: str,
-    ) -> users.User:
+    ) -> models.UserDB:
         """Must return user by email."""
         async with self.session() as session:
             user = await session.execute(
-                select(users.User).where(users.User.email == email),
+                select(models.UserDB).where(models.UserDB.email == email),
             )
             if not user:
                 msg = f'No user with email {email}'
@@ -256,10 +270,10 @@ async def get_coupon_by_code(
     code: str,
     *,
     transaction: SessionTransaction,
-) -> order.Coupons:
+) -> models.CouponsDB:
     """Must return a coupon by code."""
     coupon = await transaction.session.scalar(
-        select(order.Coupons).where(order.Coupons.code == code),
+        select(models.CouponsDB).where(models.CouponsDB.code == code),
     )
     if not coupon:
         raise ProductNotFoundError
@@ -271,25 +285,26 @@ def sync_get_coupon_by_code(
     code: str,
     *,
     transaction: SessionTransaction,
-) -> order.Coupons:
+) -> models.CouponsDB:
     """Must return a coupon by code."""
     coupon = transaction.session.scalar(
-        select(order.Coupons).where(order.Coupons.code == code),
+        select(models.CouponsDB).where(models.CouponsDB.code == code),
     )
     if not coupon:
         raise ProductNotFoundError
 
     return coupon
 
+
 async def get_products(
     products: list[int],
     transaction: SessionTransaction,
-) -> list[order.Product]:
+) -> list[models.ProductDB]:
     """Must return updated products in db."""
     try:
         products_db = await transaction.session.execute(
-            select(order.Product).where(
-                order.Product.product_id.in_(products),
+            select(models.ProductDB).where(
+                models.ProductDB.product_id.in_(products),
             ),
         )
         await _check_products_db(products_db, products)
@@ -300,43 +315,25 @@ async def get_products(
         raise
 
 
-def sync_get_products(
-    products: list[int],
-    transaction: Session,
-) -> list[order.Product]:
-    """Must return updated products in db."""
-    try:
-        products_db = transaction.execute(
-            select(order.Product).where(
-                order.Product.product_id.in_(products),
-            ),
-        )
-        _check_products_db(products_db, products)
-
-        return products_db.scalars().all()
-    except Exception as e:
-        logger.error(f'Error in _get_products: {e}')
-        raise
-
 async def get_products_quantity(
     products: list[int],
     transaction: SessionTransaction,
-) -> list[order.Product]:
+) -> list[models.ProductDB]:
     """Must return products quantity."""
     try:
         quantity_query = (
             select(
-                order.Inventory.product_id.label('product_id'),
-                func.coalesce(func.sum(order.Inventory.quantity), 0).label(
+                models.InventoryDB.product_id.label('product_id'),
+                func.coalesce(func.sum(models.InventoryDB.quantity), 0).label(
                     'quantity',
                 ),
             )
             .outerjoin(
-                order.Product,
-                order.Product.product_id == order.Inventory.product_id,
+                models.ProductDB,
+                models.ProductDB.product_id == models.InventoryDB.product_id,
             )
-            .where(order.Product.product_id.in_(products))
-            .group_by(order.Inventory.product_id)
+            .where(models.ProductDB.product_id.in_(products))
+            .group_by(models.InventoryDB.product_id)
         )
         products_db = await transaction.session.execute(quantity_query)
         await _check_products_db(products_db, products)
@@ -368,12 +365,12 @@ async def _check_products_db(
 async def get_installment_fee(
     transaction: SessionTransaction,
     fee_config: int = 1,
-) -> transaction_model.CreditCardFeeConfig:
+) -> models.CreditCardFeeConfigDB:
     """Must return config fee."""
     try:
         config = await transaction.session.scalar(
-            select(transaction_model.CreditCardFeeConfig).where(
-                transaction_model.CreditCardFeeConfig.credit_card_fee_config_id
+            select(models.CreditCardFeeConfigDB).where(
+                models.CreditCardFeeConfigDB.credit_card_fee_config_id
                 == fee_config,
             ),
         )
