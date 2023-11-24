@@ -4,6 +4,24 @@
   </head>
 
   <h2>Seu pedido número: {{order_id}} foi recebido!</h2>
+    <table class="table-auto">
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Quantidade</th>
+        <th>*Valor Unitário</th>
+        <th>*Valor Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in order_items %}
+      <tr>
+        <td>{{item.product.name}}</td>
+        <td>{{item.quantity}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
   <p>Nesse momento estamos verificando o pagamento do seu pedido.</p>
 

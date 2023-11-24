@@ -4,7 +4,7 @@ from app.catalog.entities import Categories
 from app.catalog.services import get_categories_by_filter
 from app.entities.product import ProductsResponse
 from app.infra.bootstrap.catalog_bootstrap import Command, bootstrap
-from domains import domain_order
+from app.order import services
 from sqlalchemy.orm import Session
 
 from loguru import logger
@@ -32,7 +32,7 @@ async def get_bootstrap() -> Command:
 def get_showcase(*, db: Session = Depends(get_db)) -> Any:
     """Get showcase."""
     try:
-        return domain_order.get_showcase(db)
+        return services.get_showcase(db)
     except Exception as e:
         logger.error(f'Erro em obter os produtos - { e }')
         raise
@@ -51,7 +51,7 @@ def get_products_all(
     db: Session = Depends(get_db),
 ) -> ProductsResponse:
     """Get products all."""
-    return domain_order.get_product_all(page=page, offset=offset, db=db)
+    return services.get_product_all(page=page, offset=offset, db=db)
 
 
 @catalog.get(
@@ -67,7 +67,7 @@ def get_latest_products(
     db: Session = Depends(get_db),
 ) -> ProductsResponse:
     """Get latest products."""
-    return domain_order.get_latest_products(page=page, offset=offset, db=db)
+    return services.get_latest_products(page=page, offset=offset, db=db)
 
 
 @catalog.get(
@@ -83,7 +83,7 @@ def get_products_all(
     db: Session = Depends(get_db),
 ) -> ProductsResponse:
     """Get products all."""
-    return domain_order.get_featured_products(page=page, offset=offset, db=db)
+    return services.get_featured_products(page=page, offset=offset, db=db)
 
 
 @catalog.get(
@@ -100,7 +100,7 @@ def search_products(
     db: Session = Depends(get_db),
 ) -> ProductsResponse:
     """Get search term products."""
-    return domain_order.search_products(
+    return services.search_products(
         search=search,
         offset=offset,
         page=page,
@@ -139,7 +139,7 @@ def get_product_category(
 ) -> None:
     """Get product category."""
     try:
-        return domain_order.get_products_category(
+        return services.get_products_category(
             offset=offset,
             page=page,
             path=path,

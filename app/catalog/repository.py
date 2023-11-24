@@ -1,4 +1,4 @@
-from app.infra.models.order import Category
+from app.infra.models import CategoryDB
 from sqlalchemy.orm import SessionTransaction
 from sqlalchemy import select
 
@@ -7,11 +7,11 @@ async def get_categories(
     menu: bool,
     showcase: bool,
     transaction: SessionTransaction,
-) -> list[Category]:
+) -> list[CategoryDB]:
     """Get categories by filters."""
-    categorys_query = select(Category)
+    categorys_query = select(CategoryDB)
     if menu:
-        categorys_query = categorys_query.where(Category.menu is True)
+        categorys_query = categorys_query.where(CategoryDB.menu is True)
     if showcase:
-        categorys_query = categorys_query.where(Category.showcase is True)
+        categorys_query = categorys_query.where(CategoryDB.showcase is True)
     return await transaction.session.scalars(categorys_query)

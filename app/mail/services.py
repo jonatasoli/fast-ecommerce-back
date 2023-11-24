@@ -1,8 +1,10 @@
+from sqlalchemy.orm import Session
 from config import settings
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from app.order import repository as order_repository
 
 from app.entities.mail import (
     MailFormCourses,
@@ -27,10 +29,11 @@ def send_email(message: Mail) -> bool:
             return True
         return False
     except Exception as e:
-        logger.info(e.message)
+        logger.info(e)
 
 
 def send_order_cancelled(db, mail_data: MailOrderCancelled):
+    """Task send mail with Order cancelled."""
     template = get_mail_template_cancelled(
         mail_template='mail_order_cancelled',
         order_id=mail_data.order_id,
@@ -57,12 +60,21 @@ def get_mail_template_cancelled(mail_template, **kwargs):
     return env.get_template('mail_order_cancelled.html').render(**kwargs)
 
 
-def send_order_processed(db, mail_data: MailOrderProcessed):
-    template = get_mail_template_order_processed(
-        mail_template='mail_order_processed',
-        order_id=mail_data.order_id,
-        company=settings.COMPANY,
-    )
+def send_order_processed(db: Session, mail_data: MailOrderProcessed):
+    """Task to send mail order processed."""
+    order_items = None
+    template = None
+    with db.begin() as session:
+        order_items = order_repository.get_order_items(
+            order_id=mail_data.order_id,
+            transaction=session,
+        )
+        template = get_mail_template_order_processed(
+            mail_template='mail_order_processed',
+            order_id=mail_data.order_id,
+            order_items=order_items,
+            company=settings.COMPANY,
+        )
     message = Mail(
         from_email=settings.EMAIL_FROM,
         to_emails=mail_data.mail_to,

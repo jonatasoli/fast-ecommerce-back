@@ -2,7 +2,7 @@ from loguru import logger
 from app.entities.payment import PaymentNotification, PaymentStatusResponse
 from payment.schema import ConfigCreditCardResponse
 from fastapi import APIRouter, Depends, status
-from payment import repositories
+from app.payment import repository
 from app.payment import services
 from payment.schema import (
     ConfigCreditCardInDB,
@@ -30,7 +30,7 @@ def create_config(
     config_data: ConfigCreditCardInDB,
 ) -> ConfigCreditCardResponse:
     """Create config."""
-    return repositories.CreditCardConfig(
+    return repository.CreditCardConfig(
         config_data=config_data,
     ).create_installment_config()
 

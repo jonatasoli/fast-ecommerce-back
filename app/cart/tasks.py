@@ -1,11 +1,13 @@
 # ruff:  noqa: D202 D205 T201 D212
+import re
 from typing import Any, Self
-from fastapi import Depends
+from fastapi import Depends, HTTPException
+from app.entities.product import ProductSoldOutError
 from app.infra.constants import OrderStatus, PaymentMethod
 
 from propan.brokers.rabbit import RabbitQueue
 
-from app.infra.models.order import Coupons
+from app.infra.models import CouponsDB
 from app.inventory.tasks import decrease_inventory
 from app.order.entities import (
     CreateOrderStatusStepError,
@@ -59,7 +61,7 @@ async def checkout(
     """Checkout cart with payment intent."""
     _ = payment_method
     order_id = None
-    payment_response = None
+    gateway_payment_id = None
     logger.info(
         f'Checkout cart start{cart_uuid} with gateway {payment_gateway} with success',
     )
@@ -72,18 +74,78 @@ async def checkout(
         cart = CartPayment.model_validate_json(cache_cart)
         affiliate = cart.affiliate if cart.affiliate else None
         coupon = cart.coupon if cart.coupon else None
-        if coupon:
-            with bootstrap.db() as session:
-                coupon = bootstrap.cart_repository.get_coupon_by_code(
-                    session,
+
+        async with bootstrap.db() as session:
+            if coupon:
+                coupon = await bootstrap.cart_uow.get_coupon_by_code(
                     coupon,
+                    bootstrap=bootstrap,
                 )
-                products_db = await bootstrap.cart_repository.get_products(
-                    products=cart.cart_items,
-                    transaction=session,
+            products_db = await bootstrap.cart_uow.get_products(
+                products=cart.cart_items,
+                bootstrap=bootstrap,
+            )
+            cart.get_products_price_and_discounts(products_db)
+            products_inventory = (
+                await bootstrap.cart_uow.get_products_quantity(
+                    cart.cart_items,
+                    bootstrap=bootstrap,
                 )
-                cart.get_products_price_and_discounts(products_db)
-        cart.calculate_subtotal(discount=coupon.discount if cart.coupon else 0)
+            )
+            products_in_cart = []
+            products_in_inventory = []
+            cart_quantities = []
+            for product in products_db:
+                logger.info(cart)
+                logger.info(type(cart))
+                for cart_item in cart.cart_items:
+                    products_in_cart.append(product.product_id)
+                    if any(
+                        item['product_id'] == product.product_id
+                        for item in products_inventory
+                    ):
+                        products_in_inventory.append(product.product_id)
+                    for item in products_inventory:
+                        if (
+                            cart_item.product_id == item['product_id']
+                            and cart_item.quantity > item['quantity']
+                        ):
+                            cart_quantities.append(cart_item.model_dump())
+
+            products_not_in_both = list(
+                set(products_in_cart) ^ set(products_in_inventory),
+            )
+
+            if cart_quantities:
+                raise ProductSoldOutError(
+                    f'Os seguintes items solicitados estão com um pedido acima dos nossos estoques {cart_quantities}',
+                )
+            if len(products_db) != len(products_inventory):
+                raise ProductSoldOutError(
+                    f'Os seguintes produtos não possuem em estoque {products_not_in_both}',
+                )
+            cart.get_products_price_and_discounts(products_db)
+            zipcode = cart.zipcode
+            no_spaces = zipcode.replace(' ', '')
+            no_special_chars = re.sub(r'[^a-zA-Z0-9]', '', no_spaces)
+            cart.zipcode = no_special_chars
+            freight_package = bootstrap.freight.calculate_volume_weight(
+                products=products_db,
+            )
+            if not cart.freight_product_code:
+                raise HTTPException(
+                    status_code=400,
+                    detail='Freight product code not found',
+                )
+            freight = bootstrap.freight.get_freight(
+                cart.freight_product_code,
+                freight_package=freight_package,
+                zipcode=cart.zipcode,
+            )
+            cart.freight = freight
+            cart.calculate_subtotal(
+                discount=coupon.discount if cart.coupon else 0,
+            )
 
         match cart.payment_method:
             case (PaymentMethod.CREDIT_CARD.value):
@@ -106,6 +168,7 @@ async def checkout(
                     authorization=payment_response.authorization_code,
                     bootstrap=bootstrap,
                 )
+                gateway_payment_id = payment_response.authorization_code
                 cart.payment_intent = payment_response.id
                 authorization = payment_response.authorization_code
                 payment_accept = bootstrap.payment.accept_payment(
@@ -157,6 +220,7 @@ async def checkout(
                     gateway_payment_id=cart.pix_payment_id,
                     bootstrap=bootstrap,
                 )
+                gateway_payment_id = cart.pix_payment_id
                 logger.info(
                     f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success',
                 )
@@ -195,13 +259,17 @@ async def checkout(
             queue=RabbitQueue('notification_order_cancelled'),
         )
         raise
-    return {'order_id': {order_id}, 'gateway_payment_id': {getattr(payment_response, 'authorization_code', None)},  'message': 'processed'}
+    return {
+        'order_id': {order_id},
+        'gateway_payment_id': gateway_payment_id,
+        'message': 'processed',
+    }
 
 
 async def create_pending_payment_and_order(
     cart: CartPayment,
     affiliate: str | None,
-    coupon: Coupons | None,
+    coupon: CouponsDB | None,
     user: Any,
     payment_gateway: str,
     gateway_payment_id: int,

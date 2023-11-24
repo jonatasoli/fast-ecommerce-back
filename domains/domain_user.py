@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session
 
 from constants import DocumentType, Roles
 from app.infra.database import get_session
-from app.infra.models.role import Role
-from app.infra.models.users import Address, User, UserResetPassword
+from app.infra.models import RoleDB
+from app.infra.models import AddressDB, UserDB, UserResetPasswordDB
 from schemas.order_schema import CheckoutSchema
 from schemas.user_schema import (
     SignUp,
@@ -49,7 +49,7 @@ def create_user(db: Session, obj_in: SignUp):
             raise Exception(msg)
 
         with db:
-            db_user = User(
+            db_user = UserDB(
                 name=obj_in.name,
                 username=obj_in.username,
                 document_type=DocumentType.CPF.value,
@@ -74,7 +74,7 @@ def create_user(db: Session, obj_in: SignUp):
 def check_existent_user(db: Session, email, document, password):
     try:
         with db:
-            user_query = select(User).where(document == document)
+            user_query = select(UserDB).where(UserDB.document == document)
             db_user = db.execute(user_query).scalars().first()
         if not password:
             msg = 'User not password'
@@ -211,7 +211,7 @@ def get_admin(
 
 def _get_user(db: Session, document: str):
     with db:
-        user_query = select(User).where(User.document == document)
+        user_query = select(UserDB).where(UserDB.document == document)
         return db.execute(user_query).scalars().first()
 
 
@@ -244,7 +244,7 @@ def check_token(f):
 
 def get_role_user(db: Session, user_role_id: int):
     with db:
-        role_query = select(Role).where(Role.role_id == user_role_id)
+        role_query = select(RoleDB).where(RoleDB.role_id == user_role_id)
         _role = db.scalar(role_query)
         return _role.role
 
@@ -253,20 +253,20 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
     try:
         _address = None
         with db:
-            address_query = select(Address).where(
+            address_query = select(AddressDB).where(
                 and_(
-                    Address.user_id == user.id,
-                    Address.zipcode == checkout_data.get('zip_code'),
-                    Address.street_number
+                    AddressDB.user_id == user.id,
+                    AddressDB.zipcode == checkout_data.get('zip_code'),
+                    AddressDB.street_number
                     == checkout_data.get('address_number'),
-                    Address.address_complement
+                    AddressDB.address_complement
                     == checkout_data.get('address_complement'),
-                    Address.category == 'billing',
+                    AddressDB.category == 'billing',
                 ),
             )
             _address = db.execute(address_query).scalars().first()
             if not _address:
-                db_payment_address = Address(
+                db_payment_address = AddressDB(
                     user_id=user.id,
                     country=checkout_data.get('country'),
                     city=checkout_data.get('city'),
@@ -294,14 +294,14 @@ def register_shipping_address(
     try:
         _address = None
         with db:
-            address_query = select(Address).where(
+            address_query = select(AddressDB).where(
                 and_(
-                    Address.user_id == user.id,
-                    Address.zipcode == checkout_data.get('ship_zip'),
-                    Address.street_number == checkout_data.get('ship_number'),
-                    Address.address_complement
+                    AddressDB.user_id == user.id,
+                    AddressDB.zipcode == checkout_data.get('ship_zip'),
+                    AddressDB.street_number == checkout_data.get('ship_number'),
+                    AddressDB.address_complement
                     == checkout_data.get('ship_address_complement'),
-                    Address.category == 'shipping',
+                    AddressDB.category == 'shipping',
                 ),
             )
             _address = db.execute(address_query).scalars().first()
@@ -309,21 +309,21 @@ def register_shipping_address(
             if checkout_data.get('shipping_is_payment'):
                 logger.debug(f'{checkout_data}')
                 if not checkout_data.get('ship_zip'):
-                    address_query = select(Address).where(
+                    address_query = select(AddressDB).where(
                         and_(
-                            Address.user_id == user.id,
-                            Address.zipcode == checkout_data.get('zip_code'),
-                            Address.street_number
+                            AddressDB.user_id == user.id,
+                            AddressDB.zipcode == checkout_data.get('zip_code'),
+                            AddressDB.street_number
                             == checkout_data.get('address_number'),
-                            Address.address_complement
+                            AddressDB.address_complement
                             == checkout_data.get('address_complement'),
-                            Address.category == 'billing',
+                            AddressDB.category == 'billing',
                         ),
                     )
                     _address = db.execute(address_query).scalars().first()
 
                 if not _address:
-                    db_shipping_address = Address(
+                    db_shipping_address = AddressDB(
                         user_id=user.id,
                         country=checkout_data.get('country'),
                         city=checkout_data.get('city'),
@@ -407,7 +407,7 @@ def address_by_postal_code(zipcode_data):
 
 def get_user_login(db: Session, document: str):
     with db:
-        user_query = select(User).where(User.document == document)
+        user_query = select(UserDB).where(UserDB.document == document)
         user_db = db.execute(user_query).scalars().first()
     return UserSchema.from_orm(user_db)
 
@@ -421,9 +421,9 @@ def save_token_reset_password(db: Session, document: str):
         expires_delta=access_token_expires,
     )
     with db:
-        user_query = select(User).where(User.document == document)
+        user_query = select(UserDB).where(UserDB.document == document)
         _user = db.execute(user_query).scalars().first()
-        db_reset = UserResetPassword(user_id=_user.id, token=_token)
+        db_reset = UserResetPasswoDBrdDB(user_id=_user.id, token=_token)
         db.add(db_reset)
         db.commit()
     return db_reset
@@ -432,11 +432,11 @@ def save_token_reset_password(db: Session, document: str):
 def reset_password(db: Session, data: UserResponseResetPassword):
     pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
     with db:
-        user_query = select(User).where(User.document == data.document)
+        user_query = select(UserDB).where(UserDB.document == data.document)
         _user = db.execute(user_query).scalars().first()
 
-        used_token_query = select(UserResetPassword).where(
-            UserResetPassword.user_id == _user.id,
+        used_token_query = select(UserResetPasswordDB).where(
+            UserResetPasswordDB.user_id == _user.id,
         )
         _used_token = db.execute(used_token_query).scalars().first()
 

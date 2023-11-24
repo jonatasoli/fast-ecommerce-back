@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import func, select
 from sqlalchemy.orm import SessionTransaction
 from app.infra.constants import InventoryOperation
-from app.infra.models import order
+from app.infra import models
 
 
 async def increase_inventory(
@@ -10,9 +10,9 @@ async def increase_inventory(
     *,
     quantity: int,
     transaction: SessionTransaction,
-) -> order.Inventory:
+) -> models.InventoryDB:
     """Increase inventory."""
-    inventory = order.Inventory(
+    inventory = models.InventoryDB(
         product_id=product_id,
         quantity=quantity,
         operation=InventoryOperation.INCREASE,
@@ -27,8 +27,8 @@ async def total_inventory(
     transaction: SessionTransaction,
 ) -> int:
     """Get total inventory by product_id."""
-    products_query = select(func.sum(order.Inventory.quantity)).where(
-        order.Inventory.product_id == product_id,
+    products_query = select(func.sum(models.InventoryDB.quantity)).where(
+        models.InventoryDB.product_id == product_id,
     )
     products = await transaction.session.execute(products_query)
     total = products.fetchone()
@@ -41,9 +41,9 @@ async def decrease_inventory(
     quantity: int,
     order_id: int,
     transaction: SessionTransaction,
-) -> order.Inventory:
+) -> models.InventoryDB:
     """Decrease product in stock."""
-    inventory = order.Inventory(
+    inventory = models.InventoryDB(
         product_id=product_id,
         quantity=-quantity,
         operation=InventoryOperation.DECREASE.value,
