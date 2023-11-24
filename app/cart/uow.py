@@ -323,6 +323,23 @@ async def get_products(
     )
     return [ProductInDB.model_validate(product) for product in products_db]
 
+@database_uow()
+def sync_get_products(
+    products: list,
+    bootstrap: Any,
+    transaction: SessionTransaction | None,
+) -> list[ProductCart]:
+    """Must return a products in list."""
+    if not transaction:
+        msg = 'Transaction must be provided'
+        raise ValueError(msg)
+    product_ids: list[int] = [item.product_id for item in products]
+    products_db = repository.sync_get_products(
+        products=product_ids,
+        transaction=transaction,
+    )
+    return [ProductInDB.model_validate(product) for product in products_db]
+
 
 @database_uow()
 def sync_get_products(

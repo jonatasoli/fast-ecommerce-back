@@ -3,7 +3,7 @@ from typing import Any, Self
 from loguru import logger
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import SessionTransaction
+from sqlalchemy.orm import Session, SessionTransaction
 from app.entities.address import AddressBase
 from app.entities.cart import ProductNotFoundError
 from sqlalchemy.exc import NoResultFound
@@ -296,6 +296,20 @@ def sync_get_coupon_by_code(
     return coupon
 
 
+def sync_get_coupon_by_code(
+    code: str,
+    *,
+    transaction: SessionTransaction,
+) -> order.Coupons:
+    """Must return a coupon by code."""
+    coupon = transaction.session.scalar(
+        select(order.Coupons).where(order.Coupons.code == code),
+    )
+    if not coupon:
+        raise ProductNotFoundError
+
+    return coupon
+
 async def get_products(
     products: list[int],
     transaction: SessionTransaction,
@@ -314,6 +328,24 @@ async def get_products(
         logger.error(f'Error in _get_products: {e}')
         raise
 
+
+def sync_get_products(
+    products: list[int],
+    transaction: Session,
+) -> list[order.Product]:
+    """Must return updated products in db."""
+    try:
+        products_db = transaction.execute(
+            select(order.Product).where(
+                order.Product.product_id.in_(products),
+            ),
+        )
+        _check_products_db(products_db, products)
+
+        return products_db.scalars().all()
+    except Exception as e:
+        logger.error(f'Error in _get_products: {e}')
+        raise
 
 async def get_products_quantity(
     products: list[int],
