@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session
 
 from constants import DocumentType, Roles
 from app.infra.database import get_session
-from app.infra.models.role import Role
-from app.infra.models.users import User, UserResetPassword
+from app.infra.models import RoleDB
+from app.infra.models import UserDB, UserResetPasswordDB
 from schemas.user_schema import (
     SignUp,
     UserInDB,
@@ -31,14 +31,14 @@ class COUNTRY_CODE(enum.Enum):
     brazil = 'brazil'
 
 
-def create_user(db: Session, obj_in: SignUp) -> User:
+def create_user(db: Session, obj_in: SignUp) -> UserDB:
     """Create user."""
     try:
         logger.info(obj_in)
         logger.debug(Roles.USER.value)
 
         with db:
-            db_user = User(
+            db_user = UserDB(
                 name=obj_in.name,
                 document_type=DocumentType.CPF.value,
                 document=obj_in.document,
@@ -59,11 +59,11 @@ def create_user(db: Session, obj_in: SignUp) -> User:
         raise e
 
 
-def check_existent_user(db: Session, email, document, password) -> User:
+def check_existent_user(db: Session, email, document, password) -> UserDB:
     """Check existent user."""
     try:
         with db:
-            user_query = select(User).where(document == document)
+            user_query = select(UserDB).where(document == document)
             db_user = db.execute(user_query).scalars().first()
         if not password:
             msg = 'User not password'
@@ -126,7 +126,7 @@ def create_access_token(
 
 def get_current_user(
     token: str,
-) -> User:
+) -> UserDB:
     """Must return user db."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -152,10 +152,10 @@ def get_current_user(
     return user
 
 
-def _get_user(db: Session, document: str) -> User:
+def _get_user(db: Session, document: str) -> UserDB:
     """Must return user db."""
     with db:
-        user_query = select(User).where(User.document == document)
+        user_query = select(UserDB).where(UserDB.document == document)
         return db.execute(user_query).scalars().first()
 
 
@@ -188,7 +188,7 @@ def check_token(f) -> callable:
 def get_role_user(db: Session, user_role_id: int) -> str:
     """Must return role user."""
     with db:
-        role_query = select(Role).where(Role.id == user_role_id)
+        role_query = select(RoleDB).where(RoleDB.id == user_role_id)
         _role = db.execute(role_query).scalars().first()
         return _role.role
 
@@ -196,12 +196,14 @@ def get_role_user(db: Session, user_role_id: int) -> str:
 def get_user_login(db: Session, document: str) -> UserSchema:
     """Must return user login."""
     with db:
-        user_query = select(User).where(User.document == document)
+        user_query = select(UserDB).where(UserDB.document == document)
         user_db = db.execute(user_query).scalars().first()
     return UserSchema.model_validate(user_db)
 
 
-def save_token_reset_password(db: Session, document: str) -> UserResetPassword:
+def save_token_reset_password(
+    db: Session, document: str,
+) -> UserResetPasswordDB:
     """Must save token reset password."""
     access_token_expires = timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -211,9 +213,9 @@ def save_token_reset_password(db: Session, document: str) -> UserResetPassword:
         expires_delta=access_token_expires,
     )
     with db:
-        user_query = select(User).where(User.document == document)
+        user_query = select(UserDB).where(UserDB.document == document)
         _user = db.execute(user_query).scalars().first()
-        db_reset = UserResetPassword(user_id=_user.id, token=_token)
+        db_reset = UserResetPasswordDB(user_id=_user.id, token=_token)
         db.add(db_reset)
         db.commit()
     return db_reset
@@ -223,11 +225,11 @@ def reset_password(db: Session, data: UserResponseResetPassword) -> None:
     """Must reset password."""
     pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
     with db:
-        user_query = select(User).where(User.document == data.document)
+        user_query = select(UserDB).where(UserDB.document == data.document)
         _user = db.execute(user_query).scalars().first()
 
-        used_token_query = select(UserResetPassword).where(
-            UserResetPassword.user_id == _user.id,
+        used_token_query = select(UserResetPasswordDB).where(
+            UserResetPasswordDB.user_id == _user.id,
         )
         _used_token = db.execute(used_token_query).scalars().first()
 

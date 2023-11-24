@@ -4,7 +4,9 @@ from fastapi.responses import JSONResponse
 
 import sentry_sdk
 from app.entities.cart import ProductNotFoundError
+from app.entities.coupon import CouponNotFoundError
 from app.entities.user import CredentialError
+from app.infra.freight.correios_br import CorreiosInvalidReturnError
 from app.infra.payment_gateway.mercadopago_gateway import CardAlreadyUseError
 from config import settings
 from fastapi import FastAPI, Request, status
@@ -121,6 +123,31 @@ async def product_sold_out_exception_handler(
         },
     )
 
+@app.exception_handler(CouponNotFoundError)
+async def coupon_not_found_handler(
+    _: Request,
+    exc: CouponNotFoundError,
+) -> JSONResponse:
+    """Coupon not valid error raise status code 404."""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            'detail': 'Invalid Coupon.',
+        },
+    )
+
+@app.exception_handler(CorreiosInvalidReturnError)
+async def correios_api_error_handler(
+    _: Request,
+    exc: CorreiosInvalidReturnError,
+) -> JSONResponse:
+    """Correios api Error raise status code 404."""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            'detail': f'Correios API return error. {exc.args[0]}',
+        },
+    )
 
 # set loguru format for root logger
 logging.getLogger().handlers = [InterceptHandler()]

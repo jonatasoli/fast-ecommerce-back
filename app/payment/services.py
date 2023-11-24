@@ -31,7 +31,7 @@ async def update_payment(
             transaction=session,
         )
         order_id = payment_db[0].order_id
-    if payment['status'] == 'approved' or payment['status'] =='authorized':
+    if payment['status'] == 'approved' or payment['status'] == 'authorized':
         await bootstrap.message.broker.publish(
             {
                 'mail_to': user.email,

@@ -1,13 +1,11 @@
 from collections import abc
-from typing import TypeVar
+from typing import Self
 
 
 # TODO: implementar entity
 class Coupon:
     ...
 
-
-Self = TypeVar('Self')
 
 # Abstração da classe de repositório
 class AbstractRepository(abc.ABC):

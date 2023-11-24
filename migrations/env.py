@@ -7,14 +7,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from dynaconf import settings
-from app.infra.models.base import Base
-from app.infra.models.role import Role
-from app.infra.models.users import User, Address, UserResetPassword
-from app.infra.models.order import Category, Product, Coupons, Order, OrderItems, OrderStatusSteps, ImageGallery
-from app.infra.models.transaction import Transaction, Payment, CreditCardFeeConfig
-from app.infra.models.uploadedimage import UploadedImage
-from app.infra.models.commissions import SalesComission
-from app.infra.models.franchise import Franchise
+from app.infra.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

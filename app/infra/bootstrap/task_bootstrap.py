@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from app.infra import redis
 from app.freight import freight_gateway as freight
 from app.infra.database import get_async_session as get_session
+from app.infra.database import get_session as get_sync_session
 from app.user import gateway as user_gateway
 from typing import Any
 from app.order import uow as order_uow
@@ -21,6 +22,7 @@ class Command(BaseModel):
     """Command to use in the application."""
 
     db: sessionmaker
+    db_sync: sessionmaker
     order_uow: Any
     cart_uow: Any
     user_uow: Any
@@ -40,6 +42,7 @@ class Command(BaseModel):
 
 async def bootstrap(  # noqa: PLR0913
     db: sessionmaker = get_session(),
+    db_sync: sessionmaker = get_sync_session(),
     cart_uow: Any = cart_uow,
     order_uow: Any = order_uow,
     user_uow: Any = user_uow,
@@ -57,6 +60,7 @@ async def bootstrap(  # noqa: PLR0913
 
     return Command(
         db=db,
+        db_sync=db_sync,
         cart_uow=cart_uow,
         order_uow=order_uow,
         user_uow=user_uow,

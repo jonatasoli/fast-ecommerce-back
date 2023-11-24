@@ -3,13 +3,13 @@ from pydantic import BaseModel
 
 class MailOrderCancelled(BaseModel):
     mail_to: str
-    order_id: int
+    order_id: str | int
     reason: str
 
 
 class MailOrderProcessed(BaseModel):
     mail_to: str
-    order_id: int
+    order_id: int | str
 
 
 class MailOrderPaied(BaseModel):

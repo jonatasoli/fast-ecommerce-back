@@ -10,7 +10,7 @@ from sqlalchemy.sql import select
 from app.entities.cart import CartPayment
 from app.entities.payment import PaymentDBUpdate
 from app.infra.constants import PaymentMethod, PaymentStatus
-from app.infra.models.transaction import Customer, Payment
+from app.infra.models import CustomerDB, PaymentDB
 
 
 async def create_payment(
@@ -22,10 +22,10 @@ async def create_payment(
     authorization: str,
     gateway_payment_id: int | str,
     transaction: SessionTransaction,
-) -> Payment:
+) -> PaymentDB:
     """Create a new order."""
     _freight_amount = cart.total - cart.subtotal
-    order = Payment(
+    order = PaymentDB(
         user_id=user_id,
         order_id=order_id,
         amount=cart.total,
@@ -49,10 +49,10 @@ async def get_payment_by_id(
     payment_id: int,
     *,
     transaction: SessionTransaction,
-) -> Payment:
+) -> PaymentDB:
     """Get an payment by its id."""
-    payment_query = select(Payment).where(
-        Payment.payment_id == payment_id,
+    payment_query = select(PaymentDB).where(
+        PaymentDB.payment_id == payment_id,
     )
     return await transaction.session.scalar(payment_query)
 
@@ -62,17 +62,17 @@ async def update_payment(
     *,
     payment: PaymentDBUpdate,
     transaction: SessionTransaction,
-) -> Payment:
+) -> PaymentDB:
     """Update an existing payment."""
     update_query = (
-        update(Payment)
-        .where(Payment.payment_id == payment_id)
+        update(PaymentDB)
+        .where(PaymentDB.payment_id == payment_id)
         .values(
             **payment.model_dump(
                 exclude_unset=True,
             ),
         )
-        .returning(Payment)
+        .returning(PaymentDB)
     )
     return await transaction.session.execute(update_query)
 
@@ -81,10 +81,10 @@ async def get_payment_by_order_id(
     order_id: int,
     *,
     transaction: SessionTransaction,
-) -> Payment | None:
+) -> PaymentDB | None:
     """Get payment by order id or return None if not exists."""
-    payment_query = select(Payment).where(
-        Payment.order_id == order_id,
+    payment_query = select(PaymentDB).where(
+        PaymentDB.order_id == order_id,
     )
     return await transaction.session.scalar(payment_query)
 
@@ -99,9 +99,9 @@ async def create_customer(
     token: str = '',
     issuer_id: str = '',
     status: bool = True,
-) -> Customer:
+) -> CustomerDB:
     """Create a new customer."""
-    customer = Customer(
+    customer = CustomerDB(
         user_id=user_id,
         customer_uuid=customer_uuid,
         payment_gateway=payment_gateway,
@@ -125,12 +125,12 @@ async def get_customer(
     *,
     payment_gateway: str,
     transaction: SessionTransaction,
-) -> Customer:
+) -> CustomerDB:
     """Get an customers from user by its id and payment_gateway."""
     customer_query = (
-        select(Customer)
-        .where(Customer.user_id == user_id)
-        .where(Customer.payment_gateway == payment_gateway)
+        select(CustomerDB)
+        .where(CustomerDB.user_id == user_id)
+        .where(CustomerDB.payment_gateway == payment_gateway)
     )
     return await transaction.session.scalar(customer_query)
 
@@ -141,19 +141,19 @@ async def update_payment_status(
     payment_status: str,
     transaction: SessionTransaction,
     processed: bool = False,
-) -> Payment:
+) -> PaymentDB:
     """Update payment to callback."""
     update_query = (
-        update(Payment)
+        update(PaymentDB)
         .where(
-            Payment.gateway_payment_id == int(gateway_payment_id),
+            PaymentDB.gateway_payment_id == int(gateway_payment_id),
         )
         .values(
             status=payment_status,
             processed_at=datetime.now(),
             processed=processed,
         )
-        .returning(Payment)
+        .returning(PaymentDB)
     )
     payment_update = await transaction.session.execute(update_query)
     logger.info('payment update')
@@ -165,9 +165,38 @@ async def get_payment(
     gateway_payment_id: int,
     *,
     transaction: SessionTransaction,
-) -> Payment:
+) -> PaymentDB:
     """Get payment with specific payment id."""
-    payment_query = select(Payment).where(
-        Payment.gateway_payment_id == gateway_payment_id,
+    payment_query = select(PaymentDB).where(
+        PaymentDB.gateway_payment_id == gateway_payment_id,
     )
     return await transaction.session.scalar(payment_query)
+
+
+class CreditCardConfig:
+    def __init__(self, config_data) -> None:
+        self.config_data = config_data
+
+    def create_installment_config(self):
+        return CreateCreditConfig(
+            config_data=self.config_data,
+        ).create_credit()
+
+
+class CreateCreditConfig:
+    def __init__(self, config_data) -> None:
+        self.config_data = config_data
+
+    def create_credit(self):
+        db = get_db()
+        _config = None
+        with db:
+            db_config = CreditCardFeeConfig(
+                active_date=datetime.now(),
+                fee=Decimal(self.config_data.fee),
+                min_installment_with_fee=self.config_data.min_installment,
+                max_installments=self.config_data.max_installment,
+            )
+            db.add(db_config)
+            db.commit()
+            return ConfigCreditCardResponse.model_validate(db_config)
