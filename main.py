@@ -145,12 +145,16 @@ async def correios_api_error_handler(
     match exc.args[0]:
         case 'PRC-101':
             msg = 'ZipCode invalid'
+        case 'PRZ-101':
+            msg = 'ZipCode invalid'
         case _:
             msg = exc.args[0]
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
             'detail': f'Correios API return error. {msg}',
+            'code': exc.args[0],
+            'reason': msg,
         },
     )
 

@@ -139,7 +139,7 @@ def calculate_delivery_time(
     if isinstance(_response, list) and (
         api_error := _response[0].get('txErro')
     ):
-        raise CorreiosInvalidReturnError(api_error)
+        raise CorreiosInvalidReturnError(api_error.split(':')[0])
 
     if not (delivery_time_response := _response[0]['prazoEntrega']):
         msg = 'Error to calculate delivery time'
