@@ -157,9 +157,9 @@ class CartBase(BaseModel):
                 if discount > 0:
                     item.discount_price = item.price * discount
                     self.discount += item.discount_price * item.quantity
-            self.subtotal = subtotal
+            self.subtotal = subtotal - self.discount
             if self.freight and self.freight.price:
-                self.total = subtotal + self.freight.price
+                self.total = (subtotal + self.freight.price) - self.discount
         except TypeError as err:
             logger.error('Price or quantity not found in cart item')
             raise CartNotFoundPriceError from err
