@@ -296,6 +296,21 @@ def sync_get_coupon_by_code(
     return coupon
 
 
+def sync_get_coupon_by_code(
+    code: str,
+    *,
+    transaction: SessionTransaction,
+) -> models.CouponsDB:
+    """Must return a coupon by code."""
+    coupon = transaction.session.scalar(
+        select(models.CouponsDB).where(models.CouponsDB.code == code),
+    )
+    if not coupon:
+        raise ProductNotFoundError
+
+    return coupon
+
+
 async def get_products(
     products: list[int],
     transaction: SessionTransaction,
