@@ -8,6 +8,7 @@ class Category(BaseModel):
     path: str
     menu: bool
     showcase: bool
+    image_path: str | None
     model_config = ConfigDict(from_attributes=True)
 
 
