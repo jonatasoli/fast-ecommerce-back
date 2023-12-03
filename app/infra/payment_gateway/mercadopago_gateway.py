@@ -1,3 +1,4 @@
+import json
 from contextlib import suppress
 from decimal import Decimal
 from loguru import logger
@@ -73,6 +74,7 @@ def get_client(timeout: int = 10) -> Client:
         headers={
             'Authorization': f'Bearer {settings.MERCADO_PAGO_ACCESS_TOKEN}',
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
         },
     )
 
@@ -97,19 +99,27 @@ def attach_customer_in_payment_method(
     customer_uuid: str,
     payment_method_id: str,
     card_token: str,
-    client: SDK = get_payment_client(),
+    card_issuer: str,
+    client: SDK = get_client(),
 ):
     """Attach a customer in payment method in stripe and mercado pago."""
     card_data = {
         'token': card_token,
-        'payment_method_id': 'payment_method_id',
+        'issuer_id': card_issuer,
+        'payment_method_id': payment_method_id,
     }
+    logger.info(card_data)
     card_response = None
-    card_response = client.card().create(customer_uuid, card_data)
-    if card_response.get('error'):
-        raise CardAlreadyUseError(card_response.get('message'))
-    if card_response['status'] != 201:
-        raise Exception(card_response)
+    # card_response = client.card().create(customer_uuid, card_data)
+
+    card_response = client.post(
+        f'{settings.MERCADO_PAGO_URL}/v1/customers/{customer_uuid}/cards/', data=json.dumps(card_data)
+    )
+    import ipdb; ipdb.set_trace()
+    # if card_response.get('error'):
+    #     raise CardAlreadyUseError(card_response.get('message'))
+    if card_response.status_code != 201:
+        raise Exception(card_response.content)
 
     return card_response['response']['id']
 
