@@ -202,7 +202,8 @@ def get_user_login(db: Session, document: str) -> UserSchema:
 
 
 def save_token_reset_password(
-    db: Session, document: str,
+    db: Session,
+    document: str,
 ) -> UserResetPasswordDB:
     """Must save token reset password."""
     access_token_expires = timedelta(

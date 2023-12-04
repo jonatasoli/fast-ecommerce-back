@@ -1,12 +1,10 @@
 import pytest
 from decimal import Decimal
-from sqlalchemy.exc import SQLAlchemyError
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 from app.entities.cart import CartPayment
 from app.order.entities import OrderDBUpdate
 from app.infra.bootstrap.task_bootstrap import Command
-from app.infra.models import order
 from your_module.order_task import (
     create_order,
     update_order,
@@ -14,25 +12,25 @@ from your_module.order_task import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_bootstrap():
     # Crie um objeto de mock para Command (ou bootstrap) para passar como argumento
     return Command()  # Você pode personalizar o mock conforme necessário
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_session(mocker):
     # Crie um mock para a sessão do SQLAlchemy usando pytest-mock
     return mocker.patch('your_module.order_task.bootstrap.db')
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_order_repository(mocker):
     # Crie um mock para o repositório de pedidos (ou outro repositório que você está usando)
     return mocker.patch('your_module.order_task.bootstrap.order_repository')
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_user_repository(mocker):
     # Crie um mock para o repositório de usuários (ou outro repositório que você está usando)
     return mocker.patch('your_module.order_task.bootstrap.user_repository')

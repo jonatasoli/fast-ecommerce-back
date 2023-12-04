@@ -5,7 +5,6 @@ from tests.factories_db import UserFactory
 
 def test_create_user(session):
     """Must create valid user."""
-
     # Arrange
     new_user = UserFactory()
     session.add(new_user)
