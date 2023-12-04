@@ -330,6 +330,7 @@ async def add_payment_information(  # noqa: PLR0913
         payment_gateway=payment.payment_gateway,
         card_token=payment.card_token,
         card_issuer=payment.card_issuer,
+        card_brand=payment.card_brand,
         customer_uuid=customer,
         email=user.email,
     )

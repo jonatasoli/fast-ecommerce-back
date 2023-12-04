@@ -1,4 +1,3 @@
-from datetime import datetime
 
 from sqlalchemy import select
 
@@ -13,7 +12,6 @@ from tests.factories_db import (
 
 def test_create_order(session):
     """Must create valid order."""
-
     # Arrange
     user = UserFactory()
     session.add(user)
@@ -24,7 +22,7 @@ def test_create_order(session):
 
     # Act
     order = session.scalar(
-        select(Order).where(Order.order_id == new_order.order_id)
+        select(Order).where(Order.order_id == new_order.order_id),
     )
 
     # Assert
@@ -35,7 +33,6 @@ def test_create_order(session):
 
 def test_order_status_steps(session):
     """Must create valid order status steps."""
-
     # Arrange
     user = UserFactory()
     session.add(user)
@@ -50,8 +47,8 @@ def test_order_status_steps(session):
     # Act
     order_status_steps = session.scalar(
         select(OrderStatusSteps).where(
-            OrderStatusSteps.order_id == new_order_status_steps.order_id
-        )
+            OrderStatusSteps.order_id == new_order_status_steps.order_id,
+        ),
     )
 
     # assert

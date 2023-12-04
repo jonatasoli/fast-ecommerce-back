@@ -180,7 +180,9 @@ def calculate_delivery_price(
     if isinstance(_response, dict) and (
         api_error := _response.get('txErro') or _response.get('msgs')
     ):
-        extracted_contents = [error_code.split(':')[0] for error_code in api_error]
+        extracted_contents = [
+            error_code.split(':')[0] for error_code in api_error
+        ]
         raise CorreiosInvalidReturnError(extracted_contents[0])
     if not (price := _response['pcFinal']):
         msg = 'Error to calculate delivery price'

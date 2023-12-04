@@ -74,7 +74,7 @@ app.add_middleware(
 
 @app.exception_handler(ProductNotFoundError)
 async def product_not_found_exception_handler(
-    _: Request, exc: ProductNotFoundError
+    _: Request, exc: ProductNotFoundError,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,

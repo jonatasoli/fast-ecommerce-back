@@ -103,9 +103,9 @@ def attach_customer_in_payment_method(
     client: SDK = get_payment_client(),
 ):
     """Attach a customer in payment method in stripe and mercado pago."""
+    _ = card_issuer
     card_data = {
         'token': card_token,
-        'issuer_id': card_issuer,
         'payment_method_id': payment_method_id,
     }
     logger.info(card_data)

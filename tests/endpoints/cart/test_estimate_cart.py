@@ -1,31 +1,24 @@
-import httpx
 import pytest
 from decimal import Decimal
 from mail_service.sendmail import settings
-from sendgrid import category
 from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from config import settings
-from app.infra.endpoints.cart import get_bootstrap
-from app.infra.bootstrap import cart_bootstrap as bootstrap
 from fastapi.encoders import jsonable_encoder
 import redis
 
-from app.infra.models.order import Product, Category
 from tests.factories_db import (
     CategoryFactory,
     CreditCardFeeConfigFactory,
     ProductFactory,
 )
 from tests.fake_functions import fake
-from httpx import AsyncClient
-from main import app
 
 
 URL = '/cart'
 
 
-@pytest.mark.anyio
+@pytest.mark.anyio()
 async def test_estimate_products_in_cart(client, db) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
@@ -35,10 +28,10 @@ async def test_estimate_products_in_cart(client, db) -> None:
         db.add_all([category, config_fee])
         db.flush()
         product_db_1 = ProductFactory(
-            category=category, installment_config=config_fee, price=100
+            category=category, installment_config=config_fee, price=100,
         )
         product_db_2 = ProductFactory(
-            category=category, installment_config=config_fee, price=200
+            category=category, installment_config=config_fee, price=200,
         )
         db.add_all([product_db_1, product_db_2])
         db.commit()
@@ -69,7 +62,7 @@ async def test_estimate_products_in_cart(client, db) -> None:
     cache.set(str(uuid), cart.model_dump_json())
 
     response = await client.post(
-        f'{URL}/{str(uuid)}/estimate', json=jsonable_encoder(cart.model_dump())
+        f'{URL}/{uuid!s}/estimate', json=jsonable_encoder(cart.model_dump()),
     )
 
     # Assert

@@ -10,7 +10,7 @@ from schemas.user_schema import SignUp
 
 class AdapterUser:
     def __init__(
-        self, db, _user_email, _password, _name, _document, _phone
+        self, db, _user_email, _password, _name, _document, _phone,
     ) -> None:
         self.db = db
         self._user_email = _user_email

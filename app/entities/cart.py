@@ -240,6 +240,7 @@ class CreateCreditCardTokenPaymentMethod(BaseModel):
     payment_gateway: str
     card_token: str
     card_issuer: str
+    card_brand: str
     installments: int = 1
 
 

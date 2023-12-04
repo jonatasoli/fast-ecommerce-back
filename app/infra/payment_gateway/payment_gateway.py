@@ -39,6 +39,7 @@ def attach_customer_in_payment_method(
     payment_gateway: str,
     card_token: str,
     card_issuer: str,
+    card_brand: str,
     customer_uuid: str,
     email: str,
 ) -> str:
@@ -48,7 +49,7 @@ def attach_customer_in_payment_method(
     return gateway.attach_customer_in_payment_method(
         card_token=card_token,
         card_issuer=card_issuer,
-        payment_method_id=PaymentMethod.CREDIT_CARD.value,
+        payment_method_id=card_brand,
         customer_uuid=customer_uuid,
     )
 
