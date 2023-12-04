@@ -70,7 +70,7 @@ class OrderDB:
 
 class CreatePayment:
     def __init__(
-        self, user_id, _payment_method, _installments, _total_amount
+        self, user_id, _payment_method, _installments, _total_amount,
     ) -> None:
         self.user_id = user_id
         self._total_amount = _total_amount

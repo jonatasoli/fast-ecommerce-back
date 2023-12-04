@@ -71,7 +71,8 @@ def get_product(db: Session, uri) -> ProductInDB | None:
             )
             .where(ProductDB.uri == uri)
             .outerjoin(
-                InventoryDB, InventoryDB.product_id == ProductDB.product_id,
+                InventoryDB,
+                InventoryDB.product_id == ProductDB.product_id,
             )
             .outerjoin(
                 category_alias,
@@ -104,7 +105,8 @@ def get_product(db: Session, uri) -> ProductInDB | None:
 
 
 def create_product(
-    db: Session, product_data: ProductSchema,
+    db: Session,
+    product_data: ProductSchema,
 ) -> ProductSchemaResponse:
     """Create new product."""
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
@@ -148,13 +150,16 @@ def upload_image(db: Session, product_id: int, image: Any) -> str:
 
 
 def upload_image_gallery(
-    product_id: int, db: Session, imageGallery: Any,
+    product_id: int,
+    db: Session,
+    imageGallery: Any,
 ) -> str:
     """Upload Image Galery."""
     image_path = optimize_image.optimize_image(imageGallery)
     with db:
         db_image_gallery = ImageGalleryDB(
-            url=image_path, product_id=product_id,
+            url=image_path,
+            product_id=product_id,
         )
         db.add(db_image_gallery)
         db.commit()
@@ -298,7 +303,11 @@ class NotFoundCategoryException(Exception):
 
 
 def get_products_category(
-    *, offset: int, page: int, path: str, db: Session,
+    *,
+    offset: int,
+    page: int,
+    path: str,
+    db: Session,
 ) -> ProductsResponse:
     """Get products and category."""
     products = None
@@ -381,7 +390,8 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
                 category_alias.image_path.label('image_path_1'),
             )
             .outerjoin(
-                InventoryDB, InventoryDB.product_id == ProductDB.product_id,
+                InventoryDB,
+                InventoryDB.product_id == ProductDB.product_id,
             )
             .outerjoin(
                 category_alias,
@@ -428,7 +438,9 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
 
 
 def get_latest_products(
-    offset: int, page: int, db: Session,
+    offset: int,
+    page: int,
+    db: Session,
 ) -> ProductsResponse:
     """Get latests products."""
     products = None
@@ -469,7 +481,8 @@ def get_latest_products(
                 category_alias.image_path.label('image_path_1'),
             )
             .outerjoin(
-                InventoryDB, InventoryDB.product_id == ProductDB.product_id,
+                InventoryDB,
+                InventoryDB.product_id == ProductDB.product_id,
             )
             .outerjoin(
                 category_alias,
@@ -517,7 +530,9 @@ def get_latest_products(
 
 
 def get_featured_products(
-    offset: int, page: int, db: Session,
+    offset: int,
+    page: int,
+    db: Session,
 ) -> ProductsResponse:
     """Get Featured products."""
     products = None
@@ -544,7 +559,10 @@ def get_featured_products(
 
 
 def search_products(
-    search: str, offset: int, page: int, db: Session,
+    search: str,
+    offset: int,
+    page: int,
+    db: Session,
 ) -> ProductsResponse:
     """Search Products."""
     products = None

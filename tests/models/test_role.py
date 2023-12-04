@@ -5,7 +5,6 @@ from tests.factories_db import RoleFactory
 
 def test_create_role(session):
     """Must create valid role."""
-
     # Arrange
     new_role = RoleFactory()
     session.add(new_role)

@@ -1,6 +1,6 @@
 import factory
 from factory.declarations import SelfAttribute, SubFactory
-from faker import Factory, Faker
+from faker import Faker
 from app.infra.models.transaction import CreditCardFeeConfig, Payment
 
 from app.infra.models.uploadedimage import UploadedImage
@@ -59,10 +59,10 @@ class CreditCardFeeConfigFactory(factory.Factory):
         model = CreditCardFeeConfig
 
     min_installment_with_fee = factory.LazyFunction(
-        lambda: fake.pyint(min_value=1, max_value=5)
+        lambda: fake.pyint(min_value=1, max_value=5),
     )
     max_installments = factory.LazyFunction(
-        lambda: fake.pyint(min_value=6, max_value=12)
+        lambda: fake.pyint(min_value=6, max_value=12),
     )
     fee = fake_decimal()
 
@@ -80,7 +80,7 @@ class ProductFactory(factory.Factory):
     description = fake.json()
     direct_sales = fake.pybool()
     installments_config = SelfAttribute(
-        'installment_config.credit_card_fee_config_id'
+        'installment_config.credit_card_fee_config_id',
     )
     uri = fake_url_path()
     sku = fake.pystr()
