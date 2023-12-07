@@ -11,6 +11,7 @@ class SignUp(BaseModel):
 
 
 class UserSchema(BaseModel):
+    id: int
     name: str
     password: str
     document: str
