@@ -1,33 +1,32 @@
 import json
-import math
 from typing import Any
-from fastapi import HTTPException, status
 
-from sqlalchemy import func, select
+import math
+from fastapi import HTTPException, status
 from loguru import logger
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, aliased
 
-from app.infra.optimize_image import optimize_image
+from app.entities.product import (
+    ProductCategoryInDB,
+    ProductInDB,
+    ProductsResponse,
+)
 from app.infra.models import (
     CategoryDB,
     ImageGalleryDB,
     InventoryDB,
     ProductDB,
 )
-from app.entities.product import (
-    ProductCategoryInDB,
-    ProductInDB,
-    ProductsResponse,
-)
+from app.infra.optimize_image import optimize_image
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,
     OrderFullResponse,
     OrderSchema,
-    ProductFullResponse,
     ProductSchema,
     ProductSchemaResponse,
-    TrackingFullResponse,
+    TrackingFullResponse, ProductPatchRequest, ProductFullResponse,
 )
 
 
@@ -107,8 +106,8 @@ def get_product(db: Session, uri) -> ProductInDB | None:
 
 
 def create_product(
-    db: Session,
-    product_data: ProductSchema,
+        db: Session,
+        product_data: ProductSchema,
 ) -> bool | ProductSchemaResponse:
     """Create new product."""
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
@@ -123,15 +122,25 @@ def create_product(
         return False
 
 
-def put_product(db: Session, id, product_data: ProductFullResponse) -> dict:
+def update_product(product: ProductDB, product_data: dict) -> ProductDB:
+    for key, value in product_data.items():
+        setattr(product, key, value)
+    return product
+
+
+def patch_product(db: Session, id, product_data: ProductPatchRequest) -> ProductFullResponse:
     """Update Product."""
+    values = product_data.model_dump(exclude_none=True)
+    product = get_product_by_id(db, id)
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Product not found',
+        )
     with db:
-        product_query = select(ProductDB).where(ProductDB.id == id)
-        product = db.execute(product_query).scalars().first()
-        product = product.update(product_data)
-        logger.debug(product)
+        update_product(product, values)
         db.commit()
-    return {**product_data.dict()}
+        return ProductFullResponse.model_validate(product)
 
 
 def delete_product(db: Session, id: int) -> None:
@@ -156,9 +165,9 @@ def upload_image(db: Session, product_id: int, image: Any) -> str:
 
 
 def upload_image_gallery(
-    product_id: int,
-    db: Session,
-    imageGallery: Any,
+        product_id: int,
+        db: Session,
+        imageGallery: Any,
 ) -> str:
     """Upload Image Galery."""
     image_path = optimize_image.optimize_image(imageGallery)
@@ -253,12 +262,8 @@ def get_installments(product_id: int, *, db: Session) -> int:
         return _installments
 
 
-def get_product_by_id(db: Session, id: int) -> ProductInDB:
-    """Get Product By ID."""
-    with db:
-        product_query = select(ProductDB).where(ProductDB.id == id)
-        product = db.execute(product_query).scalars().first()
-        return ProductInDB.from_orm(product)
+def get_product_by_id(db: Session, id: int) -> ProductDB | None:
+    return db.query(ProductDB).filter(ProductDB.product_id == id).first()
 
 
 def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
@@ -309,11 +314,11 @@ class NotFoundCategoryException(Exception):
 
 
 def get_products_category(
-    *,
-    offset: int,
-    page: int,
-    path: str,
-    db: Session,
+        *,
+        offset: int,
+        page: int,
+        path: str,
+        db: Session,
 ) -> ProductsResponse:
     """Get products and category."""
     products = None
@@ -444,9 +449,9 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
 
 
 def get_latest_products(
-    offset: int,
-    page: int,
-    db: Session,
+        offset: int,
+        page: int,
+        db: Session,
 ) -> ProductsResponse:
     """Get latests products."""
     products = None
@@ -536,9 +541,9 @@ def get_latest_products(
 
 
 def get_featured_products(
-    offset: int,
-    page: int,
-    db: Session,
+        offset: int,
+        page: int,
+        db: Session,
 ) -> ProductsResponse:
     """Get Featured products."""
     products = None
@@ -565,10 +570,10 @@ def get_featured_products(
 
 
 def search_products(
-    search: str,
-    offset: int,
-    page: int,
-    db: Session,
+        search: str,
+        offset: int,
+        page: int,
+        db: Session,
 ) -> ProductsResponse:
     """Search Products."""
     products = None

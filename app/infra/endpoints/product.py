@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from loguru import logger
 from sqlalchemy.orm import Session
 from app.entities.product import ProductInDB
+from app.infra.models import ProductDB
 
 from app.order import services
 from app.infra import deps
@@ -10,7 +11,7 @@ from app.infra.deps import get_db
 from payment.schema import ProductSchema
 from schemas.order_schema import (
     ProductFullResponse,
-    ProductSchemaResponse,
+    ProductSchemaResponse, ProductPatchRequest,
 )
 
 product = APIRouter(
@@ -100,16 +101,17 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
         raise
 
 
-@product.put('/update/{id}', status_code=200)
-def put_product(
+@product.patch('/update/{id}', status_code=200, response_model=ProductFullResponse)
+def patch_product(
     id: int,
-    value: ProductFullResponse,
+    value: ProductPatchRequest,
     db: Session = Depends(get_db),
-) -> None:
+) -> ProductFullResponse:
     """Put product."""
     try:
-        return services.put_product(db, id, value)
-    except Exception:
+        return services.patch_product(db, id, value)
+    except Exception as e:
+        logger.error(f'Erro em atualizar o produto - { e }')
         raise
 
 
