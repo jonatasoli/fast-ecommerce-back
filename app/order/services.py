@@ -107,14 +107,18 @@ def get_product(db: Session, uri) -> ProductInDB | None:
 def create_product(
     db: Session,
     product_data: ProductSchema,
-) -> ProductSchemaResponse:
+) -> bool | ProductSchemaResponse:
     """Create new product."""
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
     db_product.description = json.dumps(product_data.description)
-    with db:
-        db.add(db_product)
-        db.commit()
-        return ProductSchemaResponse.model_validate(db_product)
+    try:
+        with db:
+            db.add(db_product)
+            db.commit()
+    except Exception as e:
+        logger.error(e)
+        return False
+    return ProductSchemaResponse.model_validate(db_product)
 
 
 def put_product(db: Session, id, product_data: ProductFullResponse) -> dict:

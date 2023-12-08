@@ -28,9 +28,15 @@ def create_product(
     *,
     db: Session = Depends(deps.get_db),
     product_data: ProductSchema,
-) -> ProductSchema:
+) -> ProductSchemaResponse:
     """Create product."""
-    return services.create_product(db=db, product_data=product_data)
+    product = services.create_product(db=db, product_data=product_data)
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Error in create product',
+        )
+    return product
 
 
 @product.post('/upload-image/{product_id}', status_code=200)
