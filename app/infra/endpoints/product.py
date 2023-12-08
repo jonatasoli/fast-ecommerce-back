@@ -25,9 +25,9 @@ product = APIRouter(
     response_model=ProductSchemaResponse,
 )
 def create_product(
-    *,
-    db: Session = Depends(deps.get_db),
-    product_data: ProductSchema,
+        *,
+        db: Session = Depends(deps.get_db),
+        product_data: ProductSchema,
 ) -> ProductSchemaResponse:
     """Create product."""
     product = services.create_product(db=db, product_data=product_data)
@@ -83,7 +83,7 @@ def delete_image(id: int, db: Session = Depends(get_db)) -> None:
         raise
 
 
-@product.get('/{uri}', status_code=200, response_model=ProductInDB)
+@product.get('/{uri:path}', status_code=200, response_model=ProductInDB)
 def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
     """GET product uri."""
     try:

@@ -83,6 +83,8 @@ def get_product(db: Session, uri) -> ProductInDB | None:
         result = db.execute(query_product)
         column_names = result.keys()
         product = result.first()
+        if not product:
+            return None
         product_dict = dict(zip(column_names, product))
         if 'category_id_1' in product_dict:
             product_dict['category'] = {
@@ -115,10 +117,10 @@ def create_product(
         with db:
             db.add(db_product)
             db.commit()
+            return ProductSchemaResponse.model_validate(db_product)
     except Exception as e:
         logger.error(e)
         return False
-    return ProductSchemaResponse.model_validate(db_product)
 
 
 def put_product(db: Session, id, product_data: ProductFullResponse) -> dict:
