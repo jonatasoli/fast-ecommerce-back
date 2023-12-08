@@ -89,28 +89,28 @@ def check_existent_user(db: Session, email, document, password):
 def get_user(db: Session, document: str, password: str):
     try:
         db_user = _get_user(db=db, document=document)
-        if not password:
-            msg = 'User not password'
-            raise Exception(msg)
+        if not db_user or not password:
+            logger.error(f'User not finded {document}')
+            return False
         if db_user and verify_password(db_user.password, password):
             return db_user
         else:
             logger.error(
                 f'User not finded {db_user.document}, {db_user.password}',
             )
-            raise HTTPException(status_code=403, detail='Access forbidden')
+            return False
     except Exception as e:
         raise e
 
 
 def authenticate_user(db, document: str, password: str):
     user = get_user(db, document, password)
+    if not user:
+        return False
     user_dict = UserSchema.model_validate(user).model_dump()
 
     user = UserInDB(**user_dict)
     logger.debug(f'{user} ')
-    if not user:
-        return False
     return user
 
 
