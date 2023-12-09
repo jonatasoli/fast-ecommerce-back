@@ -13,6 +13,7 @@ from app.infra.models import (
     ImageGalleryDB,
     InventoryDB,
     ProductDB,
+    OrderDB,
 )
 from app.entities.product import (
     ProductCategoryInDB,
@@ -28,6 +29,7 @@ from schemas.order_schema import (
     ProductSchema,
     ProductSchemaResponse,
     TrackingFullResponse,
+    OrderUserListResponse,
 )
 
 
@@ -260,8 +262,17 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
     ...
 
 
-def get_order(db: Session, id):
-    ...
+def get_order(db: Session, user_id):
+    with db:
+        order_query = (
+            select(OrderDB)
+            .where(OrderDB.user_id == user_id)
+            .order_by(OrderDB.order_id.desc())
+        )
+        orders = db.execute(order_query).scalars().fetchall()
+        return [
+            OrderUserListResponse.model_validate(order) for order in orders
+        ]
 
 
 def get_order_users(db: Session, id):
