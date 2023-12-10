@@ -17,7 +17,8 @@ from app.infra.models import (
     ImageGalleryDB,
     InventoryDB,
     ProductDB,
-    OrderDB, OrderItemsDB,
+    OrderDB,
+    OrderItemsDB,
 )
 from app.infra.optimize_image import optimize_image
 from schemas.order_schema import (
@@ -29,7 +30,8 @@ from schemas.order_schema import (
     ProductSchema,
     ProductSchemaResponse,
     TrackingFullResponse,
-    OrderUserListResponse, ProductListOrderResponse,
+    OrderUserListResponse,
+    ProductListOrderResponse,
 )
 
 
@@ -107,8 +109,8 @@ def get_product(db: Session, uri) -> ProductInDB | None:
 
 
 def create_product(
-        db: Session,
-        product_data: ProductSchema,
+    db: Session,
+    product_data: ProductSchema,
 ) -> ProductSchemaResponse:
     """Create new product."""
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
@@ -152,9 +154,9 @@ def upload_image(db: Session, product_id: int, image: Any) -> str:
 
 
 def upload_image_gallery(
-        product_id: int,
-        db: Session,
-        imageGallery: Any,
+    product_id: int,
+    db: Session,
+    imageGallery: Any,
 ) -> str:
     """Upload Image Galery."""
     image_path = optimize_image.optimize_image(imageGallery)
@@ -262,15 +264,22 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
     ...
 
 
-def get_order(db: Session, user_id):
+def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
+    """Given order_id return Order with user data."""
     with db:
-        order_query = select(OrderDB).where(OrderDB.user_id == user_id).order_by(OrderDB.order_id.desc())
+        order_query = (
+            select(OrderDB)
+            .where(OrderDB.user_id == user_id)
+            .order_by(OrderDB.order_id.desc())
+        )
         orders = db.execute(order_query).scalars().all()
         orders_obj = []
         for order in orders:
             items_query = (
                 select(OrderItemsDB)
-                .join(ProductDB, OrderItemsDB.product_id == ProductDB.product_id)
+                .join(
+                    ProductDB, OrderItemsDB.product_id == ProductDB.product_id,
+                )
                 .where(OrderItemsDB.order_id == order.order_id)
             )
             items = db.execute(items_query).scalars().all()
@@ -280,22 +289,23 @@ def get_order(db: Session, user_id):
                     name=item.product.name,
                     uri=item.product.uri,
                     price=item.price,
-                    quantity=item.quantity
-                ) for item in items
+                    quantity=item.quantity,
+                )
+                for item in items
             ]
 
-            orders_obj.append(OrderUserListResponse.model_validate(
-                {
-                    "order_id": order.order_id,
-                    "cancelled_at": order.cancelled_at,
-                    "cancelled_reason": order.cancelled_reason,
-                    "freight": order.freight,
-                    "order_date": order.order_date,
-                    "order_status": order.order_status,
-                    "tracking_number": order.tracking_number,
-                    "products": products_list
-                }
-            ))
+            orders_obj.append(
+                OrderUserListResponse.model_validate(
+                    order_id=order.order_id,
+                    cancelled_at=order.cancelled_at,
+                    cancelled_reason=order.cancelled_reason,
+                    freight=order.freight,
+                    order_date=order.order_date,
+                    order_status=order.order_status,
+                    tracking_number=order.tracking_number,
+                    products=products_list,
+                ),
+            )
         return orders_obj
 
 
@@ -338,11 +348,11 @@ class NotFoundCategoryException(Exception):
 
 
 def get_products_category(
-        *,
-        offset: int,
-        page: int,
-        path: str,
-        db: Session,
+    *,
+    offset: int,
+    page: int,
+    path: str,
+    db: Session,
 ) -> ProductsResponse:
     """Get products and category."""
     products = None
@@ -473,9 +483,9 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
 
 
 def get_latest_products(
-        offset: int,
-        page: int,
-        db: Session,
+    offset: int,
+    page: int,
+    db: Session,
 ) -> ProductsResponse:
     """Get latests products."""
     products = None
@@ -565,9 +575,9 @@ def get_latest_products(
 
 
 def get_featured_products(
-        offset: int,
-        page: int,
-        db: Session,
+    offset: int,
+    page: int,
+    db: Session,
 ) -> ProductsResponse:
     """Get Featured products."""
     products = None
@@ -594,10 +604,10 @@ def get_featured_products(
 
 
 def search_products(
-        search: str,
-        offset: int,
-        page: int,
-        db: Session,
+    search: str,
+    offset: int,
+    page: int,
+    db: Session,
 ) -> ProductsResponse:
     """Search Products."""
     products = None
