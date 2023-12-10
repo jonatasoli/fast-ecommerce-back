@@ -16,7 +16,8 @@ async def example_function(arg1=None, arg2=None):
 @pytest.fixture()
 def temporary_async_sessionmaker():
     engine = create_async_engine(
-        'sqlite+aiosqlite:///mydatabase.db', echo=True,
+        'sqlite+aiosqlite:///mydatabase.db',
+        echo=True,
     )
     SessionLocal = sessionmaker(
         bind=engine,
@@ -28,7 +29,9 @@ def temporary_async_sessionmaker():
 
 @pytest.mark.asyncio()
 async def test_database_uow_success_should_call_begin(
-    temporary_async_sessionmaker, mocker, faker,
+    temporary_async_sessionmaker,
+    mocker,
+    faker,
 ):
     # Arrange
     session_spy = mocker.spy(temporary_async_sessionmaker, 'begin')
@@ -46,11 +49,14 @@ async def test_database_uow_success_should_call_begin(
 
 @pytest.mark.skip()
 async def test_database_uow_success_should_call_commit(
-    temporary_async_sessionmaker, mocker, faker,
+    temporary_async_sessionmaker,
+    mocker,
+    faker,
 ):
     # Arrange
     session_spy = mocker.spy(
-        temporary_async_sessionmaker.begin().async_session, 'commit',
+        temporary_async_sessionmaker.begin().async_session,
+        'commit',
     )
     decorator = database_uow(temporary_async_sessionmaker)
     decorated_function = decorator(example_function)
@@ -67,7 +73,9 @@ async def test_database_uow_success_should_call_commit(
 # Exceção do SQLAlchemy
 @pytest.mark.asyncio()
 async def test_database_uow_sqlalchemy_error_should_call_begin(
-    temporary_async_sessionmaker, mocker, faker,
+    temporary_async_sessionmaker,
+    mocker,
+    faker,
 ):
     # Arrange
     async def example_function(*args, **kwargs):
@@ -86,7 +94,9 @@ async def test_database_uow_sqlalchemy_error_should_call_begin(
 
 @pytest.mark.skip()
 async def test_database_uow_sqlalchemy_error_should_call_rollback(
-    temporary_async_sessionmaker, mocker, faker,
+    temporary_async_sessionmaker,
+    mocker,
+    faker,
 ):
     # Arrange
     session_spy = mocker.spy(temporary_async_sessionmaker, 'rollback')
@@ -107,7 +117,9 @@ async def test_database_uow_sqlalchemy_error_should_call_rollback(
 # Preservação de Argumentos
 @pytest.mark.asyncio()
 async def test_database_uow_preserve_args_should_call_begin(
-    temporary_async_sessionmaker, mocker, faker,
+    temporary_async_sessionmaker,
+    mocker,
+    faker,
 ):
     # Arrange
     session_spy = mocker.spy(temporary_async_sessionmaker, 'begin')
@@ -126,7 +138,9 @@ async def test_database_uow_preserve_args_should_call_begin(
 
 @pytest.mark.skip()
 async def test_database_uow_preserve_args_should_call_commit(
-    temporary_async_sessionmaker, mocker, faker,
+    temporary_async_sessionmaker,
+    mocker,
+    faker,
 ):
     # Arrange
     session_spy = mocker.spy(temporary_async_sessionmaker, 'commit')
@@ -150,7 +164,9 @@ async def async_example_function():
 
 @pytest.mark.asyncio()
 async def test_database_uow_async_function_should_call_begin(
-    temporary_async_sessionmaker, mocker, faker,
+    temporary_async_sessionmaker,
+    mocker,
+    faker,
 ):
     # Arrange
     session_spy = mocker.spy(temporary_async_sessionmaker, 'begin')
@@ -168,7 +184,9 @@ async def test_database_uow_async_function_should_call_begin(
 
 @pytest.mark.skip()
 async def test_database_uow_async_function_should_call_commit(
-    temporary_async_sessionmaker, mocker, faker,
+    temporary_async_sessionmaker,
+    mocker,
+    faker,
 ):
     # Arrange
     session_spy = mocker.spy(temporary_async_sessionmaker, 'commit')

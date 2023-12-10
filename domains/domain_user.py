@@ -91,14 +91,11 @@ def check_existent_user(db: Session, email, document, password):
         raise e
 
 
-def get_user(db: Session, document: str, password: str):
+def get_user(db: Session, document: str, password: str) -> UserDB:
     """Get user if document and password match."""
-    try:
-        db_user = _get_user(db=db, document=document)
-        verify_password(db_user.password, password):
-        return db_user
-    except Exception as e:
-        raise e
+    db_user = _get_user(db=db, document=document)
+    verify_password(db_user.password, password)
+    return db_user
 
 
 def authenticate_user(db, document: str, password: str):
@@ -207,7 +204,8 @@ def get_admin(
     return user
 
 
-def _get_user(db: Session, document: str):
+def _get_user(db: Session, document: str) -> UserDB:
+    """Get user from database."""
     with db:
         user_query = select(UserDB).where(UserDB.document == document)
         user_db = db.execute(user_query).scalars().first()
