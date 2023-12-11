@@ -295,7 +295,7 @@ def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
             ]
 
             orders_obj.append(
-                OrderUserListResponse.model_validate(
+                OrderUserListResponse(
                     order_id=order.order_id,
                     cancelled_at=order.cancelled_at,
                     cancelled_reason=order.cancelled_reason,
@@ -306,7 +306,7 @@ def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
                     products=products_list,
                 ),
             )
-        return orders_obj
+        return [OrderUserListResponse.model_validate(order) for order in orders_obj]
 
 
 def get_order_users(db: Session, id):
