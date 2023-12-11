@@ -93,7 +93,7 @@ async def add_product_to_cart(  # noqa: ANN201
     bootstrap: Command = Depends(get_bootstrap),
 ):
     """Add product to cart."""
-    # TODO: Implementar o retorno 404 caso produto não exista ou o estoque tenha acabado
+    # TODO: Implementar o retorno 404 caso o estoque tenha acabado
     return await services.add_product_to_cart(
         cart_uuid=uuid,
         product=product,

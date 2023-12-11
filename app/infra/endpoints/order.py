@@ -12,6 +12,7 @@ from schemas.order_schema import (
     OrderFullResponse,
     OrderSchema,
     TrackingFullResponse,
+    OrderUserListResponse,
 )
 
 order = APIRouter(
@@ -21,11 +22,14 @@ order = APIRouter(
 
 
 @order.get('/{id}', status_code=200)
-async def get_order(*, db: Session = Depends(get_db), id: int) -> None:
+async def get_order(
+    *, db: Session = Depends(get_db), id: int,
+) -> list[OrderUserListResponse]:
     """Get order."""
     try:
         return services.get_order(db, id)
-    except Exception:
+    except Exception as e:
+        logger.error(e)
         raise
 
 
