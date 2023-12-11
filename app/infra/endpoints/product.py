@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from loguru import logger
 from sqlalchemy.orm import Session
 from app.entities.product import ProductInDB
+from app.infra.models import ProductDB
 
 from app.order import services
 from app.infra import deps
@@ -10,7 +11,7 @@ from app.infra.deps import get_db
 from payment.schema import ProductSchema
 from schemas.order_schema import (
     ProductFullResponse,
-    ProductSchemaResponse,
+    ProductSchemaResponse, ProductPatchRequest,
 )
 
 product = APIRouter(
@@ -25,12 +26,18 @@ product = APIRouter(
     response_model=ProductSchemaResponse,
 )
 def create_product(
-    *,
-    db: Session = Depends(deps.get_db),
-    product_data: ProductSchema,
-) -> ProductSchema:
+        *,
+        db: Session = Depends(deps.get_db),
+        product_data: ProductSchema,
+) -> ProductSchemaResponse:
     """Create product."""
-    return services.create_product(db=db, product_data=product_data)
+    product = services.create_product(db=db, product_data=product_data)
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Error in create product',
+        )
+    return product
 
 
 @product.post('/upload-image/{product_id}', status_code=200)
@@ -77,7 +84,7 @@ def delete_image(id: int, db: Session = Depends(get_db)) -> None:
         raise
 
 
-@product.get('/{uri}', status_code=200, response_model=ProductInDB)
+@product.get('/{uri:path}', status_code=200, response_model=ProductInDB)
 def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
     """GET product uri."""
     try:
@@ -94,16 +101,17 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
         raise
 
 
-@product.put('/update/{id}', status_code=200)
-def put_product(
+@product.patch('/update/{id}', status_code=200, response_model=ProductFullResponse)
+def patch_product(
     id: int,
-    value: ProductFullResponse,
+    value: ProductPatchRequest,
     db: Session = Depends(get_db),
-) -> None:
+) -> ProductFullResponse:
     """Put product."""
     try:
-        return services.put_product(db, id, value)
-    except Exception:
+        return services.patch_product(db, id, value)
+    except Exception as e:
+        logger.error(f'Erro em atualizar o produto - { e }')
         raise
 
 
