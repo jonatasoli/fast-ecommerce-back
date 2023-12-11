@@ -12,6 +12,7 @@ from passlib.context import CryptContext
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
+from app.entities.user import CredentialError
 from constants import DocumentType, Roles
 from app.infra.database import get_session
 from app.infra.models import RoleDB
@@ -91,22 +92,20 @@ def get_user(db: Session, document: str, password: str):
         db_user = _get_user(db=db, document=document)
         if not db_user or not password:
             logger.error(f'User not finded {document}')
-            return False
+            raise CredentialError
         if db_user and verify_password(db_user.password, password):
             return db_user
         else:
             logger.error(
                 f'User not finded {db_user.document}, {db_user.password}',
             )
-            return False
+            raise CredentialError
     except Exception as e:
         raise e
 
 
 def authenticate_user(db, document: str, password: str):
     user = get_user(db, document, password)
-    if not user:
-        return False
     user_dict = UserSchema.model_validate(user).model_dump()
 
     user = UserInDB(**user_dict)
@@ -298,7 +297,8 @@ def register_shipping_address(
                 and_(
                     AddressDB.user_id == user.id,
                     AddressDB.zipcode == checkout_data.get('ship_zip'),
-                    AddressDB.street_number == checkout_data.get('ship_number'),
+                    AddressDB.street_number
+                    == checkout_data.get('ship_number'),
                     AddressDB.address_complement
                     == checkout_data.get('ship_address_complement'),
                     AddressDB.category == 'shipping',
