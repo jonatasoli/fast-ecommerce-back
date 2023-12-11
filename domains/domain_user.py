@@ -12,6 +12,7 @@ from passlib.context import CryptContext
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
+from app.entities.user import CredentialError
 from constants import DocumentType, Roles
 from app.infra.database import get_session
 from app.infra.models import RoleDB
@@ -23,6 +24,7 @@ from schemas.user_schema import (
     UserResponseResetPassword,
     UserSchema,
 )
+from app.entities.user import CredentialError
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
@@ -36,8 +38,12 @@ def gen_hash(password):
     return pwd_context.hash(password)
 
 
-def verify_password(password, check_password):
-    return pwd_context.verify(check_password, password)
+def verify_password(password: str, check_password: str) -> bool:
+    """Verify pasword if match with passed password."""
+    _password_match = pwd_context.verify(check_password, password)
+    if not _password_match:
+        raise CredentialError
+    return _password_match
 
 
 def create_user(db: Session, obj_in: SignUp):
@@ -91,14 +97,14 @@ def get_user(db: Session, document: str, password: str):
         db_user = _get_user(db=db, document=document)
         if not db_user or not password:
             logger.error(f'User not finded {document}')
-            return False
+            raise CredentialError
         if db_user and verify_password(db_user.password, password):
             return db_user
         else:
             logger.error(
                 f'User not finded {db_user.document}, {db_user.password}',
             )
-            return False
+            raise CredentialError
     except Exception as e:
         raise e
 
@@ -209,10 +215,14 @@ def get_admin(
     return user
 
 
-def _get_user(db: Session, document: str):
+def _get_user(db: Session, document: str) -> UserDB:
+    """Get user from database."""
     with db:
         user_query = select(UserDB).where(UserDB.document == document)
-        return db.execute(user_query).scalars().first()
+        user_db = db.execute(user_query).scalars().first()
+        if not user_db:
+            raise CredentialError
+        return user_db
 
 
 def check_token(f):
@@ -298,7 +308,8 @@ def register_shipping_address(
                 and_(
                     AddressDB.user_id == user.id,
                     AddressDB.zipcode == checkout_data.get('ship_zip'),
-                    AddressDB.street_number == checkout_data.get('ship_number'),
+                    AddressDB.street_number
+                    == checkout_data.get('ship_number'),
                     AddressDB.address_complement
                     == checkout_data.get('ship_address_complement'),
                     AddressDB.category == 'shipping',

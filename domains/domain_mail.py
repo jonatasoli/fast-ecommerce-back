@@ -3,7 +3,11 @@ from jinja2 import Environment, FileSystemLoader
 from loguru import logger
 from mail_service.sendmail import SendMail, send_mail_sendgrid
 
-from schemas.mail_schema import MailFormCourses, MailOrderCancelled, MailTrackingNumber
+from schemas.mail_schema import (
+    MailFormCourses,
+    MailOrderCancelled,
+    MailTrackingNumber,
+)
 
 file_loader = FileSystemLoader('email-templates')
 env = Environment(loader=file_loader)
@@ -28,6 +32,7 @@ def send_order_cancelled(db, mail_data: MailOrderCancelled):
     if sended:
         return True
     return False
+
 
 def get_mail_template_cancelled(mail_template, **kwargs):
     return env.get_template('mail_order_cancelled.html').render(**kwargs)
