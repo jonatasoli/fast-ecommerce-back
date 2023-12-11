@@ -74,7 +74,8 @@ app.add_middleware(
 
 @app.exception_handler(ProductNotFoundError)
 async def product_not_found_exception_handler(
-    _: Request, exc: ProductNotFoundError,
+    _: Request,
+    exc: ProductNotFoundError,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
@@ -103,8 +104,7 @@ async def credential_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_401_UNAUTHORIZED,
         content={
-            'detail': 'Could not validate credentials',
-            'stackerror': f'{exc.args[0]}',
+            'detail': 'Incorrect username or password',
         },
     )
 
@@ -123,6 +123,7 @@ async def product_sold_out_exception_handler(
         },
     )
 
+
 @app.exception_handler(CouponNotFoundError)
 async def coupon_not_found_handler(
     _: Request,
@@ -135,6 +136,7 @@ async def coupon_not_found_handler(
             'detail': 'Invalid Coupon.',
         },
     )
+
 
 @app.exception_handler(CorreiosInvalidReturnError)
 async def correios_api_error_handler(
@@ -157,6 +159,7 @@ async def correios_api_error_handler(
             'reason': msg,
         },
     )
+
 
 # set loguru format for root logger
 logging.getLogger().handlers = [InterceptHandler()]

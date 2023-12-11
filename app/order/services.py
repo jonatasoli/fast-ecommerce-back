@@ -17,6 +17,8 @@ from app.infra.models import (
     ImageGalleryDB,
     InventoryDB,
     ProductDB,
+    OrderDB,
+    OrderItemsDB,
 )
 from app.infra.optimize_image import optimize_image
 from schemas.order_schema import (
@@ -26,7 +28,9 @@ from schemas.order_schema import (
     OrderSchema,
     ProductSchema,
     ProductSchemaResponse,
-    TrackingFullResponse, ProductPatchRequest, ProductFullResponse,
+    TrackingFullResponse,
+    OrderUserListResponse,
+    ProductListOrderResponse,
 )
 
 
@@ -271,8 +275,49 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
     ...
 
 
-def get_order(db: Session, id):
-    ...
+def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
+    """Given order_id return Order with user data."""
+    with db:
+        order_query = (
+            select(OrderDB)
+            .where(OrderDB.user_id == user_id)
+            .order_by(OrderDB.order_id.desc())
+        )
+        orders = db.execute(order_query).scalars().all()
+        orders_obj = []
+        for order in orders:
+            items_query = (
+                select(OrderItemsDB)
+                .join(
+                    ProductDB, OrderItemsDB.product_id == ProductDB.product_id,
+                )
+                .where(OrderItemsDB.order_id == order.order_id)
+            )
+            items = db.execute(items_query).scalars().all()
+            products_list = [
+                ProductListOrderResponse(
+                    product_id=item.product_id,
+                    name=item.product.name,
+                    uri=item.product.uri,
+                    price=item.price,
+                    quantity=item.quantity,
+                )
+                for item in items
+            ]
+
+            orders_obj.append(
+                OrderUserListResponse(
+                    order_id=order.order_id,
+                    cancelled_at=order.cancelled_at,
+                    cancelled_reason=order.cancelled_reason,
+                    freight=order.freight,
+                    order_date=order.order_date,
+                    order_status=order.order_status,
+                    tracking_number=order.tracking_number,
+                    products=products_list,
+                ),
+            )
+        return [OrderUserListResponse.model_validate(order) for order in orders_obj]
 
 
 def get_order_users(db: Session, id):
