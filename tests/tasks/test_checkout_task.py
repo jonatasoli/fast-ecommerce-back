@@ -6,7 +6,9 @@ def test_checkout_task(mocker):
     # Arrange
     mock_bootstrap = bootstrap()
     mock_cache = mocker.patch.object(
-        mock_bootstrap.cache, 'get', return_value={'key': 'value'},
+        mock_bootstrap.cache,
+        'get',
+        return_value={'key': 'value'},
     )
     mock_bootstrap.cache = mock_cache
 
