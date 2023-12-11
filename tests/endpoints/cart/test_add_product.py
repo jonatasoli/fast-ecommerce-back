@@ -12,7 +12,6 @@ from tests.fake_functions import fake
 from config import settings
 
 
-
 URL = '/cart'
 
 
@@ -26,7 +25,9 @@ async def test_add_product_in_new_cart(client, db) -> None:
         db.add_all([category, config_fee])
         db.flush()
         product_db = ProductFactory(
-            category=category, installment_config=config_fee, price=10000,
+            category=category,
+            installment_config=config_fee,
+            price=10000,
         )
         db.add(category)
         db.add(product_db)
@@ -48,7 +49,8 @@ async def test_add_product_in_new_cart(client, db) -> None:
     product = ProductCart(product_id=1, quantity=1)
     product.__delattr__('discount_price')
     response = await client.post(
-        f'{URL}/{uuid}/product', json=product.model_dump(),
+        f'{URL}/{uuid}/product',
+        json=product.model_dump(),
     )
 
     # Assert

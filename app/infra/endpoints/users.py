@@ -1,9 +1,12 @@
 from datetime import timedelta
+from typing import Dict, Any
 
 from dynaconf import settings
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, InstrumentedAttribute
+from sqlalchemy.orm.base import _T_co
+
 from app.entities.user import UserCouponResponse
 from app.infra.bootstrap.user_bootstrap import Command, bootstrap
 from loguru import logger
@@ -58,7 +61,7 @@ def signup(
     *,
     db: Session = Depends(get_db),
     user_in: SignUp,
-) -> None:
+) -> dict[str, str]:
     """Signup."""
     user = domain_user.create_user(db, obj_in=user_in)
     if not user:
@@ -75,7 +78,7 @@ def dashboard(
     *,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
-) -> None:
+) -> dict[str, Any]:
     """Dashboard."""
     user = domain_user.get_current_user(token)
     role = domain_user.get_role_user(db, user.role_id)
@@ -86,19 +89,13 @@ def dashboard(
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
-) -> None:
+) -> dict[str, str | Any]:
     """Login for access token."""
     user = domain_user.authenticate_user(
         db,
         form_data.username,
         form_data.password,
     )
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Incorrect username or password',
-            headers={'WWW-Authenticate': 'Bearer'},
-        )
     access_token_expires = timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
