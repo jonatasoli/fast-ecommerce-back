@@ -64,6 +64,26 @@ class ProductFullResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ProductPatchRequest(BaseModel):
+    name: str | None = None
+    uri: str | None = None
+    price: int | None = None
+    direct_sales: bool | None = None
+    description: Json | None = None
+    image_path: str | None = None
+    installments_config: int | None = None
+    installments_list: dict | None = None
+    category_id: int | None = None
+    discount: int | None = None
+    showcase: bool | None = None
+    show_discount: bool | None = None
+    heigth: float | None = None
+    width: float | None = None
+    weigth: float | None = None
+    length: float | None = None
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ProductInDB(BaseModel):
     product_id: int
     name: str
