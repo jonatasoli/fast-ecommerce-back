@@ -28,10 +28,14 @@ async def test_estimate_products_in_cart(client, db) -> None:
         db.add_all([category, config_fee])
         db.flush()
         product_db_1 = ProductFactory(
-            category=category, installment_config=config_fee, price=100,
+            category=category,
+            installment_config=config_fee,
+            price=100,
         )
         product_db_2 = ProductFactory(
-            category=category, installment_config=config_fee, price=200,
+            category=category,
+            installment_config=config_fee,
+            price=200,
         )
         db.add_all([product_db_1, product_db_2])
         db.commit()
@@ -62,7 +66,8 @@ async def test_estimate_products_in_cart(client, db) -> None:
     cache.set(str(uuid), cart.model_dump_json())
 
     response = await client.post(
-        f'{URL}/{uuid!s}/estimate', json=jsonable_encoder(cart.model_dump()),
+        f'{URL}/{uuid!s}/estimate',
+        json=jsonable_encoder(cart.model_dump()),
     )
 
     # Assert
