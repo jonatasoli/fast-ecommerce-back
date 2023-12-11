@@ -114,6 +114,27 @@ class OrderFullResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ProductListOrderResponse(BaseModel):
+    product_id: int | None = None
+    name: str | None = None
+    uri: str | None = None
+    price: int | None = None
+    quantity: int | None = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OrderUserListResponse(BaseModel):
+    order_id: int
+    cancelled_at: datetime | None = None
+    cancelled_reason: str | None = None
+    freight: str | None = None
+    order_date: datetime
+    order_status: str
+    tracking_number: str | None = None
+    products: list[ProductListOrderResponse] | None = None
+    model_config = ConfigDict(from_attributes=True)
+
+
 class TrackingFullResponse(BaseModel):
     tracking_number: str
 
