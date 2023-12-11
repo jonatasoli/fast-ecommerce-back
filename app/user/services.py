@@ -6,11 +6,15 @@ from config import settings
 from sqlalchemy.orm import Session
 
 
-def get_affiliate_urls(user: UserDB, db: Session, base_url: str) -> UserCouponResponse:
+def get_affiliate_urls(
+    user: UserDB, db: Session, base_url: str
+) -> UserCouponResponse:
     """Get affiliate user and return code urls."""
     _urls = []
     with db:
-        coupons = db.query(CouponsDB).filter(CouponsDB.affiliate_id == user.user_id)
+        coupons = db.query(CouponsDB).filter(
+            CouponsDB.affiliate_id == user.user_id
+        )
         for coupon in coupons:
             _urls.append(f'{base_url}?coupon={coupon.code}')
     return UserCouponResponse(urls=_urls)

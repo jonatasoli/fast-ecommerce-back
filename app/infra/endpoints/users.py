@@ -60,7 +60,9 @@ async def get_affiliate_user(
     )   # TODO : mock to be removed
     token = token.get('access_token')
     user = domain_user.get_affiliate(token)
-    return services.get_affiliate_urls(user=user, db=db, base_url=str(request.base_url))
+    return services.get_affiliate_urls(
+        user=user, db=db, base_url=str(request.base_url)
+    )
 
 
 @user.post('/signup', status_code=201, response_model=SignUpResponse)
