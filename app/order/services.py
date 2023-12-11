@@ -1,24 +1,26 @@
 import json
-import math
 from typing import Any
-from fastapi import HTTPException, status
 
-from sqlalchemy import func, select
+import math
+from fastapi import HTTPException, status
 from loguru import logger
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, aliased
 
-from app.infra.optimize_image import optimize_image
-from app.infra.models import (
-    CategoryDB,
-    ImageGalleryDB,
-    InventoryDB,
-    ProductDB,
-)
 from app.entities.product import (
     ProductCategoryInDB,
     ProductInDB,
     ProductsResponse,
 )
+from app.infra.models import (
+    CategoryDB,
+    ImageGalleryDB,
+    InventoryDB,
+    ProductDB,
+    OrderDB,
+    OrderItemsDB,
+)
+from app.infra.optimize_image import optimize_image
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,
@@ -28,6 +30,8 @@ from schemas.order_schema import (
     ProductSchema,
     ProductSchemaResponse,
     TrackingFullResponse,
+    OrderUserListResponse,
+    ProductListOrderResponse,
 )
 
 
@@ -260,8 +264,49 @@ def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
     ...
 
 
-def get_order(db: Session, id):
-    ...
+def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
+    """Given order_id return Order with user data."""
+    with db:
+        order_query = (
+            select(OrderDB)
+            .where(OrderDB.user_id == user_id)
+            .order_by(OrderDB.order_id.desc())
+        )
+        orders = db.execute(order_query).scalars().all()
+        orders_obj = []
+        for order in orders:
+            items_query = (
+                select(OrderItemsDB)
+                .join(
+                    ProductDB, OrderItemsDB.product_id == ProductDB.product_id,
+                )
+                .where(OrderItemsDB.order_id == order.order_id)
+            )
+            items = db.execute(items_query).scalars().all()
+            products_list = [
+                ProductListOrderResponse(
+                    product_id=item.product_id,
+                    name=item.product.name,
+                    uri=item.product.uri,
+                    price=item.price,
+                    quantity=item.quantity,
+                )
+                for item in items
+            ]
+
+            orders_obj.append(
+                OrderUserListResponse(
+                    order_id=order.order_id,
+                    cancelled_at=order.cancelled_at,
+                    cancelled_reason=order.cancelled_reason,
+                    freight=order.freight,
+                    order_date=order.order_date,
+                    order_status=order.order_status,
+                    tracking_number=order.tracking_number,
+                    products=products_list,
+                ),
+            )
+        return [OrderUserListResponse.model_validate(order) for order in orders_obj]
 
 
 def get_order_users(db: Session, id):

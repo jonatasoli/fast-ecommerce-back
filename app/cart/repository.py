@@ -159,11 +159,10 @@ class SqlAlchemyRepository(AbstractRepository):
                     models.ProductDB.product_id == product_id,
                 ),
             )
+            product = product.scalars().first()
             if not product:
-                msg = f'No product with id {product_id}'
-                raise ProductNotFoundError(msg)
-
-            return product.scalars().first()
+                raise ProductNotFoundError
+            return product
 
     async def _get_products(
         self: Self,
