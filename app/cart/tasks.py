@@ -1,7 +1,10 @@
 # ruff:  noqa: D202 D205 T201 D212
 import re
+from decimal import Decimal
 from typing import Any, Self
 from fastapi import Depends, HTTPException
+from sqlalchemy import select
+
 from app.entities.product import ProductSoldOutError
 from app.infra.constants import OrderStatus, PaymentMethod
 
@@ -31,7 +34,6 @@ from app.payment.entities import CreatePaymentError, PaymentAcceptError
 from app.payment.tasks import create_pending_payment, update_payment
 from app.infra.worker import task_message_bus
 
-
 PAYMENT_STATUS_ERROR_MESSAGE = 'This payment intent is not paid yet'
 PAYMENT_REQUEST_ERROR_MESSAGE = (
     'This payment intent with problem in request or already accepted'
@@ -50,13 +52,22 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
+async def get_affiliate(coupon: str, session: Any) -> str | None:
+    """Get affiliate."""
+    async with session as s:
+        coupon_query = await s.execute(select(CouponsDB).where(CouponsDB.code == coupon))
+        coupon_ = coupon_query.first()[0]
+        logger.warning(coupon_)
+        return coupon_.affiliate_id if coupon_ else None
+
+
 @task_message_bus.event('checkout')
 async def checkout(
-    cart_uuid: str,
-    payment_method: str,
-    payment_gateway: str,
-    user: Any,
-    bootstrap: Any = Depends(get_bootstrap),
+        cart_uuid: str,
+        payment_method: str,
+        payment_gateway: str,
+        user: Any,
+        bootstrap: Any = Depends(get_bootstrap),
 ) -> dict:
     """Checkout cart with payment intent."""
     _ = payment_method
@@ -72,11 +83,12 @@ async def checkout(
             msg = 'Cart not found'
             raise Exception(msg)
         cart = CartPayment.model_validate_json(cache_cart)
-        affiliate = cart.affiliate if cart.affiliate else None
+        cart.discount = Decimal(0)
+        affiliate = None
         coupon = cart.coupon if cart.coupon else None
-
         async with bootstrap.db() as session:
             if coupon:
+                affiliate = await get_affiliate(cart.coupon, session)
                 coupon = await bootstrap.cart_uow.get_coupon_by_code(
                     coupon,
                     bootstrap=bootstrap,
@@ -101,14 +113,14 @@ async def checkout(
                 for cart_item in cart.cart_items:
                     products_in_cart.append(product.product_id)
                     if any(
-                        item['product_id'] == product.product_id
-                        for item in products_inventory
+                            item['product_id'] == product.product_id
+                            for item in products_inventory
                     ):
                         products_in_inventory.append(product.product_id)
                     for item in products_inventory:
                         if (
-                            cart_item.product_id == item['product_id']
-                            and cart_item.quantity > item['quantity']
+                                cart_item.product_id == item['product_id']
+                                and cart_item.quantity > item['quantity']
                         ):
                             cart_quantities.append(cart_item.model_dump())
 
@@ -267,14 +279,14 @@ async def checkout(
 
 
 async def create_pending_payment_and_order(
-    cart: CartPayment,
-    affiliate: str | None,
-    coupon: CouponsDB | None,
-    user: Any,
-    payment_gateway: str,
-    gateway_payment_id: int,
-    bootstrap: Any,
-    authorization: str = 'PENDING',
+        cart: CartPayment,
+        affiliate: int | None,
+        coupon: CouponsDB | None,
+        user: Any,
+        payment_gateway: str,
+        gateway_payment_id: int,
+        bootstrap: Any,
+        authorization: str = 'PENDING',
 ) -> tuple[int, int]:
     """Create pending payment and order."""
     try:

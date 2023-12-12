@@ -14,7 +14,7 @@ from app.order.entities import OrderDBUpdate
 async def uow_create_order(
     cart: CartPayment,
     *,
-    affiliate: str | None,
+    affiliate: int | None,
     discount: Decimal,
     user: Any,
     bootstrap: Any,
@@ -29,8 +29,8 @@ async def uow_create_order(
         transaction=transaction,
     )
     affiliate_id = None
-    affiliate = await user_repository.get_user_by_username(
-        affiliate,
+    affiliate = await user_repository.get_user_by_id(
+        'affiliate',
         transaction=transaction,
     )
     if affiliate:

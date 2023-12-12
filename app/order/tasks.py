@@ -13,7 +13,7 @@ from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 
 async def create_order(
     cart: CartPayment,
-    affiliate: str | None,
+    affiliate: int | None,
     discount: Decimal,
     user: Any,
     bootstrap: Command,
