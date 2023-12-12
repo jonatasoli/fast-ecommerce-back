@@ -111,10 +111,7 @@ def get_user(db: Session, document: str, password: str):
 
 def authenticate_user(db, document: str, password: str):
     user = get_user(db, document, password)
-    if not user:
-        return False
     user_dict = UserSchema.model_validate(user).model_dump()
-
     user = UserInDB(**user_dict)
     logger.debug(f'{user} ')
     if not user:
