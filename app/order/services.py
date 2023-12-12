@@ -31,6 +31,8 @@ from schemas.order_schema import (
     TrackingFullResponse,
     OrderUserListResponse,
     ProductListOrderResponse,
+    ProductPatchRequest,
+    ProductFullResponse,
 )
 
 
