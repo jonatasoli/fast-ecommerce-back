@@ -30,7 +30,7 @@ async def uow_create_order(
     )
     affiliate_id = None
     affiliate = await user_repository.get_user_by_id(
-        'affiliate',
+        affiliate,
         transaction=transaction,
     )
     if affiliate:
