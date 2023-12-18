@@ -96,6 +96,7 @@ class CouponsDB(Base):
     )
     code: Mapped[str]
     discount: Mapped[Decimal]
+    commission_percentage: Mapped[Decimal | None]
     qty: Mapped[int]
     active: Mapped[bool] = mapped_column(default=True)
 
