@@ -221,7 +221,7 @@ async def checkout(
                         bootstrap=bootstrap,
                     )
                     if all([order_id, affiliate_id, coupon]):
-                        logger.error('dentro do rabbit sales_commission')
+                        logger.info('dentro do rabbit sales_commission')
                         await bootstrap.message.broker.publish(
                             {
                                 'user_id': affiliate_id,

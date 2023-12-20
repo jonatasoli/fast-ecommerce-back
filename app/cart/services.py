@@ -310,6 +310,7 @@ async def add_payment_information(  # noqa: PLR0913
             pix_qr_code=qr_code,
             pix_qr_code_base4=qr_code_base64,
             pix_payment_id=payment_id,
+            payment_method_id=str(payment_id),
         )
         bootstrap.cache.set(
             str(cart.uuid),
@@ -436,6 +437,8 @@ async def checkout(
             order_id = str(_order_id.pop())
         if isinstance(_gateway_payment_id, list):
             _gateway_payment_id = str(_gateway_payment_id.pop())
+        if isinstance(_gateway_payment_id, int):
+            _gateway_payment_id = str(_gateway_payment_id)
     return CreateCheckoutResponse(
         message=str(checkout_task.get('message')),
         status='processing',
