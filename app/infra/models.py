@@ -348,3 +348,15 @@ class UserResetPasswordDB(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
     token: Mapped[str]
     used_token: Mapped[bool] = mapped_column(default=False)
+
+
+class SalesCommissionDB(Base):
+    __tablename__ = 'sales_commission'
+    commissions_wallet_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
+    commission: Mapped[Decimal]
+    date_created: Mapped[datetime]
+    release_data: Mapped[datetime]
+    released: Mapped[bool] = mapped_column(default=False)
+    paid: Mapped[bool] = mapped_column(default=False)

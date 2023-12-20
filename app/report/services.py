@@ -1,29 +1,25 @@
-from datetime import datetime
-from decimal import Decimal
+from sqlalchemy.orm import sessionmaker
+
+from fastapi import Depends
 from sqlalchemy.orm import Session
+from app.report.entities import Commission
+from . import repository
+from ..infra.models import SalesCommissionDB
+from app.infra.database import get_session
 
-from app.entities.user import Comission, UserSalesComissions
+
+def get_db():
+    Session = get_session()
+    return Session()
 
 
-def get_user_sales_comissions(user, paid: bool, db: Session):
+async def get_user_sales_comissions(user, paid: bool, db: Session):
     """Get user sales commissions."""
-    comissions = [
-        Comission(
-            order_id=1,
-            user_name='Teste',
-            commission=Decimal('10.00'),
-            date_created=datetime.now(),
-            released=True,
-            paid=False,
-        ),
-        Comission(
-            order_id=2,
-            user_name='Teste',
-            commission=Decimal('10.00'),
-            date_created=datetime.now(),
-            released=True,
-            paid=True,
-        ),
-    ]
-    user_comission = [comissions[1]] if paid else comissions
-    return UserSalesComissions(comissions=user_comission)
+    ...
+
+
+def create_sales_commission(
+        sales_commission: Commission,
+        db: Session = Depends(get_db),
+) -> SalesCommissionDB:
+    return repository.create_sales_commission(sales_commission, db)

@@ -55,7 +55,9 @@ async def get_bootstrap() -> Command:
 async def get_affiliate(coupon: str, session: Any) -> str | None:
     """Get affiliate."""
     async with session as s:
-        coupon_query = await s.execute(select(CouponsDB).where(CouponsDB.code == coupon))
+        coupon_query = await s.execute(
+            select(CouponsDB).where(CouponsDB.code == coupon)
+        )
         coupon_ = coupon_query.first()[0]
         logger.warning(coupon_)
         return coupon_.affiliate_id if coupon_ else None
@@ -63,11 +65,11 @@ async def get_affiliate(coupon: str, session: Any) -> str | None:
 
 @task_message_bus.event('checkout')
 async def checkout(
-        cart_uuid: str,
-        payment_method: str,
-        payment_gateway: str,
-        user: Any,
-        bootstrap: Any = Depends(get_bootstrap),
+    cart_uuid: str,
+    payment_method: str,
+    payment_gateway: str,
+    user: Any,
+    bootstrap: Any = Depends(get_bootstrap),
 ) -> dict:
     """Checkout cart with payment intent."""
     _ = payment_method
@@ -84,11 +86,11 @@ async def checkout(
             raise Exception(msg)
         cart = CartPayment.model_validate_json(cache_cart)
         cart.discount = Decimal(0)
-        affiliate = None
+        affiliate_id = None
         coupon = cart.coupon if cart.coupon else None
         async with bootstrap.db() as session:
             if coupon:
-                affiliate = await get_affiliate(cart.coupon, session)
+                affiliate_id = await get_affiliate(cart.coupon, session)
                 coupon = await bootstrap.cart_uow.get_coupon_by_code(
                     coupon,
                     bootstrap=bootstrap,
@@ -113,14 +115,14 @@ async def checkout(
                 for cart_item in cart.cart_items:
                     products_in_cart.append(product.product_id)
                     if any(
-                            item['product_id'] == product.product_id
-                            for item in products_inventory
+                        item['product_id'] == product.product_id
+                        for item in products_inventory
                     ):
                         products_in_inventory.append(product.product_id)
                     for item in products_inventory:
                         if (
-                                cart_item.product_id == item['product_id']
-                                and cart_item.quantity > item['quantity']
+                            cart_item.product_id == item['product_id']
+                            and cart_item.quantity > item['quantity']
                         ):
                             cart_quantities.append(cart_item.model_dump())
 
@@ -158,7 +160,6 @@ async def checkout(
             cart.calculate_subtotal(
                 discount=coupon.discount if cart.coupon else 0,
             )
-
         match cart.payment_method:
             case (PaymentMethod.CREDIT_CARD.value):
                 payment_response = (
@@ -172,7 +173,7 @@ async def checkout(
                 )
                 payment_id, order_id = await create_pending_payment_and_order(
                     cart=cart,
-                    affiliate=affiliate,
+                    affiliate=affiliate_id,
                     coupon=coupon,
                     user=user,
                     payment_gateway=cart.gateway_provider,
@@ -219,13 +220,24 @@ async def checkout(
                         send_mail=True,
                         bootstrap=bootstrap,
                     )
+                    if all([order_id, affiliate_id, coupon]):
+                        logger.error('dentro do rabbit sales_commission')
+                        await bootstrap.message.broker.publish(
+                            {
+                                'user_id': affiliate_id,
+                                'order_id': order_id,
+                                'commission_percentage': coupon.commission_percentage,
+                                'subtotal': cart.subtotal,
+                            },
+                            queue=RabbitQueue('sales_commission'),
+                        )
                 logger.info(
                     f'Checkout cart {cart_uuid} with payment {payment_id} processed with success',
                 )
             case (PaymentMethod.PIX.value):
                 payment_id, order_id = await create_pending_payment_and_order(
                     cart=cart,
-                    affiliate=affiliate,
+                    affiliate=affiliate_id,
                     coupon=coupon,
                     payment_gateway=cart.gateway_provider,
                     user=user,
@@ -279,14 +291,14 @@ async def checkout(
 
 
 async def create_pending_payment_and_order(
-        cart: CartPayment,
-        affiliate: int | None,
-        coupon: CouponsDB | None,
-        user: Any,
-        payment_gateway: str,
-        gateway_payment_id: int,
-        bootstrap: Any,
-        authorization: str = 'PENDING',
+    cart: CartPayment,
+    affiliate: int | None,
+    coupon: CouponsDB | None,
+    user: Any,
+    payment_gateway: str,
+    gateway_payment_id: int,
+    bootstrap: Any,
+    authorization: str = 'PENDING',
 ) -> tuple[int, int]:
     """Create pending payment and order."""
     try:

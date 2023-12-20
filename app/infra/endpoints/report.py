@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from app.entities.user import UserSalesComissions
+from app.report.entities import UserSalesComissions
 from app.infra.deps import get_db
 from domains import domain_user
 from app.report import services
@@ -31,4 +31,4 @@ async def get_user_sales_comissions(
 ) -> UserSalesComissions:
     """Get report sales comissions."""
     user = domain_user.get_affiliate(token)
-    return services.get_user_sales_comissions(user=user, paid=paid, db=db)
+    return await services.get_user_sales_comissions(user=user, paid=paid, db=db)
