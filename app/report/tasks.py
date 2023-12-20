@@ -10,10 +10,10 @@ from app.report.services import create_sales_commission
 
 @task_message_bus.event('sales_commission')
 def task_create_sales_commission(
-        user_id: int,
-        order_id: int,
-        commission_percentage: Decimal,
-        subtotal: Decimal,
+    user_id: int,
+    order_id: int,
+    commission_percentage: Decimal,
+    subtotal: Decimal,
 ) -> None:
     logger.info(f'Creating sales commission for order {order_id}')
     today = datetime.now()

@@ -357,6 +357,6 @@ class SalesCommissionDB(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
     commission: Mapped[Decimal]
     date_created: Mapped[datetime]
-    release_data: Mapped[datetime]
+    release_date: Mapped[datetime]
     released: Mapped[bool] = mapped_column(default=False)
     paid: Mapped[bool] = mapped_column(default=False)

@@ -1,16 +1,10 @@
-from sqlalchemy.orm import sessionmaker
-
 from fastapi import Depends
 from sqlalchemy.orm import Session
+
+from app.infra.database import get_session
 from app.report.entities import Commission
 from . import repository
 from ..infra.models import SalesCommissionDB
-from app.infra.database import get_session
-
-
-def get_db():
-    Session = get_session()
-    return Session()
 
 
 async def get_user_sales_comissions(user, paid: bool, db: Session):
@@ -19,7 +13,8 @@ async def get_user_sales_comissions(user, paid: bool, db: Session):
 
 
 def create_sales_commission(
-        sales_commission: Commission,
-        db: Session = Depends(get_db),
+    sales_commission: Commission,
+    db: Session = get_session(),
 ) -> SalesCommissionDB:
-    return repository.create_sales_commission(sales_commission, db)
+    with db.begin() as session:
+        return repository.create_sales_commission(sales_commission, session)
