@@ -360,3 +360,10 @@ class SalesCommissionDB(Base):
     release_date: Mapped[datetime]
     released: Mapped[bool] = mapped_column(default=False)
     paid: Mapped[bool] = mapped_column(default=False)
+
+    # Virtual relationship fields
+    user: Mapped['UserDB'] = relationship(
+        foreign_keys=[user_id],
+        backref='sales_commission',
+        uselist=False,
+    )
