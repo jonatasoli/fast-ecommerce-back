@@ -1,4 +1,6 @@
-from sqlalchemy import Select
+from datetime import datetime
+
+from sqlalchemy import Select, and_
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.infra.models import SalesCommissionDB
@@ -40,3 +42,15 @@ async def get_user_sales_comissions(
                 for c in comission.scalars().all()
             ]
         )
+
+
+def update_commissions(date_threshold: datetime, db: sessionmaker) -> None:
+    with db.begin() as session:
+        query = session.query(SalesCommissionDB).filter(
+            and_(
+                SalesCommissionDB.date_created <= date_threshold,
+                SalesCommissionDB.paid == False,
+            )
+        )
+        query.update({SalesCommissionDB.paid: True})
+        session.commit()
