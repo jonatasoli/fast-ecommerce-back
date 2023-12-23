@@ -13,12 +13,14 @@ def task_create_sales_commission(
     user_id: int,
     order_id: int,
     subtotal: Decimal,
+    coupon_id: int,
     commission_percentage: Decimal | None = None,
+
 ) -> None:
     logger.info(f'Creating sales commission for order {order_id}')
     if not commission_percentage:
         logger.error(
-            f'Commission percentage is zero or not set for order {order_id=} and affiliate {user_id=}'
+            f'Commission percentage is zero or not set for Coupon {coupon_id=} and order {order_id=}'
         )
         return
     today = datetime.now()

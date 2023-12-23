@@ -24,4 +24,5 @@ class CouponUpdate(CouponCreate):
 
 
 class CouponResponse(CouponCreate):
+    coupon_id: int
     model_config = ConfigDict(from_attributes=True)

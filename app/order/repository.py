@@ -6,12 +6,13 @@ from sqlalchemy.orm import Session, SessionTransaction
 from sqlalchemy.sql import select
 
 from app.entities.cart import CartPayment
+from app.entities.coupon import CouponResponse
 from app.infra.constants import OrderStatus
 from app.infra.models import (
     OrderDB,
     OrderItemsDB,
     OrderStatusStepsDB,
-    ProductDB,
+    ProductDB, CouponsDB,
 )
 from app.order.entities import OrderDBUpdate
 
@@ -19,7 +20,7 @@ from app.order.entities import OrderDBUpdate
 async def create_order(
     cart: CartPayment,
     *,
-    discount: Decimal,
+    coupon: CouponResponse | None,
     user_id: int,
     transaction: SessionTransaction,
     affiliate_id: int | None,
@@ -29,7 +30,8 @@ async def create_order(
         affiliate_id=affiliate_id,
         cart_uuid=str(cart.uuid),
         customer_id=cart.customer_id,
-        discount=discount,
+        discount=coupon.discount if coupon else Decimal(0),
+        coupon_id=coupon.coupon_id if coupon else None,
         last_updated=datetime.now(),
         order_date=datetime.now(),
         order_status=OrderStatus.PAYMENT_PENDING.value,

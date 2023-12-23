@@ -9,6 +9,7 @@ from propan.brokers.rabbit import RabbitQueue
 from sqlalchemy import select
 
 from app.entities.cart import CartPayment
+from app.entities.coupon import CouponResponse
 from app.entities.product import ProductSoldOutError
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 from app.infra.constants import OrderStatus, PaymentMethod
@@ -49,17 +50,6 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
-async def get_affiliate(coupon: str, session: Any) -> str | None:
-    """Get affiliate."""
-    async with session as s:
-        coupon_query = await s.execute(
-            select(CouponsDB).where(CouponsDB.code == coupon)
-        )
-        coupon_ = coupon_query.first()[0]
-        logger.warning(coupon_)
-        return coupon_.affiliate_id if coupon_ else None
-
-
 @task_message_bus.event('checkout')
 async def checkout(
     cart_uuid: str,
@@ -85,78 +75,77 @@ async def checkout(
         cart.discount = Decimal(0)
         affiliate_id = None
         coupon = cart.coupon if cart.coupon else None
-        async with bootstrap.db() as session:
-            if coupon:
-                affiliate_id = await get_affiliate(cart.coupon, session)
-                coupon = await bootstrap.cart_uow.get_coupon_by_code(
-                    coupon,
-                    bootstrap=bootstrap,
-                )
-            products_db = await bootstrap.cart_uow.get_products(
-                products=cart.cart_items,
+        if coupon:
+            coupon = await bootstrap.cart_uow.get_coupon_by_code(
+                coupon,
                 bootstrap=bootstrap,
             )
-            cart.get_products_price_and_discounts(products_db)
-            products_inventory = (
-                await bootstrap.cart_uow.get_products_quantity(
-                    cart.cart_items,
-                    bootstrap=bootstrap,
-                )
+            affiliate_id = coupon.affiliate_id
+        products_db = await bootstrap.cart_uow.get_products(
+            products=cart.cart_items,
+            bootstrap=bootstrap,
+        )
+        cart.get_products_price_and_discounts(products_db)
+        products_inventory = (
+            await bootstrap.cart_uow.get_products_quantity(
+                cart.cart_items,
+                bootstrap=bootstrap,
             )
-            products_in_cart = []
-            products_in_inventory = []
-            cart_quantities = []
-            for product in products_db:
-                logger.info(cart)
-                logger.info(type(cart))
-                for cart_item in cart.cart_items:
-                    products_in_cart.append(product.product_id)
-                    if any(
-                        item['product_id'] == product.product_id
-                        for item in products_inventory
+        )
+        products_in_cart = []
+        products_in_inventory = []
+        cart_quantities = []
+        for product in products_db:
+            logger.info(cart)
+            logger.info(type(cart))
+            for cart_item in cart.cart_items:
+                products_in_cart.append(product.product_id)
+                if any(
+                    item['product_id'] == product.product_id
+                    for item in products_inventory
+                ):
+                    products_in_inventory.append(product.product_id)
+                for item in products_inventory:
+                    if (
+                        cart_item.product_id == item['product_id']
+                        and cart_item.quantity > item['quantity']
                     ):
-                        products_in_inventory.append(product.product_id)
-                    for item in products_inventory:
-                        if (
-                            cart_item.product_id == item['product_id']
-                            and cart_item.quantity > item['quantity']
-                        ):
-                            cart_quantities.append(cart_item.model_dump())
+                        cart_quantities.append(cart_item.model_dump())
 
-            products_not_in_both = list(
-                set(products_in_cart) ^ set(products_in_inventory),
-            )
+        products_not_in_both = list(
+            set(products_in_cart) ^ set(products_in_inventory),
+        )
 
-            if cart_quantities:
-                raise ProductSoldOutError(
-                    f'Os seguintes items solicitados estão com um pedido acima dos nossos estoques {cart_quantities}',
-                )
-            if len(products_db) != len(products_inventory):
-                raise ProductSoldOutError(
-                    f'Os seguintes produtos não possuem em estoque {products_not_in_both}',
-                )
-            cart.get_products_price_and_discounts(products_db)
-            zipcode = cart.zipcode
-            no_spaces = zipcode.replace(' ', '')
-            no_special_chars = re.sub(r'[^a-zA-Z0-9]', '', no_spaces)
-            cart.zipcode = no_special_chars
-            freight_package = bootstrap.freight.calculate_volume_weight(
-                products=products_db,
+        if cart_quantities:
+            raise ProductSoldOutError(
+                f'Os seguintes items solicitados estão com um pedido acima dos nossos estoques {cart_quantities}',
             )
-            if not cart.freight_product_code:
-                raise HTTPException(
-                    status_code=400,
-                    detail='Freight product code not found',
-                )
-            freight = bootstrap.freight.get_freight(
-                cart.freight_product_code,
-                freight_package=freight_package,
-                zipcode=cart.zipcode,
+        if len(products_db) != len(products_inventory):
+            raise ProductSoldOutError(
+                f'Os seguintes produtos não possuem em estoque {products_not_in_both}',
             )
-            cart.freight = freight
-            cart.calculate_subtotal(
-                discount=coupon.discount if cart.coupon else 0,
+        cart.get_products_price_and_discounts(products_db)
+        zipcode = cart.zipcode
+        no_spaces = zipcode.replace(' ', '')
+        no_special_chars = re.sub(r'[^a-zA-Z0-9]', '', no_spaces)
+        cart.zipcode = no_special_chars
+        freight_package = bootstrap.freight.calculate_volume_weight(
+            products=products_db,
+        )
+        if not cart.freight_product_code:
+            raise HTTPException(
+                status_code=400,
+                detail='Freight product code not found',
             )
+        freight = bootstrap.freight.get_freight(
+            cart.freight_product_code,
+            freight_package=freight_package,
+            zipcode=cart.zipcode,
+        )
+        cart.freight = freight
+        cart.calculate_subtotal(
+            discount=coupon.discount if cart.coupon else 0,
+        )
         match cart.payment_method:
             case (PaymentMethod.CREDIT_CARD.value):
                 payment_response = (
@@ -170,7 +159,7 @@ async def checkout(
                 )
                 payment_id, order_id = await create_pending_payment_and_order(
                     cart=cart,
-                    affiliate=affiliate_id,
+                    affiliate_id=affiliate_id,
                     coupon=coupon,
                     user=user,
                     payment_gateway=cart.gateway_provider,
@@ -223,6 +212,7 @@ async def checkout(
                                 'user_id': affiliate_id,
                                 'order_id': order_id,
                                 'commission_percentage': coupon.commission_percentage,
+                                'coupon_id': coupon.coupon_id,
                                 'subtotal': cart.subtotal,
                             },
                             queue=RabbitQueue('sales_commission'),
@@ -233,7 +223,7 @@ async def checkout(
             case (PaymentMethod.PIX.value):
                 payment_id, order_id = await create_pending_payment_and_order(
                     cart=cart,
-                    affiliate=affiliate_id,
+                    affiliate_id=affiliate_id,
                     coupon=coupon,
                     payment_gateway=cart.gateway_provider,
                     user=user,
@@ -288,8 +278,8 @@ async def checkout(
 
 async def create_pending_payment_and_order(
     cart: CartPayment,
-    affiliate: int | None,
-    coupon: CouponsDB | None,
+    affiliate_id: int | None,
+    coupon: CouponResponse | None,
     user: Any,
     payment_gateway: str,
     gateway_payment_id: int,
@@ -300,8 +290,8 @@ async def create_pending_payment_and_order(
     try:
         order_id = await create_order(
             cart=cart,
-            affiliate=affiliate,
-            discount=coupon.discount if cart.coupon else 0,
+            affiliate_id=affiliate_id,
+            coupon=coupon,
             user=user,
             bootstrap=bootstrap,
         )
