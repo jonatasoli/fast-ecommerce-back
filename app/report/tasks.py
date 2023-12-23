@@ -12,10 +12,15 @@ from app.report.services import create_sales_commission
 def task_create_sales_commission(
     user_id: int,
     order_id: int,
-    commission_percentage: Decimal,
     subtotal: Decimal,
+    commission_percentage: Decimal | None = None,
 ) -> None:
     logger.info(f'Creating sales commission for order {order_id}')
+    if not commission_percentage:
+        logger.error(
+            f'Commission percentage is zero or not set for order {order_id=} and affiliate {user_id=}'
+        )
+        return
     today = datetime.now()
     release_data = today + timedelta(days=30)
     commission_value = Decimal(subtotal) * Decimal(commission_percentage)

@@ -2,29 +2,27 @@
 import re
 from decimal import Decimal
 from typing import Any, Self
+
 from fastapi import Depends, HTTPException
+from loguru import logger
+from propan.brokers.rabbit import RabbitQueue
 from sqlalchemy import select
 
+from app.entities.cart import CartPayment
 from app.entities.product import ProductSoldOutError
+from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 from app.infra.constants import OrderStatus, PaymentMethod
-
-from propan.brokers.rabbit import RabbitQueue
-
 from app.infra.models import CouponsDB
+from app.infra.payment_gateway.stripe_gateway import (
+    PaymentGatewayRequestError,
+)
+from app.infra.worker import task_message_bus
 from app.inventory.tasks import decrease_inventory
 from app.order.entities import (
     CreateOrderStatusStepError,
     OrderDBUpdate,
     OrderNotFound,
 )
-from loguru import logger
-
-from app.entities.cart import CartPayment
-from app.infra.payment_gateway.stripe_gateway import (
-    PaymentGatewayRequestError,
-)
-
-from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 from app.order.tasks import (
     create_order,
     create_order_status_step,
@@ -32,7 +30,6 @@ from app.order.tasks import (
 )
 from app.payment.entities import CreatePaymentError, PaymentAcceptError
 from app.payment.tasks import create_pending_payment, update_payment
-from app.infra.worker import task_message_bus
 
 PAYMENT_STATUS_ERROR_MESSAGE = 'This payment intent is not paid yet'
 PAYMENT_REQUEST_ERROR_MESSAGE = (
@@ -221,7 +218,6 @@ async def checkout(
                         bootstrap=bootstrap,
                     )
                     if all([order_id, affiliate_id, coupon]):
-                        logger.info('dentro do rabbit sales_commission')
                         await bootstrap.message.broker.publish(
                             {
                                 'user_id': affiliate_id,
