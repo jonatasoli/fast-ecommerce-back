@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from app.infra.models.users import User
+from app.infra.models import UserDB
 from tests.factories_db import UserFactory
 
 
@@ -11,7 +11,7 @@ def test_create_user(session):
     session.commit()
 
     # Act
-    user = session.scalar(select(User).where(User.user_id == new_user.user_id))
+    user = session.scalar(select(UserDB).where(UserDB.user_id == new_user.user_id))
 
     # Assert
     assert user.user_id == 1

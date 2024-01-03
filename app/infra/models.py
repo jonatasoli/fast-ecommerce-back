@@ -118,9 +118,6 @@ class OrderDB(Base):
     cart_uuid: Mapped[str]
     discount: Mapped[Decimal]
     tracking_number: Mapped[str | None]
-    payment_id: Mapped[int | None] = mapped_column(
-        ForeignKey('payment.payment_id'),
-    )
     order_status: Mapped[str]
     last_updated: Mapped[datetime]
     checked: Mapped[bool] = mapped_column(default=False)

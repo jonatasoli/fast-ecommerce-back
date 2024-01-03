@@ -1,12 +1,12 @@
 import factory
 from factory.declarations import SelfAttribute, SubFactory
 from faker import Faker
-from app.infra.models.transaction import CreditCardFeeConfig, Payment
+from app.infra.models import CreditCardFeeConfigDB, PaymentDB
 
-from app.infra.models.uploadedimage import UploadedImage
-from app.infra.models.users import User
-from app.infra.models.role import Role
-from app.infra.models.order import Category, Order, OrderStatusSteps, Product
+from app.infra.models import UploadedImageDB
+from app.infra.models import UserDB
+from app.infra.models import RoleDB
+from app.infra.models import CategoryDB, OrderDB, OrderStatusStepsDB, ProductDB
 from constants import OrderStatus, StepsOrder
 from tests.fake_functions import (
     fake_cpf,
@@ -24,7 +24,7 @@ USER_ID_ROLE = 2
 
 class RoleFactory(factory.Factory):
     class Meta:
-        model = Role
+        model = RoleDB
 
     role = fake.name()
     active = fake.pybool()
@@ -32,7 +32,7 @@ class RoleFactory(factory.Factory):
 
 class UserFactory(factory.Factory):
     class Meta:
-        model = User
+        model = UserDB
 
     class Params:
         role = SubFactory(RoleFactory)
@@ -48,7 +48,7 @@ class UserFactory(factory.Factory):
 
 class CategoryFactory(factory.Factory):
     class Meta:
-        model = Category
+        model = CategoryDB
 
     name = fake.name()
     path = fake_url_path()
@@ -56,7 +56,7 @@ class CategoryFactory(factory.Factory):
 
 class CreditCardFeeConfigFactory(factory.Factory):
     class Meta:
-        model = CreditCardFeeConfig
+        model = CreditCardFeeConfigDB
 
     min_installment_with_fee = factory.LazyFunction(
         lambda: fake.pyint(min_value=1, max_value=5),
@@ -69,7 +69,7 @@ class CreditCardFeeConfigFactory(factory.Factory):
 
 class ProductFactory(factory.Factory):
     class Meta:
-        model = Product
+        model = ProductDB
 
     class Params:
         category = SubFactory(RoleFactory)
@@ -95,11 +95,12 @@ class ProductFactory(factory.Factory):
 
 class OrderFactory(factory.Factory):
     class Meta:
-        model = Order
+        model = OrderDB
 
     class Params:
         user = SubFactory(UserFactory)
 
+    user_id = SelfAttribute('user.user_id')
     cart_uuid = fake.uuid4()
     order_date = fake.date_time()
     tracking_number = fake.pystr()
@@ -112,7 +113,7 @@ class OrderFactory(factory.Factory):
 
 class PaymentFactory(factory.Factory):
     class Meta:
-        model = Payment
+        model = PaymentDB
 
     class Params:
         user = SubFactory(UserFactory)
@@ -131,7 +132,7 @@ class PaymentFactory(factory.Factory):
 
 class OrderStatusStepsFactory(factory.Factory):
     class Meta:
-        model = OrderStatusSteps
+        model = OrderStatusStepsDB
 
     class Params:
         order = SubFactory(OrderFactory)
@@ -145,7 +146,7 @@ class OrderStatusStepsFactory(factory.Factory):
 
 class UploadedImageFactory(factory.Factory):
     class Meta:
-        model = UploadedImage
+        model = UploadedImageDB
 
     original = fake_url()
     small = fake_url()

@@ -2,6 +2,7 @@ import sys
 from os.path import abspath
 from os.path import dirname as d
 from collections.abc import Generator
+from sqlalchemy import inspect, text
 
 import pytest
 from fastapi.testclient import TestClient
@@ -22,7 +23,7 @@ sys.path.append(root_dir)
 
 from config import settings
 
-from app.infra.base import Base
+from app.infra.models import Base
 from app.infra.database import get_engine
 from main import app
 from app.infra.deps import get_db
@@ -97,7 +98,11 @@ def override_get_db():
 @pytest.fixture(scope='function')
 def db() -> Generator:
     _engine = get_engine()
-    Base.metadata.drop_all(bind=_engine)
+        # Reflect all tables from metadata
+    metadata = Base.metadata
+    metadata.reflect(bind=_engine)
+
+    Base.metadata.drop_all(bind=_engine, checkfirst=True)
     Base.metadata.create_all(bind=_engine)
     TestingSessionLocal = sessionmaker(
         autocommit=False,

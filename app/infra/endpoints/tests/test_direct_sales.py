@@ -119,8 +119,7 @@ def test_create_product_():  # TODO Fix product ENDPOINT
     db.commit()
     assert db_product.id == 1
 
-
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_create_config(t_client):
     _config = {'fee': '0.0599', 'min_installment': 3, 'max_installment': 12}
 

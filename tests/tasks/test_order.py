@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from app.entities.cart import CartPayment
 from app.order.entities import OrderDBUpdate
 from app.infra.bootstrap.task_bootstrap import Command
-from your_module.order_task import (
+from app.order.tasks import (
     create_order,
     update_order,
     create_order_status_step,
