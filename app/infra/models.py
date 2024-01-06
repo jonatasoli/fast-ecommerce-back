@@ -7,7 +7,13 @@ from sqlalchemy import (
     JSON,
     ForeignKey,
 )
-from sqlalchemy.orm import DeclarativeBase, backref, Mapped, mapped_column, relationship
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    backref,
+    Mapped,
+    mapped_column,
+    relationship,
+)
 from sqlalchemy.sql import func
 
 from app.infra.constants import DocumentType
@@ -127,7 +133,9 @@ class OrderDB(Base):
     cancelled_at: Mapped[datetime | None]
     cancelled_reason: Mapped[str | None]
     freight: Mapped[str | None]
-    coupon_id: Mapped[int | None] = mapped_column(ForeignKey('coupons.coupon_id'))
+    coupon_id: Mapped[int | None] = mapped_column(
+        ForeignKey('coupons.coupon_id')
+    )
 
 
 class OrderItemsDB(Base):
