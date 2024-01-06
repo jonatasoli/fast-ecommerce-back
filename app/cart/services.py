@@ -1,7 +1,9 @@
 import re
+
 from fastapi import HTTPException
 from loguru import logger
 from propan.brokers.rabbit import RabbitQueue
+
 from app.entities.address import CreateAddress
 from app.entities.cart import (
     CartBase,
@@ -31,9 +33,9 @@ DEFAULT_CART_EXPIRE = 600_000
 
 
 def create_or_get_cart(
-    uuid: str | None,
-    token: str | None,
-    bootstrap: Command,
+        uuid: str | None,
+        token: str | None,
+        bootstrap: Command,
 ) -> CartBase:
     """Must create or get cart and return cart."""
     cart = None
@@ -53,9 +55,9 @@ def create_or_get_cart(
 
 
 async def add_product_to_cart(
-    cart_uuid: str | None,
-    product: ProductCart,
-    bootstrap: Command,
+        cart_uuid: str | None,
+        product: ProductCart,
+        bootstrap: Command,
 ) -> CartBase:
     """Must add product to new cart and return cart."""
     cache = bootstrap.cache
@@ -85,9 +87,9 @@ async def add_product_to_cart(
 
 
 async def calculate_cart(
-    uuid: str,
-    cart: CartBase,
-    bootstrap: Command,
+        uuid: str,
+        cart: CartBase,
+        bootstrap: Command,
 ) -> CartBase:
     """Must calculate cart and return cart."""
     cache = bootstrap.cache
@@ -106,21 +108,28 @@ async def calculate_cart(
     )
     products_in_cart = []
     products_in_inventory = []
-    cart_quantities = []
+    cart_quantities = {}
     for product in products_db:
         for cart_item in cache_cart.cart_items:
             products_in_cart.append(product.product_id)
             if any(
-                item['product_id'] == product.product_id
-                for item in products_inventory
+                    item['product_id'] == product.product_id
+                    for item in products_inventory
             ):
                 products_in_inventory.append(product.product_id)
             for item in products_inventory:
                 if (
-                    cart_item.product_id == item['product_id']
-                    and cart_item.quantity > item['quantity']
+                        cart_item.product_id == item['product_id']
+                        and cart_item.quantity > item['quantity']
                 ):
-                    cart_quantities.append(cart_item.model_dump())
+                    cart_quantities.update({f"{cart_item.product_id}": {
+                        'product_id': cart_item.product_id,
+                        'product_name': cart_item.name,
+                        'quantity': cart_item.quantity,
+                        'available_quantity': item['quantity'] if item['quantity'] > 0 else 0,
+                    }
+                    }
+                    )
 
     products_not_in_both = list(
         set(products_in_cart) ^ set(products_in_inventory),
@@ -136,7 +145,7 @@ async def calculate_cart(
         )
     cart.get_products_price_and_discounts(products_db)
     if cart.coupon and not (
-        coupon := await bootstrap.uow.get_coupon_by_code(cart.coupon)
+            coupon := await bootstrap.uow.get_coupon_by_code(cart.coupon)
     ):
         raise HTTPException(
             status_code=400,
@@ -174,10 +183,10 @@ async def calculate_cart(
 
 
 async def add_user_to_cart(
-    uuid: str,
-    cart: CartBase,
-    token: str,
-    bootstrap: Command,
+        uuid: str,
+        cart: CartBase,
+        token: str,
+        bootstrap: Command,
 ) -> CartUser:
     """Must validate token user if is valid add user id in cart."""
     user = bootstrap.user.get_current_user(token)
@@ -209,11 +218,11 @@ async def add_user_to_cart(
 
 
 async def add_address_to_cart(
-    uuid: str,
-    cart: CartUser,
-    address: CreateAddress,
-    token: str,
-    bootstrap: Command,
+        uuid: str,
+        cart: CartUser,
+        address: CreateAddress,
+        token: str,
+        bootstrap: Command,
 ) -> CartShipping:
     """Must add addresss information to shipping and payment."""
     user = bootstrap.user.get_current_user(token)
@@ -260,14 +269,14 @@ async def add_address_to_cart(
 
 
 async def add_payment_information(  # noqa: PLR0913
-    uuid: str,
-    payment_method: str,
-    cart: CartShipping,
-    payment: CreateCreditCardPaymentMethod
-    | CreatePixPaymentMethod
-    | CreateCreditCardTokenPaymentMethod,
-    token: str,
-    bootstrap: Command,
+        uuid: str,
+        payment_method: str,
+        cart: CartShipping,
+        payment: CreateCreditCardPaymentMethod
+                 | CreatePixPaymentMethod
+                 | CreateCreditCardTokenPaymentMethod,
+        token: str,
+        bootstrap: Command,
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
     user = bootstrap.user.get_current_user(token)
@@ -289,8 +298,8 @@ async def add_payment_information(  # noqa: PLR0913
         bootstrap=bootstrap,
     )
     if payment_method == PaymentMethod.PIX.value and isinstance(
-        payment,
-        CreatePixPaymentMethod,
+            payment,
+            CreatePixPaymentMethod,
     ):
         payment_gateway = 'mercadopago_gateway'
         _payment = getattr(bootstrap.payment, payment_gateway).create_pix(
@@ -319,8 +328,8 @@ async def add_payment_information(  # noqa: PLR0913
         )
         return cart
     if not isinstance(
-        payment,
-        CreateCreditCardPaymentMethod | CreateCreditCardTokenPaymentMethod,
+            payment,
+            CreateCreditCardPaymentMethod | CreateCreditCardTokenPaymentMethod,
     ):
         raise HTTPException(
             status_code=400,
@@ -367,9 +376,9 @@ async def add_payment_information(  # noqa: PLR0913
 
 
 async def preview(
-    uuid: str,
-    token: str,
-    bootstrap: Command,
+        uuid: str,
+        token: str,
+        bootstrap: Command,
 ) -> CartPayment:
     """Must get address id and payment token to show in cart."""
     user = bootstrap.user.get_current_user(token)
@@ -393,10 +402,10 @@ async def preview(
 
 
 async def checkout(
-    uuid: str,
-    cart: CartPayment,
-    token: str,
-    bootstrap: Command,
+        uuid: str,
+        cart: CartPayment,
+        token: str,
+        bootstrap: Command,
 ) -> CreateCheckoutResponse:
     """Process payment to specific cart."""
     _ = cart
@@ -406,8 +415,8 @@ async def checkout(
     cache_cart = CartPayment.model_validate_json(cache_cart)
 
     if (
-        cache_cart.payment_method != PaymentMethod.CREDIT_CARD.value
-        and cache_cart.payment_method != PaymentMethod.PIX.value
+            cache_cart.payment_method != PaymentMethod.CREDIT_CARD.value
+            and cache_cart.payment_method != PaymentMethod.PIX.value
     ):
         raise HTTPException(
             status_code=400,

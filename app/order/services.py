@@ -1,7 +1,7 @@
 import json
+import math
 from typing import Any
 
-import math
 from fastapi import HTTPException, status
 from loguru import logger
 from sqlalchemy import func, select
@@ -624,8 +624,55 @@ def search_products(
 ) -> ProductsResponse:
     """Search Products."""
     products = None
-    with db:
-        products = select(ProductDB).where(ProductDB.name.ilike(f'%{search}%'))
+    with (db):
+        category_alias = aliased(CategoryDB)
+        products = (
+            select(
+                ProductDB.product_id,
+                ProductDB.name,
+                ProductDB.uri,
+                ProductDB.price,
+                ProductDB.active,
+                ProductDB.direct_sales,
+                ProductDB.description,
+                ProductDB.image_path,
+                ProductDB.installments_config,
+                ProductDB.installments_list,
+                ProductDB.discount,
+                ProductDB.category_id,
+                ProductDB.showcase,
+                ProductDB.feature,
+                ProductDB.show_discount,
+                ProductDB.height,
+                ProductDB.width,
+                ProductDB.weight,
+                ProductDB.length,
+                ProductDB.diameter,
+                ProductDB.sku,
+                ProductDB.currency,
+                func.coalesce(func.sum(InventoryDB.quantity), 0).label(
+                    'quantity',
+                ),
+                category_alias.category_id.label('category_id_1'),
+                category_alias.name.label('name_1'),
+                category_alias.path,
+                category_alias.menu,
+                category_alias.showcase.label('showcase_1'),
+                category_alias.image_path.label('image_path_1'),
+            )
+            .where(
+                ProductDB.name.ilike(f'%{search}%'),
+            )
+            .outerjoin(
+                InventoryDB,
+                InventoryDB.product_id == ProductDB.product_id,
+                )
+            .outerjoin(
+                category_alias,
+                ProductDB.category_id == category_alias.category_id,
+                )
+            .group_by(ProductDB.product_id, category_alias.category_id)
+        )
         total_records = db.scalar(
             select(func.count(ProductDB.product_id)).where(
                 ProductDB.name.ilike(f'%{search}%'),
@@ -634,11 +681,28 @@ def search_products(
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
-        products = db.scalars(products).all()
+        products = db.execute(products)
     products_list = []
 
+    keys = products.keys()
     for product in products:
-        products_list.append(ProductCategoryInDB.model_validate(product))
+        product_dict = dict(zip(keys, product))
+        if 'category_id_1' in product_dict:
+            product_dict['category'] = {
+                'category_id': product_dict['category_id_1'],
+                'name': product_dict['name_1'],
+                'path': product_dict['path'],
+                'menu': product_dict['menu'],
+                'showcase': product_dict['showcase_1'],
+                'image_path': product_dict['image_path_1'],
+            }
+            del product_dict['category_id_1']
+            del product_dict['name_1']
+            del product_dict['path']
+            del product_dict['menu']
+            del product_dict['showcase_1']
+            del product_dict['image_path_1']
+        products_list.append(ProductCategoryInDB.model_validate(product_dict))
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,

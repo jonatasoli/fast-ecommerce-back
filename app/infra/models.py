@@ -1,14 +1,13 @@
-from pydantic import Json
-from sqlalchemy.orm import DeclarativeBase, backref
-from sqlalchemy.orm import Mapped, mapped_column
-
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Any
+
+from pydantic import Json
 from sqlalchemy import (
     JSON,
     ForeignKey,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import DeclarativeBase, backref, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.infra.constants import DocumentType
