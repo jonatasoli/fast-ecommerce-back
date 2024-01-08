@@ -140,7 +140,7 @@ async def calculate_cart(
 
     if cart_quantities:
         raise ProductSoldOutError(
-            f'Os seguintes items solicitados estão com um pedido acima dos nossos estoques {cart_quantities}',
+            cart_quantities,
         )
     if len(products_db) != len(products_inventory):
         raise ProductSoldOutError(
