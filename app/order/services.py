@@ -384,8 +384,51 @@ def get_products_category(
 
         logger.info(category.path, category.category_id)
 
-        products_query = select(ProductDB).where(
-            ProductDB.category_id == category.category_id,
+        category_alias = aliased(CategoryDB)
+        products_query = (
+            select(
+                ProductDB.product_id,
+                ProductDB.name,
+                ProductDB.uri,
+                ProductDB.price,
+                ProductDB.active,
+                ProductDB.direct_sales,
+                ProductDB.description,
+                ProductDB.image_path,
+                ProductDB.installments_config,
+                ProductDB.installments_list,
+                ProductDB.discount,
+                ProductDB.category_id,
+                ProductDB.showcase,
+                ProductDB.feature,
+                ProductDB.show_discount,
+                ProductDB.height,
+                ProductDB.width,
+                ProductDB.weight,
+                ProductDB.length,
+                ProductDB.diameter,
+                ProductDB.sku,
+                ProductDB.currency,
+                func.coalesce(func.sum(InventoryDB.quantity), 0).label(
+                    'quantity',
+                ),
+                category_alias.category_id.label('category_id_1'),
+                category_alias.name.label('name_1'),
+                category_alias.path,
+                category_alias.menu,
+                category_alias.showcase.label('showcase_1'),
+                category_alias.image_path.label('image_path_1'),
+            )
+            .where(ProductDB.category_id == category.category_id)
+            .outerjoin(
+                InventoryDB,
+                InventoryDB.product_id == ProductDB.product_id,
+            )
+            .outerjoin(
+                category_alias,
+                ProductDB.category_id == category_alias.category_id,
+            )
+            .group_by(ProductDB.product_id, category_alias.category_id)
         )
         total_records = db.scalar(
             select(func.count(ProductDB.product_id)).where(
@@ -396,11 +439,28 @@ def get_products_category(
             products_query = products_query.offset((page - 1) * offset)
         products_query = products_query.limit(offset)
 
-        products = db.scalars(products_query)
+        products = db.execute(products_query)
 
+        keys = products.keys()
         for product in products:
+            product_dict = dict(zip(keys, product))
+            if 'category_id_1' in product_dict:
+                product_dict['category'] = {
+                    'category_id': product_dict['category_id_1'],
+                    'name': product_dict['name_1'],
+                    'path': product_dict['path'],
+                    'menu': product_dict['menu'],
+                    'showcase': product_dict['showcase_1'],
+                    'image_path': product_dict['image_path_1'],
+                }
+                del product_dict['category_id_1']
+                del product_dict['name_1']
+                del product_dict['path']
+                del product_dict['menu']
+                del product_dict['showcase_1']
+                del product_dict['image_path_1']
             products_category.append(
-                ProductCategoryInDB.model_validate(product),
+                ProductCategoryInDB.model_validate(product_dict)
             )
 
     return ProductsResponse(
