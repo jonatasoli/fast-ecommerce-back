@@ -1,4 +1,5 @@
 import re
+from decimal import Decimal
 
 from fastapi import HTTPException
 from loguru import logger
@@ -133,12 +134,19 @@ async def calculate_cart(
                             }
                         }
                     )
+                    cart_item.quantity = 0
+                    cart_item.price = Decimal(0)
 
     products_not_in_both = list(
         set(products_in_cart) ^ set(products_in_inventory),
     )
 
     if cart_quantities:
+        cache.set(
+            str(cart.uuid),
+            cache_cart.model_dump_json(),
+            ex=DEFAULT_CART_EXPIRE,
+        )
         raise ProductSoldOutError(
             cart_quantities,
         )
