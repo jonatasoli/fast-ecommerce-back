@@ -35,6 +35,7 @@ from app.infra.endpoints.report import report
 from app.cart.tasks import task_message_bus
 from app.payment.tasks import task_message_bus
 from app.mail.tasks import task_message_bus
+from app.report.tasks import task_message_bus
 from app.infra.worker import task_message_bus
 from app.entities.product import ProductSoldOutError
 
@@ -51,6 +52,7 @@ app.mount('/static', StaticFiles(directory='static'), name='static')
 
 origins = [
     'http://localhost:3000',
+    'http://127.0.0.1:3000',
     settings.FRONTEND_URLS,
 ]
 

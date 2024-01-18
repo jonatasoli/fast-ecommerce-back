@@ -114,6 +114,8 @@ def authenticate_user(db, document: str, password: str):
     user_dict = UserSchema.model_validate(user).model_dump()
     user = UserInDB(**user_dict)
     logger.debug(f'{user} ')
+    if not user:
+        return False
     return user
 
 

@@ -11,7 +11,8 @@ from app.infra.deps import get_db
 from payment.schema import ProductSchema
 from schemas.order_schema import (
     ProductFullResponse,
-    ProductSchemaResponse, ProductPatchRequest,
+    ProductSchemaResponse,
+    ProductPatchRequest,
 )
 
 product = APIRouter(
@@ -26,9 +27,9 @@ product = APIRouter(
     response_model=ProductSchemaResponse,
 )
 def create_product(
-        *,
-        db: Session = Depends(deps.get_db),
-        product_data: ProductSchema,
+    *,
+    db: Session = Depends(deps.get_db),
+    product_data: ProductSchema,
 ) -> ProductSchemaResponse:
     """Create product."""
     product = services.create_product(db=db, product_data=product_data)
@@ -101,7 +102,9 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
         raise
 
 
-@product.patch('/update/{id}', status_code=200, response_model=ProductFullResponse)
+@product.patch(
+    '/update/{id}', status_code=200, response_model=ProductFullResponse
+)
 def patch_product(
     id: int,
     value: ProductPatchRequest,

@@ -1,7 +1,10 @@
 import re
+from decimal import Decimal
+
 from fastapi import HTTPException
 from loguru import logger
 from propan.brokers.rabbit import RabbitQueue
+
 from app.entities.address import CreateAddress
 from app.entities.cart import (
     CartBase,
@@ -106,7 +109,7 @@ async def calculate_cart(
     )
     products_in_cart = []
     products_in_inventory = []
-    cart_quantities = []
+    cart_quantities = {}
     for product in products_db:
         for cart_item in cache_cart.cart_items:
             products_in_cart.append(product.product_id)
@@ -120,15 +123,32 @@ async def calculate_cart(
                     cart_item.product_id == item['product_id']
                     and cart_item.quantity > item['quantity']
                 ):
-                    cart_quantities.append(cart_item.model_dump())
+                    cart_quantities.update(
+                        {
+                            f'{cart_item.product_id}': {
+                                'product_id': cart_item.product_id,
+                                'product_name': cart_item.name,
+                                'available_quantity': item['quantity']
+                                if item['quantity'] > 0
+                                else 0,
+                            }
+                        }
+                    )
+                    cart_item.quantity = 0
+                    cart_item.price = Decimal(0)
 
     products_not_in_both = list(
         set(products_in_cart) ^ set(products_in_inventory),
     )
 
     if cart_quantities:
+        cache.set(
+            str(cart.uuid),
+            cache_cart.model_dump_json(),
+            ex=DEFAULT_CART_EXPIRE,
+        )
         raise ProductSoldOutError(
-            f'Os seguintes items solicitados estão com um pedido acima dos nossos estoques {cart_quantities}',
+            cart_quantities,
         )
     if len(products_db) != len(products_inventory):
         raise ProductSoldOutError(
@@ -310,6 +330,7 @@ async def add_payment_information(  # noqa: PLR0913
             pix_qr_code=qr_code,
             pix_qr_code_base4=qr_code_base64,
             pix_payment_id=payment_id,
+            payment_method_id=str(payment_id),
         )
         bootstrap.cache.set(
             str(cart.uuid),
@@ -436,6 +457,8 @@ async def checkout(
             order_id = str(_order_id.pop())
         if isinstance(_gateway_payment_id, list):
             _gateway_payment_id = str(_gateway_payment_id.pop())
+        if isinstance(_gateway_payment_id, int):
+            _gateway_payment_id = str(_gateway_payment_id)
     return CreateCheckoutResponse(
         message=str(checkout_task.get('message')),
         status='processing',
