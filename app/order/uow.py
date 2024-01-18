@@ -3,8 +3,9 @@ from typing import Any
 
 from sqlalchemy.orm import SessionTransaction
 from app.entities.cart import CartPayment
+from app.entities.coupon import CouponResponse
 from app.infra.custom_decorators import database_uow
-from app.infra.models import OrderDB
+from app.infra.models import OrderDB, CouponsDB
 from app.user import repository as user_repository
 from app.order import repository as order_repository
 from app.order.entities import OrderDBUpdate
@@ -14,8 +15,8 @@ from app.order.entities import OrderDBUpdate
 async def uow_create_order(
     cart: CartPayment,
     *,
-    affiliate: str | None,
-    discount: Decimal,
+    affiliate_id: int | None,
+    coupon: CouponResponse | None,
     user: Any,
     bootstrap: Any,
     transaction: SessionTransaction | None,
@@ -28,18 +29,12 @@ async def uow_create_order(
         cart.uuid,
         transaction=transaction,
     )
-    affiliate_id = None
-    affiliate = await user_repository.get_user_by_username(
-        affiliate,
-        transaction=transaction,
-    )
-    if affiliate:
-        affiliate_id = affiliate.user_id
+
     if not order:
         order = await order_repository.create_order(
             cart,
             affiliate_id=affiliate_id,
-            discount=discount,
+            coupon=coupon,
             user_id=user['user_id'],
             transaction=transaction,
         )

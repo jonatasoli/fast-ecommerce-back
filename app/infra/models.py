@@ -1,14 +1,19 @@
-from pydantic import Json
-from sqlalchemy.orm import DeclarativeBase, backref
-from sqlalchemy.orm import Mapped, mapped_column
-
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Any
+
+from pydantic import Json
 from sqlalchemy import (
     JSON,
     ForeignKey,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    backref,
+    Mapped,
+    mapped_column,
+    relationship,
+)
 from sqlalchemy.sql import func
 
 from app.infra.constants import DocumentType
@@ -96,6 +101,7 @@ class CouponsDB(Base):
     )
     code: Mapped[str]
     discount: Mapped[Decimal]
+    commission_percentage: Mapped[Decimal | None]
     qty: Mapped[int]
     active: Mapped[bool] = mapped_column(default=True)
 
@@ -127,6 +133,9 @@ class OrderDB(Base):
     cancelled_at: Mapped[datetime | None]
     cancelled_reason: Mapped[str | None]
     freight: Mapped[str | None]
+    coupon_id: Mapped[int | None] = mapped_column(
+        ForeignKey('coupons.coupon_id')
+    )
 
 
 class OrderItemsDB(Base):
@@ -347,3 +356,22 @@ class UserResetPasswordDB(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
     token: Mapped[str]
     used_token: Mapped[bool] = mapped_column(default=False)
+
+
+class SalesCommissionDB(Base):
+    __tablename__ = 'sales_commission'
+    commissions_wallet_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
+    commission: Mapped[Decimal]
+    date_created: Mapped[datetime]
+    release_date: Mapped[datetime]
+    released: Mapped[bool] = mapped_column(default=False)
+    paid: Mapped[bool] = mapped_column(default=False)
+
+    # Virtual relationship fields
+    user: Mapped['UserDB'] = relationship(
+        foreign_keys=[user_id],
+        backref='sales_commission',
+        uselist=False,
+    )

@@ -23,7 +23,9 @@ order = APIRouter(
 
 @order.get('/{id}', status_code=200)
 async def get_order(
-    *, db: Session = Depends(get_db), id: int,
+    *,
+    db: Session = Depends(get_db),
+    id: int,
 ) -> list[OrderUserListResponse]:
     """Get order."""
     try:
