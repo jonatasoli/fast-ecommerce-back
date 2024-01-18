@@ -91,6 +91,6 @@ class ProductCategoryInDB(BaseModel):
     length: int
     diameter: int | None
     sku: str
-    quantity: int = 1
+    quantity: int = 0
 
     model_config = ConfigDict(from_attributes=True)

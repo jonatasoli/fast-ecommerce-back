@@ -4,8 +4,9 @@ from typing import Any
 from fastapi import Depends
 
 from app.entities.cart import CartPayment
+from app.entities.coupon import CouponResponse
 from app.infra.bootstrap.task_bootstrap import Command
-from app.infra.models import OrderDB
+from app.infra.models import OrderDB, CouponsDB
 from app.order.entities import OrderDBUpdate
 from app.infra.worker import task_message_bus
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command
@@ -13,16 +14,16 @@ from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 
 async def create_order(
     cart: CartPayment,
-    affiliate: str | None,
-    discount: Decimal,
+    affiliate_id: int | None,
+    coupon: CouponResponse | None,
     user: Any,
     bootstrap: Command,
 ) -> int:
     """Create a new order."""
     return await bootstrap.order_uow.uow_create_order(
         cart,
-        affiliate=affiliate,
-        discount=discount,
+        affiliate_id=affiliate_id,
+        coupon=coupon,
         user=user,
         bootstrap=bootstrap,
     )

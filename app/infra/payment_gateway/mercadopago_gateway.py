@@ -141,7 +141,9 @@ def create_credit_card_payment(
     if payment_response.get('error'):
         raise Exception(payment_response)
     if payment_response['status'] == 400:
-        raise CardAlreadyUseError(payment_response.get('message'))
+        raise CardAlreadyUseError(
+            payment_response.get('response', {}).get('message')
+        )
     logger.info('Gateway Response')
     logger.info(f'{payment_response["response"]}')
     return MercadoPagoPaymentResponse.model_validate(
