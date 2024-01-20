@@ -82,7 +82,7 @@ class ProductDB(Base):
     length: Mapped[Decimal | None]
     diameter: Mapped[Decimal | None]
     sku: Mapped[str]
-    currency: Mapped[str] = mapped_column(default='BRL', default_server='BRL')
+    currency: Mapped[str] = mapped_column(default='BRL')
 
 
 class CouponsDB(Base):

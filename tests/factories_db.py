@@ -1,7 +1,12 @@
+from decimal import Decimal
 import factory
 from factory.declarations import SelfAttribute, SubFactory
 from faker import Faker
-from app.infra.models import CreditCardFeeConfigDB, PaymentDB
+from sqlalchemy import DECIMAL
+from app.infra.constants import InventoryOperation
+from app.infra.models import CreditCardFeeConfigDB, InventoryDB, PaymentDB
+from factory.alchemy import SQLAlchemyModelFactory
+
 
 from app.infra.models import UploadedImageDB
 from app.infra.models import UserDB
@@ -20,6 +25,12 @@ from tests.fake_functions import (
 fake = Faker()
 
 USER_ID_ROLE = 2
+
+
+class FactoryDB(SQLAlchemyModelFactory):  # type: ignore[misc]
+    class Meta:
+        sqlalchemy_session = None
+        sqlalchemy_session_persistence = "flush"
 
 
 class RoleFactory(factory.Factory):
@@ -72,7 +83,7 @@ class ProductFactory(factory.Factory):
         model = ProductDB
 
     class Params:
-        category = SubFactory(RoleFactory)
+        category = SubFactory(CategoryFactory)
         installment_config = SubFactory(CreditCardFeeConfigFactory)
 
     name = fake.name()
@@ -153,3 +164,14 @@ class UploadedImageFactory(factory.Factory):
     thumb = fake_url()
     icon = fake_url()
     uploaded = fake.pybool()
+
+class InventoryDBFactory(factory.Factory):
+    class Meta:
+        model = InventoryDB
+
+    class Params:
+        product = SubFactory(ProductFactory)
+
+    product_id = SelfAttribute('product.product_id')
+    quantity= fake.pyint(min_value=1, max_value=999)
+    operation=InventoryOperation.INCREASE

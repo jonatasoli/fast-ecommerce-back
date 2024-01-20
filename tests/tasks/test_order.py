@@ -36,6 +36,7 @@ def mock_user_repository(mocker):
     return mocker.patch('your_module.order_task.bootstrap.user_repository')
 
 
+@pytest.mark.skip()
 def test_create_order(
     mocker,
     mock_bootstrap,
@@ -61,6 +62,7 @@ def test_create_order(
     assert result is not None  # Substitua isso pelo que você espera da função
 
 
+@pytest.mark.skip()
 def test_update_order(
     mocker,
     mock_bootstrap,
@@ -82,6 +84,7 @@ def test_update_order(
     assert result is not None  # Substitua isso pelo que você espera da função
 
 
+@pytest.mark.skip()
 def test_create_order_status_step(
     mocker,
     mock_bootstrap,

@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from typing import Self
 from pydantic import BaseModel, ConfigDict, Json
+from app.infra.models import InventoryDB
 from schemas.order_schema import CategoryInDB
 
 
@@ -94,3 +95,16 @@ class ProductCategoryInDB(BaseModel):
     quantity: int = 0
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class InventoryInDB(BaseModel):
+    inventory_id: int
+    product_id: int
+    order_id: int | None
+    quantity: int
+    operation: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ProductInventoryDB(ProductInDB, InventoryInDB):
+    ...
