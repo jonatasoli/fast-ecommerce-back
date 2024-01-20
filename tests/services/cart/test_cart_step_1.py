@@ -14,6 +14,7 @@ from app.infra.database import get_async_session
 from tests.factories_db import InventoryDBFactory, ProductFactory
 from tests.fake_functions import fake, fake_url_path
 
+
 def merge_product_inventory(productdb, inventorydb) -> ProductInventoryDB:
     merged_object = ProductInventoryDB(
         product_id=productdb.product_id,
@@ -44,7 +45,7 @@ def merge_product_inventory(productdb, inventorydb) -> ProductInventoryDB:
     return merged_object
 
 
-def create_product_cart(product_id: int =1, quantity: int =1) -> ProductCart:
+def create_product_cart(product_id: int = 1, quantity: int = 1) -> ProductCart:
     """Must create product in db."""
     return ProductCart(
         name=fake.name(),
@@ -61,10 +62,12 @@ async def test_add_product_to_new_cart(
 ) -> None:
     """Must add product to new cart and return cart_id."""
     # Arrange
-    product=create_product_cart()
+    product = create_product_cart()
     productdb = ProductFactory(product_id=1, discount=0)
     bootstrap = await memory_bootstrap
-    mocker.patch.object(bootstrap.uow, 'get_product_by_id', return_value=productdb)
+    mocker.patch.object(
+        bootstrap.uow, 'get_product_by_id', return_value=productdb
+    )
     bootstrap.cache = Mock()
 
     # Act
@@ -88,20 +91,18 @@ async def test_add_product_to_new_cart_should_set_in_cache(
     product = create_product_cart()
     productdb = ProductFactory(product_id=1, discount=0)
     bootstrap = await memory_bootstrap
-    mocker.patch.object(bootstrap.uow, 'get_product_by_id', return_value=productdb)
+    mocker.patch.object(
+        bootstrap.uow, 'get_product_by_id', return_value=productdb
+    )
     bootstrap.cache = Mock()
     cache_spy = mocker.spy(bootstrap.cache, 'set')
-
-
 
     # Act
     cart_response = await add_product_to_cart(None, product, bootstrap)
 
     # Assert
     cache_spy.assert_called_once_with(
-        str(cart_response.uuid),
-        cart_response.model_dump_json(),
-        ex=600000
+        str(cart_response.uuid), cart_response.model_dump_json(), ex=600000
     )
 
 
@@ -123,7 +124,9 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
 
     productdb = ProductFactory(product_id=1, discount=0)
     bootstrap = await memory_bootstrap
-    mocker.patch.object(bootstrap.uow, 'get_product_by_id', return_value=productdb)
+    mocker.patch.object(
+        bootstrap.uow, 'get_product_by_id', return_value=productdb
+    )
     bootstrap.cache = Mock()
     mocker.spy(bootstrap.cache, 'set')
 
@@ -134,7 +137,9 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
         subtotal=Decimal(10),
     )
 
-    mocker.patch.object(bootstrap.cache, 'get', return_value=cart.model_dump_json())
+    mocker.patch.object(
+        bootstrap.cache, 'get', return_value=cart.model_dump_json()
+    )
 
     # Act
     cart_response = await add_product_to_cart(
@@ -170,24 +175,46 @@ async def test_given_cart_with_items_need_calculate_to_preview(
     cart_items.append(first_product)
     cart_items.append(second_product)
 
-    productdb_1 = ProductFactory(product_id=1, discount=0, category_id=1, showcase=False, show_discount=False)
-    productdb_2 = ProductFactory(product_id=2, discount=0, category_id=1, showcase=False, show_discount=False)
-    inventorydb_1 = await asyncio.to_thread(InventoryDBFactory, product=productdb_1, inventory_id=1)
-    inventorydb_2 = await asyncio.to_thread(InventoryDBFactory, product=productdb_2, inventory_id=2)
+    productdb_1 = ProductFactory(
+        product_id=1,
+        discount=0,
+        category_id=1,
+        showcase=False,
+        show_discount=False,
+    )
+    productdb_2 = ProductFactory(
+        product_id=2,
+        discount=0,
+        category_id=1,
+        showcase=False,
+        show_discount=False,
+    )
+    inventorydb_1 = await asyncio.to_thread(
+        InventoryDBFactory, product=productdb_1, inventory_id=1
+    )
+    inventorydb_2 = await asyncio.to_thread(
+        InventoryDBFactory, product=productdb_2, inventory_id=2
+    )
 
     bootstrap = await memory_bootstrap
-    mocker.patch.object(bootstrap.uow, 'get_products', return_value=[productdb_1, productdb_2])
+    mocker.patch.object(
+        bootstrap.uow, 'get_products', return_value=[productdb_1, productdb_2]
+    )
     bootstrap.cache = Mock()
     product_inventory_1 = merge_product_inventory(productdb_1, inventorydb_1)
     product_inventory_2 = merge_product_inventory(productdb_2, inventorydb_2)
+
     async def async_mock(*args, **kwargs) -> list:
-        return [product_inventory_1.model_dump(), product_inventory_2.model_dump()]
+        return [
+            product_inventory_1.model_dump(),
+            product_inventory_2.model_dump(),
+        ]
+
     mocker.patch.object(
         bootstrap.cart_uow,
         'get_products_quantity',
         side_effect=async_mock,
     )
-
 
     uuid = fake.uuid4()
     cart = CartBase(
@@ -195,7 +222,9 @@ async def test_given_cart_with_items_need_calculate_to_preview(
         cart_items=cart_items,
         subtotal=Decimal(10),
     )
-    mocker.patch.object(bootstrap.cache, 'get', return_value=cart.model_dump_json())
+    mocker.patch.object(
+        bootstrap.cache, 'get', return_value=cart.model_dump_json()
+    )
 
     # Act
     cart_response = await calculate_cart(

@@ -11,7 +11,9 @@ def test_create_user(session):
     session.commit()
 
     # Act
-    user = session.scalar(select(UserDB).where(UserDB.user_id == new_user.user_id))
+    user = session.scalar(
+        select(UserDB).where(UserDB.user_id == new_user.user_id)
+    )
 
     # Assert
     assert user.user_id == 1

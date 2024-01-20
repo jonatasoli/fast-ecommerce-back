@@ -198,7 +198,13 @@ def test_add_product_price_to_cart() -> None:
             ),
         )
         list_product_prices.append(
-            ProductCart(name=product_name, image_path=image_path, product_id=product_id, price=price, quantity=quantity),
+            ProductCart(
+                name=product_name,
+                image_path=image_path,
+                product_id=product_id,
+                price=price,
+                quantity=quantity,
+            ),
         )
 
     # Act
@@ -282,7 +288,9 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
     subtotal = 0
     discount = 0
     discount_subtotal = 0
-    discount_percentage = Decimal(fake.random_number(digits=2, fix_len=True) / 100)
+    discount_percentage = Decimal(
+        fake.random_number(digits=2, fix_len=True) / 100
+    )
     coupon = CouponCreate(
         code=fake.word(),
         discount=discount_percentage,

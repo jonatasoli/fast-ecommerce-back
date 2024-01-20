@@ -30,7 +30,7 @@ USER_ID_ROLE = 2
 class FactoryDB(SQLAlchemyModelFactory):  # type: ignore[misc]
     class Meta:
         sqlalchemy_session = None
-        sqlalchemy_session_persistence = "flush"
+        sqlalchemy_session_persistence = 'flush'
 
 
 class RoleFactory(factory.Factory):
@@ -165,6 +165,7 @@ class UploadedImageFactory(factory.Factory):
     icon = fake_url()
     uploaded = fake.pybool()
 
+
 class InventoryDBFactory(factory.Factory):
     class Meta:
         model = InventoryDB
@@ -173,5 +174,5 @@ class InventoryDBFactory(factory.Factory):
         product = SubFactory(ProductFactory)
 
     product_id = SelfAttribute('product.product_id')
-    quantity= fake.pyint(min_value=1, max_value=999)
-    operation=InventoryOperation.INCREASE
+    quantity = fake.pyint(min_value=1, max_value=999)
+    operation = InventoryOperation.INCREASE
