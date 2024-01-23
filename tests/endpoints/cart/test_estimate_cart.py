@@ -1,6 +1,11 @@
+
+from main import app
+import asyncio
+from httpx import AsyncClient
 import pytest
 from decimal import Decimal
 from mail_service.sendmail import settings
+from sqlalchemy.types import adapt_type
 from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from config import settings
@@ -10,16 +15,17 @@ import redis
 from tests.factories_db import (
     CategoryFactory,
     CreditCardFeeConfigFactory,
+    InventoryDBFactory,
     ProductFactory,
 )
-from tests.fake_functions import fake
+from tests.fake_functions import fake, fake_url_path
 
 
 URL = '/cart'
 
 
-@pytest.mark.anyio()
-async def test_estimate_products_in_cart(client, db) -> None:
+@pytest.mark.asyncio()
+async def test_estimate_products_in_cart(db) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
     with db:
@@ -37,15 +43,24 @@ async def test_estimate_products_in_cart(client, db) -> None:
             installment_config=config_fee,
             price=200,
         )
+
+        inventory_db_1 = InventoryDBFactory(product=product_db_1, product_id=1, inventory_id=1)
+        inventory_db_2 = InventoryDBFactory(product=product_db_2, product_id=2, inventory_id=2)
         db.add_all([product_db_1, product_db_2])
+        db.flush()
+        db.add_all([inventory_db_1, inventory_db_2])
         db.commit()
     cart_items = []
     first_product = ProductCart(
+        name=fake.name(),
+        image_path=fake_url_path(),
         product_id=2,
         quantity=1,
         price=Decimal('100.00'),
     )
     second_product = ProductCart(
+        name=fake.name(),
+        image_path=fake_url_path(),
         product_id=1,
         quantity=1,
         price=Decimal('200.00'),
@@ -65,10 +80,12 @@ async def test_estimate_products_in_cart(client, db) -> None:
     cache = redis.Redis(connection_pool=pool)
     cache.set(str(uuid), cart.model_dump_json())
 
-    response = await client.post(
-        f'{URL}/{uuid!s}/estimate',
-        json=jsonable_encoder(cart.model_dump()),
-    )
+    # Act
+    async with AsyncClient(app=app, base_url='http://test') as client:
+        response = await client.post(
+            f'{URL}/{uuid!s}/estimate',
+            json=jsonable_encoder(cart.model_dump()),
+        )
 
     # Assert
     assert response.status_code == 201

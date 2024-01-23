@@ -1,5 +1,6 @@
 import asyncio
 from decimal import Decimal, Underflow
+from typing import Generator
 from unittest.mock import Mock
 from uuid import UUID
 import pytest
@@ -13,6 +14,7 @@ from app.infra.bootstrap.cart_bootstrap import Command
 from app.infra.database import get_async_session
 from tests.factories_db import InventoryDBFactory, ProductFactory
 from tests.fake_functions import fake, fake_url_path
+
 
 
 def merge_product_inventory(productdb, inventorydb) -> ProductInventoryDB:

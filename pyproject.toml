@@ -119,6 +119,7 @@ extension-pkg-allow-list = ["pydantic", "rapidjson"]
 max-nested-blocks = 5
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 addopts = ["--strict-markers"]
 junit_family= "xunit1"
 markers = [
@@ -126,6 +127,7 @@ markers = [
   "integrate: integrate tests",
 ]
 pythonpath = "."
+
 
 [tool.blue]
 extend-exclude = '(migrations/)'

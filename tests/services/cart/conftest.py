@@ -1,4 +1,5 @@
-from typing import Any
+import asyncio
+from typing import Any, Generator
 from pydantic import BaseModel
 import pytest
 from app.cart.uow import MemoryUnitOfWork
@@ -60,3 +61,4 @@ async def memory_bootstrap(mocker) -> Command:
         user=mock,
         payment=mock,
     )
+

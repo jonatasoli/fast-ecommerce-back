@@ -1,4 +1,7 @@
 from decimal import Decimal
+
+from httpx import AsyncClient
+from main import app
 import pytest
 import redis
 from app.entities.cart import CartBase
@@ -8,15 +11,15 @@ from tests.factories_db import (
     CreditCardFeeConfigFactory,
     ProductFactory,
 )
-from tests.fake_functions import fake
+from tests.fake_functions import fake, fake_url_path
 from config import settings
 
 
 URL = '/cart'
 
 
-@pytest.mark.anyio()
-async def test_add_product_in_new_cart(client, db) -> None:
+@pytest.mark.asyncio()
+async def test_add_product_in_new_cart(db) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
     with db:
@@ -46,12 +49,13 @@ async def test_add_product_in_new_cart(client, db) -> None:
     cache.set(str(uuid), cart.model_dump_json())
 
     # Act
-    product = ProductCart(product_id=1, quantity=1)
+    product = ProductCart(name=fake.name(), image_path=fake_url_path(), product_id=1, quantity=1)
     product.__delattr__('discount_price')
-    response = await client.post(
-        f'{URL}/{uuid}/product',
-        json=product.model_dump(),
-    )
+    async with AsyncClient(app=app, base_url='http://test') as client:
+        response = await client.post(
+            f'{URL}/{uuid}/product',
+            json=product.model_dump(),
+        )
 
     # Assert
     assert response.status_code == 201

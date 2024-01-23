@@ -175,4 +175,4 @@ class InventoryDBFactory(factory.Factory):
 
     product_id = SelfAttribute('product.product_id')
     quantity = fake.pyint(min_value=1, max_value=999)
-    operation = InventoryOperation.INCREASE
+    operation = InventoryOperation.INCREASE.value
