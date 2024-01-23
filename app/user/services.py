@@ -1,3 +1,4 @@
+# ruff: noqa: ANN401
 from typing import Any
 from app.entities.user import UserCouponResponse, CredentialError
 from app.infra.models import UserDB, CouponsDB
@@ -7,13 +8,15 @@ from sqlalchemy.orm import Session
 
 
 def get_affiliate_urls(
-    user: UserDB, db: Session, base_url: str
+    user: UserDB,
+    db: Session,
+    base_url: str,
 ) -> UserCouponResponse:
     """Get affiliate user and return code urls."""
     _urls = []
     with db:
         coupons = db.query(CouponsDB).filter(
-            CouponsDB.affiliate_id == user.user_id
+            CouponsDB.affiliate_id == user.user_id,
         )
         for coupon in coupons:
             _urls.append(f'{base_url}?coupon={coupon.code}')

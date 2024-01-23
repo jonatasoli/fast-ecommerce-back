@@ -1,12 +1,10 @@
-from decimal import Decimal
 from typing import Any
 
 from sqlalchemy.orm import SessionTransaction
 from app.entities.cart import CartPayment
 from app.entities.coupon import CouponResponse
 from app.infra.custom_decorators import database_uow
-from app.infra.models import OrderDB, CouponsDB
-from app.user import repository as user_repository
+from app.infra.models import OrderDB
 from app.order import repository as order_repository
 from app.order.entities import OrderDBUpdate
 

@@ -142,7 +142,7 @@ def create_credit_card_payment(
         raise Exception(payment_response)
     if payment_response['status'] == 400:
         raise CardAlreadyUseError(
-            payment_response.get('response', {}).get('message')
+            payment_response.get('response', {}).get('message'),
         )
     logger.info('Gateway Response')
     logger.info(f'{payment_response["response"]}')

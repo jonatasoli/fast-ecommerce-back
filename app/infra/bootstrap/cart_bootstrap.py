@@ -39,7 +39,7 @@ async def bootstrap(  # noqa: PLR0913
     cache: redis.AbstractCache = redis.RedisCache(),
     message: RabbitRouter = task_message_bus,
     freight: Any = freight,
-    user=user_gateway,
+    user: Any = user_gateway,
     payment: Any = payment_gateway,  # noqa: ANN401
 ) -> Command:
     """Create a command function to use in the application."""

@@ -8,7 +8,8 @@ from app.report.entities import Commission, UserSalesComissions
 
 
 def create_sales_commission(
-    sales_commission: Commission, db: sessionmaker
+    sales_commission: Commission,
+    db: sessionmaker,
 ) -> SalesCommissionDB:
     with db.begin() as session:
         commission = SalesCommissionDB(**sales_commission.model_dump())
@@ -18,7 +19,10 @@ def create_sales_commission(
 
 
 async def get_user_sales_comissions(
-    user, paid: bool, released: bool, db: Session
+    user,
+    paid: bool,
+    released: bool,
+    db: Session,
 ):
     async with db.begin() as session:
         query = (
@@ -40,7 +44,7 @@ async def get_user_sales_comissions(
                     paid=c.paid,
                 )
                 for c in comission.scalars().all()
-            ]
+            ],
         )
 
 
@@ -50,7 +54,7 @@ def update_commissions(date_threshold: datetime, db: sessionmaker) -> None:
             and_(
                 SalesCommissionDB.date_created <= date_threshold,
                 SalesCommissionDB.paid == False,
-            )
+            ),
         )
         query.update({SalesCommissionDB.paid: True})
         session.commit()

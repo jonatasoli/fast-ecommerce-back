@@ -8,8 +8,8 @@ from app.entities.cart import (
     generate_cart_uuid,
 )
 from app.entities.product import ProductCart
-from app.entities.coupon import CouponBase
-from tests.fake_functions import fake, fake_decimal
+from app.entities.coupon import CouponCreate
+from tests.fake_functions import fake, fake_decimal, fake_url_path
 
 DEFAULT_PRODUCT_ID = fake.random_int()
 DEFAULT_QUANTITY = fake.random_int()
@@ -34,6 +34,8 @@ def create_cart(
         cart_items=[
             ProductCart(
                 product_id=product_id,
+                name=None,
+                image_path=None,
                 quantity=quantity,
                 price=fake_decimal(),
             ),
@@ -106,8 +108,11 @@ def test_add_product_to_cart() -> None:
 
     # Act
     output = cart.add_product(
+        name=None,
+        image_path=None,
         product_id=product_id,
         quantity=1,
+        price=fake_decimal(),
     )
 
     # Assert
@@ -125,6 +130,9 @@ def test_add_duplicate_product_should_increase_quantity() -> None:
 
     # Act
     output = cart.add_product(
+        name=fake.name(),
+        image_path=fake_url_path(),
+        price=fake_decimal(),
         product_id=product_id,
         quantity=1,
     )
@@ -174,18 +182,29 @@ def test_add_product_price_to_cart() -> None:
     )
     list_product_prices = []
     for _ in range(10):
+        product_name = fake.name()
+        image_path = fake_url_path()
         product_id = fake.random_int()
         price = fake_decimal()
         quantity = fake.random_int()
 
         cart.cart_items.append(
             ProductCart(
+                name=product_name,
+                image_path=image_path,
+                price=fake_decimal(),
                 product_id=product_id,
                 quantity=quantity,
             ),
         )
         list_product_prices.append(
-            ProductCart(product_id=product_id, price=price, quantity=quantity),
+            ProductCart(
+                name=product_name,
+                image_path=image_path,
+                product_id=product_id,
+                price=price,
+                quantity=quantity,
+            ),
         )
 
     # Act
@@ -206,6 +225,8 @@ def test_calculate_subtotal_to_cart() -> None:
         quantity = fake.random_int()
         cart_items.append(
             ProductCart(
+                name=fake.name(),
+                image_path=fake_url_path(),
                 product_id=fake.random_int(),
                 quantity=quantity,
                 price=price,
@@ -229,6 +250,8 @@ def test_calculate_subtotal_in_cart_without_prices_raise_cart_error() -> None:
     for _ in range(10):
         cart_items.append(
             ProductCart(
+                name=fake.name(),
+                image_path=fake_url_path(),
                 product_id=fake.random_int(),
                 quantity=fake.random_int(),
                 price=None,
@@ -263,32 +286,39 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
     # Arrange
     cart_items = []
     subtotal = 0
+    discount = 0
     discount_subtotal = 0
-    discount_percentage = fake.random_number()
-    coupon = CouponBase(
+    discount_percentage = Decimal(
+        fake.random_number(digits=2, fix_len=True) / 100,
+    )
+    coupon = CouponCreate(
         code=fake.word(),
-        coupon_fee=discount_percentage,
+        discount=discount_percentage,
     )
     for _ in range(10):
         price = fake_decimal()
         quantity = fake.random_int()
         cart_items.append(
             ProductCart(
+                name=fake.name(),
+                image_path=fake_url_path(),
                 product_id=fake.random_int(),
                 quantity=quantity,
                 price=price,
             ),
         )
         subtotal += quantity * price
-        discount_subtotal += (price * discount_percentage) * quantity
+        discount_price = price * discount_percentage
+        discount += discount_price * quantity
+    discount_subtotal += subtotal - discount
     cart = create_cart()
     cart.cart_items = cart_items
-    cart.coupon = coupon
+    cart.coupon = coupon.code
 
     # Act
-    cart.calculate_subtotal(discount=coupon.coupon_fee)
+    cart.calculate_subtotal(discount=coupon.discount)
 
     # Assert
-    assert cart.subtotal == subtotal
-    assert cart.coupon.code == coupon.code
-    assert cart.discount == discount_subtotal
+    assert cart.subtotal == discount_subtotal
+    assert cart.coupon == coupon.code
+    assert cart.discount == discount

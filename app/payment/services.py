@@ -1,3 +1,4 @@
+# ruff: noqa: ANN401
 from app.entities.payment import PaymentNotification, PaymentStatusResponse
 
 from propan.brokers.rabbit import RabbitQueue
