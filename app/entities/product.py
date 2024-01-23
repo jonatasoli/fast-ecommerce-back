@@ -2,7 +2,6 @@ from decimal import Decimal
 
 from typing import Self
 from pydantic import BaseModel, ConfigDict, Json
-from app.infra.models import InventoryDB
 from schemas.order_schema import CategoryInDB
 
 

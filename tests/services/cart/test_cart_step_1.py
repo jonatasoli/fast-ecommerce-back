@@ -1,17 +1,14 @@
 import asyncio
-from decimal import Decimal, Underflow
-from typing import Generator
+from decimal import Decimal
 from unittest.mock import Mock
 from uuid import UUID
 import pytest
 from pytest_mock import MockerFixture
 from app.entities.cart import CartBase
-from app.cart import uow as cart_uow
 
 from app.entities.product import ProductCart, ProductInventoryDB
 from app.cart.services import add_product_to_cart, calculate_cart
 from app.infra.bootstrap.cart_bootstrap import Command
-from app.infra.database import get_async_session
 from tests.factories_db import InventoryDBFactory, ProductFactory
 from tests.fake_functions import fake, fake_url_path
 
@@ -67,7 +64,9 @@ async def test_add_product_to_new_cart(
     productdb = ProductFactory(product_id=1, discount=0)
     bootstrap = await memory_bootstrap
     mocker.patch.object(
-        bootstrap.uow, 'get_product_by_id', return_value=productdb
+        bootstrap.uow,
+        'get_product_by_id',
+        return_value=productdb,
     )
     bootstrap.cache = Mock()
 
@@ -93,7 +92,9 @@ async def test_add_product_to_new_cart_should_set_in_cache(
     productdb = ProductFactory(product_id=1, discount=0)
     bootstrap = await memory_bootstrap
     mocker.patch.object(
-        bootstrap.uow, 'get_product_by_id', return_value=productdb
+        bootstrap.uow,
+        'get_product_by_id',
+        return_value=productdb,
     )
     bootstrap.cache = Mock()
     cache_spy = mocker.spy(bootstrap.cache, 'set')
@@ -103,7 +104,9 @@ async def test_add_product_to_new_cart_should_set_in_cache(
 
     # Assert
     cache_spy.assert_called_once_with(
-        str(cart_response.uuid), cart_response.model_dump_json(), ex=600000
+        str(cart_response.uuid),
+        cart_response.model_dump_json(),
+        ex=600000,
     )
 
 
@@ -126,7 +129,9 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
     productdb = ProductFactory(product_id=1, discount=0)
     bootstrap = await memory_bootstrap
     mocker.patch.object(
-        bootstrap.uow, 'get_product_by_id', return_value=productdb
+        bootstrap.uow,
+        'get_product_by_id',
+        return_value=productdb,
     )
     bootstrap.cache = Mock()
     mocker.spy(bootstrap.cache, 'set')
@@ -139,7 +144,9 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
     )
 
     mocker.patch.object(
-        bootstrap.cache, 'get', return_value=cart.model_dump_json()
+        bootstrap.cache,
+        'get',
+        return_value=cart.model_dump_json(),
     )
 
     # Act
@@ -191,15 +198,21 @@ async def test_given_cart_with_items_need_calculate_to_preview(
         show_discount=False,
     )
     inventorydb_1 = await asyncio.to_thread(
-        InventoryDBFactory, product=productdb_1, inventory_id=1
+        InventoryDBFactory,
+        product=productdb_1,
+        inventory_id=1,
     )
     inventorydb_2 = await asyncio.to_thread(
-        InventoryDBFactory, product=productdb_2, inventory_id=2
+        InventoryDBFactory,
+        product=productdb_2,
+        inventory_id=2,
     )
 
     bootstrap = await memory_bootstrap
     mocker.patch.object(
-        bootstrap.uow, 'get_products', return_value=[productdb_1, productdb_2]
+        bootstrap.uow,
+        'get_products',
+        return_value=[productdb_1, productdb_2],
     )
     bootstrap.cache = Mock()
     product_inventory_1 = merge_product_inventory(productdb_1, inventorydb_1)
@@ -224,7 +237,9 @@ async def test_given_cart_with_items_need_calculate_to_preview(
         subtotal=Decimal(10),
     )
     mocker.patch.object(
-        bootstrap.cache, 'get', return_value=cart.model_dump_json()
+        bootstrap.cache,
+        'get',
+        return_value=cart.model_dump_json(),
     )
 
     # Act

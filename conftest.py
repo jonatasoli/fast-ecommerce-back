@@ -2,7 +2,6 @@ import sys
 from os.path import abspath
 from os.path import dirname as d
 from collections.abc import Generator
-from sqlalchemy import inspect, text
 
 import pytest
 from fastapi.testclient import TestClient

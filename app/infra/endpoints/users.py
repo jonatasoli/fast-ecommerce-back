@@ -48,20 +48,24 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 async def get_affiliate_user(
     *,
     request: Request,
-    # token: str = Depends(oauth2_scheme), # TODO : uncomment when remove the mock
+    # TODO : uncomment when remove the mock
+    # token: str = Depends(oauth2_scheme),  # noqa: ERA001
     db: Session = Depends(get_db),
 ) -> UserCouponResponse:
     """Get user."""
     token = await login_for_access_token(
         form_data=OAuth2PasswordRequestForm(
-            username=settings.USERNAME, password=settings.PASSWORD
+            username=settings.USERNAME,
+            password=settings.PASSWORD,
         ),
         db=db,
     )   # TODO : mock to be removed
     token = token.get('access_token')
     user = domain_user.get_affiliate(token)
     return services.get_affiliate_urls(
-        user=user, db=db, base_url=str(request.base_url)
+        user=user,
+        db=db,
+        base_url=str(request.base_url),
     )
 
 
@@ -134,7 +138,7 @@ async def verify_token_is_valid(
 ) -> None:
     """Check for access token is valid."""
     _ = db
-    if token := req.headers.get('authorization'):
+    if token := req.headers.get('authorization'):   # noqa: SIM102
         if token.split()[1] != 'undefined':
             logger.info(token)
             return

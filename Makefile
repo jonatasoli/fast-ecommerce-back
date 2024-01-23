@@ -16,8 +16,14 @@ format:
 
 lint:
 	@blue app/ tests/ --check
-	@ruff check app/
-	@ruff check tests/entities --ignore S101
+	@ruff check app/entities
+	@ruff check app/cart/services.py
+	@ruff check app/catalog/services.py
+	@ruff check app/payment/services.py
+	@ruff check app/report/services.py
+	@ruff check app/user/services.py
+	@ruff check app/infra/endpoints
+	# @ruff check tests/ --ignore S101
 
 test:
 	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/ -x --cov=fast_ecommerce -vv

@@ -289,7 +289,7 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
     discount = 0
     discount_subtotal = 0
     discount_percentage = Decimal(
-        fake.random_number(digits=2, fix_len=True) / 100
+        fake.random_number(digits=2, fix_len=True) / 100,
     )
     coupon = CouponCreate(
         code=fake.word(),

@@ -1,8 +1,3 @@
-import pytest
-from app.infra.bootstrap.task_bootstrap import bootstrap
-from app.cart.tasks import checkout
-
-
 # @pytest.mark.skip()
 # def test_checkout_task(mocker):
 #     # Arrange

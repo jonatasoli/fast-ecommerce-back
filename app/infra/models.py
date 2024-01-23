@@ -131,7 +131,7 @@ class OrderDB(Base):
     cancelled_reason: Mapped[str | None]
     freight: Mapped[str | None]
     coupon_id: Mapped[int | None] = mapped_column(
-        ForeignKey('coupons.coupon_id')
+        ForeignKey('coupons.coupon_id'),
     )
 
 

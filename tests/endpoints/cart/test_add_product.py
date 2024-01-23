@@ -50,7 +50,10 @@ async def test_add_product_in_new_cart(db) -> None:
 
     # Act
     product = ProductCart(
-        name=fake.name(), image_path=fake_url_path(), product_id=1, quantity=1
+        name=fake.name(),
+        image_path=fake_url_path(),
+        product_id=1,
+        quantity=1,
     )
     product.__delattr__('discount_price')
     async with AsyncClient(app=app, base_url='http://test') as client:

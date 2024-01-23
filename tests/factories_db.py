@@ -1,8 +1,6 @@
-from decimal import Decimal
 import factory
 from factory.declarations import SelfAttribute, SubFactory
 from faker import Faker
-from sqlalchemy import DECIMAL
 from app.infra.constants import InventoryOperation
 from app.infra.models import CreditCardFeeConfigDB, InventoryDB, PaymentDB
 from factory.alchemy import SQLAlchemyModelFactory

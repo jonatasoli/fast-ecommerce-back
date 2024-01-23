@@ -1,10 +1,8 @@
 from main import app
-import asyncio
 from httpx import AsyncClient
 import pytest
 from decimal import Decimal
 from mail_service.sendmail import settings
-from sqlalchemy.types import adapt_type
 from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from config import settings
@@ -44,10 +42,14 @@ async def test_estimate_products_in_cart(db) -> None:
         )
 
         inventory_db_1 = InventoryDBFactory(
-            product=product_db_1, product_id=1, inventory_id=1
+            product=product_db_1,
+            product_id=1,
+            inventory_id=1,
         )
         inventory_db_2 = InventoryDBFactory(
-            product=product_db_2, product_id=2, inventory_id=2
+            product=product_db_2,
+            product_id=2,
+            inventory_id=2,
         )
         db.add_all([product_db_1, product_db_2])
         db.flush()

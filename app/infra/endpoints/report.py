@@ -18,7 +18,7 @@ report = APIRouter(
 @report.get(
     '/user/comissions',
     summary='Get user sales commissions',
-    description='Return sales commissions to user is possible filter all sales or not paid sales',
+    description='Return sales commissions to user is filter sales or not paid sales',
     status_code=status.HTTP_200_OK,
     response_model=UserSalesComissions,
 )
@@ -32,5 +32,8 @@ async def get_user_sales_comissions(
     """Get report sales comissions."""
     user = domain_user.get_affiliate(token)
     return await services.get_user_sales_comissions(
-        user=user, paid=paid, released=released, db=db
+        user=user,
+        paid=paid,
+        released=released,
+        db=db,
     )

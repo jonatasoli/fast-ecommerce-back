@@ -1,15 +1,6 @@
 import pytest
-from decimal import Decimal
-from unittest.mock import MagicMock
 
-from app.entities.cart import CartPayment
-from app.order.entities import OrderDBUpdate
 from app.infra.bootstrap.task_bootstrap import Command
-from app.order.tasks import (
-    create_order,
-    update_order,
-    create_order_status_step,
-)
 
 
 @pytest.fixture()

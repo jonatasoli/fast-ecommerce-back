@@ -1,5 +1,4 @@
-import asyncio
-from typing import Any, Generator
+from typing import Any
 from pydantic import BaseModel
 import pytest
 from app.cart.uow import MemoryUnitOfWork

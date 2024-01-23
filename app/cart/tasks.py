@@ -6,14 +6,12 @@ from typing import Any, Self
 from fastapi import Depends, HTTPException
 from loguru import logger
 from propan.brokers.rabbit import RabbitQueue
-from sqlalchemy import select
 
 from app.entities.cart import CartPayment
 from app.entities.coupon import CouponResponse
 from app.entities.product import ProductSoldOutError
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 from app.infra.constants import OrderStatus, PaymentMethod
-from app.infra.models import CouponsDB
 from app.infra.payment_gateway.stripe_gateway import (
     PaymentGatewayRequestError,
 )

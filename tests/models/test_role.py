@@ -12,7 +12,7 @@ def test_create_role(session):
 
     # Act
     role = session.scalar(
-        select(RoleDB).where(RoleDB.role_id == new_role.role_id)
+        select(RoleDB).where(RoleDB.role_id == new_role.role_id),
     )
 
     # Assert
