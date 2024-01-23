@@ -16,7 +16,6 @@ from tests.factories_db import InventoryDBFactory, ProductFactory
 from tests.fake_functions import fake, fake_url_path
 
 
-
 def merge_product_inventory(productdb, inventorydb) -> ProductInventoryDB:
     merged_object = ProductInventoryDB(
         product_id=productdb.product_id,

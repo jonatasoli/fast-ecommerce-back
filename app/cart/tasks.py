@@ -86,11 +86,9 @@ async def checkout(
             bootstrap=bootstrap,
         )
         cart.get_products_price_and_discounts(products_db)
-        products_inventory = (
-            await bootstrap.cart_uow.get_products_quantity(
-                cart.cart_items,
-                bootstrap=bootstrap,
-            )
+        products_inventory = await bootstrap.cart_uow.get_products_quantity(
+            cart.cart_items,
+            bootstrap=bootstrap,
         )
         products_in_cart = []
         products_in_inventory = []

@@ -1,4 +1,3 @@
-
 from main import app
 import asyncio
 from httpx import AsyncClient
@@ -44,8 +43,12 @@ async def test_estimate_products_in_cart(db) -> None:
             price=200,
         )
 
-        inventory_db_1 = InventoryDBFactory(product=product_db_1, product_id=1, inventory_id=1)
-        inventory_db_2 = InventoryDBFactory(product=product_db_2, product_id=2, inventory_id=2)
+        inventory_db_1 = InventoryDBFactory(
+            product=product_db_1, product_id=1, inventory_id=1
+        )
+        inventory_db_2 = InventoryDBFactory(
+            product=product_db_2, product_id=2, inventory_id=2
+        )
         db.add_all([product_db_1, product_db_2])
         db.flush()
         db.add_all([inventory_db_1, inventory_db_2])

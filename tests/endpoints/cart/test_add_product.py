@@ -49,7 +49,9 @@ async def test_add_product_in_new_cart(db) -> None:
     cache.set(str(uuid), cart.model_dump_json())
 
     # Act
-    product = ProductCart(name=fake.name(), image_path=fake_url_path(), product_id=1, quantity=1)
+    product = ProductCart(
+        name=fake.name(), image_path=fake_url_path(), product_id=1, quantity=1
+    )
     product.__delattr__('discount_price')
     async with AsyncClient(app=app, base_url='http://test') as client:
         response = await client.post(

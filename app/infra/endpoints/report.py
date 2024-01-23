@@ -23,11 +23,11 @@ report = APIRouter(
     response_model=UserSalesComissions,
 )
 async def get_user_sales_comissions(
-        *,
-        paid: bool = False,
-        released: bool = False,
-        token: str = Depends(oauth2_scheme),
-        db: Session = Depends(get_async_session),
+    *,
+    paid: bool = False,
+    released: bool = False,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_async_session),
 ) -> UserSalesComissions:
     """Get report sales comissions."""
     user = domain_user.get_affiliate(token)

@@ -61,4 +61,3 @@ async def memory_bootstrap(mocker) -> Command:
         user=mock,
         payment=mock,
     )
-
