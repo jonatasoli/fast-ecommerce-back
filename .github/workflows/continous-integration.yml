@@ -18,8 +18,7 @@ jobs:
           - 5432:5432
       rabbitmq:
         image: rabbitmq
-        container_name: broker
-        environment:
+        env:
           RABBITMQ_DEFAULT_USER: guest
           RABBIT_DEFAULT_PASS: guest
         ports:
