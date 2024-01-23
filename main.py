@@ -15,7 +15,6 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
-from app.infra.endpoints.direct_sales import direct_sales
 from app.infra.endpoints.mail import mail
 from app.infra.endpoints.order import order
 from app.infra.endpoints.product import product
@@ -181,11 +180,6 @@ logger.add(
 logging.getLogger('uvicorn.access').handlers = [InterceptHandler()]
 
 app.include_router(user)
-app.include_router(
-    direct_sales,
-    prefix='/direct-sales',
-    responses={404: {'description': 'URL Not found'}},
-)
 app.include_router(payment)
 app.include_router(shipping)
 app.include_router(order)
