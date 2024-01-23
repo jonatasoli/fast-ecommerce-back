@@ -1,5 +1,5 @@
 from sqlalchemy.sql import select
-from app.infra.models.role import Role
+from app.infra.models import RoleDB
 from tests.factories_db import RoleFactory
 
 
@@ -11,7 +11,9 @@ def test_create_role(session):
     session.commit()
 
     # Act
-    role = session.scalar(select(Role).where(Role.role_id == new_role.role_id))
+    role = session.scalar(
+        select(RoleDB).where(RoleDB.role_id == new_role.role_id),
+    )
 
     # Assert
     assert role.role_id is not None

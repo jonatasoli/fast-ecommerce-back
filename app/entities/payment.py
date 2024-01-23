@@ -1,7 +1,7 @@
+# ruff: noqa: ANN401 A003
 import enum
-from typing import Any
+from typing import Any, Self
 from pydantic import BaseModel, ConfigDict
-from typing import Self
 from decimal import Decimal
 
 
@@ -44,7 +44,7 @@ class PaymentStatusResponse(BaseModel):
 class AbstractPaymentGateway:
     """Abstract class to process payment."""
 
-    def process_credit_card(self: Self):
+    def process_credit_card(self: Self) -> Any:
         """Process credit card."""
         raise NotImplementedError
 
@@ -52,14 +52,14 @@ class AbstractPaymentGateway:
 class ProcessStripePayment(AbstractPaymentGateway):
     """Process payment with Stripe."""
 
-    def process_credit_card(self):
+    def process_credit_card(self: Self) -> Any:
         """Process credit card with Stripe."""
 
 
 class ProcessPagarmePayment(AbstractPaymentGateway):
     """Process payment with Pagarme."""
 
-    def process_credit_card(self):
+    def process_credit_card(self: Self) -> Any:
         """Process credit card with Pagarme."""
 
 

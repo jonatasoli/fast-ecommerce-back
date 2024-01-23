@@ -1,3 +1,4 @@
+# ruff: noqa: PLR1714
 import re
 from decimal import Decimal
 
@@ -87,7 +88,7 @@ async def add_product_to_cart(
     return cart
 
 
-async def calculate_cart(
+async def calculate_cart(  # noqa: C901
     uuid: str,
     cart: CartBase,
     bootstrap: Command,
@@ -131,8 +132,8 @@ async def calculate_cart(
                                 'available_quantity': item['quantity']
                                 if item['quantity'] > 0
                                 else 0,
-                            }
-                        }
+                            },
+                        },
                     )
                     cart_item.quantity = 0
                     cart_item.price = Decimal(0)
@@ -151,8 +152,8 @@ async def calculate_cart(
             cart_quantities,
         )
     if len(products_db) != len(products_inventory):
-        raise ProductSoldOutError(
-            f'Os seguintes produtos não possuem em estoque {products_not_in_both}',
+        raise ProductSoldOutError(  # noqa: TRY003
+            f'Os seguintes produtos não possuem em estoque {products_not_in_both}',  # noqa: EM102
         )
     cart.get_products_price_and_discounts(products_db)
     if cart.coupon and not (

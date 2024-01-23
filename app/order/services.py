@@ -135,7 +135,9 @@ def update_product(product: ProductDB, product_data: dict) -> ProductDB:
 
 
 def patch_product(
-    db: Session, id, product_data: ProductPatchRequest
+    db: Session,
+    id,
+    product_data: ProductPatchRequest,
 ) -> ProductFullResponse:
     """Update Product."""
     values = product_data.model_dump(exclude_none=True)
@@ -460,7 +462,7 @@ def get_products_category(
                 del product_dict['showcase_1']
                 del product_dict['image_path_1']
             products_category.append(
-                ProductCategoryInDB.model_validate(product_dict)
+                ProductCategoryInDB.model_validate(product_dict),
             )
 
     return ProductsResponse(

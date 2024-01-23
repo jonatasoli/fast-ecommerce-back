@@ -1,3 +1,4 @@
+# ruff: noqa: PLR0913
 import json
 from decimal import Decimal
 from typing import Self
@@ -305,12 +306,13 @@ def generate_new_cart(
     )
 
 
-def validate_cache_cart(cache_cart: bytes | None):
+def validate_cache_cart(cache_cart: bytes | None) -> None:
+    """Validate if cache cart is found yet."""
     if not cache_cart:
         raise CartNotFoundError
     if not isinstance(cache_cart, bytes):
         raise InvalidCartFormatError
     try:
         cache_cart = json.loads(cache_cart)
-    except json.JSONDecodeError:
-        raise InvalidCartFormatError
+    except json.JSONDecodeError as err:
+        raise InvalidCartFormatError from err

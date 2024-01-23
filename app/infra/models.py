@@ -82,7 +82,7 @@ class ProductDB(Base):
     length: Mapped[Decimal | None]
     diameter: Mapped[Decimal | None]
     sku: Mapped[str]
-    currency: Mapped[str] = mapped_column(default='BRL', default_server='BRL')
+    currency: Mapped[str] = mapped_column(default='BRL')
 
 
 class CouponsDB(Base):
@@ -124,9 +124,6 @@ class OrderDB(Base):
     cart_uuid: Mapped[str]
     discount: Mapped[Decimal]
     tracking_number: Mapped[str | None]
-    payment_id: Mapped[int | None] = mapped_column(
-        ForeignKey('payment.payment_id'),
-    )
     order_status: Mapped[str]
     last_updated: Mapped[datetime]
     checked: Mapped[bool] = mapped_column(default=False)
@@ -134,7 +131,7 @@ class OrderDB(Base):
     cancelled_reason: Mapped[str | None]
     freight: Mapped[str | None]
     coupon_id: Mapped[int | None] = mapped_column(
-        ForeignKey('coupons.coupon_id')
+        ForeignKey('coupons.coupon_id'),
     )
 
 
