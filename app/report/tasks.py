@@ -1,3 +1,4 @@
+# ruff: noqa: DTZ005 B008 D103 ANN201 E501 D103 FBT001 ANN001 TID252 B008
 from datetime import datetime, timedelta
 from decimal import Decimal
 
@@ -22,7 +23,7 @@ def task_create_sales_commission(
     logger.info(f'Creating sales commission for order {order_id}')
     if not commission_percentage:
         logger.error(
-            f'Commission percentage is zero or not set for Coupon {coupon_id=} and order {order_id=}'
+            f'Commission percentage is zero or not set for Coupon {coupon_id=} and order {order_id=}',
         )
         return
     today = datetime.now()
@@ -35,7 +36,7 @@ def task_create_sales_commission(
             commission=commission_value,
             date_created=today,
             release_date=release_data,
-        )
+        ),
     )
 
 

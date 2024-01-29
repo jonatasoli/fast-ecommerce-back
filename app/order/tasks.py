@@ -1,4 +1,3 @@
-from decimal import Decimal
 from typing import Any
 
 from fastapi import Depends

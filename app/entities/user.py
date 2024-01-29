@@ -40,5 +40,3 @@ class UserDBGet(BaseModel):
 
 class UserCouponResponse(BaseModel):
     urls: list[str]
-
-

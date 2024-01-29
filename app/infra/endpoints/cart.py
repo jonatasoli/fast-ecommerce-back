@@ -1,3 +1,4 @@
+# ruff: noqa:  PLR0913
 from fastapi.security import OAuth2PasswordBearer
 from app.entities.address import CreateAddress
 from app.entities.cart import (

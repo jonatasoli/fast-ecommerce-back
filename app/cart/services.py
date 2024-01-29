@@ -1,7 +1,11 @@
+# ruff: noqa: PLR1714
 import re
+from decimal import Decimal
+
 from fastapi import HTTPException
 from loguru import logger
 from propan.brokers.rabbit import RabbitQueue
+
 from app.entities.address import CreateAddress
 from app.entities.cart import (
     CartBase,
@@ -84,7 +88,7 @@ async def add_product_to_cart(
     return cart
 
 
-async def calculate_cart(
+async def calculate_cart(  # noqa: C901
     uuid: str,
     cart: CartBase,
     bootstrap: Command,
@@ -106,7 +110,7 @@ async def calculate_cart(
     )
     products_in_cart = []
     products_in_inventory = []
-    cart_quantities = []
+    cart_quantities = {}
     for product in products_db:
         for cart_item in cache_cart.cart_items:
             products_in_cart.append(product.product_id)
@@ -120,19 +124,36 @@ async def calculate_cart(
                     cart_item.product_id == item['product_id']
                     and cart_item.quantity > item['quantity']
                 ):
-                    cart_quantities.append(cart_item.model_dump())
+                    cart_quantities.update(
+                        {
+                            f'{cart_item.product_id}': {
+                                'product_id': cart_item.product_id,
+                                'product_name': cart_item.name,
+                                'available_quantity': item['quantity']
+                                if item['quantity'] > 0
+                                else 0,
+                            },
+                        },
+                    )
+                    cart_item.quantity = 0
+                    cart_item.price = Decimal(0)
 
     products_not_in_both = list(
         set(products_in_cart) ^ set(products_in_inventory),
     )
 
     if cart_quantities:
+        cache.set(
+            str(cart.uuid),
+            cache_cart.model_dump_json(),
+            ex=DEFAULT_CART_EXPIRE,
+        )
         raise ProductSoldOutError(
-            f'Os seguintes items solicitados estão com um pedido acima dos nossos estoques {cart_quantities}',
+            cart_quantities,
         )
     if len(products_db) != len(products_inventory):
-        raise ProductSoldOutError(
-            f'Os seguintes produtos não possuem em estoque {products_not_in_both}',
+        raise ProductSoldOutError(  # noqa: TRY003
+            f'Os seguintes produtos não possuem em estoque {products_not_in_both}',  # noqa: EM102
         )
     cart.get_products_price_and_discounts(products_db)
     if cart.coupon and not (

@@ -1,7 +1,7 @@
 import json
+import math
 from typing import Any
 
-import math
 from fastapi import HTTPException, status
 from loguru import logger
 from sqlalchemy import func, select
@@ -112,8 +112,8 @@ def get_product(db: Session, uri) -> ProductInDB | None:
 
 
 def create_product(
-        db: Session,
-        product_data: ProductSchema,
+    db: Session,
+    product_data: ProductSchema,
 ) -> bool | ProductSchemaResponse:
     """Create new product."""
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
@@ -134,7 +134,11 @@ def update_product(product: ProductDB, product_data: dict) -> ProductDB:
     return product
 
 
-def patch_product(db: Session, id, product_data: ProductPatchRequest) -> ProductFullResponse:
+def patch_product(
+    db: Session,
+    id,
+    product_data: ProductPatchRequest,
+) -> ProductFullResponse:
     """Update Product."""
     values = product_data.model_dump(exclude_none=True)
     product = get_product_by_id(db, id)
@@ -171,9 +175,9 @@ def upload_image(db: Session, product_id: int, image: Any) -> str:
 
 
 def upload_image_gallery(
-        product_id: int,
-        db: Session,
-        imageGallery: Any,
+    product_id: int,
+    db: Session,
+    imageGallery: Any,
 ) -> str:
     """Upload Image Galery."""
     image_path = optimize_image.optimize_image(imageGallery)
@@ -291,7 +295,8 @@ def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
             items_query = (
                 select(OrderItemsDB)
                 .join(
-                    ProductDB, OrderItemsDB.product_id == ProductDB.product_id,
+                    ProductDB,
+                    OrderItemsDB.product_id == ProductDB.product_id,
                 )
                 .where(OrderItemsDB.order_id == order.order_id)
             )
@@ -319,7 +324,9 @@ def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
                     products=products_list,
                 ),
             )
-        return [OrderUserListResponse.model_validate(order) for order in orders_obj]
+        return [
+            OrderUserListResponse.model_validate(order) for order in orders_obj
+        ]
 
 
 def get_order_users(db: Session, id):
@@ -361,11 +368,11 @@ class NotFoundCategoryException(Exception):
 
 
 def get_products_category(
-        *,
-        offset: int,
-        page: int,
-        path: str,
-        db: Session,
+    *,
+    offset: int,
+    page: int,
+    path: str,
+    db: Session,
 ) -> ProductsResponse:
     """Get products and category."""
     products = None
@@ -379,8 +386,51 @@ def get_products_category(
 
         logger.info(category.path, category.category_id)
 
-        products_query = select(ProductDB).where(
-            ProductDB.category_id == category.category_id,
+        category_alias = aliased(CategoryDB)
+        products_query = (
+            select(
+                ProductDB.product_id,
+                ProductDB.name,
+                ProductDB.uri,
+                ProductDB.price,
+                ProductDB.active,
+                ProductDB.direct_sales,
+                ProductDB.description,
+                ProductDB.image_path,
+                ProductDB.installments_config,
+                ProductDB.installments_list,
+                ProductDB.discount,
+                ProductDB.category_id,
+                ProductDB.showcase,
+                ProductDB.feature,
+                ProductDB.show_discount,
+                ProductDB.height,
+                ProductDB.width,
+                ProductDB.weight,
+                ProductDB.length,
+                ProductDB.diameter,
+                ProductDB.sku,
+                ProductDB.currency,
+                func.coalesce(func.sum(InventoryDB.quantity), 0).label(
+                    'quantity',
+                ),
+                category_alias.category_id.label('category_id_1'),
+                category_alias.name.label('name_1'),
+                category_alias.path,
+                category_alias.menu,
+                category_alias.showcase.label('showcase_1'),
+                category_alias.image_path.label('image_path_1'),
+            )
+            .where(ProductDB.category_id == category.category_id)
+            .outerjoin(
+                InventoryDB,
+                InventoryDB.product_id == ProductDB.product_id,
+            )
+            .outerjoin(
+                category_alias,
+                ProductDB.category_id == category_alias.category_id,
+            )
+            .group_by(ProductDB.product_id, category_alias.category_id)
         )
         total_records = db.scalar(
             select(func.count(ProductDB.product_id)).where(
@@ -391,11 +441,28 @@ def get_products_category(
             products_query = products_query.offset((page - 1) * offset)
         products_query = products_query.limit(offset)
 
-        products = db.scalars(products_query)
+        products = db.execute(products_query)
 
+        keys = products.keys()
         for product in products:
+            product_dict = dict(zip(keys, product))
+            if 'category_id_1' in product_dict:
+                product_dict['category'] = {
+                    'category_id': product_dict['category_id_1'],
+                    'name': product_dict['name_1'],
+                    'path': product_dict['path'],
+                    'menu': product_dict['menu'],
+                    'showcase': product_dict['showcase_1'],
+                    'image_path': product_dict['image_path_1'],
+                }
+                del product_dict['category_id_1']
+                del product_dict['name_1']
+                del product_dict['path']
+                del product_dict['menu']
+                del product_dict['showcase_1']
+                del product_dict['image_path_1']
             products_category.append(
-                ProductCategoryInDB.model_validate(product),
+                ProductCategoryInDB.model_validate(product_dict),
             )
 
     return ProductsResponse(
@@ -496,9 +563,9 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
 
 
 def get_latest_products(
-        offset: int,
-        page: int,
-        db: Session,
+    offset: int,
+    page: int,
+    db: Session,
 ) -> ProductsResponse:
     """Get latests products."""
     products = None
@@ -588,9 +655,9 @@ def get_latest_products(
 
 
 def get_featured_products(
-        offset: int,
-        page: int,
-        db: Session,
+    offset: int,
+    page: int,
+    db: Session,
 ) -> ProductsResponse:
     """Get Featured products."""
     products = None
@@ -617,15 +684,62 @@ def get_featured_products(
 
 
 def search_products(
-        search: str,
-        offset: int,
-        page: int,
-        db: Session,
+    search: str,
+    offset: int,
+    page: int,
+    db: Session,
 ) -> ProductsResponse:
     """Search Products."""
     products = None
-    with db:
-        products = select(ProductDB).where(ProductDB.name.ilike(f'%{search}%'))
+    with (db):
+        category_alias = aliased(CategoryDB)
+        products = (
+            select(
+                ProductDB.product_id,
+                ProductDB.name,
+                ProductDB.uri,
+                ProductDB.price,
+                ProductDB.active,
+                ProductDB.direct_sales,
+                ProductDB.description,
+                ProductDB.image_path,
+                ProductDB.installments_config,
+                ProductDB.installments_list,
+                ProductDB.discount,
+                ProductDB.category_id,
+                ProductDB.showcase,
+                ProductDB.feature,
+                ProductDB.show_discount,
+                ProductDB.height,
+                ProductDB.width,
+                ProductDB.weight,
+                ProductDB.length,
+                ProductDB.diameter,
+                ProductDB.sku,
+                ProductDB.currency,
+                func.coalesce(func.sum(InventoryDB.quantity), 0).label(
+                    'quantity',
+                ),
+                category_alias.category_id.label('category_id_1'),
+                category_alias.name.label('name_1'),
+                category_alias.path,
+                category_alias.menu,
+                category_alias.showcase.label('showcase_1'),
+                category_alias.image_path.label('image_path_1'),
+            )
+            .where(
+                ProductDB.name.ilike(f'%{search}%'),
+            )
+            .outerjoin(
+                InventoryDB,
+                InventoryDB.product_id == ProductDB.product_id,
+            )
+            .outerjoin(
+                category_alias,
+                ProductDB.category_id == category_alias.category_id,
+            )
+            .group_by(ProductDB.product_id, category_alias.category_id)
+        )
         total_records = db.scalar(
             select(func.count(ProductDB.product_id)).where(
                 ProductDB.name.ilike(f'%{search}%'),
@@ -634,11 +748,28 @@ def search_products(
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
-        products = db.scalars(products).all()
+        products = db.execute(products)
     products_list = []
 
+    keys = products.keys()
     for product in products:
-        products_list.append(ProductCategoryInDB.model_validate(product))
+        product_dict = dict(zip(keys, product))
+        if 'category_id_1' in product_dict:
+            product_dict['category'] = {
+                'category_id': product_dict['category_id_1'],
+                'name': product_dict['name_1'],
+                'path': product_dict['path'],
+                'menu': product_dict['menu'],
+                'showcase': product_dict['showcase_1'],
+                'image_path': product_dict['image_path_1'],
+            }
+            del product_dict['category_id_1']
+            del product_dict['name_1']
+            del product_dict['path']
+            del product_dict['menu']
+            del product_dict['showcase_1']
+            del product_dict['image_path_1']
+        products_list.append(ProductCategoryInDB.model_validate(product_dict))
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,

@@ -1,25 +1,26 @@
 import pytest
 from domains.domain_user import get_current_user
-from models.role import Role
+from app.infra.models import RoleDB
 
 
 def test_roles(db):
-    role_1 = Role(status='active', role='ADMIN')
-    role_2 = Role(status='active', role='USER')
+    role_1 = RoleDB(active=True, role='ADMIN')
+    role_2 = RoleDB(active=True, role='USER')
     with db:
         db.add(role_1)
         db.commit()
         db.add(role_2)
         db.commit()
 
-        assert role_1.id == 1
-        assert role_2.id == 2
+        assert role_1.role_id == 1
+        assert role_2.role_id == 2
 
 
 def test_signup(t_client) -> None:
 
     signup_data = {
         'name': 'Jonatas Luiz de Oliveira',
+        'username': 'jonhdoe',
         'mail': 'contato@jonatasoliveira.com',
         'password': 'asdasd',
         'document': '12345678910',
@@ -49,6 +50,7 @@ def test_signup_new(t_client) -> None:
     signup_data = {
         'name': 'Jonh Doe',
         'mail': 'contato@jonh.com',
+        'username': 'johndoe',
         'password': 'secret',
         'document': '12345678911',
         'phone': '11912345678',

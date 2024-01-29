@@ -1,14 +1,19 @@
-from pydantic import Json
-from sqlalchemy.orm import DeclarativeBase, backref
-from sqlalchemy.orm import Mapped, mapped_column
-
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Any
+
+from pydantic import Json
 from sqlalchemy import (
     JSON,
     ForeignKey,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    backref,
+    Mapped,
+    mapped_column,
+    relationship,
+)
 from sqlalchemy.sql import func
 
 from app.infra.constants import DocumentType
@@ -77,7 +82,7 @@ class ProductDB(Base):
     length: Mapped[Decimal | None]
     diameter: Mapped[Decimal | None]
     sku: Mapped[str]
-    currency: Mapped[str] = mapped_column(default='BRL', default_server='BRL')
+    currency: Mapped[str] = mapped_column(default='BRL')
 
 
 class CouponsDB(Base):
@@ -119,9 +124,6 @@ class OrderDB(Base):
     cart_uuid: Mapped[str]
     discount: Mapped[Decimal]
     tracking_number: Mapped[str | None]
-    payment_id: Mapped[int | None] = mapped_column(
-        ForeignKey('payment.payment_id'),
-    )
     order_status: Mapped[str]
     last_updated: Mapped[datetime]
     checked: Mapped[bool] = mapped_column(default=False)

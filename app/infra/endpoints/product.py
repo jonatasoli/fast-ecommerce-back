@@ -99,7 +99,7 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
         return product
     except Exception as e:
         logger.error(f'Erro em obter os produto - { e }')
-        raise
+        raise e from Exception
 
 
 @product.patch(

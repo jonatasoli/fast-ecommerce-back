@@ -1,3 +1,4 @@
+# ruff: noqa: ANN401 FBT002
 from typing import Any
 from fastapi import APIRouter, Depends, status
 from app.catalog.entities import Categories
@@ -73,7 +74,7 @@ def get_latest_products(
 @catalog.get(
     '/featured',
     summary='Get featured products',
-    description='Return products is flagged with feature in ProductDB limited for offset',
+    description='Return products is flagged with ProductDB limited for offset',
     status_code=status.HTTP_200_OK,
     response_model=ProductsResponse,
 )
