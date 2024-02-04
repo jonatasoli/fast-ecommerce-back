@@ -523,6 +523,7 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
                 ProductDB.category_id == category_alias.category_id,
             )
             .group_by(ProductDB.product_id, category_alias.category_id)
+            .order_by(ProductDB.product_id.asc())
         )
         total_records = db.scalar(select(func.count(ProductDB.product_id)))
         if page > 1:
