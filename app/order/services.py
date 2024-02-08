@@ -222,7 +222,11 @@ def get_images_gallery(db: Session, uri: str) -> dict:
 def get_showcase(db: Session) -> list:
     """Get Products showcase."""
     with db:
-        showcases_query = select(ProductDB).where(ProductDB.showcase == True)
+        showcases_query = (
+            select(ProductDB)
+            .where(ProductDB.showcase == True)
+            .where(ProductDB.active == True)
+        )
         showcases = db.execute(showcases_query).scalars().all()
 
         return [
@@ -422,6 +426,7 @@ def get_products_category(
                 category_alias.image_path.label('image_path_1'),
             )
             .where(ProductDB.category_id == category.category_id)
+            .where(ProductDB.active == True)
             .outerjoin(
                 InventoryDB,
                 InventoryDB.product_id == ProductDB.product_id,
@@ -522,6 +527,7 @@ def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
                 category_alias,
                 ProductDB.category_id == category_alias.category_id,
             )
+            .where(ProductDB.active == True)
             .group_by(ProductDB.product_id, category_alias.category_id)
             .order_by(ProductDB.product_id.asc())
         )
@@ -614,6 +620,7 @@ def get_latest_products(
                 category_alias,
                 ProductDB.category_id == category_alias.category_id,
             )
+            .where(ProductDB.active == True)
             .group_by(ProductDB.product_id, category_alias.category_id)
         )
         total_records = db.scalar(select(func.count(ProductDB.product_id)))
@@ -663,7 +670,9 @@ def get_featured_products(
     """Get Featured products."""
     products = None
     with db:
-        products = select(ProductDB).where(ProductDB.feature == True)
+        products = select(ProductDB).where(
+            ProductDB.feature == True, ProductDB.active == True
+        )
         total_records = db.scalar(select(func.count(ProductDB.product_id)))
         if page > 1:
             products = products.offset((page - 1) * offset)
