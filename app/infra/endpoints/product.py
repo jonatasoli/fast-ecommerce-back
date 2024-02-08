@@ -1,4 +1,3 @@
-# ruff: noqa: ANN401 TRY301 TRY300
 from typing import Any
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from loguru import logger
@@ -104,9 +103,7 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
 
 
 @product.patch(
-    '/update/{id}',
-    status_code=200,
-    response_model=ProductFullResponse,
+    '/update/{id}', status_code=200, response_model=ProductFullResponse
 )
 def patch_product(
     id: int,

@@ -5,7 +5,7 @@ from fastapi import Depends
 from app.entities.cart import CartPayment
 from app.entities.coupon import CouponResponse
 from app.infra.bootstrap.task_bootstrap import Command
-from app.infra.models import OrderDB
+from app.infra.models import OrderDB, CouponsDB
 from app.order.entities import OrderDBUpdate
 from app.infra.worker import task_message_bus
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command

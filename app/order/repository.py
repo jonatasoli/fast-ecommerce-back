@@ -12,7 +12,7 @@ from app.infra.models import (
     OrderDB,
     OrderItemsDB,
     OrderStatusStepsDB,
-    ProductDB,
+    ProductDB, CouponsDB,
 )
 from app.order.entities import OrderDBUpdate
 
