@@ -16,6 +16,7 @@ def get_engine() -> Engine:
     ------
         sqlalchemy.engine.base.Engine: An instance of the configured SQLAlchemy
         connection sync engine.
+
     """
     sqlalchemy_database_url = settings.DATABASE_URL
 
@@ -54,6 +55,7 @@ def get_async_engine() -> AsyncEngine:
     ------
         sqlalchemy.ext.asyncio.AsyncEngine: An instance of the configured SQLAlchemy
         connection async engine.
+
     """
     return create_async_engine(
         settings.DATABASE_URI,

@@ -270,6 +270,8 @@ async def checkout(
         'order_id': {order_id},
         'gateway_payment_id': gateway_payment_id,
         'message': 'processed',
+        'qr_code': getattr(cart, 'pix_qr_code', None),
+        'qr_code_base64': getattr(cart, 'pix_qr_code_base64', None),
     }
 
 

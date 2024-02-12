@@ -198,9 +198,7 @@ def check_user(db: Session, checkout_data: CheckoutSchema):
 
 def create_product(db: Session, product: ProductSchema):
     try:
-        if not product.upsell:
-            _upsell = None
-        elif None in product.upsell:
+        if not product.upsell or None in product.upsell:
             _upsell = None
         else:
             _upsell = product.upsell

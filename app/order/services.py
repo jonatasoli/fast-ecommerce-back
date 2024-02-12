@@ -282,7 +282,6 @@ def get_product_by_id(db: Session, id: int) -> ProductDB | None:
 
 def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
     """Get Orders Paid."""
-    ...
 
 
 def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
@@ -671,7 +670,8 @@ def get_featured_products(
     products = None
     with db:
         products = select(ProductDB).where(
-            ProductDB.feature == True, ProductDB.active == True
+            ProductDB.feature == True,
+            ProductDB.active == True,
         )
         total_records = db.scalar(select(func.count(ProductDB.product_id)))
         if page > 1:
