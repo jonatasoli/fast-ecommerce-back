@@ -5,7 +5,6 @@ from decimal import Decimal
 from mail_service.sendmail import settings
 from app.entities.cart import CartBase
 from app.entities.product import ProductCart
-from config import settings
 from fastapi.encoders import jsonable_encoder
 import redis
 

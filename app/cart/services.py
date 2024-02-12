@@ -329,7 +329,7 @@ async def add_payment_information(  # noqa: PLR0913
             gateway_provider=payment.payment_gateway,
             customer_id=customer,
             pix_qr_code=qr_code,
-            pix_qr_code_base4=qr_code_base64,
+            pix_qr_code_base64=qr_code_base64,
             pix_payment_id=payment_id,
             payment_method_id=str(payment_id),
         )
@@ -454,6 +454,8 @@ async def checkout(
     else:
         _order_id = checkout_task.get('order_id', None)
         _gateway_payment_id = checkout_task.get('gateway_payment_id', None)
+        _qr_code = checkout_task.get('qr_code', None)
+        _qr_code_base64 = checkout_task.get('qr_code_base64', None)
         if isinstance(_order_id, list):
             order_id = str(_order_id.pop())
         if isinstance(_gateway_payment_id, list):
@@ -465,6 +467,8 @@ async def checkout(
         status='processing',
         order_id=order_id,
         gateway_payment_id=_gateway_payment_id if _gateway_payment_id else '',
+        qr_code=_qr_code,
+        qr_code_base64=_qr_code_base64,
     )
 
 

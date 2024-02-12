@@ -171,6 +171,7 @@ def cancel_credit_card_reservation(
 
 
 def create_pix(customer_id, amount, client: SDK = get_payment_client()):
+    """Create pix in mercado pago."""
     payment_data = {
         'transaction_amount': amount,
         'payment_method_id': 'pix',

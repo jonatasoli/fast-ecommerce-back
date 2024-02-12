@@ -120,7 +120,6 @@ async def estimate(
 @cart.get('/upsell/{id}', status_code=200)
 async def get_upsell_products():   # noqa: ANN201
     """Get products and upsell."""
-    ...
 
 
 @cart.post('/{uuid}/user', status_code=201, response_model=CartUser)
