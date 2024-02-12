@@ -8,7 +8,7 @@ from app.infra.bootstrap.task_bootstrap import Command
 from app.infra.models import OrderDB
 from app.order.entities import OrderDBUpdate
 from app.infra.worker import task_message_bus
-from app.infra.bootstrap.task_bootstrap import bootstrap, Command
+from app.infra.bootstrap.task_bootstrap import bootstrap
 
 
 async def create_order(
@@ -63,4 +63,3 @@ async def cancel_order_task(
     bootstrap: Any = Depends(get_bootstrap),
 ) -> None:
     """Cancel order task."""
-    ...

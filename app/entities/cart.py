@@ -210,7 +210,7 @@ class CartPayment(CartShipping):
     customer_id: str | None = None
     card_token: str | None = None
     pix_qr_code: str | None = None
-    pix_qr_code_base4: str | None = None
+    pix_qr_code_base64: str | None = None
     pix_payment_id: int | None = None
     gateway_provider: str
     installments: int = 1
@@ -266,6 +266,8 @@ class CreateCheckoutResponse(BaseModel):
     message: str
     order_id: str | None
     gateway_payment_id: str | None
+    qr_code: str | None
+    qr_code_base64: str | None
 
 
 def convert_price_to_decimal(price: int) -> Decimal:

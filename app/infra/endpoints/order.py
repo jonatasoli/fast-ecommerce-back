@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 from constants import OrderStatus
 from app.order import services
 from app.infra.deps import get_db
-from gateway.payment_gateway import return_transaction
 from job_service.service import get_session
 from app.infra.models import PaymentDB, OrderDB
 from schemas.order_schema import (
@@ -140,8 +139,8 @@ def status_pending() -> None:
     data = order_status()
     logger.debug(data)
     db = get_session()
-    payment = db.query(PaymentDB).filter_by(id=data.get('payment_id')).first()
-    return return_transaction(payment.gateway_id)
+    _ = db.query(PaymentDB).filter_by(id=data.get('payment_id')).first()
+    # TODO create return payment from payment gateway
 
 
 def status_paid() -> None:

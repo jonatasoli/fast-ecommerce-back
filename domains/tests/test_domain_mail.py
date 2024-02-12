@@ -16,7 +16,6 @@ from schemas.mail_schema import MailTrackingNumber
 
 def test_read_template_file():
     """Must read template file."""
-    ...
 
 
 # passar os dados do from / to / mail pro send_mail
