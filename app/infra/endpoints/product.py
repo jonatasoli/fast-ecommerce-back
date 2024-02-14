@@ -1,10 +1,14 @@
 # ruff: noqa: ANN401 TRY301 TRY300
-from typing import Any
+from types import ModuleType
+from typing import Any, Callable
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from loguru import logger
+from redis.commands.core import AsyncHyperlogCommands
+from redis.connection import MODULE_LOAD_ERROR
 from sqlalchemy.orm import Session
 from app.entities.product import ProductInDB
 from app.infra.models import ProductDB
+from app.product import services as product_services
 
 from app.order import services
 from app.infra import deps
@@ -42,15 +46,20 @@ def create_product(
     return product
 
 
-@product.post('/upload-image/{product_id}', status_code=200)
+@product.post('/upload-image/{product_id}',
+              summary="Put image in product.",
+              description="Get product_id and image file and update to image client.",
+              status_code=status.HTTP_200_OK
+)
 def upload_image(
     product_id: int,
+    *,
     db: Session = Depends(get_db),
     image: UploadFile = File(...),
 ) -> None:
     """Upload image."""
     try:
-        return services.upload_image(db, product_id, image)
+        return product_services.upload_image(product_id, db=db, image=image)
     except Exception:
         raise
 

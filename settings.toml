@@ -1,4 +1,9 @@
 [default]
+FILE_UPLOAD_CLIENT=""
+ENDPOINT_UPLOAD_CLIENT=""
+ENDPOINT_UPLOAD_REGION=""
+BUCKET_NAME=""
+FILE_UPLOAD_PATH="http://localhost:8001/static/images/"
 DATABASE_URL="postgresql://postgres_user:pass@localhost/ecommerce"
 DATABASE_URI="postgresql+asyncpg://postgres_user:pass@localhost/ecommerce"
 FRONTEND_URLS= "https://localhost:3000"
