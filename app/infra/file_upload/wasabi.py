@@ -13,11 +13,10 @@ def upload_image(image: UploadFile) -> None:
         aws_secret_access_key=f'{settings.AWS_SECRET_ACCESS_KEY}',
     )
 
-    # Get bucket object
-    boto_test_bucket = s3.Bucket(f'{settings.BUCKET_NAME}')
-
-    # Upload the file. "MyDirectory/test.txt" is the name of the object to create
-    boto_test_bucket.upload_file(
+    # Upload bucket file
+    s3.upload_file(
         f'{image.filename}',
+        f'{settings.BUCKET_NAME}',
         f'{settings.ENVIRONMENT}/{image.filename}',
+        ExtraArgs={'ACL': 'public-read'},
     )
