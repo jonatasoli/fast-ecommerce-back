@@ -6,8 +6,8 @@ from app.infra.file_upload import wasabi, spaces
 
 
 class FILE_UPLOAD_CLIENTS(enum.Enum):
-    WASABI=wasabi
-    SPACES=spaces
+    WASABI = wasabi
+    SPACES = spaces
 
 
 def optimize_image(image: UploadFile) -> str:
@@ -18,11 +18,12 @@ def optimize_image(image: UploadFile) -> str:
         return f'{settings.FILE_UPLOAD_PATH}{image.filename}'
     img.save(f'{image.filename}')
     _upload_file(image)
-    return f'{settings.FILE_UPLOAD_PATH}{settings.ENVIRONMENT}/{image.filename}'
+    return (
+        f'{settings.FILE_UPLOAD_PATH}{settings.ENVIRONMENT}/{image.filename}'
+    )
 
 
 def _upload_file(image: UploadFile) -> None:
     """Select client and send image."""
-    client = FILE_UPLOAD_CLIENTS[f'settings.FILE_UPLOAD_CLIENT'].value
+    client = FILE_UPLOAD_CLIENTS['settings.FILE_UPLOAD_CLIENT'].value
     client.upload_image(image)
-

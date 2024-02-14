@@ -46,10 +46,11 @@ def create_product(
     return product
 
 
-@product.post('/upload-image/{product_id}',
-              summary="Put image in product.",
-              description="Get product_id and image file and update to image client.",
-              status_code=status.HTTP_200_OK
+@product.post(
+    '/upload-image/{product_id}',
+    summary='Put image in product.',
+    description='Get product_id and image file and update to image client.',
+    status_code=status.HTTP_200_OK,
 )
 def upload_image(
     product_id: int,

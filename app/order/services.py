@@ -1,6 +1,6 @@
 import json
 import math
-from typing import Any, Callable
+from typing import Any
 
 from fastapi import HTTPException, status
 from loguru import logger
@@ -13,7 +13,6 @@ from app.entities.product import (
     ProductsResponse,
 )
 from app.infra.file_upload import optimize_image
-from app.product import repository
 from app.infra.models import (
     CategoryDB,
     ImageGalleryDB,
@@ -161,6 +160,7 @@ def delete_product(db: Session, id: int) -> None:
             select(ProductDB).where(ProductDB.product_id == product_id),
         ).delete()
         db.commit()
+
 
 def upload_image_gallery(
     product_id: int,
