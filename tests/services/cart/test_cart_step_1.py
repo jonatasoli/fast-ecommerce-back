@@ -9,7 +9,7 @@ from app.entities.cart import CartBase
 from app.entities.product import ProductCart, ProductInventoryDB
 from app.cart.services import add_product_to_cart, calculate_cart
 from app.infra.bootstrap.cart_bootstrap import Command
-from tests.factories_db import InventoryDBFactory, ProductFactory
+from tests.factories_db import InventoryDBFactory, ProductDBFactory
 from tests.fake_functions import fake, fake_url_path
 
 
@@ -61,7 +61,7 @@ async def test_add_product_to_new_cart(
     """Must add product to new cart and return cart_id."""
     # Arrange
     product = create_product_cart()
-    productdb = ProductFactory(product_id=1, discount=0)
+    productdb = ProductDBFactory(product_id=1, discount=0)
     bootstrap = await memory_bootstrap
     mocker.patch.object(
         bootstrap.uow,
@@ -89,7 +89,7 @@ async def test_add_product_to_new_cart_should_set_in_cache(
     """Must add product to new cart and set cart in cache."""
     # Arrange
     product = create_product_cart()
-    productdb = ProductFactory(product_id=1, discount=0)
+    productdb = ProductDBFactory(product_id=1, discount=0)
     bootstrap = await memory_bootstrap
     mocker.patch.object(
         bootstrap.uow,
@@ -126,7 +126,7 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
         quantity=1,
     )
 
-    productdb = ProductFactory(product_id=1, discount=0)
+    productdb = ProductDBFactory(product_id=1, discount=0)
     bootstrap = await memory_bootstrap
     mocker.patch.object(
         bootstrap.uow,
@@ -183,14 +183,14 @@ async def test_given_cart_with_items_need_calculate_to_preview(
     cart_items.append(first_product)
     cart_items.append(second_product)
 
-    productdb_1 = ProductFactory(
+    productdb_1 = ProductDBFactory(
         product_id=1,
         discount=0,
         category_id=1,
         showcase=False,
         show_discount=False,
     )
-    productdb_2 = ProductFactory(
+    productdb_2 = ProductDBFactory(
         product_id=2,
         discount=0,
         category_id=1,

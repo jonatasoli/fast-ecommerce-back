@@ -12,7 +12,7 @@ from tests.factories_db import (
     CategoryFactory,
     CreditCardFeeConfigFactory,
     InventoryDBFactory,
-    ProductFactory,
+    ProductDBFactory,
 )
 from tests.fake_functions import fake, fake_url_path
 
@@ -29,12 +29,12 @@ async def test_estimate_products_in_cart(db) -> None:
         config_fee = CreditCardFeeConfigFactory()
         db.add_all([category, config_fee])
         db.flush()
-        product_db_1 = ProductFactory(
+        product_db_1 = ProductDBFactory(
             category=category,
             installment_config=config_fee,
             price=100,
         )
-        product_db_2 = ProductFactory(
+        product_db_2 = ProductDBFactory(
             category=category,
             installment_config=config_fee,
             price=200,

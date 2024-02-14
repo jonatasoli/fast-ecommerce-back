@@ -9,7 +9,7 @@ from app.entities.product import ProductCart
 from tests.factories_db import (
     CategoryFactory,
     CreditCardFeeConfigFactory,
-    ProductFactory,
+    ProductDBFactory,
 )
 from tests.fake_functions import fake, fake_url_path
 from config import settings
@@ -27,12 +27,11 @@ async def test_add_product_in_new_cart(db) -> None:
         config_fee = CreditCardFeeConfigFactory()
         db.add_all([category, config_fee])
         db.flush()
-        product_db = ProductFactory(
+        product_db = ProductDBFactory(
             category=category,
             installment_config=config_fee,
             price=10000,
         )
-        db.add(category)
         db.add(product_db)
         db.commit()
     uuid = fake.uuid4()
