@@ -153,7 +153,7 @@ def patch_product(
         return ProductFullResponse.model_validate(product)
 
 
-def delete_product(db: Session, id: int) -> None:
+def delete_product(db: Session, product_id: int) -> None:
     """Remove Product."""
     with db:
         db.execute(
