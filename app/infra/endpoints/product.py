@@ -4,7 +4,6 @@ from typing import Any, Callable
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from loguru import logger
 from redis.commands.core import AsyncHyperlogCommands
-from redis.connection import MODULE_LOAD_ERROR
 from sqlalchemy.orm import Session
 from app.entities.product import ProductInDB
 from app.infra.models import ProductDB
