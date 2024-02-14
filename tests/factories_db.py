@@ -76,7 +76,7 @@ class CreditCardFeeConfigFactory(factory.Factory):
     fee = fake_decimal()
 
 
-class ProductFactory(factory.Factory):
+class ProductDBFactory(factory.Factory):
     class Meta:
         model = ProductDB
 
@@ -169,7 +169,7 @@ class InventoryDBFactory(factory.Factory):
         model = InventoryDB
 
     class Params:
-        product = SubFactory(ProductFactory)
+        product = SubFactory(ProductDBFactory)
 
     product_id = SelfAttribute('product.product_id')
     quantity = fake.pyint(min_value=1, max_value=999)

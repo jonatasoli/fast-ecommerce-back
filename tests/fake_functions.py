@@ -1,7 +1,9 @@
+import io
 import json
 import datetime as dt
 from decimal import Decimal
 from typing import Any, cast
+from fastapi import UploadFile
 
 from faker import Faker
 
@@ -57,3 +59,10 @@ def fake_url() -> str:
 
 def fake_url_path() -> str:
     return cast(str, fake.uri_path())
+
+
+def fake_file() -> UploadFile:
+    return UploadFile(
+        filename='my_file.txt',
+        file=io.BytesIO(b'Test File'),
+    )

@@ -144,3 +144,7 @@ dmypy.json
 .vscode/
 .vscode/*
 images
+
+# Static
+./static
+static

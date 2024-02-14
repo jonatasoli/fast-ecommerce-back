@@ -12,6 +12,7 @@ from app.entities.product import (
     ProductInDB,
     ProductsResponse,
 )
+from app.infra.file_upload import optimize_image
 from app.infra.models import (
     CategoryDB,
     ImageGalleryDB,
@@ -20,7 +21,6 @@ from app.infra.models import (
     OrderDB,
     OrderItemsDB,
 )
-from app.infra.optimize_image import optimize_image
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,
@@ -157,21 +157,9 @@ def delete_product(db: Session, id: int) -> None:
     """Remove Product."""
     with db:
         db.execute(
-            select(ProductDB).where(ProductDB.id == id).delete(),
+            select(ProductDB).where(ProductDB.product_id == product_id),
         ).delete()
         db.commit()
-
-
-def upload_image(db: Session, product_id: int, image: Any) -> str:
-    """Upload image."""
-    image_path = optimize_image.optimize_image(image)
-    with db:
-        db_product = (
-            db.query(ProductDB).filter(ProductDB.id == product_id).first()
-        )
-        db_product.image_path = image_path
-        db.commit()
-    return image_path
 
 
 def upload_image_gallery(
