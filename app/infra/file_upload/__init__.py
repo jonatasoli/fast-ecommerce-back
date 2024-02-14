@@ -25,5 +25,5 @@ def optimize_image(image: UploadFile) -> str:
 
 def _upload_file(image: UploadFile) -> None:
     """Select client and send image."""
-    client = FileUploadClients['settings.FILE_UPLOAD_CLIENT'].value
+    client = FileUploadClients[f'{settings.FILE_UPLOAD_CLIENT}'].value
     client.upload_image(image)
