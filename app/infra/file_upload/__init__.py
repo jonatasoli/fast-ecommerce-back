@@ -5,7 +5,7 @@ from PIL import Image
 from app.infra.file_upload import wasabi, spaces
 
 
-class FILE_UPLOAD_CLIENTS(enum.Enum):
+class FileUploadClients(enum.Enum):
     WASABI = wasabi
     SPACES = spaces
 
@@ -25,5 +25,5 @@ def optimize_image(image: UploadFile) -> str:
 
 def _upload_file(image: UploadFile) -> None:
     """Select client and send image."""
-    client = FILE_UPLOAD_CLIENTS['settings.FILE_UPLOAD_CLIENT'].value
+    client = FileUploadClients['settings.FILE_UPLOAD_CLIENT'].value
     client.upload_image(image)
