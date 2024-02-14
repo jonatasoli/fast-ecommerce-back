@@ -9,7 +9,7 @@ def upload_image(image: UploadFile) -> None:
     s3 = boto3.resource(
         's3',
         endpoint_url=f'{settings.ENDPOINT_UPLOAD_CLIENT}',
-        aws_access_key_id=f'{settings.AWS_ACESS_KEY_ID}',
+        aws_access_key_id=f'{settings.AWS_ACCESS_KEY_ID}',
         aws_secret_access_key=f'{settings.AWS_SECRET_ACCESS_KEY}',
     )
 
