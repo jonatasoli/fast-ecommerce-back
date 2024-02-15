@@ -43,6 +43,7 @@ stripe = "*"
 pydantic-settings = "*"
 propan = {version = "~0.1", extras = ["async-rabbit"]}
 mercadopago = "*"
+elementpath = "^4.2.1"
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"
