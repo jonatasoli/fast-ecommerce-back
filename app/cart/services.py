@@ -425,6 +425,8 @@ async def checkout(
     cache_cart = bootstrap.cache.get(uuid)
     validate_cache_cart(cache_cart)
     cache_cart = CartPayment.model_validate_json(cache_cart)
+    _qr_code = None
+    _qr_code_base64 = None
 
     if (
         cache_cart.payment_method != PaymentMethod.CREDIT_CARD.value
