@@ -3,10 +3,7 @@ from decimal import Decimal
 from typing import Any
 
 from pydantic import Json
-from sqlalchemy import (
-    JSON,
-    ForeignKey,
-)
+from sqlalchemy import JSON, ForeignKey, BIGINT
 from sqlalchemy.orm import (
     DeclarativeBase,
     backref,
@@ -258,7 +255,7 @@ class PaymentDB(Base):
     amount: Mapped[Decimal]
     amount_with_fee: Mapped[Decimal] = mapped_column(server_default='0')
     token: Mapped[str]
-    gateway_payment_id: Mapped[int] = mapped_column(server_default='0')
+    gateway_payment_id: Mapped[int] = mapped_column(BIGINT, server_default='0')
     status: Mapped[str]
     authorization: Mapped[str]
     payment_method: Mapped[str]
