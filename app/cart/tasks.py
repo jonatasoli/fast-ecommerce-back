@@ -213,6 +213,13 @@ async def checkout(
                             },
                             queue=RabbitQueue('sales_commission'),
                         )
+                        await bootstrap.message.broker.publish(
+                            {
+                                'mail_to': user.email,
+                                'order_id': order_id if order_id else '',
+                            },
+                            queue=RabbitQueue('notification_order_paid'),
+                        )
                 logger.info(
                     f'Checkout cart {cart_uuid} with payment {payment_id} processed with success',
                 )
