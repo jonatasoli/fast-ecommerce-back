@@ -27,7 +27,6 @@ Jinja2 = "*"
 sendgrid = "*"
 httpx = "*"
 pytest-asyncio = "*"
-psycopg2-binary = "*"
 importlib-metadata = "*"
 typing-extensions = "*"
 sentry-sdk = {version = "*", extras = ["fastapi"]}
@@ -44,6 +43,7 @@ propan = {version = "~0.1", extras = ["async-rabbit"]}
 mercadopago = "*"
 uvicorn = {extras = ["standard"], version = "~0.27"}
 cython = "*"
+psycopg-binary = "^3.1.18"
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"
