@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "fast-ecommerce"
-version = "0.2.0"
+version = "0.2.1"
 description = "Ecommerce API"
-authors = ["Jônatas Oliveira <contato@jonatasoliveira.me>"]
+authors = ["Jônatas Oliveira <contact@jonatasoliveira.dev>"]
 license = "AGPL-3.0-or-later"
 
 [tool.poetry.dependencies]
@@ -43,7 +43,8 @@ propan = {version = "~0.1", extras = ["async-rabbit"]}
 mercadopago = "*"
 uvicorn = {extras = ["standard"], version = "~0.27"}
 cython = "*"
-psycopg-binary = "^3.1.18"
+psycopg = {extras = ["binary", "pool"], version = "^3.1.18"}
+psycopg2-binary = "^2.9.9"
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"
@@ -144,5 +145,5 @@ skip_empty = true
 path = ".venv"
 
 [build-system]
-requires = ["poetry-core>=1.0.0","setuptools", "wheel"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
