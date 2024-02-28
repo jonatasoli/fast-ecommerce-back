@@ -8,7 +8,6 @@ license = "AGPL-3.0-or-later"
 [tool.poetry.dependencies]
 python = "^3.12"
 fastapi = "*"
-uvicorn = "*"
 alembic = "*"
 sqlalchemy = {version = "~2", extras = ["asyncio"]}
 databases = {version = "*", extras = ["postgress", "sqlite"]}
@@ -21,7 +20,7 @@ loguru = "*"
 mail-service = "*"
 python-jose = {version = "*", extras = ["cryptography"]}
 python-multipart = "*"
-bcrypt = "*"
+bcrypt = "^3.2.2"
 beautifulsoup4 = "*"
 lxml = "*"
 Jinja2 = "*"
@@ -43,6 +42,8 @@ stripe = "*"
 pydantic-settings = "*"
 propan = {version = "~0.1", extras = ["async-rabbit"]}
 mercadopago = "*"
+uvicorn = {extras = ["standard"], version = "~0.27"}
+cython = "*"
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"
@@ -62,7 +63,7 @@ pytest-env = "*"
 ruff-lsp = "*"
 anyio = "*"
 pyright = "*"
-taskipy = "^1.12.2"
+taskipy = "*"
 
 
 [tool.ruff]
