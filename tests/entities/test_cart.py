@@ -304,6 +304,7 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
                 image_path=fake_url_path(),
                 product_id=fake.random_int(),
                 quantity=quantity,
+                discount_price=Decimal('0'),
                 price=price,
             ),
         )
