@@ -5,7 +5,6 @@ from decimal import Decimal
 from fastapi import HTTPException
 from loguru import logger
 from propan.brokers.rabbit import RabbitQueue
-from app.entities.coupon import CouponBase
 
 from app.entities.address import CreateAddress
 from app.entities.cart import (
@@ -89,7 +88,7 @@ async def add_product_to_cart(
     return cart
 
 
-async def calculate_cart(  # noqa: C901
+async def calculate_cart(
     uuid: str,
     cart: CartBase,
     bootstrap: Command,
@@ -133,7 +132,9 @@ async def calculate_cart(  # noqa: C901
             detail='Coupon not found',
         )
     cart = calculate_freight(
-        cart=cart, products_db=products_db, bootstrap=bootstrap
+        cart=cart,
+        products_db=products_db,
+        bootstrap=bootstrap,
     )
     if cart.cart_items:
         cart.calculate_subtotal(
@@ -148,7 +149,9 @@ async def calculate_cart(  # noqa: C901
 
 
 def calculate_freight(
-    cart: CartBase, products_db: ProductCart, bootstrap: Command
+    cart: CartBase,
+    products_db: ProductCart,
+    bootstrap: Command,
 ) -> CartBase:
     """Calculate Freight."""
     if cart.zipcode:
@@ -174,7 +177,9 @@ def calculate_freight(
 
 
 def consistency_inventory(
-    products_db: ProductCart, cache_cart: CartBase, products_inventory: list
+    products_db: ProductCart,
+    cache_cart: CartBase,
+    products_inventory: list,
 ) -> dict:
     """Check if products there are in invetory."""
     products_in_cart = []
