@@ -1,5 +1,7 @@
 import abc
 from typing import ClassVar, Self
+
+from pydantic.types import Json
 from config import settings
 import redis
 
@@ -26,15 +28,15 @@ class RedisCache(AbstractCache):
 
 
 class MemoryClient:
-    cache: ClassVar[dict] = {}
+    cache: ClassVar[dict[str, str]] = {}
 
-    def set(self: Self, key: str, value: str, ex: int) -> dict:
+    def set(self: Self, key: str, value: str, ex: int) -> dict[str, str]:
         _ = ex
         self.cache[key] = value
         return self.cache
 
-    def get(self: Self, key: str) -> dict:
-        return self.cache.get(key)
+    def get(self: Self, key: str) -> str | bytes | bytearray:
+        return self.cache[key]
 
     def delete(self: Self, key: str) -> dict:
         del self.cache[key]

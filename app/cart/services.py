@@ -5,6 +5,7 @@ from decimal import Decimal
 from fastapi import HTTPException
 from loguru import logger
 from propan.brokers.rabbit import RabbitQueue
+from app.entities.coupon import CouponBase
 
 from app.entities.address import CreateAddress
 from app.entities.cart import (
@@ -108,6 +109,74 @@ async def calculate_cart(  # noqa: C901
         cart.cart_items,
         bootstrap=bootstrap,
     )
+    cart_quantities = consistency_inventory(
+        products_db=products_db,
+        cache_cart=cache_cart,
+        products_inventory=products_inventory,
+    )
+    if cart_quantities:
+        cache.set(
+            str(cart.uuid),
+            cache_cart.model_dump_json(),
+            ex=DEFAULT_CART_EXPIRE,
+        )
+        raise ProductSoldOutError(
+            cart_quantities,
+        )
+
+    cart.get_products_price_and_discounts(products_db)
+    if cart.coupon and not (
+        coupon := await bootstrap.uow.get_coupon_by_code(cart.coupon)
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail='Coupon not found',
+        )
+    cart = calculate_freight(
+        cart=cart, products_db=products_db, bootstrap=bootstrap
+    )
+    if cart.cart_items:
+        cart.calculate_subtotal(
+            discount=coupon.discount if cart.coupon else 0,
+        )
+    cache.set(
+        str(cart.uuid),
+        cart.model_dump_json(),
+        ex=DEFAULT_CART_EXPIRE,
+    )
+    return cart
+
+
+def calculate_freight(
+    cart: CartBase, products_db: ProductCart, bootstrap: Command
+) -> CartBase:
+    """Calculate Freight."""
+    if cart.zipcode:
+        zipcode = cart.zipcode
+        no_spaces = zipcode.replace(' ', '')
+        no_special_chars = re.sub(r'[^a-zA-Z0-9]', '', no_spaces)
+        cart.zipcode = no_special_chars
+        freight_package = bootstrap.freight.calculate_volume_weight(
+            products=products_db,
+        )
+        if not cart.freight_product_code:
+            raise HTTPException(
+                status_code=400,
+                detail='Freight product code not found',
+            )
+        freight = bootstrap.freight.get_freight(
+            cart.freight_product_code,
+            freight_package=freight_package,
+            zipcode=cart.zipcode,
+        )
+        cart.freight = freight
+    return cart
+
+
+def consistency_inventory(
+    products_db: ProductCart, cache_cart: CartBase, products_inventory: list
+) -> dict:
+    """Check if products there are in invetory."""
     products_in_cart = []
     products_in_inventory = []
     cart_quantities = {}
@@ -137,61 +206,15 @@ async def calculate_cart(  # noqa: C901
                     )
                     cart_item.quantity = 0
                     cart_item.price = Decimal(0)
-
     products_not_in_both = list(
         set(products_in_cart) ^ set(products_in_inventory),
     )
-
-    if cart_quantities:
-        cache.set(
-            str(cart.uuid),
-            cache_cart.model_dump_json(),
-            ex=DEFAULT_CART_EXPIRE,
-        )
-        raise ProductSoldOutError(
-            cart_quantities,
-        )
     if len(products_db) != len(products_inventory):
         raise ProductSoldOutError(  # noqa: TRY003
             f'Os seguintes produtos não possuem em estoque {products_not_in_both}',  # noqa: EM102
         )
-    cart.get_products_price_and_discounts(products_db)
-    if cart.coupon and not (
-        coupon := await bootstrap.uow.get_coupon_by_code(cart.coupon)
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail='Coupon not found',
-        )
-    if cart.zipcode:
-        zipcode = cart.zipcode
-        no_spaces = zipcode.replace(' ', '')
-        no_special_chars = re.sub(r'[^a-zA-Z0-9]', '', no_spaces)
-        cart.zipcode = no_special_chars
-        freight_package = bootstrap.freight.calculate_volume_weight(
-            products=products_db,
-        )
-        if not cart.freight_product_code:
-            raise HTTPException(
-                status_code=400,
-                detail='Freight product code not found',
-            )
-        freight = bootstrap.freight.get_freight(
-            cart.freight_product_code,
-            freight_package=freight_package,
-            zipcode=cart.zipcode,
-        )
-        cart.freight = freight
-    if cart.cart_items:
-        cart.calculate_subtotal(
-            discount=coupon.discount if cart.coupon else 0,
-        )
-    cache.set(
-        str(cart.uuid),
-        cart.model_dump_json(),
-        ex=DEFAULT_CART_EXPIRE,
-    )
-    return cart
+
+    return cart_quantities
 
 
 async def add_user_to_cart(

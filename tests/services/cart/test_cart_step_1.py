@@ -43,13 +43,18 @@ def merge_product_inventory(productdb, inventorydb) -> ProductInventoryDB:
     return merged_object
 
 
-def create_product_cart(product_id: int = 1, quantity: int = 1) -> ProductCart:
+def create_product_cart(
+    product_id: int = 1,
+    quantity: int = 1,
+    discount_price: Decimal = Decimal(0),
+) -> ProductCart:
     """Must create product in db."""
     return ProductCart(
         name=fake.name(),
         image_path=fake_url_path(),
         product_id=product_id,
         quantity=quantity,
+        discount_price=discount_price,
     )
 
 
@@ -165,7 +170,7 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
 
 
 @pytest.mark.asyncio()
-async def test_given_cart_with_items_need_calculate_to_preview(
+async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
     memory_bootstrap: Command,
     mocker: MockerFixture,
 ) -> None:
@@ -173,26 +178,26 @@ async def test_given_cart_with_items_need_calculate_to_preview(
     # Arrange
     cart_items = []
     first_product = create_product_cart(
-        product_id=2,
-        quantity=1,
+        product_id=2, quantity=1, discount_price=Decimal('50')
     )
     second_product = create_product_cart(
-        product_id=1,
-        quantity=1,
+        product_id=1, quantity=1, discount_price=Decimal('50')
     )
     cart_items.append(first_product)
     cart_items.append(second_product)
 
     productdb_1 = ProductDBFactory(
         product_id=1,
-        discount=0,
+        discount=Decimal('50'),
+        price=Decimal('100'),
         category_id=1,
         showcase=False,
         show_discount=False,
     )
     productdb_2 = ProductDBFactory(
         product_id=2,
-        discount=0,
+        discount=Decimal('50'),
+        price=Decimal('100'),
         category_id=1,
         showcase=False,
         show_discount=False,
@@ -251,3 +256,5 @@ async def test_given_cart_with_items_need_calculate_to_preview(
 
     # Assert
     assert str(cart_response.uuid) == str(uuid)
+    assert cart_response.subtotal == Decimal('100')
+    assert cart_response.discount == Decimal('100')
