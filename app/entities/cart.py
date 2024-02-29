@@ -146,7 +146,8 @@ class CartBase(BaseModel):
         ]
 
     def calculate_subtotal(
-        self: Self, discount: Decimal = Decimal('0')
+        self: Self,
+        discount: Decimal = Decimal('0'),
     ) -> None:
         """Calculate subtotal of cart."""
         subtotal = Decimal(0)
