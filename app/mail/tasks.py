@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 from app.entities.mail import (
     MailOrderCancelled,
     MailOrderPaied,
@@ -17,17 +17,12 @@ from app.infra.worker import task_message_bus
 from loguru import logger
 
 
-def get_db():
-    SessionLocal = get_session()
-    return SessionLocal()
-
-
 @task_message_bus.event('notification_order_cancelled')
 def task_mail_order_cancelled(
     mail_to: str,
     order_id: int | str,
     reason: str,
-    db: Session = Depends(get_db),
+    db: sessionmaker = Depends(get_session),  # noqa: B008
 ) -> None:
     """Send cancelled email."""
     logger.info('Start task to send mail order cancelled.')
@@ -43,7 +38,7 @@ def task_mail_order_cancelled(
 def task_mail_order_processed(
     mail_to: str,
     order_id: int,
-    db: Session = Depends(get_db),
+    db: sessionmaker = Depends(get_session),  # noqa: B008
 ) -> None:
     """Send cancelled email."""
     logger.info('Start task to send mail order processed.')
@@ -58,7 +53,7 @@ def task_mail_order_processed(
 def task_mail_order_paid(
     mail_to: str,
     order_id: int,
-    db: Session = Depends(get_db),
+    db: sessionmaker = Depends(get_session),  # noqa: B008
 ) -> None:
     """Send cancelled email."""
     logger.info('Start task to send mail order paid.')
@@ -76,7 +71,7 @@ def task_mail_order_track_number(
     mail_to: str,
     order_id: int,
     tracking_number: str,
-    db: Session = Depends(get_db),
+    db: sessionmaker = Depends(get_session),  # noqa: B008
 ) -> None:
     """Send cancelled email."""
     mail_data = MailTrackingNumber(

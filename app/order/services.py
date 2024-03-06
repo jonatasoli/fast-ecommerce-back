@@ -4,6 +4,7 @@ from typing import Any
 
 from fastapi import HTTPException, status
 from loguru import logger
+from propan.brokers.rabbit import RabbitQueue
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, aliased
 
@@ -328,8 +329,27 @@ def put_order(db: Session, order_data: OrderFullResponse, id):
     ...
 
 
-def put_trancking_number(db: Session, data: TrackingFullResponse, id):
-    ...
+async def put_tracking_number(
+    order_id: int,
+    *,
+    data: TrackingFullResponse,
+    db,
+    message,
+) -> None:
+    """Update tracking number."""
+    async with db() as session:
+        order = await session.get(OrderDB, order_id)
+        order.tracking_number = data.tracking_number
+        await session.commit()
+
+    await message.broker.publish(
+        {
+            'mail_to': order.user.email,
+            'order_id': order_id,
+            'tracking_number': data.tracking_number,
+        },
+        queue=RabbitQueue('notification_tracking_number'),
+    )
 
 
 def checked_order(db: Session, id, check):

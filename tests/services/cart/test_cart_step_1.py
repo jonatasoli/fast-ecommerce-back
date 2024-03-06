@@ -178,10 +178,14 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
     # Arrange
     cart_items = []
     first_product = create_product_cart(
-        product_id=2, quantity=1, discount_price=Decimal('50')
+        product_id=2,
+        quantity=1,
+        discount_price=Decimal('50'),
     )
     second_product = create_product_cart(
-        product_id=1, quantity=1, discount_price=Decimal('50')
+        product_id=1,
+        quantity=1,
+        discount_price=Decimal('50'),
     )
     cart_items.append(first_product)
     cart_items.append(second_product)

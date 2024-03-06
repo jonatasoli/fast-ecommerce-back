@@ -11,3 +11,7 @@ class ShippingAddress(BaseModel):
     ship_state: str | None = None
     ship_country: str | None = None
     ship_zip: str | None = None
+
+
+class TrackingFullResponse(BaseModel):
+    tracking_number: str
