@@ -1,3 +1,4 @@
+from fastapi import status
 from sqlalchemy.orm import Session
 from config import settings
 from jinja2 import Environment, FileSystemLoader
@@ -18,24 +19,34 @@ file_loader = FileSystemLoader('email-templates')
 env = Environment(loader=file_loader)
 
 
-def send_email(message: Mail) -> bool:
+class SendMailError(Exception):
+    ...
+
+
+def send_email(message: Mail) -> None:
+    """Send email using Sendgrid."""
     try:
         sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
         response = sg.send(message)
         logger.info(response.status_code)
         logger.info(response.body)
         logger.info(response.headers)
-        if response.status_code == 202:
-            return True
-        return False
-    except Exception as e:
-        logger.info(e)
+        if response.status_code == status.HTTP_202_ACCEPTED:
+            return
+        send_mail_error()
+    except Exception:
+        logger.exception('Error in sended email')
+        raise
 
 
-def send_order_cancelled(db, mail_data: MailOrderCancelled):
+def send_mail_error() -> SendMailError:
+    """Send mail exception."""
+    raise SendMailError
+
+
+def send_order_cancelled(db, mail_data: MailOrderCancelled) -> None:
     """Task send mail with Order cancelled."""
-    template = get_mail_template_cancelled(
-        mail_template='mail_order_cancelled',
+    template = env.get_template('mail_order_cancelled.html').render(
         order_id=mail_data.order_id,
         reason=mail_data.reason,
         company=settings.COMPANY,
@@ -48,19 +59,10 @@ def send_order_cancelled(db, mail_data: MailOrderCancelled):
         html_content=template,
     )
     logger.debug(template)
-    sended = send_email(message)
-    if sended:
-        logger.info('Sended email')
-        return True
-    logger.info('Not sended email')
-    return False
+    send_email(message)
 
 
-def get_mail_template_cancelled(mail_template, **kwargs):
-    return env.get_template('mail_order_cancelled.html').render(**kwargs)
-
-
-def send_order_processed(db: Session, mail_data: MailOrderProcessed):
+def send_order_processed(db: Session, mail_data: MailOrderProcessed) -> None:
     """Task to send mail order processed."""
     order_items = None
     template = None
@@ -69,7 +71,7 @@ def send_order_processed(db: Session, mail_data: MailOrderProcessed):
             order_id=mail_data.order_id,
             transaction=session,
         )
-        template = get_mail_template_order_processed(
+        template = env.get_template('mail_order_processed.html').render(
             mail_template='mail_order_processed',
             order_id=mail_data.order_id,
             order_items=order_items,
@@ -85,20 +87,12 @@ def send_order_processed(db: Session, mail_data: MailOrderProcessed):
     logger.info('Message in Task')
     logger.info(f'{message}')
     logger.debug(template)
-    sended = send_email(message)
-    if sended:
-        logger.info('Sended email')
-        return True
-    logger.info('Not sended email')
-    return False
+    send_email(message)
 
 
-def get_mail_template_order_processed(mail_template, **kwargs):
-    return env.get_template('mail_order_processed.html').render(**kwargs)
-
-
-def send_order_paid(db, mail_data: MailOrderPaied):
-    template = get_mail_template_order_paid(
+def send_order_paid(db, mail_data: MailOrderPaied) -> None:
+    """Send order paid."""
+    template = env.get_template('mail_order_paid.html').render(
         mail_template='mail_order_paid',
         order_id=mail_data.order_id,
         company=settings.COMPANY,
@@ -113,20 +107,12 @@ def send_order_paid(db, mail_data: MailOrderPaied):
     logger.info('Message in Task')
     logger.info(f'{message}')
     logger.debug(template)
-    sended = send_email(message)
-    if sended:
-        logger.info('Sended email')
-        return True
-    logger.info('Not sended email')
-    return False
+    send_email(message)
 
 
-def get_mail_template_order_paid(mail_template, **kwargs):
-    return env.get_template('mail_order_paid.html').render(**kwargs)
-
-
-def send_mail_tracking_number(db, mail_data: MailTrackingNumber):
-    template = get_mail_template_tracking(
+def send_mail_tracking_number(db, mail_data: MailTrackingNumber) -> None:
+    """Task send mail."""
+    template = env.get_template('mail_tracking_number.html').render(
         mail_template='mail_tracking_number',
         order_id=mail_data.order_id,
         tracking_number=mail_data.tracking_number,
@@ -140,38 +126,24 @@ def send_mail_tracking_number(db, mail_data: MailTrackingNumber):
         html_content=template,
     )
     logger.debug(template)
-    sended = send_email(message)
-    if sended:
-        return True
-    return False
-
-
-def get_mail_template_tracking(mail_template, **kwargs):
-    return env.get_template('mail_tracking_number.html').render(**kwargs)
+    send_email(message)
 
 
 def send_mail_form_courses(db, mail_data: MailFormCourses):
-    template = get_mail_template_courses(
-        mail_template='mail_form_courses',
+    """Email from courses."""
+    template = env.get_template('mail_form_courses.html').render(
         name=mail_data.name,
         email=mail_data.email,
         phone=mail_data.phone,
         course=mail_data.course,
         option=mail_data.option,
     )
-    sended = Mail(
+    course = Mail(
         from_email=settings.EMAIL_FROM,
-        to_emails='relacionamento@graciellegatto.com.br',
+        to_emails=mail_data.email,
         subject='Contato!',
         plain_text_content=str(template),
         html_content=template,
     )
     logger.debug(template)
-    sended = send_email(message)
-    if sended:
-        return True
-    return False
-
-
-def get_mail_template_courses(mail_template, **kwargs):
-    return env.get_template('mail_form_courses.html').render(**kwargs)
+    send_email(course)

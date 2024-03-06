@@ -1,11 +1,15 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
+from fastapi.routing import get_websocket_app
 from loguru import logger
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio.session import async_sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
+from app.infra.worker import task_message_bus
 
+from app.infra.database import get_async_session, get_session
 from constants import OrderStatus
 from app.order import services
 from app.infra.deps import get_db
-from job_service.service import get_session
 from app.infra.models import PaymentDB, OrderDB
 from schemas.order_schema import (
     OrderFullResponse,
@@ -75,15 +79,24 @@ async def put_order(
         raise
 
 
-@order.put('/tracking_number/{id}', status_code=200)
-async def put_trancking_number(
-    id: int,
-    value: TrackingFullResponse,
-    db: Session = Depends(get_db),
+@order.put(
+    '/tracking_number/{order_id}',
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def tracking_number(
+    order_id: int,
+    tracking: TrackingFullResponse,
+    db: async_sessionmaker = Depends(get_async_session),
 ) -> None:
     """Put trancking number."""
     try:
-        return services.put_trancking_number(db, value, id)
+        message = task_message_bus
+        return await services.put_tracking_number(
+            order_id,
+            data=tracking,
+            db=db,
+            message=message,
+        )
     except Exception:
         raise
 
@@ -112,26 +125,28 @@ async def create_order(
 
 
 @order.post('/update-payment-and-order-status', status_code=200)
-def order_status() -> None:
+def order_status(db: sessionmaker = Depends(get_session)) -> dict:
     """Order status."""
-    db = get_session()
-    orders = db.query(OrderDB).filter(OrderDB.id.isnot(None))
-    for order in orders:
-        return {
-            'order_id': order.id,
-            'payment_id': order.payment_id,
-            'order_status': order.order_status,
-        }
-    return None
+    with db() as session:
+        orders = session.scalars(
+            select(OrderDB).where(OrderDB.order_id.isnot(None)),
+        )
+        for order in orders.all():
+            return {
+                'order_id': order.id,
+                'payment_id': order.payment_id,
+                'order_status': order.order_status,
+            }
+    return {}
 
 
-def check_status_pedding() -> None:
+def check_status_pedding() -> str:
     """Check status pedding."""
     data = order_status()
     logger.debug(data)
     if data.get('order_status') == 'pending':
         return 'pending'
-    return None
+    return ''
 
 
 def status_pending() -> None:

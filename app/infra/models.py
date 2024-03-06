@@ -114,6 +114,7 @@ class OrderDB(Base):
         backref='OrderDB',
         cascade='all,delete',
         uselist=False,
+        lazy='joined',
     )
     affiliate_id: Mapped[int | None]
     customer_id: Mapped[str]
