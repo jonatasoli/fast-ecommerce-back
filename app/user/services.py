@@ -64,13 +64,16 @@ def get_current_user(
     return user
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(
+    data: dict,
+    expires_delta: timedelta | None = None,
+) -> str:
     """Create temporary access token."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.utcnow() + expires_delta   # noqa: DTZ003
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=15)   # noqa: DTZ003
     to_encode.update({'exp': expire})
     return jwt.encode(
         to_encode,
@@ -79,7 +82,12 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     )
 
 
-async def save_token_reset_password(document: str, *, message, db) -> None:
+async def save_token_reset_password(
+    document: str,
+    *,
+    message,  # noqa: ANN001
+    db,  # noqa: ANN001
+) -> None:
     """Create request to reset password."""
     access_token_expires = timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
