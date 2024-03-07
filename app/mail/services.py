@@ -12,6 +12,7 @@ from app.entities.mail import (
     MailOrderCancelled,
     MailOrderPaied,
     MailOrderProcessed,
+    MailResetPassword,
     MailTrackingNumber,
 )
 
@@ -122,6 +123,25 @@ def send_mail_tracking_number(db, mail_data: MailTrackingNumber) -> None:
         from_email=settings.EMAIL_FROM,
         to_emails=mail_data.mail_to,
         subject='Seu pedido está a caminho!',
+        plain_text_content=str(template),
+        html_content=template,
+    )
+    logger.debug(template)
+    send_email(message)
+
+
+def send_mail_reset_password(db, mail_data: MailResetPassword) -> None:
+    """Send reset email."""
+    _link = f'{settings.FRONTEND_URLS}/{mail_data.token}'
+    template = env.get_template('mail_reset_password.html').render(
+        mail_template='mail_tracking_number',
+        link_reset_password=_link,
+        company=settings.COMPANY,
+    )
+    message = Mail(
+        from_email=settings.EMAIL_FROM,
+        to_emails=mail_data.mail_to,
+        subject='Sua solicitação de mudança de senha!',
         plain_text_content=str(template),
         html_content=template,
     )
