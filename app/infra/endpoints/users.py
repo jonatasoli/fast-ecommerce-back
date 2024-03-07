@@ -168,7 +168,7 @@ async def request_reset_password(
     await services.save_token_reset_password(document, message=message, db=db)
 
 
-@user.put('/reset-password', status_code=status.HTTP_204_NO_CONTENT)
+@user.patch('/reset-password', status_code=status.HTTP_204_NO_CONTENT)
 async def reset_password(
     response_model: UserResponseResetPassword,
     token: str,
