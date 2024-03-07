@@ -4,10 +4,12 @@ from app.entities.mail import (
     MailOrderCancelled,
     MailOrderPaied,
     MailOrderProcessed,
+    MailResetPassword,
     MailTrackingNumber,
 )
 from app.infra.database import get_session
 from app.mail.services import (
+    send_mail_reset_password,
     send_mail_tracking_number,
     send_order_cancelled,
     send_order_paid,
@@ -80,3 +82,17 @@ def task_mail_order_track_number(
         tracking_number=tracking_number,
     )
     send_mail_tracking_number(db=db, mail_data=mail_data)
+
+
+@task_message_bus.event('reset_password_request')
+def task_mail_reset_user_email(
+    mail_to: str,
+    token: str,
+    db: sessionmaker = Depends(get_session),  # noqa: B008
+) -> None:
+    """Send cancelled email."""
+    mail_data = MailResetPassword(
+        mail_to=mail_to,
+        token=token,
+    )
+    send_mail_reset_password(db=db, mail_data=mail_data)

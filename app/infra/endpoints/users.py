@@ -1,15 +1,17 @@
 from datetime import timedelta
 from typing import Dict, Any
+from app.infra.worker import task_message_bus
 
 from dynaconf import settings
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session, InstrumentedAttribute
+from sqlalchemy.orm import Session, InstrumentedAttribute, sessionmaker
 from sqlalchemy.orm.base import _T_co
 
 from app.entities.user import UserCouponResponse
 from app.infra.bootstrap.user_bootstrap import Command, bootstrap
 from loguru import logger
+from app.infra.database import get_session
 
 from domains import domain_user
 from domains.domain_user import check_token
@@ -156,19 +158,21 @@ async def get_user(
     return domain_user.get_user_login(db, document)
 
 
-@user.post('/request-reset-password', status_code=200)
+@user.post('/request-reset-password', status_code=status.HTTP_204_NO_CONTENT)
 async def request_reset_password(
     document: str,
-    db: Session = Depends(get_db),
+    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Request reset password."""
-    return domain_user.save_token_reset_password(db, document)
+    message = task_message_bus
+    await services.save_token_reset_password(document, message=message, db=db)
 
 
-@user.put('/reset-password', status_code=200)
+@user.put('/reset-password', status_code=status.HTTP_204_NO_CONTENT)
 async def reset_password(
     response_model: UserResponseResetPassword,
-    db: Session = Depends(get_db),
+    token: str,
+    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Reset password."""
-    return domain_user.reset_password(db, data=response_model)
+    services.reset_password(token, db=db, data=response_model)

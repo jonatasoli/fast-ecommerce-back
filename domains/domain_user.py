@@ -16,12 +16,11 @@ from app.entities.user import CredentialError
 from constants import DocumentType, Roles
 from app.infra.database import get_session
 from app.infra.models import RoleDB
-from app.infra.models import AddressDB, UserDB, UserResetPasswordDB
+from app.infra.models import AddressDB, UserDB
 from schemas.order_schema import CheckoutSchema
 from schemas.user_schema import (
     SignUp,
     UserInDB,
-    UserResponseResetPassword,
     UserSchema,
 )
 
@@ -419,35 +418,3 @@ def get_user_login(db: Session, document: str):
     return UserSchema.from_orm(user_db)
 
 
-def save_token_reset_password(db: Session, document: str):
-    access_token_expires = timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
-    )
-    _token = create_access_token(
-        data={'sub': document},
-        expires_delta=access_token_expires,
-    )
-    with db:
-        user_query = select(UserDB).where(UserDB.document == document)
-        _user = db.execute(user_query).scalars().first()
-        db_reset = UserResetPasswoDBrdDB(user_id=_user.id, token=_token)
-        db.add(db_reset)
-        db.commit()
-    return db_reset
-
-
-def reset_password(db: Session, data: UserResponseResetPassword):
-    pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-    with db:
-        user_query = select(UserDB).where(UserDB.document == data.document)
-        _user = db.execute(user_query).scalars().first()
-
-        used_token_query = select(UserResetPasswordDB).where(
-            UserResetPasswordDB.user_id == _user.id,
-        )
-        _used_token = db.execute(used_token_query).scalars().first()
-
-        _used_token.used_token = True
-        _user.password = pwd_context.hash(data.password)
-        db.commit()
-    return 'Senha alterada'
