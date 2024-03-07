@@ -132,7 +132,7 @@ def send_mail_tracking_number(db, mail_data: MailTrackingNumber) -> None:
 
 def send_mail_reset_password(db, mail_data: MailResetPassword) -> None:
     """Send reset email."""
-    _link = f'{settings.FRONTEND_URLS}/{mail_data.token}'
+    _link = f'{settings.FRONTEND_URLS}/reset-password?token={mail_data.token}'
     template = env.get_template('mail_reset_password.html').render(
         mail_template='mail_tracking_number',
         link_reset_password=_link,

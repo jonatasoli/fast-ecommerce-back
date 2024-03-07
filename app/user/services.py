@@ -104,7 +104,10 @@ async def save_token_reset_password(document: str, *, message, db) -> None:
 
 
 def reset_password(
-    token: str, *, db: sessionmaker, data: UserResponseResetPassword,
+    token: str,
+    *,
+    db: sessionmaker,
+    data: UserResponseResetPassword,
 ) -> None:
     """Reset password with token created."""
     pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
