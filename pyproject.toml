@@ -45,6 +45,7 @@ uvicorn = {extras = ["standard"], version = "~0.27"}
 cython = "*"
 psycopg = {extras = ["binary", "pool"], version = "^3.1.18"}
 psycopg2-binary = "^2.9.9"
+solarwinds-apm = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"
