@@ -8,15 +8,14 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, InstrumentedAttribute, sessionmaker
 from sqlalchemy.orm.base import _T_co
 
-from app.entities.user import UserCouponResponse
+from app.entities.user import UserCouponResponse, UserSchema
 from app.infra.bootstrap.user_bootstrap import Command, bootstrap
 from loguru import logger
 from app.infra.database import get_session
 
 from domains import domain_user
-from domains.domain_user import check_token
 from app.infra.deps import get_db
-from schemas.user_schema import (
+from app.entities.user import (
     SignUp,
     SignUpResponse,
     Token,
@@ -63,7 +62,7 @@ async def get_affiliate_user(
         db=db,
     )   # TODO : mock to be removed
     token = token.get('access_token')
-    user = domain_user.get_affiliate(token)
+    user = services.get_affiliate(token)
     return services.get_affiliate_urls(
         user=user,
         db=db,
@@ -71,33 +70,18 @@ async def get_affiliate_user(
     )
 
 
-@user.post('/signup', status_code=201, response_model=SignUpResponse)
+@user.post(
+    '/signup',
+    status_code=status.HTTP_201_CREATED,
+    response_model=SignUpResponse,
+)
 def signup(
     *,
-    db: Session = Depends(get_db),
+    db: sessionmaker = Depends(get_session),
     user_in: SignUp,
-) -> dict[str, str]:
+) -> SignUpResponse:
     """Signup."""
-    user = domain_user.create_user(db, obj_in=user_in)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Não foi possível criar o usuário',
-        )
-    return {'name': 'usuario', 'message': 'adicionado com sucesso'}
-
-
-@user.get('/dashboard', status_code=200)
-@check_token
-def dashboard(
-    *,
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-) -> dict[str, Any]:
-    """Dashboard."""
-    user = domain_user.get_current_user(token)
-    role = domain_user.get_role_user(db, user.role_id)
-    return {'role': role}
+    return services.create_user(db, obj_in=user_in)
 
 
 @user.post('/token', response_model=Token)
@@ -106,7 +90,7 @@ async def login_for_access_token(
     db: Session = Depends(get_db),
 ) -> dict[str, str | Any]:
     """Login for access token."""
-    user = domain_user.authenticate_user(
+    user = services.authenticate_user(
         db,
         form_data.username,
         form_data.password,
@@ -114,11 +98,11 @@ async def login_for_access_token(
     access_token_expires = timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
-    access_token = domain_user.create_access_token(
+    access_token = services.create_access_token(
         data={'sub': user.document},
         expires_delta=access_token_expires,
     )
-    role = domain_user.get_role_user(db, user.role_id)
+    role = services.get_role_user(db, user.role_id)
 
     return {
         'access_token': access_token,
@@ -147,15 +131,15 @@ async def verify_token_is_valid(
     raise CredentialError
 
 
-@user.get('/{document}', status_code=200)
+@user.get('/{document}', status_code=200, response_model=UserSchema)
 async def get_user(
     document: str,
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
+    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Get user."""
-    domain_user.get_current_user(token)
-    return domain_user.get_user_login(db, document)
+    _document = document
+    return services.get_current_user(token, db=db)
 
 
 @user.post('/request-reset-password', status_code=status.HTTP_204_NO_CONTENT)

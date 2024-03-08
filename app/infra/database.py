@@ -45,6 +45,7 @@ def get_session() -> sessionmaker:
     _engine = get_engine()
     return sessionmaker(
         bind=_engine,
+        expire_on_commit=False,
     )
 
 

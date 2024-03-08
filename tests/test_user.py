@@ -1,5 +1,5 @@
 import pytest
-from domains.domain_user import get_current_user
+from app.user.services import get_current_user
 from app.infra.models import RoleDB
 
 
@@ -30,7 +30,10 @@ def test_signup(t_client) -> None:
 
     response = r.json()
     assert r.status_code == 201
-    assert response == {'name': 'usuario', 'message': 'adicionado com sucesso'}
+    assert response == {
+        'name': 'Jonatas Luiz de Oliveira',
+        'message': 'Add with sucesso!',
+    }
 
 
 def test_invalid_signup(t_client) -> None:
@@ -59,7 +62,7 @@ def test_signup_new(t_client) -> None:
 
     response = r.json()
     assert r.status_code == 201
-    assert response == {'name': 'usuario', 'message': 'adicionado com sucesso'}
+    assert response == {'name': 'Jonh Doe', 'message': 'Add with sucesso!'}
 
 
 @pytest.mark.skip()
