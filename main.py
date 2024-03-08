@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 import sentry_sdk
 from app.entities.cart import ProductNotFoundError
 from app.entities.coupon import CouponNotFoundError
-from app.entities.user import CredentialError
+from app.entities.user import CredentialError, UserDuplicateError
 from app.infra.freight.correios_br import CorreiosInvalidReturnError
 from app.infra.payment_gateway.mercadopago_gateway import CardAlreadyUseError
 from config import settings
@@ -157,6 +157,19 @@ async def correios_api_error_handler(
         },
     )
 
+
+@app.exception_handler(UserDuplicateError)
+async def user_already_signup(
+    _: Request,
+    exc: UserDuplicateError,
+) -> JSONResponse:
+    """User already signup raise status code 409."""
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            'detail': 'User already sign up.',
+        },
+    )
 
 # set loguru format for root logger
 logging.getLogger().handlers = [InterceptHandler()]
