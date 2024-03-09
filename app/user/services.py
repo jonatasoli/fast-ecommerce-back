@@ -18,6 +18,7 @@ from app.entities.user import (
     UserCouponResponse,
     CredentialError,
     UserDuplicateError,
+    UserInDB,
     UserNotFoundError,
     UserResponseResetPassword,
     UserSchema,
@@ -38,14 +39,6 @@ class CountryCode(enum.StrEnum):
 def gen_hash(password: str) -> str:
     """Gen pwd hash."""
     return pwd_context.hash(password)
-
-
-def verify_password(password: str, check_password: str) -> bool:
-    """Verify pasword if match with passed password."""
-    _password_match = pwd_context.verify(check_password, password)
-    if not _password_match:
-        raise CredentialError
-    return _password_match
 
 
 def create_user(db: sessionmaker, obj_in: SignUp) -> SignUpResponse:
@@ -326,3 +319,26 @@ def get_role_user(db: sessionmaker, user_role_id: int) -> str:
         role_query = select(RoleDB).where(RoleDB.role_id == user_role_id)
         _role = session.scalar(role_query)
     return _role.role
+
+
+def authenticate_user(
+    db: sessionmaker,
+    document: str,
+    password: str,
+) -> UserInDB:
+    """Authenticate user."""
+    with db() as session:
+        user_db = session.scalar(
+            select(UserDB).where(UserDB.document == document),
+        )
+        if not user_db or not verify_password(user_db.password, password):
+            raise_credential_error()
+    return UserInDB.model_validate(user_db)
+
+
+def verify_password(password: str, check_password: str) -> bool:
+    """Verify pasword if match with passed password."""
+    _password_match = pwd_context.verify(check_password, password)
+    if not _password_match:
+        raise CredentialError
+    return _password_match

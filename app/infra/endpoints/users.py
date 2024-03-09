@@ -1,5 +1,8 @@
 from datetime import timedelta
 from typing import Dict, Any
+
+from sqlalchemy import select
+from app.infra.models import UserDB
 from app.infra.worker import task_message_bus
 
 from dynaconf import settings
@@ -8,7 +11,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, InstrumentedAttribute, sessionmaker
 from sqlalchemy.orm.base import _T_co
 
-from app.entities.user import UserCouponResponse, UserSchema
+from app.entities.user import UserCouponResponse, UserInDB, UserSchema
 from app.infra.bootstrap.user_bootstrap import Command, bootstrap
 from loguru import logger
 from app.infra.database import get_session
@@ -87,7 +90,7 @@ def signup(
 @user.post('/token', response_model=Token)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
 ) -> dict[str, str | Any]:
     """Login for access token."""
     user = services.authenticate_user(
@@ -131,12 +134,16 @@ async def verify_token_is_valid(
     raise CredentialError
 
 
-@user.get('/{document}', status_code=200, response_model=UserSchema)
+@user.get(
+    '/{document}',
+    status_code=status.HTTP_200_OK,
+    response_model=UserSchema,
+)
 async def get_user(
     document: str,
     token: str = Depends(oauth2_scheme),
     db: sessionmaker = Depends(get_session),
-) -> None:
+) -> UserSchema:
     """Get user."""
     _document = document
     return services.get_current_user(token, db=db)

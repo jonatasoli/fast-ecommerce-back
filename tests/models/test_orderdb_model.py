@@ -5,14 +5,14 @@ from app.infra.models import OrderDB, OrderStatusStepsDB
 from tests.factories_db import (
     OrderFactory,
     OrderStatusStepsFactory,
-    UserFactory,
+    UserDBFactory,
 )
 
 
 def test_create_order(session):
     """Must create valid order."""
     # Arrange
-    user = UserFactory()
+    user = UserDBFactory()
     session.add(user)
     session.flush()
     new_order = OrderFactory(user=user)
@@ -33,7 +33,7 @@ def test_create_order(session):
 def test_order_status_steps(session):
     """Must create valid order status steps."""
     # Arrange
-    user = UserFactory()
+    user = UserDBFactory()
     session.add(user)
     session.flush()
     order = OrderFactory(user=user)
