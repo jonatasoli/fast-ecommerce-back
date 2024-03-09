@@ -229,7 +229,7 @@ async def add_user_to_cart(
     bootstrap: Command,
 ) -> CartUser:
     """Must validate token user if is valid add user id in cart."""
-    user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_user(token)
     customer_stripe_uuid = await bootstrap.cart_uow.get_customer(
         user.user_id,
         payment_gateway=PaymentGatewayAvailable.STRIPE.name,
@@ -265,7 +265,7 @@ async def add_address_to_cart(
     bootstrap: Command,
 ) -> CartShipping:
     """Must add addresss information to shipping and payment."""
-    user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     cache_cart = CartUser.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
@@ -319,7 +319,7 @@ async def add_payment_information(  # noqa: PLR0913
     bootstrap: Command,
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
-    user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     cache_cart = CartShipping.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
@@ -421,7 +421,7 @@ async def preview(
     bootstrap: Command,
 ) -> CartPayment:
     """Must get address id and payment token to show in cart."""
-    user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_user(token)
     cart = bootstrap.cache.get(uuid)
     cache_cart = CartPayment.model_validate_json(cart)
     if cache_cart.gateway_provider == PaymentGatewayAvailable.STRIPE.name:
@@ -449,7 +449,7 @@ async def checkout(
 ) -> CreateCheckoutResponse:
     """Process payment to specific cart."""
     _ = cart
-    user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     validate_cache_cart(cache_cart)
     cache_cart = CartPayment.model_validate_json(cache_cart)

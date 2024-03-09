@@ -1,12 +1,12 @@
 from sqlalchemy.sql import select
 from app.infra.models import RoleDB
-from tests.factories_db import RoleFactory
+from tests.factories_db import RoleDBFactory
 
 
 def test_create_role(session):
     """Must create valid role."""
     # Arrange
-    new_role = RoleFactory()
+    new_role = RoleDBFactory()
     session.add(new_role)
     session.commit()
 

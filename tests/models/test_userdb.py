@@ -1,12 +1,12 @@
 from sqlalchemy import select
 from app.infra.models import UserDB
-from tests.factories_db import UserFactory
+from tests.factories_db import UserDBFactory
 
 
 def test_create_user(session):
     """Must create valid user."""
     # Arrange
-    new_user = UserFactory()
+    new_user = UserDBFactory()
     session.add(new_user)
     session.commit()
 

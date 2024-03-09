@@ -31,7 +31,7 @@ class FactoryDB(SQLAlchemyModelFactory):  # type: ignore[misc]
         sqlalchemy_session_persistence = 'flush'
 
 
-class RoleFactory(factory.Factory):
+class RoleDBFactory(factory.Factory):
     class Meta:
         model = RoleDB
 
@@ -39,12 +39,12 @@ class RoleFactory(factory.Factory):
     active = fake.pybool()
 
 
-class UserFactory(factory.Factory):
+class UserDBFactory(factory.Factory):
     class Meta:
         model = UserDB
 
     class Params:
-        role = SubFactory(RoleFactory)
+        role = SubFactory(RoleDBFactory)
 
     name = fake.name()
     username = fake.user_name()
@@ -107,7 +107,7 @@ class OrderFactory(factory.Factory):
         model = OrderDB
 
     class Params:
-        user = SubFactory(UserFactory)
+        user = SubFactory(UserDBFactory)
 
     user_id = SelfAttribute('user.user_id')
     cart_uuid = fake.uuid4()
@@ -125,7 +125,7 @@ class PaymentFactory(factory.Factory):
         model = PaymentDB
 
     class Params:
-        user = SubFactory(UserFactory)
+        user = SubFactory(UserDBFactory)
 
     user_id = SelfAttribute('user.user_id')
     amount = fake.pyint()
