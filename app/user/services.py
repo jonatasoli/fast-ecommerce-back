@@ -1,4 +1,5 @@
 # ruff: noqa: ANN401
+import re
 from datetime import datetime, timedelta
 import enum
 from functools import wraps
@@ -54,7 +55,7 @@ def create_user(db: sessionmaker, obj_in: SignUp) -> SignUpResponse:
                 name=obj_in.name,
                 username=obj_in.username,
                 document_type=DocumentType.CPF.value,
-                document=obj_in.document,
+                document=re.sub(r'[^0-9]', '', obj_in.document),
                 birth_date=None,
                 email=obj_in.mail,
                 phone=obj_in.phone,
