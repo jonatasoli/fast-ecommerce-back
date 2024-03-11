@@ -71,7 +71,7 @@ class ConfigCreditCardResponse(BaseModel):
 class ProductSchema(BaseModel):
     name: str
     uri: str
-    price: int
+    price: Decimal
     direct_sales: bool | None = None
     description: dict | None
     image_path: str
