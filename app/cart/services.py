@@ -467,6 +467,7 @@ async def checkout(
 
     logger.info(f'{uuid}, {cache_cart.payment_intent} ')
     user = UserDBGet.model_validate(user)
+    logger.info('Service Checkout')
     checkout_task = await bootstrap.message.broker.publish(
         {
             'cart_uuid': uuid,
@@ -477,6 +478,7 @@ async def checkout(
         queue=RabbitQueue('checkout'),
         callback=True,
     )
+    logger.info('Finish Checkout task')
     order_id = None
     _gateway_payment_id = None
     if not isinstance(checkout_task, dict):
