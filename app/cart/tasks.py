@@ -57,6 +57,7 @@ async def checkout(
     bootstrap: Any = Depends(get_bootstrap),
 ) -> dict:
     """Checkout cart with payment intent."""
+    logger.info('Start checkout task')
     _ = payment_method
     order_id = None
     gateway_payment_id = None
