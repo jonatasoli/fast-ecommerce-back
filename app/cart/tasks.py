@@ -225,6 +225,7 @@ async def checkout(
                 )
                 bootstrap.cache.delete(cart_uuid)
             case (PaymentMethod.PIX.value):
+                logger.info('Start pix payment')
                 payment_id, order_id = await create_pending_payment_and_order(
                     cart=cart,
                     affiliate_id=affiliate_id,
