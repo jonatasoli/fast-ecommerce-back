@@ -468,6 +468,10 @@ async def checkout(
     logger.info(f'{uuid}, {cache_cart.payment_intent} ')
     user = UserDBGet.model_validate(user)
     logger.info('Service Checkout')
+    logger.info(f'{uuid}')
+    logger.info(f'{cache_cart.gateway_provider}')
+    logger.info(f'{cache_cart.payment_method}')
+    logger.info(f'{user}')
     checkout_task = await bootstrap.message.broker.publish(
         {
             'cart_uuid': uuid,
