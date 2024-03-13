@@ -32,8 +32,8 @@ from app.infra.endpoints.default import (
 )
 from app.infra.endpoints.report import report
 from app.mail.tasks import task_message_bus
-from app.cart.tasks import task_message_bus
-from app.report.tasks import task_message_bus
+from app.cart.tasks import task_message_bus # noqa: F811
+from app.report.tasks import task_message_bus # noqa: F811
 from app.entities.product import ProductSoldOutError
 
 app = FastAPI(lifespan=task_message_bus.lifespan_context)
