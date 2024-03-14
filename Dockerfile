@@ -17,4 +17,5 @@ RUN apt-get update -y && apt install build-essential curl --no-install-recommend
 COPY . /app
 
 RUN poetry install --without dev
+RUN pip install opentelemetry-distro
 RUN opentelemetry-bootstrap --action=install
