@@ -89,18 +89,29 @@ class CouponsDB(Base):
     affiliate_id: Mapped[int | None] = mapped_column(
         ForeignKey('user.user_id'),
     )
-    user = relationship(
-        'UserDB',
-        foreign_keys=[affiliate_id],
-        backref='Coupons',
-        cascade='all,delete',
-        uselist=False,
-    )
+    user_id: Mapped[None | int] = mapped_column(ForeignKey('user.user_id'))
+    product_id: Mapped[None | int] = mapped_column(ForeignKey('product.product_id'))
     code: Mapped[str]
     discount: Mapped[Decimal]
     commission_percentage: Mapped[Decimal | None]
     qty: Mapped[int]
     active: Mapped[bool] = mapped_column(default=True)
+
+    user = relationship(
+        'UserDB',
+        foreign_keys=[affiliate_id],
+        lazy="joined",
+        backref='Coupons',
+        cascade='all,delete',
+        uselist=False,
+    )
+    product = relationship(
+        'ProductDB',
+        foreign_keys=[product_id],
+        backref='Coupons',
+        cascade='all,delete',
+        uselist=False,
+    )
 
 
 class OrderDB(Base):

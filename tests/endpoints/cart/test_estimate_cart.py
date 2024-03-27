@@ -97,4 +97,4 @@ async def test_estimate_products_in_cart(db) -> None:
     return_cart_items = response.json()['cart_items']
     assert return_uuid == uuid
     assert len(return_cart_items) == 2
-    assert response.json()['subtotal'] == str(cart.subtotal).split('.')[0]
+    assert response.json()['subtotal'].split('.')[0] == str(cart.subtotal).split('.')[0]

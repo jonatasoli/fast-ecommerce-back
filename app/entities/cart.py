@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Self
 from uuid import UUID, uuid4
 from loguru import logger
+from app.entities.coupon import CouponBase
 
 
 from app.entities.freight import ShippingAddress
@@ -147,7 +148,7 @@ class CartBase(BaseModel):
 
     def calculate_subtotal(
         self: Self,
-        discount: Decimal = Decimal('0'),
+        coupon: CouponBase | None = None,
     ) -> None:
         """Calculate subtotal of cart."""
         subtotal = Decimal(0)
@@ -160,8 +161,8 @@ class CartBase(BaseModel):
                 subtotal += item.price * item.quantity
                 if item.discount_price > 0:
                     self.discount += item.discount_price * item.quantity
-                if discount > 0:
-                    item.discount_price = item.price * discount
+                if coupon and coupon.discount > 0:
+                    item.discount_price = item.price * coupon.discount
                     self.discount += item.discount_price * item.quantity
             self.subtotal = subtotal - self.discount
             if self.freight and self.freight.price:
