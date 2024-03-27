@@ -237,7 +237,7 @@ def test_calculate_subtotal_to_cart() -> None:
     cart.cart_items = cart_items
 
     # Act
-    cart.calculate_subtotal()
+    cart.calculate_subtotal(coupon=None)
 
     # Assert
     assert cart.subtotal == subtotal
@@ -317,7 +317,7 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
     cart.coupon = coupon.code
 
     # Act
-    cart.calculate_subtotal(discount=coupon.discount)
+    cart.calculate_subtotal(coupon=coupon)
 
     # Assert
     assert cart.subtotal == discount_subtotal

@@ -138,7 +138,7 @@ async def calculate_cart(
     )
     if cart.cart_items:
         cart.calculate_subtotal(
-            discount=coupon.discount if cart.coupon else 0,
+            coupon=coupon if cart.coupon and coupon else None,
         )
     cache.set(
         str(cart.uuid),
