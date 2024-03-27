@@ -90,7 +90,9 @@ class CouponsDB(Base):
         ForeignKey('user.user_id'),
     )
     user_id: Mapped[None | int] = mapped_column(ForeignKey('user.user_id'))
-    product_id: Mapped[None | int] = mapped_column(ForeignKey('product.product_id'))
+    product_id: Mapped[None | int] = mapped_column(
+        ForeignKey('product.product_id')
+    )
     code: Mapped[str]
     discount: Mapped[Decimal]
     commission_percentage: Mapped[Decimal | None]
@@ -100,7 +102,7 @@ class CouponsDB(Base):
     user = relationship(
         'UserDB',
         foreign_keys=[affiliate_id],
-        lazy="joined",
+        lazy='joined',
         backref='Coupons',
         cascade='all,delete',
         uselist=False,
