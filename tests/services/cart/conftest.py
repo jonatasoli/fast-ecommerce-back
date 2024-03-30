@@ -2,6 +2,7 @@ from typing import Any
 from pydantic import BaseModel
 import pytest
 from app.cart.uow import MemoryUnitOfWork
+from app.cart import repository as cart_repository
 
 from app.infra.redis import MemoryCache
 
@@ -12,6 +13,7 @@ class Command(BaseModel):
     db: Any
     uow: Any
     cart_uow: Any
+    cart_repository: Any
     cache: Any
     message: Any
     freight: Any
@@ -28,6 +30,7 @@ async def bootstrap(  # noqa: PLR0913
     db: Any,
     uow: Any = None,
     cart_uow: Any = None,
+    cart_repository: Any = None,
     cache: Any = None,
     message: Any = None,
     freight: Any = None,
@@ -39,6 +42,7 @@ async def bootstrap(  # noqa: PLR0913
         db=db,
         uow=uow,
         cart_uow=cart_uow,
+        cart_repository=cart_repository,
         cache=cache,
         message=message,
         freight=freight,
@@ -53,6 +57,7 @@ async def memory_bootstrap(mocker) -> Command:
     return await bootstrap(
         db=mock,
         uow=MemoryUnitOfWork(),
+        cart_repository=cart_repository,
         cart_uow=mock,
         cache=MemoryCache(),
         message=mock,

@@ -316,9 +316,10 @@ async def get_products(
 ) -> list[models.ProductDB]:
     """Must return updated products in db."""
     try:
+        product_ids: list[int] = [item.product_id for item in products]
         products_db = await transaction.session.execute(
             select(models.ProductDB).where(
-                models.ProductDB.product_id.in_(products),
+                models.ProductDB.product_id.in_(product_ids),
             ),
         )
         await _check_products_db(products_db, products)
@@ -335,6 +336,7 @@ async def get_products_quantity(
 ) -> list[models.ProductDB]:
     """Must return products quantity."""
     try:
+        product_ids: list[int] = [item.product_id for item in products]
         quantity_query = (
             select(
                 models.InventoryDB.product_id.label('product_id'),
@@ -346,11 +348,11 @@ async def get_products_quantity(
                 models.ProductDB,
                 models.ProductDB.product_id == models.InventoryDB.product_id,
             )
-            .where(models.ProductDB.product_id.in_(products))
+            .where(models.ProductDB.product_id.in_(product_ids))
             .group_by(models.InventoryDB.product_id)
         )
         products_db = await transaction.session.execute(quantity_query)
-        await _check_products_db(products_db, products)
+        await _check_products_db(products_db, product_ids)
 
         column_names = products_db.keys()
         products = products_db.all()
