@@ -103,11 +103,16 @@ async def calculate_cart(
             status_code=400,
             detail='Cart uuid is not the same as the cache uuid',
         )
-    products_db = await bootstrap.uow.get_products(cart.cart_items)
-    products_inventory = await bootstrap.cart_uow.get_products_quantity(
-        cart.cart_items,
-        bootstrap=bootstrap,
-    )
+    async with bootstrap.db() as db:
+        products_db = await bootstrap.cart_repository.get_products(
+            cart.cart_items, transaction=db.begin()
+        )
+        products_inventory = (
+            await bootstrap.cart_repository.get_products_quantity(
+                cart.cart_items,
+                transaction=db.begin(),
+            )
+        )
     cart_quantities = consistency_inventory(
         products_db=products_db,
         cache_cart=cache_cart,

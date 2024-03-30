@@ -10,6 +10,7 @@ from app.infra.database import get_async_session as get_session
 from app.infra import redis
 from app.freight import freight_gateway as freight
 from app.user import gateway as user_gateway
+from app.cart import repository as cart_repository
 from typing import Any
 from app.infra.worker import task_message_bus
 
@@ -20,6 +21,7 @@ class Command(BaseModel):
     db: sessionmaker
     uow: uow.AbstractUnitOfWork
     cart_uow: Any
+    cart_repository: Any
     cache: redis.MemoryClient | cache_client.Redis
     message: RabbitRouter
     freight: Any
@@ -36,6 +38,7 @@ async def bootstrap(  # noqa: PLR0913
     db: sessionmaker = get_session(),
     uow: uow.AbstractUnitOfWork = None,
     cart_uow: Any = uow,
+    cart_repository: Any = cart_repository,
     cache: redis.AbstractCache = redis.RedisCache(),
     message: RabbitRouter = task_message_bus,
     freight: Any = freight,
@@ -53,6 +56,7 @@ async def bootstrap(  # noqa: PLR0913
         db=db,
         uow=uow,
         cart_uow=cart_uow,
+        cart_repository=cart_repository,
         cache=_cache,
         message=message,
         freight=freight,

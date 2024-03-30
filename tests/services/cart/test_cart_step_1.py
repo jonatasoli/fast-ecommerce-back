@@ -9,6 +9,7 @@ from app.entities.cart import CartBase
 from app.entities.product import ProductCart, ProductInventoryDB
 from app.cart.services import add_product_to_cart, calculate_cart
 from app.infra.bootstrap.cart_bootstrap import Command
+from app.infra.database import get_async_session
 from tests.factories_db import InventoryDBFactory, ProductDBFactory
 from tests.fake_functions import fake, fake_url_path
 
@@ -218,8 +219,9 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
     )
 
     bootstrap = await memory_bootstrap
+    bootstrap.db = get_async_session()
     mocker.patch.object(
-        bootstrap.uow,
+        bootstrap.cart_repository,
         'get_products',
         return_value=[productdb_1, productdb_2],
     )
