@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 
 import sentry_sdk
 from app.entities.cart import ProductNotFoundError
-from app.entities.coupon import CouponNotFoundError
+from app.entities.coupon import CouponDontMatchWithUserError, CouponNotFoundError
 from app.entities.user import CredentialError, UserDuplicateError
 from app.infra.freight.correios_br import CorreiosInvalidReturnError
 from app.infra.payment_gateway.mercadopago_gateway import CardAlreadyUseError
@@ -170,6 +170,20 @@ async def user_already_signup(
         status_code=status.HTTP_409_CONFLICT,
         content={
             'detail': 'User already sign up.',
+        },
+    )
+
+
+@app.exception_handler(CouponDontMatchWithUserError)
+async def user_dont_match_with_coupon(
+    _: Request,
+    exc: CouponDontMatchWithUserError,
+) -> JSONResponse:
+    """User don't match with coupon user_id raise status code 409."""
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            'detail': 'Coupon is invalid for this user.',
         },
     )
 
