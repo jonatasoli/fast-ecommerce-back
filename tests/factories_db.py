@@ -1,8 +1,14 @@
+from decimal import Decimal
 import factory
 from factory.declarations import SelfAttribute, SubFactory
 from faker import Faker
 from app.infra.constants import InventoryOperation
-from app.infra.models import CreditCardFeeConfigDB, InventoryDB, PaymentDB
+from app.infra.models import (
+    CouponsDB,
+    CreditCardFeeConfigDB,
+    InventoryDB,
+    PaymentDB,
+)
 from factory.alchemy import SQLAlchemyModelFactory
 
 
@@ -174,3 +180,13 @@ class InventoryDBFactory(factory.Factory):
     product_id = SelfAttribute('product.product_id')
     quantity = fake.pyint(min_value=1, max_value=999)
     operation = InventoryOperation.INCREASE.value
+
+
+class CouponFactory(factory.Factory):
+    class Meta:
+        model = CouponsDB
+
+    code = fake.pystr()
+    discount = Decimal('0.1')
+    qty = fake.pyint(min_value=1, max_value=999)
+    active = True

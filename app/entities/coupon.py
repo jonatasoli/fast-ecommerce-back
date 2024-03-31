@@ -6,6 +6,10 @@ class CouponNotFoundError(Exception):
     """Coupon not exist in database."""
 
 
+class CouponDontMatchWithUserError(Exception):
+    """Coupon don't match with user code."""
+
+
 class CouponBase(BaseModel):
     code: str
     model_config = ConfigDict(from_attributes=True)

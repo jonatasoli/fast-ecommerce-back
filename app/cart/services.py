@@ -20,7 +20,11 @@ from app.entities.cart import (
     generate_new_cart,
     validate_cache_cart,
 )
-from app.entities.coupon import CouponResponse
+from app.entities.coupon import (
+    CouponDontMatchWithUserError,
+    CouponNotFoundError,
+    CouponResponse,
+)
 from app.entities.product import ProductCart, ProductSoldOutError
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
@@ -105,7 +109,8 @@ async def calculate_cart(
         )
     async with bootstrap.db() as db:
         products_db = await bootstrap.cart_repository.get_products(
-            cart.cart_items, transaction=db.begin()
+            cart.cart_items,
+            transaction=db.begin(),
         )
         products_inventory = (
             await bootstrap.cart_repository.get_products_quantity(
@@ -129,9 +134,13 @@ async def calculate_cart(
         )
 
     cart.get_products_price_and_discounts(products_db)
-    if cart.coupon and not (
-        coupon := await bootstrap.uow.get_coupon_by_code(cart.coupon)
-    ):
+    if cart.coupon:
+        async with bootstrap.db() as session:
+            coupon = await bootstrap.cart_repository.get_coupon_by_code(
+                cart.coupon,
+                transaction=session.begin(),
+            )
+    if cart.coupon and not coupon:
         raise HTTPException(
             status_code=400,
             detail='Coupon not found',
@@ -252,6 +261,17 @@ async def add_user_to_cart(
         )
     user_data = UserData.model_validate(user)
     cart_user = CartUser(**cart.model_dump(), user_data=user_data)
+    if cart_user.coupon:
+        async with bootstrap.db() as session:
+            coupon = await bootstrap.cart_repository.get_coupon_by_code(
+                cart_user.coupon,
+                transaction=session.begin(),
+            )
+        match coupon:
+            case None:
+                raise CouponNotFoundError
+            case _ if coupon.user_id and coupon.user_id != user_data.user_id:
+                raise CouponDontMatchWithUserError
     cache = bootstrap.cache
     cache.get(uuid)
     cache.set(

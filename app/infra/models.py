@@ -91,7 +91,7 @@ class CouponsDB(Base):
     )
     user_id: Mapped[None | int] = mapped_column(ForeignKey('user.user_id'))
     product_id: Mapped[None | int] = mapped_column(
-        ForeignKey('product.product_id')
+        ForeignKey('product.product_id'),
     )
     code: Mapped[str]
     discount: Mapped[Decimal]

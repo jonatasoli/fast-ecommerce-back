@@ -394,3 +394,24 @@ async def get_installment_fee(
     except Exception as e:
         logger.error(f'{e}')
         raise
+
+
+async def _get_coupon_by_code(
+    code: str,
+    transaction: SessionTransaction,
+) -> models.CouponsDB:
+    """Must return a coupon by code."""
+    try:
+        async with transaction() as session:
+            coupon = await session.execute(
+                select(models.CouponsDB).where(
+                    models.CouponsDB.code == code,
+                ),
+            )
+            if not coupon:
+                msg = f'No coupon with code {code}'
+                raise ProductNotFoundError(msg)
+
+            return coupon.scalar_one()
+    except NoResultFound as nrf:
+        raise CouponNotFoundError from nrf
