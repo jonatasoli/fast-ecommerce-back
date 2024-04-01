@@ -9,6 +9,9 @@ class ProductSoldOutError(Exception):
     """Represent produt is Sold out."""
 
 
+INSTALLMENT_CONFIG_DEFAULT = 1
+
+
 class ProductCart(BaseModel):
     """Product Representation in Cart."""
 
@@ -108,3 +111,51 @@ class InventoryInDB(BaseModel):
 
 class ProductInventoryDB(ProductInDB, InventoryInDB):
     ...
+
+
+class ProductCreateResponse(BaseModel):
+    name: str
+    uri: str
+    price: Decimal
+    direct_sales: bool | None = None
+    description: Json | None
+    image_path: str | None = None
+    installments_config: int | None = None
+    installments_list: dict | None = None
+    category_id: int
+    discount: int | None = None
+    heigth: float | None = None
+    width: float | None = None
+    weigth: float | None = None
+    length: float | None = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProductCreate(BaseModel):
+    name: str
+    uri: str
+    price: Decimal | float
+    category_id: int
+    description: dict | str | None
+    image_path: str
+    sku: str
+    direct_sales: bool | None = None
+    installments_config: int = INSTALLMENT_CONFIG_DEFAULT
+    installments_list: dict | None = None
+    discount: int | None = None
+    height: int | None = None
+    width: int | None = None
+    weight: int | None = None
+    length: int | None = None
+    diameter: int | None = None
+    currency: str | None = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProductInDBResponse(ProductCreate):
+    product_id: int
+
+
+class ListProducts(BaseModel):
+    products: list[ProductInDB]
+    model_config = ConfigDict(from_attributes=True)

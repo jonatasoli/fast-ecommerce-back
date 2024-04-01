@@ -5,17 +5,19 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from loguru import logger
 from redis.commands.core import AsyncHyperlogCommands
 from sqlalchemy.orm import Session
-from app.entities.product import ProductInDB
+from app.entities.product import (
+    ProductCreate,
+    ProductCreateResponse,
+    ProductInDB,
+)
 from app.infra.models import ProductDB
 from app.product import services as product_services
 
 from app.order import services
 from app.infra import deps
 from app.infra.deps import get_db
-from payment.schema import ProductSchema
 from schemas.order_schema import (
     ProductFullResponse,
-    ProductSchemaResponse,
     ProductPatchRequest,
 )
 
@@ -27,16 +29,16 @@ product = APIRouter(
 
 @product.post(
     '/create-product',
-    status_code=201,
-    response_model=ProductSchemaResponse,
+    status_code=status.HTTP_201_CREATED,
+    response_model=ProductCreateResponse,
 )
 def create_product(
     *,
     db: Session = Depends(deps.get_db),
-    product_data: ProductSchema,
-) -> ProductSchemaResponse:
+    product_data: ProductCreate,
+) -> ProductCreateResponse:
     """Create product."""
-    product = services.create_product(db=db, product_data=product_data)
+    product = services.create_product(product_data, db=db)
     if not product:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
