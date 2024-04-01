@@ -236,7 +236,7 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
         ]
 
     mocker.patch.object(
-        bootstrap.cart_uow,
+        bootstrap.cart_repository,
         'get_products_quantity',
         side_effect=async_mock,
     )
