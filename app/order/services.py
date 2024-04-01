@@ -10,7 +10,10 @@ from sqlalchemy.orm import Session, aliased
 
 from app.entities.product import (
     ProductCategoryInDB,
+    ProductCreate,
+    ProductCreateResponse,
     ProductInDB,
+    ProductInDBResponse,
     ProductsResponse,
 )
 from app.infra.file_upload import optimize_image
@@ -27,8 +30,6 @@ from schemas.order_schema import (
     ImageGalleryResponse,
     OrderFullResponse,
     OrderSchema,
-    ProductSchema,
-    ProductSchemaResponse,
     TrackingFullResponse,
     OrderUserListResponse,
     ProductListOrderResponse,
@@ -113,9 +114,10 @@ def get_product(db: Session, uri) -> ProductInDB | None:
 
 
 def create_product(
+    product_data: ProductCreate,
+    *,
     db: Session,
-    product_data: ProductSchema,
-) -> bool | ProductSchemaResponse:
+) -> bool | ProductCreateResponse:
     """Create new product."""
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
     db_product.description = json.dumps(product_data.description)
@@ -123,13 +125,14 @@ def create_product(
         with db:
             db.add(db_product)
             db.commit()
-            return ProductSchemaResponse.model_validate(db_product)
+            return ProductInDBResponse.model_validate(db_product)
     except Exception as e:
         logger.error(e)
         return False
 
 
 def update_product(product: ProductDB, product_data: dict) -> ProductDB:
+    """Update product by id."""
     for key, value in product_data.items():
         setattr(product, key, value)
     return product

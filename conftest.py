@@ -29,7 +29,8 @@ from app.infra.deps import get_db
 
 
 @pytest.fixture(scope='session', autouse=True)
-def set_test_settings():
+def _set_test_settings() -> None:
+    """Force testing env."""
     settings.configure(FORCE_ENV_FOR_DYNACONF='testing')
 
 
@@ -94,8 +95,10 @@ def override_get_db():
         db.close()
 
 
-@pytest.fixture(scope='function')
-def db() -> Generator:
+# TODO: Annotation slowly the db function in this time.
+@pytest.fixture()
+def db(): #noqa: ANN201
+    """Generate db session."""
     _engine = get_engine()
         # Reflect all tables from metadata
     metadata = Base.metadata
@@ -103,12 +106,12 @@ def db() -> Generator:
 
     Base.metadata.drop_all(bind=_engine, checkfirst=True)
     Base.metadata.create_all(bind=_engine)
-    TestingSessionLocal = sessionmaker(
+    testing_session_local = sessionmaker(
         autocommit=False,
         autoflush=False,
         bind=_engine,
     )
-    return TestingSessionLocal()
+    return testing_session_local()
 
 
 @pytest.fixture(scope='session')
