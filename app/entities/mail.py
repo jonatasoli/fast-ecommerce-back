@@ -23,6 +23,11 @@ class MailTrackingNumber(BaseModel):
     tracking_number: str
 
 
+class MailResetPassword(BaseModel):
+    mail_to: str
+    token: str
+
+
 class MailFormCourses(BaseModel):
     name: str
     email: str

@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Engine, create_engine, QueuePool
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
@@ -23,7 +23,7 @@ def get_engine() -> Engine:
     return create_engine(
         sqlalchemy_database_url,
         pool_size=10,
-        max_overflow=0,
+        max_overflow=5,
     )
 
 
@@ -45,6 +45,7 @@ def get_session() -> sessionmaker:
     _engine = get_engine()
     return sessionmaker(
         bind=_engine,
+        expire_on_commit=False,
     )
 
 
@@ -60,8 +61,9 @@ def get_async_engine() -> AsyncEngine:
     return create_async_engine(
         settings.DATABASE_URI,
         pool_size=10,
-        max_overflow=0,
+        max_overflow=5,
         echo=True,
+        poolclass=QueuePool,
     )
 
 

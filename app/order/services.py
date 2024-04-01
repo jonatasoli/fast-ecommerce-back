@@ -4,12 +4,15 @@ from typing import Any
 
 from fastapi import HTTPException, status
 from loguru import logger
+from propan.brokers.rabbit import RabbitQueue
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, aliased
 
 from app.entities.product import (
     ProductCategoryInDB,
+    ProductCreate,
     ProductInDB,
+    ProductInDBResponse,
     ProductsResponse,
 )
 from app.infra.file_upload import optimize_image
@@ -26,8 +29,6 @@ from schemas.order_schema import (
     ImageGalleryResponse,
     OrderFullResponse,
     OrderSchema,
-    ProductSchema,
-    ProductSchemaResponse,
     TrackingFullResponse,
     OrderUserListResponse,
     ProductListOrderResponse,
@@ -112,9 +113,10 @@ def get_product(db: Session, uri) -> ProductInDB | None:
 
 
 def create_product(
+    product_data: ProductCreate,
+    *,
     db: Session,
-    product_data: ProductSchema,
-) -> bool | ProductSchemaResponse:
+) -> ProductInDBResponse:
     """Create new product."""
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
     db_product.description = json.dumps(product_data.description)
@@ -122,13 +124,14 @@ def create_product(
         with db:
             db.add(db_product)
             db.commit()
-            return ProductSchemaResponse.model_validate(db_product)
+            return ProductInDBResponse.model_validate(db_product)
     except Exception as e:
         logger.error(e)
-        return False
+        raise
 
 
 def update_product(product: ProductDB, product_data: dict) -> ProductDB:
+    """Update product by id."""
     for key, value in product_data.items():
         setattr(product, key, value)
     return product
@@ -328,8 +331,27 @@ def put_order(db: Session, order_data: OrderFullResponse, id):
     ...
 
 
-def put_trancking_number(db: Session, data: TrackingFullResponse, id):
-    ...
+async def put_tracking_number(
+    order_id: int,
+    *,
+    data: TrackingFullResponse,
+    db,
+    message,
+) -> None:
+    """Update tracking number."""
+    async with db() as session:
+        order = await session.get(OrderDB, order_id)
+        order.tracking_number = data.tracking_number
+        await session.commit()
+
+    await message.broker.publish(
+        {
+            'mail_to': order.user.email,
+            'order_id': order_id,
+            'tracking_number': data.tracking_number,
+        },
+        queue=RabbitQueue('notification_tracking_number'),
+    )
 
 
 def checked_order(db: Session, id, check):

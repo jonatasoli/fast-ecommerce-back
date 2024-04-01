@@ -20,7 +20,11 @@ from app.entities.cart import (
     generate_new_cart,
     validate_cache_cart,
 )
-from app.entities.coupon import CouponResponse
+from app.entities.coupon import (
+    CouponDontMatchWithUserError,
+    CouponNotFoundError,
+    CouponResponse,
+)
 from app.entities.product import ProductCart, ProductSoldOutError
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
@@ -88,7 +92,7 @@ async def add_product_to_cart(
     return cart
 
 
-async def calculate_cart(  # noqa: C901
+async def calculate_cart(
     uuid: str,
     cart: CartBase,
     bootstrap: Command,
@@ -103,11 +107,95 @@ async def calculate_cart(  # noqa: C901
             status_code=400,
             detail='Cart uuid is not the same as the cache uuid',
         )
-    products_db = await bootstrap.uow.get_products(cart.cart_items)
-    products_inventory = await bootstrap.cart_uow.get_products_quantity(
-        cart.cart_items,
+    async with bootstrap.db() as db:
+        products_db = await bootstrap.cart_repository.get_products(
+            cart.cart_items,
+            transaction=db.begin(),
+        )
+        products_inventory = (
+            await bootstrap.cart_repository.get_products_quantity(
+                cart.cart_items,
+                transaction=db.begin(),
+            )
+        )
+    cart_quantities = consistency_inventory(
+        products_db=products_db,
+        cache_cart=cache_cart,
+        products_inventory=products_inventory,
+    )
+    if cart_quantities:
+        cache.set(
+            str(cart.uuid),
+            cache_cart.model_dump_json(),
+            ex=DEFAULT_CART_EXPIRE,
+        )
+        raise ProductSoldOutError(
+            cart_quantities,
+        )
+
+    cart.get_products_price_and_discounts(products_db)
+    if cart.coupon:
+        async with bootstrap.db() as session:
+            coupon = await bootstrap.cart_repository.get_coupon_by_code(
+                cart.coupon,
+                transaction=session.begin(),
+            )
+    if cart.coupon and not coupon:
+        raise HTTPException(
+            status_code=400,
+            detail='Coupon not found',
+        )
+    cart = calculate_freight(
+        cart=cart,
+        products_db=products_db,
         bootstrap=bootstrap,
     )
+    if cart.cart_items:
+        cart.calculate_subtotal(
+            coupon=coupon if cart.coupon and coupon else None,
+        )
+    cache.set(
+        str(cart.uuid),
+        cart.model_dump_json(),
+        ex=DEFAULT_CART_EXPIRE,
+    )
+    return cart
+
+
+def calculate_freight(
+    cart: CartBase,
+    products_db: ProductCart,
+    bootstrap: Command,
+) -> CartBase:
+    """Calculate Freight."""
+    if cart.zipcode:
+        zipcode = cart.zipcode
+        no_spaces = zipcode.replace(' ', '')
+        no_special_chars = re.sub(r'[^a-zA-Z0-9]', '', no_spaces)
+        cart.zipcode = no_special_chars
+        freight_package = bootstrap.freight.calculate_volume_weight(
+            products=products_db,
+        )
+        if not cart.freight_product_code:
+            raise HTTPException(
+                status_code=400,
+                detail='Freight product code not found',
+            )
+        freight = bootstrap.freight.get_freight(
+            cart.freight_product_code,
+            freight_package=freight_package,
+            zipcode=cart.zipcode,
+        )
+        cart.freight = freight
+    return cart
+
+
+def consistency_inventory(
+    products_db: ProductCart,
+    cache_cart: CartBase,
+    products_inventory: list,
+) -> dict:
+    """Check if products there are in invetory."""
     products_in_cart = []
     products_in_inventory = []
     cart_quantities = {}
@@ -137,61 +225,15 @@ async def calculate_cart(  # noqa: C901
                     )
                     cart_item.quantity = 0
                     cart_item.price = Decimal(0)
-
     products_not_in_both = list(
         set(products_in_cart) ^ set(products_in_inventory),
     )
-
-    if cart_quantities:
-        cache.set(
-            str(cart.uuid),
-            cache_cart.model_dump_json(),
-            ex=DEFAULT_CART_EXPIRE,
-        )
-        raise ProductSoldOutError(
-            cart_quantities,
-        )
     if len(products_db) != len(products_inventory):
         raise ProductSoldOutError(  # noqa: TRY003
             f'Os seguintes produtos não possuem em estoque {products_not_in_both}',  # noqa: EM102
         )
-    cart.get_products_price_and_discounts(products_db)
-    if cart.coupon and not (
-        coupon := await bootstrap.uow.get_coupon_by_code(cart.coupon)
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail='Coupon not found',
-        )
-    if cart.zipcode:
-        zipcode = cart.zipcode
-        no_spaces = zipcode.replace(' ', '')
-        no_special_chars = re.sub(r'[^a-zA-Z0-9]', '', no_spaces)
-        cart.zipcode = no_special_chars
-        freight_package = bootstrap.freight.calculate_volume_weight(
-            products=products_db,
-        )
-        if not cart.freight_product_code:
-            raise HTTPException(
-                status_code=400,
-                detail='Freight product code not found',
-            )
-        freight = bootstrap.freight.get_freight(
-            cart.freight_product_code,
-            freight_package=freight_package,
-            zipcode=cart.zipcode,
-        )
-        cart.freight = freight
-    if cart.cart_items:
-        cart.calculate_subtotal(
-            discount=coupon.discount if cart.coupon else 0,
-        )
-    cache.set(
-        str(cart.uuid),
-        cart.model_dump_json(),
-        ex=DEFAULT_CART_EXPIRE,
-    )
-    return cart
+
+    return cart_quantities
 
 
 async def add_user_to_cart(
@@ -201,7 +243,7 @@ async def add_user_to_cart(
     bootstrap: Command,
 ) -> CartUser:
     """Must validate token user if is valid add user id in cart."""
-    user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_user(token)
     customer_stripe_uuid = await bootstrap.cart_uow.get_customer(
         user.user_id,
         payment_gateway=PaymentGatewayAvailable.STRIPE.name,
@@ -219,6 +261,17 @@ async def add_user_to_cart(
         )
     user_data = UserData.model_validate(user)
     cart_user = CartUser(**cart.model_dump(), user_data=user_data)
+    if cart_user.coupon:
+        async with bootstrap.db() as session:
+            coupon = await bootstrap.cart_repository.get_coupon_by_code(
+                cart_user.coupon,
+                transaction=session.begin(),
+            )
+        match coupon:
+            case None:
+                raise CouponNotFoundError
+            case _ if coupon.user_id and coupon.user_id != user_data.user_id:
+                raise CouponDontMatchWithUserError
     cache = bootstrap.cache
     cache.get(uuid)
     cache.set(
@@ -237,7 +290,7 @@ async def add_address_to_cart(
     bootstrap: Command,
 ) -> CartShipping:
     """Must add addresss information to shipping and payment."""
-    user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     cache_cart = CartUser.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
@@ -291,7 +344,7 @@ async def add_payment_information(  # noqa: PLR0913
     bootstrap: Command,
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
-    user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     cache_cart = CartShipping.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
@@ -393,7 +446,7 @@ async def preview(
     bootstrap: Command,
 ) -> CartPayment:
     """Must get address id and payment token to show in cart."""
-    user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_user(token)
     cart = bootstrap.cache.get(uuid)
     cache_cart = CartPayment.model_validate_json(cart)
     if cache_cart.gateway_provider == PaymentGatewayAvailable.STRIPE.name:
@@ -421,10 +474,12 @@ async def checkout(
 ) -> CreateCheckoutResponse:
     """Process payment to specific cart."""
     _ = cart
-    user = bootstrap.user.get_current_user(token)
+    user = bootstrap.user.get_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     validate_cache_cart(cache_cart)
     cache_cart = CartPayment.model_validate_json(cache_cart)
+    _qr_code = None
+    _qr_code_base64 = None
 
     if (
         cache_cart.payment_method != PaymentMethod.CREDIT_CARD.value
@@ -437,6 +492,11 @@ async def checkout(
 
     logger.info(f'{uuid}, {cache_cart.payment_intent} ')
     user = UserDBGet.model_validate(user)
+    logger.info('Service Checkout')
+    logger.info(f'{uuid}')
+    logger.info(f'{cache_cart.gateway_provider}')
+    logger.info(f'{cache_cart.payment_method}')
+    logger.info(f'{user}')
     checkout_task = await bootstrap.message.broker.publish(
         {
             'cart_uuid': uuid,
@@ -447,6 +507,7 @@ async def checkout(
         queue=RabbitQueue('checkout'),
         callback=True,
     )
+    logger.info('Finish Checkout task')
     order_id = None
     _gateway_payment_id = None
     if not isinstance(checkout_task, dict):

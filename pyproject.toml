@@ -1,14 +1,13 @@
 [tool.poetry]
 name = "fast-ecommerce"
-version = "0.2.0"
+version = "0.2.1"
 description = "Ecommerce API"
-authors = ["Jônatas Oliveira <contato@jonatasoliveira.me>"]
+authors = ["Jônatas Oliveira <contact@jonatasoliveira.dev>"]
 license = "AGPL-3.0-or-later"
 
 [tool.poetry.dependencies]
 python = "^3.12"
 fastapi = "*"
-uvicorn = "*"
 alembic = "*"
 sqlalchemy = {version = "~2", extras = ["asyncio"]}
 databases = {version = "*", extras = ["postgress", "sqlite"]}
@@ -21,14 +20,13 @@ loguru = "*"
 mail-service = "*"
 python-jose = {version = "*", extras = ["cryptography"]}
 python-multipart = "*"
-bcrypt = "*"
+bcrypt = "^3.2.2"
 beautifulsoup4 = "*"
 lxml = "*"
 Jinja2 = "*"
 sendgrid = "*"
 httpx = "*"
 pytest-asyncio = "*"
-psycopg2-binary = "*"
 importlib-metadata = "*"
 typing-extensions = "*"
 sentry-sdk = {version = "*", extras = ["fastapi"]}
@@ -43,7 +41,11 @@ stripe = "*"
 pydantic-settings = "*"
 propan = {version = "~0.1", extras = ["async-rabbit"]}
 mercadopago = "*"
-elementpath = "^4.2.1"
+uvicorn = {extras = ["standard"], version = "~0.27"}
+cython = "*"
+psycopg = {extras = ["binary", "pool"], version = "^3.1.18"}
+psycopg2-binary = "^2.9.9"
+solarwinds-apm = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"
@@ -63,6 +65,7 @@ pytest-env = "*"
 ruff-lsp = "*"
 anyio = "*"
 pyright = "*"
+taskipy = "*"
 
 
 [tool.ruff]
@@ -143,5 +146,5 @@ skip_empty = true
 path = ".venv"
 
 [build-system]
-requires = ["poetry-core>=1.0.0","setuptools", "wheel"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -9,6 +9,7 @@ from app.entities.cart import CartBase
 from app.entities.product import ProductCart, ProductInventoryDB
 from app.cart.services import add_product_to_cart, calculate_cart
 from app.infra.bootstrap.cart_bootstrap import Command
+from app.infra.database import get_async_session
 from tests.factories_db import InventoryDBFactory, ProductDBFactory
 from tests.fake_functions import fake, fake_url_path
 
@@ -43,13 +44,18 @@ def merge_product_inventory(productdb, inventorydb) -> ProductInventoryDB:
     return merged_object
 
 
-def create_product_cart(product_id: int = 1, quantity: int = 1) -> ProductCart:
+def create_product_cart(
+    product_id: int = 1,
+    quantity: int = 1,
+    discount_price: Decimal = Decimal(0),
+) -> ProductCart:
     """Must create product in db."""
     return ProductCart(
         name=fake.name(),
         image_path=fake_url_path(),
         product_id=product_id,
         quantity=quantity,
+        discount_price=discount_price,
     )
 
 
@@ -165,7 +171,7 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
 
 
 @pytest.mark.asyncio()
-async def test_given_cart_with_items_need_calculate_to_preview(
+async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
     memory_bootstrap: Command,
     mocker: MockerFixture,
 ) -> None:
@@ -175,24 +181,28 @@ async def test_given_cart_with_items_need_calculate_to_preview(
     first_product = create_product_cart(
         product_id=2,
         quantity=1,
+        discount_price=Decimal('50'),
     )
     second_product = create_product_cart(
         product_id=1,
         quantity=1,
+        discount_price=Decimal('50'),
     )
     cart_items.append(first_product)
     cart_items.append(second_product)
 
     productdb_1 = ProductDBFactory(
         product_id=1,
-        discount=0,
+        discount=Decimal('50'),
+        price=Decimal('100'),
         category_id=1,
         showcase=False,
         show_discount=False,
     )
     productdb_2 = ProductDBFactory(
         product_id=2,
-        discount=0,
+        discount=Decimal('50'),
+        price=Decimal('100'),
         category_id=1,
         showcase=False,
         show_discount=False,
@@ -209,8 +219,9 @@ async def test_given_cart_with_items_need_calculate_to_preview(
     )
 
     bootstrap = await memory_bootstrap
+    bootstrap.db = get_async_session()
     mocker.patch.object(
-        bootstrap.uow,
+        bootstrap.cart_repository,
         'get_products',
         return_value=[productdb_1, productdb_2],
     )
@@ -225,7 +236,7 @@ async def test_given_cart_with_items_need_calculate_to_preview(
         ]
 
     mocker.patch.object(
-        bootstrap.cart_uow,
+        bootstrap.cart_repository,
         'get_products_quantity',
         side_effect=async_mock,
     )
@@ -251,3 +262,5 @@ async def test_given_cart_with_items_need_calculate_to_preview(
 
     # Assert
     assert str(cart_response.uuid) == str(uuid)
+    assert cart_response.subtotal == Decimal('100')
+    assert cart_response.discount == Decimal('100')

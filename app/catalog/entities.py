@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict
 class Category(BaseModel):
     """Category entity."""
 
+    category_id: int
     name: str
     path: str
     menu: bool

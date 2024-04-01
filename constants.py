@@ -1,16 +1,6 @@
 import enum
 
 
-class DocumentType(enum.Enum):
-    CPF = 'CPF'
-
-
-class Roles(enum.Enum):
-    ADMIN = 1
-    USER = 2
-    PARTNER = 3
-
-
 class StepsOrder(enum.Enum):
     PAYMENT_PENDING = 'PAYMENT_PENDING'
     ORDER_CANCELLED = 'ORDER_CANCELLED'

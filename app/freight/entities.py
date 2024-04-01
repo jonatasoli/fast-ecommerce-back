@@ -32,9 +32,16 @@ def calculate_package(products: list[ProductInDB]) -> FreightPackage:
     weight, volume = 0, 0
     for product in products:
         weight += product.weight
-        volume += product.length * product.height * product.width
+        _metric = (
+            product.length * product.width
+            if product.width > 0
+            else product.diameter
+        )
+        if not _metric:
+            raise Exception('Error metric')
+        volume += product.height * _metric
 
-    _lenght = _width = _height = volume ** (1 / 3)
+    _lenght = _width = _height = int(volume) ** (1 / 3)
     if _lenght <= MIN_LENGTH:
         _lenght = MIN_LENGTH
     elif _lenght >= MAX_LENGTH:

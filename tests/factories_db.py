@@ -1,8 +1,14 @@
+from decimal import Decimal
 import factory
 from factory.declarations import SelfAttribute, SubFactory
 from faker import Faker
 from app.infra.constants import InventoryOperation
-from app.infra.models import CreditCardFeeConfigDB, InventoryDB, PaymentDB
+from app.infra.models import (
+    CouponsDB,
+    CreditCardFeeConfigDB,
+    InventoryDB,
+    PaymentDB,
+)
 from factory.alchemy import SQLAlchemyModelFactory
 
 
@@ -31,7 +37,7 @@ class FactoryDB(SQLAlchemyModelFactory):  # type: ignore[misc]
         sqlalchemy_session_persistence = 'flush'
 
 
-class RoleFactory(factory.Factory):
+class RoleDBFactory(factory.Factory):
     class Meta:
         model = RoleDB
 
@@ -39,12 +45,12 @@ class RoleFactory(factory.Factory):
     active = fake.pybool()
 
 
-class UserFactory(factory.Factory):
+class UserDBFactory(factory.Factory):
     class Meta:
         model = UserDB
 
     class Params:
-        role = SubFactory(RoleFactory)
+        role = SubFactory(RoleDBFactory)
 
     name = fake.name()
     username = fake.user_name()
@@ -107,7 +113,7 @@ class OrderFactory(factory.Factory):
         model = OrderDB
 
     class Params:
-        user = SubFactory(UserFactory)
+        user = SubFactory(UserDBFactory)
 
     user_id = SelfAttribute('user.user_id')
     cart_uuid = fake.uuid4()
@@ -125,7 +131,7 @@ class PaymentFactory(factory.Factory):
         model = PaymentDB
 
     class Params:
-        user = SubFactory(UserFactory)
+        user = SubFactory(UserDBFactory)
 
     user_id = SelfAttribute('user.user_id')
     amount = fake.pyint()
@@ -172,5 +178,15 @@ class InventoryDBFactory(factory.Factory):
         product = SubFactory(ProductDBFactory)
 
     product_id = SelfAttribute('product.product_id')
-    quantity = fake.pyint(min_value=1, max_value=999)
+    quantity = fake.pyint(min_value=10, max_value=999)
     operation = InventoryOperation.INCREASE.value
+
+
+class CouponFactory(factory.Factory):
+    class Meta:
+        model = CouponsDB
+
+    code = fake.pystr()
+    discount = Decimal('0.1')
+    qty = fake.pyint(min_value=1, max_value=999)
+    active = True

@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import ConfigDict, BaseModel, Json, SecretStr
+from pydantic import ConfigDict, BaseModel, SecretStr
 
 
 class CreditCardPayment(BaseModel):
@@ -65,60 +65,6 @@ class ConfigCreditCardResponse(BaseModel):
     fee: Decimal
     min_installment_with_fee: int
     max_installments: int
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ProductSchema(BaseModel):
-    name: str
-    uri: str
-    price: int
-    direct_sales: bool | None = None
-    description: dict | None
-    image_path: str
-    installments_config: int | None = None
-    installments_list: dict | None = None
-    category_id: int
-    discount: int | None = None
-    height: int | None = None
-    width: int | None = None
-    weight: int | None = None
-    length: int | None = None
-    diameter: int | None = None
-    sku: str | None = None
-    currency: str | None = None
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ProductResponseSchema(ProductSchema):
-    id: int
-
-
-class ProductInDB(BaseModel):
-    id: int
-    name: str
-    uri: str
-    price: int
-    direct_sales: bool | None = None
-    upsell: list | None = None
-    description: Json
-    image_path: str
-    installments_config: int | None = None
-    installments_list: list | None = None
-    category_id: int
-    discount: int | None = None
-    quantity: int | None = None
-    showcase: bool
-    show_discount: bool
-    heigth: int | None = None
-    width: int | None = None
-    weigth: int | None = None
-    length: int | None = None
-    currency: str | None = None
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ListProducts(BaseModel):
-    products: list[ProductInDB]
     model_config = ConfigDict(from_attributes=True)
 
 

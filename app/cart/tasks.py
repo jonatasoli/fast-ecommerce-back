@@ -57,6 +57,7 @@ async def checkout(
     bootstrap: Any = Depends(get_bootstrap),
 ) -> dict:
     """Checkout cart with payment intent."""
+    logger.info('Start checkout task')
     _ = payment_method
     order_id = None
     gateway_payment_id = None
@@ -213,11 +214,19 @@ async def checkout(
                             },
                             queue=RabbitQueue('sales_commission'),
                         )
+                    await bootstrap.message.broker.publish(
+                        {
+                            'mail_to': user.email,
+                            'order_id': order_id if order_id else '',
+                        },
+                        queue=RabbitQueue('notification_order_paid'),
+                    )
                 logger.info(
                     f'Checkout cart {cart_uuid} with payment {payment_id} processed with success',
                 )
                 bootstrap.cache.delete(cart_uuid)
             case (PaymentMethod.PIX.value):
+                logger.info('Start pix payment')
                 payment_id, order_id = await create_pending_payment_and_order(
                     cart=cart,
                     affiliate_id=affiliate_id,
