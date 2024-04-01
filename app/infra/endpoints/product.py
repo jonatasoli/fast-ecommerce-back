@@ -9,6 +9,7 @@ from app.entities.product import (
     ProductCreate,
     ProductCreateResponse,
     ProductInDB,
+    ProductInDBResponse,
 )
 from app.infra.models import ProductDB
 from app.product import services as product_services
@@ -30,13 +31,13 @@ product = APIRouter(
 @product.post(
     '/create-product',
     status_code=status.HTTP_201_CREATED,
-    response_model=ProductCreateResponse,
+    response_model=ProductInDBResponse,
 )
 def create_product(
     *,
     db: Session = Depends(deps.get_db),
     product_data: ProductCreate,
-) -> ProductCreateResponse:
+) -> ProductInDBResponse:
     """Create product."""
     product = services.create_product(product_data, db=db)
     if not product:

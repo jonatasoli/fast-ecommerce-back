@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session, aliased
 from app.entities.product import (
     ProductCategoryInDB,
     ProductCreate,
-    ProductCreateResponse,
     ProductInDB,
     ProductInDBResponse,
     ProductsResponse,
@@ -117,7 +116,7 @@ def create_product(
     product_data: ProductCreate,
     *,
     db: Session,
-) -> bool | ProductCreateResponse:
+) -> ProductInDBResponse:
     """Create new product."""
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
     db_product.description = json.dumps(product_data.description)
@@ -128,7 +127,7 @@ def create_product(
             return ProductInDBResponse.model_validate(db_product)
     except Exception as e:
         logger.error(e)
-        return False
+        raise
 
 
 def update_product(product: ProductDB, product_data: dict) -> ProductDB:
