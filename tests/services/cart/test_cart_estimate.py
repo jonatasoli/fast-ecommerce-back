@@ -64,8 +64,8 @@ async def test_estimate_cart_with_product(
         bootstrap.cart_repository,
         'get_products_quantity',
         return_value=[
-            product_quantity_1.__dict__,
-            product_quantity_2.__dict__,
+            product_quantity_1,
+            product_quantity_2,
         ],
     )
 
@@ -143,8 +143,8 @@ async def test_estimate_cart_with_coupon_discount(
         bootstrap.cart_repository,
         'get_products_quantity',
         return_value=[
-            product_quantity_1.__dict__,
-            product_quantity_2.__dict__,
+            product_quantity_1,
+            product_quantity_2,
         ],
     )
 
