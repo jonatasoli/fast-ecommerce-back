@@ -95,7 +95,7 @@ jobs:
             DYNACONF_BROKER_URL: "amqp://guest:guest@localhost:5672//"
             DYNACONF_RESULT_BACKEND: "rpc://"
           run: |
-            poetry run make report
+            poetry run make post_test
 
         - name: Comment coverage
           uses: coroo/pytest-coverage-commentator@v1.0.2
