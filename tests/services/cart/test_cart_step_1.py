@@ -231,8 +231,8 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
 
     async def async_mock(*args, **kwargs) -> list:
         return [
-            product_inventory_1.model_dump(),
-            product_inventory_2.model_dump(),
+            product_inventory_1,
+            product_inventory_2,
         ]
 
     mocker.patch.object(

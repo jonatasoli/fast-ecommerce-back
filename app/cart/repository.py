@@ -1,13 +1,15 @@
 import abc
-from typing import Any, Self
+from typing import Any, List, Self
 from loguru import logger
+from pydantic import TypeAdapter
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import SessionTransaction
+from sqlalchemy.orm import SessionTransaction, lazyload
 from app.entities.address import AddressBase
 from app.entities.cart import ProductNotFoundError
 from sqlalchemy.exc import NoResultFound
 from app.entities.coupon import CouponNotFoundError
+from app.entities.product import ProductInDB
 
 from app.infra import models
 
@@ -333,36 +335,57 @@ async def get_products(
 async def get_products_quantity(
     products: list[int],
     transaction: SessionTransaction,
-) -> list[models.ProductDB]:
+) -> List[ProductInDB]:
     """Must return products quantity."""
     try:
-        product_ids: list[int] = [item.product_id for item in products]
         quantity_query = (
             select(
-                models.InventoryDB.product_id.label('product_id'),
+                models.ProductDB.product_id,
+                models.ProductDB.name,
+                models.ProductDB.uri,
+                models.ProductDB.price,
+                models.ProductDB.active,
+                models.ProductDB.direct_sales,
+                models.ProductDB.description,
+                models.ProductDB.image_path,
+                models.ProductDB.installments_config,
+                models.ProductDB.installments_list,
+                models.ProductDB.discount,
+                models.ProductDB.category_id,
+                models.ProductDB.showcase,
+                models.ProductDB.feature,
+                models.ProductDB.show_discount,
+                models.ProductDB.height,
+                models.ProductDB.width,
+                models.ProductDB.weight,
+                models.ProductDB.length,
+                models.ProductDB.diameter,
+                models.ProductDB.sku,
+                models.ProductDB.currency,
                 func.coalesce(func.sum(models.InventoryDB.quantity), 0).label(
                     'quantity',
                 ),
             )
+            .options(lazyload('*'))
+            .join(
+                models.CategoryDB,
+                models.CategoryDB.category_id == models.ProductDB.category_id,
+            )
             .outerjoin(
-                models.ProductDB,
+                models.InventoryDB,
                 models.ProductDB.product_id == models.InventoryDB.product_id,
             )
-            .where(models.ProductDB.product_id.in_(product_ids))
-            .group_by(models.InventoryDB.product_id)
+            .where(models.ProductDB.product_id.in_(products))
+            .group_by(
+                models.ProductDB.product_id,
+                models.CategoryDB.category_id,
+            )
         )
         products_db = await transaction.session.execute(quantity_query)
-        await _check_products_db(products_db, product_ids)
+        await _check_products_db(products_db, products)
+        adapter = TypeAdapter(List[ProductInDB])
+        return adapter.validate_python(products_db.all())
 
-        column_names = products_db.keys()
-        products = products_db.all()
-
-        products_list = []
-        for product in products:
-            product_dict = dict(zip(column_names, product))
-            products_list.append(product_dict)
-
-        return products_list
     except Exception as e:
         logger.error(f'Error in _get_products: {e}')
         raise
