@@ -17,6 +17,7 @@ from app.user import uow as user_uow
 from app.payment import uow as payment_uow
 from app.inventory import uow as inventory_uow
 from app.cart import uow as cart_uow
+from app.cart import repository as cart_repository
 
 
 class Command(BaseModel):
@@ -29,6 +30,7 @@ class Command(BaseModel):
     user_uow: Any
     payment_uow: Any
     inventory_uow: Any
+    cart_repository: Any
     cache: redis.MemoryClient | cache_client.Redis
     message: RabbitRouter
     freight: Any
@@ -49,6 +51,7 @@ async def bootstrap(  # noqa: PLR0913
     user_uow: Any = user_uow,
     payment_uow: Any = payment_uow,
     inventory_uow: Any = inventory_uow,
+    cart_repository: Any = cart_repository,
     cache: redis.AbstractCache = redis.RedisCache(),
     message: RabbitRouter = task_message_bus,
     freight: Any = freight,
@@ -67,6 +70,7 @@ async def bootstrap(  # noqa: PLR0913
         user_uow=user_uow,
         payment_uow=payment_uow,
         inventory_uow=inventory_uow,
+        cart_repository=cart_repository,
         cache=_cache,
         message=message,
         freight=freight,

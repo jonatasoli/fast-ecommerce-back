@@ -220,11 +220,6 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
 
     bootstrap = await memory_bootstrap
     bootstrap.db = get_async_session()
-    mocker.patch.object(
-        bootstrap.cart_repository,
-        'get_products',
-        return_value=[productdb_1, productdb_2],
-    )
     bootstrap.cache = Mock()
     product_inventory_1 = merge_product_inventory(productdb_1, inventorydb_1)
     product_inventory_2 = merge_product_inventory(productdb_2, inventorydb_2)

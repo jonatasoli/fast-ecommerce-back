@@ -470,7 +470,7 @@ async def checkout(
             'user': user,
         },
         queue=RabbitQueue('checkout'),
-        callback=True,
+        rpc=True,
     )
     logger.info('Finish Checkout task')
     order_id = None

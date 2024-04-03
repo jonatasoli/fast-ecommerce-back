@@ -49,11 +49,6 @@ async def test_estimate_cart_with_product(
         return_value=cart.model_dump_json(),
     )
 
-    mocker.patch.object(
-        bootstrap.cart_repository,
-        'get_products',
-        return_value=[productdb_1, productdb_2],
-    )
     product_quantity_1 = productdb_1
     product_quantity_1.quantity = 10
     product_quantity_2 = productdb_2
@@ -122,11 +117,6 @@ async def test_estimate_cart_with_coupon_discount(
         return_value=cart.model_dump_json(),
     )
 
-    mocker.patch.object(
-        bootstrap.cart_repository,
-        'get_products',
-        return_value=[productdb_1, productdb_2],
-    )
     mocker.patch.object(
         bootstrap.cart_repository,
         'get_coupon_by_code',
