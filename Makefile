@@ -26,7 +26,7 @@ lint:
 	# @ruff check tests/ --ignore S101
 
 test:
-	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/ ex --cov=fast_ecommerce -vv
+	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/ -x --cov=fast_ecommerce -vv
 
 post_test:
 	@coverage html
