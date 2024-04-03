@@ -57,7 +57,7 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
-@task_message_bus.event('cancel_order')
+@task_message_bus.subscriber('cancel_order')
 async def cancel_order_task(
     order_id: int,
     bootstrap: Any = Depends(get_bootstrap),

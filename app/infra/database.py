@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import Engine, create_engine, QueuePool
+from sqlalchemy import AsyncAdaptedQueuePool, Engine, create_engine, QueuePool
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
@@ -63,7 +63,7 @@ def get_async_engine() -> AsyncEngine:
         pool_size=10,
         max_overflow=5,
         echo=True,
-        poolclass=QueuePool,
+        poolclass=AsyncAdaptedQueuePool,
     )
 
 

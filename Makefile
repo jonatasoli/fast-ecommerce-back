@@ -28,7 +28,7 @@ lint:
 test:
 	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/ -x --cov=fast_ecommerce -vv
 
-post-test:
+post_test:
 	@coverage html
 
 configs:

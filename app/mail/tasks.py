@@ -19,7 +19,7 @@ from app.infra.worker import task_message_bus
 from loguru import logger
 
 
-@task_message_bus.event('notification_order_cancelled')
+@task_message_bus.subscriber('notification_order_cancelled')
 def task_mail_order_cancelled(
     mail_to: str,
     order_id: int | str,
@@ -36,7 +36,7 @@ def task_mail_order_cancelled(
     send_order_cancelled(db=db, mail_data=mail_data)
 
 
-@task_message_bus.event('notification_order_processed')
+@task_message_bus.subscriber('notification_order_processed')
 def task_mail_order_processed(
     mail_to: str,
     order_id: int,
@@ -51,7 +51,7 @@ def task_mail_order_processed(
     send_order_processed(db=db, mail_data=mail_data)
 
 
-@task_message_bus.event('notification_order_paid')
+@task_message_bus.subscriber('notification_order_paid')
 def task_mail_order_paid(
     mail_to: str,
     order_id: int,
@@ -68,7 +68,7 @@ def task_mail_order_paid(
     send_order_paid(db=db, mail_data=mail_data)
 
 
-@task_message_bus.event('notification_tracking_number')
+@task_message_bus.subscriber('notification_tracking_number')
 def task_mail_order_track_number(
     mail_to: str,
     order_id: int,
@@ -84,7 +84,7 @@ def task_mail_order_track_number(
     send_mail_tracking_number(db=db, mail_data=mail_data)
 
 
-@task_message_bus.event('reset_password_request')
+@task_message_bus.subscriber('reset_password_request')
 def task_mail_reset_user_email(
     mail_to: str,
     token: str,
