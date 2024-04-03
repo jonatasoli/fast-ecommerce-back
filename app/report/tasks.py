@@ -12,7 +12,7 @@ from app.report.repository import update_commissions
 from app.report.services import create_sales_commission
 
 
-@task_message_bus.event('sales_commission')
+@task_message_bus.subscriber('sales_commission')
 def task_create_sales_commission(
     user_id: int,
     order_id: int,

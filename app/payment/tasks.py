@@ -54,7 +54,7 @@ async def update_payment(
     )
 
 
-@task_message_bus.event('create_customer')
+@task_message_bus.subscriber('create_customer')
 async def create_customer(
     user_id: int,
     user_email: str,

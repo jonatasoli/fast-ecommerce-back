@@ -11,14 +11,13 @@ fastapi = "*"
 alembic = "*"
 sqlalchemy = {version = "~2", extras = ["asyncio"]}
 databases = {version = "*", extras = ["postgress", "sqlite"]}
-passlib = "*"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 pyjwt = "*"
 python-dotenv = "*"
 asyncpg = "*"
 aiosqlite = "*"
 loguru = "*"
 mail-service = "*"
-python-jose = {version = "*", extras = ["cryptography"]}
 python-multipart = "*"
 bcrypt = "^3.2.2"
 beautifulsoup4 = "*"
@@ -39,13 +38,13 @@ dynaconf = "*"
 redis = "*"
 stripe = "*"
 pydantic-settings = "*"
-propan = {version = "~0.1", extras = ["async-rabbit"]}
 mercadopago = "*"
 uvicorn = {extras = ["standard"], version = "~0.27"}
 cython = "*"
 psycopg = {extras = ["binary", "pool"], version = "^3.1.18"}
 psycopg2-binary = "^2.9.9"
 solarwinds-apm = "^1.4.0"
+faststream = {extras = ["rabbit"], version = "^0.4.7"}
 
 [tool.poetry.group.dev.dependencies]
 blue = "*"

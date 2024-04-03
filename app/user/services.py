@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
 from passlib.context import CryptContext
-from propan.brokers.rabbit import RabbitQueue
+from faststream.rabbit import RabbitQueue
 
 from sqlalchemy import select, exc
 from app.entities.user import (
@@ -25,7 +25,7 @@ from app.entities.user import (
     UserSchema,
 )
 from app.infra.models import RoleDB, UserDB, CouponsDB, UserResetPasswordDB
-from jose import JWTError, jwt
+from jwt import DecodeError, encode, decode
 from config import settings
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -119,7 +119,7 @@ def get_affiliate(
         headers={'WWW-Authenticate': 'Bearer'},
     )
     try:
-        payload = jwt.decode(
+        payload = decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
@@ -127,7 +127,7 @@ def get_affiliate(
         document: str = payload.get('sub')
         if document is None:
             raise credentials_exception
-    except JWTError:
+    except DecodeError:
         raise_credential_error()
 
     user = _get_user_from_document(document, db=db)
@@ -159,7 +159,7 @@ def get_current_user(
 ) -> UserSchema:
     """Must return user db."""
     try:
-        payload = jwt.decode(
+        payload = decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
@@ -167,8 +167,8 @@ def get_current_user(
         document = payload.get('sub')
         if document is None:
             raise CredentialError
-    except JWTError:
-        raise CredentialError from JWTError
+    except DecodeError:
+        raise CredentialError from DecodeError
 
     with db() as session:
         user = session.scalar(
@@ -190,7 +190,7 @@ def create_access_token(
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)   # noqa: DTZ003
     to_encode.update({'exp': expire})
-    return jwt.encode(
+    return encode(
         to_encode,
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
@@ -257,7 +257,7 @@ def get_admin(token: str, *, db: sessionmaker):   # noqa: ANN201
         headers={'WWW-Authenticate': 'Bearer'},
     )
     try:
-        payload = jwt.decode(
+        payload = decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
@@ -265,7 +265,7 @@ def get_admin(token: str, *, db: sessionmaker):   # noqa: ANN201
         document: str = payload.get('sub')
         if document is None:
             raise credentials_exception
-    except JWTError:
+    except DecodeError:
         raise_credential_error()
 
     user = _get_user_from_document(document, db=db)
@@ -296,7 +296,7 @@ def check_token(f):   # noqa: ANN001, ANN201
             headers={'WWW-Authenticate': 'Bearer'},
         )
         try:
-            payload = jwt.decode(
+            payload = decode(
                 kwargs.get('token', None),
                 settings.SECRET_KEY,
                 algorithms=[settings.ALGORITHM],
@@ -307,7 +307,7 @@ def check_token(f):   # noqa: ANN001, ANN201
             logger.info(_user_credentials)
             if not payload or _user_credentials is None:
                 raise credentials_exception
-        except JWTError:
+        except DecodeError:
             raise_credential_error()
         return f(*args, **kwargs)
 

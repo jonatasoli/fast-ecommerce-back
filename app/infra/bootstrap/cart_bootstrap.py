@@ -1,4 +1,5 @@
-from propan.fastapi import RabbitRouter
+from faststream.rabbit.fastapi import RabbitRouter
+
 from pydantic import BaseModel
 
 import redis as cache_client

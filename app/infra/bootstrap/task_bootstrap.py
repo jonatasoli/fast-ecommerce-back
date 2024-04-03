@@ -1,4 +1,5 @@
-from propan.fastapi import RabbitRouter
+from faststream.rabbit.fastapi import RabbitRouter
+
 from app.infra.payment_gateway import payment_gateway
 from app.infra.worker import task_message_bus
 from pydantic import BaseModel

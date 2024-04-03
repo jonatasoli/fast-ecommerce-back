@@ -4,7 +4,6 @@ from typing import Any
 
 from fastapi import HTTPException, status
 from loguru import logger
-from propan.brokers.rabbit import RabbitQueue
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, aliased
 

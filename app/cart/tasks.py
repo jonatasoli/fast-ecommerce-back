@@ -5,7 +5,7 @@ from typing import Any, Self
 
 from fastapi import Depends, HTTPException
 from loguru import logger
-from propan.brokers.rabbit import RabbitQueue
+from faststream.rabbit import RabbitQueue
 
 from app.entities.cart import CartPayment
 from app.entities.coupon import CouponResponse
@@ -48,7 +48,7 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
-@task_message_bus.event('checkout')
+@task_message_bus.subscriber('checkout')
 async def checkout(
     cart_uuid: str,
     payment_method: str,

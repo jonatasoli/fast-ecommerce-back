@@ -3,7 +3,8 @@ import re
 
 from fastapi import HTTPException
 from loguru import logger
-from propan.brokers.rabbit import RabbitQueue
+from faststream.rabbit import RabbitQueue
+
 
 from app.entities.address import CreateAddress
 from app.entities.cart import (
