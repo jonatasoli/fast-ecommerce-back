@@ -1,5 +1,5 @@
 from loguru import logger
-from propan.fastapi import RabbitRouter
+from faststream.rabbit.fastapi import RabbitRouter
 from config import settings
 
 logger.info(f'{settings.BROKER_URL}')

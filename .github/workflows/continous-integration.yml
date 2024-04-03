@@ -76,9 +76,9 @@ jobs:
             DYNACONF_RESULT_BACKEND: "rpc://"
           run: poetry run make test
 
-        # - name: Build coverage file
-        #   run: |
-        #     poetry run make report
+        - name: Build coverage file
+          run: |
+            poetry run make report
 
-        # - name: Comment coverage
-        #   uses: coroo/pytest-coverage-commentator@v1.0.2
+        - name: Comment coverage
+          uses: coroo/pytest-coverage-commentator@v1.0.2
