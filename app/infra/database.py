@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from config import settings
 
 
-def get_engine() -> Engine:
+def get_engine(): # noqa: ANN201
     """Return an instance of a database connection sync engine using SQLAlchemy.
 
     Return:
@@ -27,7 +27,7 @@ def get_engine() -> Engine:
     )
 
 
-def get_session() -> sessionmaker:
+def get_session(): # noqa: ANN201
     """Return a SQLAlchemy sync session factory with a configured engine.
 
     Return:
