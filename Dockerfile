@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1 \
 	PIP_NO_CACHE_DIR=off \
 	PIP_DEFAULT_TIMEOUT=100 \
 	POETRY_HOME="/opt/poetry" \
-	POETRY_VIRTUALENVS_CREATE=false \
+	POETRY_VIRTUALENVS_CREATE=0 \
   PYTHONPATH=/app
 
 ENV PATH="$PATH:$POETRY_HOME/bin"
@@ -16,5 +16,5 @@ RUN apt-get update -y && apt install build-essential curl --no-install-recommend
 
 COPY . /app
 
-RUN poetry install --without dev
+RUN poetry config virtualenvs.create false && poetry install --without dev
 RUN opentelemetry-bootstrap --action=install
