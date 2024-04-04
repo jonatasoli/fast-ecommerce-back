@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from dynaconf import settings
+from config import settings
 from loguru import logger
 from sqlalchemy.orm import Session
 

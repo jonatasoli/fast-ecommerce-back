@@ -2,6 +2,8 @@ from faststream.rabbit.fastapi import RabbitRouter
 
 from pydantic import BaseModel
 
+from pydantic.config import ConfigDict
+from pydantic.dataclasses import dataclass
 import redis as cache_client
 from sqlalchemy.orm import sessionmaker
 from app.infra.payment_gateway import payment_gateway
@@ -29,10 +31,7 @@ class Command(BaseModel):
     user: Any
     payment: Any
 
-    class Config:
-        """Pydantic configs."""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 async def bootstrap(  # noqa: PLR0913

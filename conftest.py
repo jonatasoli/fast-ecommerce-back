@@ -6,7 +6,7 @@ from collections.abc import Generator
 import pytest
 from fastapi.testclient import TestClient
 from loguru import logger
-from sqlalchemy.engine import reflection
+from sqlalchemy import inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.schema import (
     DropConstraint,
@@ -50,7 +50,7 @@ def db_DropEverything():
     # transactional DDL, i.e. Postgresql, MS SQL Server
     trans = conn.begin()
 
-    inspector = reflection.Inspector.from_engine(_engine)
+    inspector = inspect(_engine)
 
     # gather all data first before dropping anything.
     # some DBs lock after things have been dropped in

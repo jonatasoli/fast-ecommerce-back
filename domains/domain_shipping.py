@@ -1,4 +1,4 @@
-from dynaconf import settings
+from config import settings
 from loguru import logger
 from sqlalchemy.orm import Session
 
