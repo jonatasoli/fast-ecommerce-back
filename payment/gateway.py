@@ -1,5 +1,5 @@
 import httpx
-from dynaconf import settings
+from config import settings
 from loguru import logger
 
 from payment.schema import CreditCardPayment, ResponseGateway, SlipPayment

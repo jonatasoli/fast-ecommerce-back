@@ -93,8 +93,8 @@ async def test_estimate_cart_with_coupon_discount(
     cart_items.append(product_2)
     coupon = CouponFactory(code='D10', discount=Decimal('0.1'))
 
-    productdb_1 = ProductDBFactory(product_id=1, discount=0)
-    productdb_2 = ProductDBFactory(product_id=2, discount=0)
+    productdb_1 = ProductDBFactory(product_id=1, discount=Decimal('0'))
+    productdb_2 = ProductDBFactory(product_id=2, discount=Decimal('0'))
     bootstrap = await memory_bootstrap
     mocker.patch.object(
         bootstrap.uow,

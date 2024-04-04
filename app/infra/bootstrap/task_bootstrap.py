@@ -1,4 +1,6 @@
 from faststream.rabbit.fastapi import RabbitRouter
+from pydantic.config import ConfigDict
+from pydantic.dataclasses import dataclass
 
 from app.infra.payment_gateway import payment_gateway
 from app.infra.worker import task_message_bus
@@ -37,10 +39,7 @@ class Command(BaseModel):
     user: Any
     payment: Any
 
-    class Config:
-        """Pydantic configs."""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 async def bootstrap(  # noqa: PLR0913

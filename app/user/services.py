@@ -1,6 +1,6 @@
 # ruff: noqa: ANN401
 import re
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import enum
 from functools import wraps
 from fastapi import HTTPException, status
@@ -186,9 +186,9 @@ def create_access_token(
     """Create temporary access token."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta   # noqa: DTZ003
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)   # noqa: DTZ003
+        expire = datetime.now(UTC) + timedelta(minutes=15)
     to_encode.update({'exp': expire})
     return encode(
         to_encode,

@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
+from pydantic.dataclasses import dataclass
 from sqlalchemy.orm import sessionmaker
 from app.infra.database import get_async_session as get_session
 from typing import Any
@@ -12,10 +13,7 @@ class Command(BaseModel):
     db: sessionmaker
     catalog_uow: Any
 
-    class Config:
-        """Pydantic configs."""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 async def bootstrap(
