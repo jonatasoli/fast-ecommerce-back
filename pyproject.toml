@@ -32,6 +32,7 @@ mercadopago = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 cython = "*"
 psycopg = {extras = ["binary", "pool"], version = "*"}
+psycopg2-binary = "^2.9.9"
 solarwinds-apm = "*"
 faststream = {extras = ["rabbit"], version = "*"}
 
