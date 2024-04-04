@@ -4,6 +4,7 @@ version = "0.2.1"
 description = "Ecommerce API"
 authors = ["Jônatas Oliveira <contact@jonatasoliveira.dev>"]
 license = "AGPL-3.0-or-later"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -34,7 +35,6 @@ mercadopago = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 cython = "*"
 psycopg = {extras = ["binary", "pool"], version = "*"}
-psycopg2-binary = "^2.9.9"
 solarwinds-apm = "*"
 faststream = {extras = ["rabbit"], version = "*"}
 
