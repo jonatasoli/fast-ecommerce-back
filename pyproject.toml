@@ -18,6 +18,7 @@ aiosqlite = "*"
 loguru = "*"
 bcrypt = "*"
 Jinja2 = "*"
+mail-service = "*"
 sendgrid = "*"
 httpx = "*"
 sentry-sdk = {version = "*", extras = ["fastapi"]}
