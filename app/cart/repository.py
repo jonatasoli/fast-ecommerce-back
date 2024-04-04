@@ -312,26 +312,6 @@ def sync_get_coupon_by_code(
     return coupon
 
 
-async def get_products(
-    products: list[int],
-    transaction: SessionTransaction,
-) -> list[models.ProductDB]:
-    """Must return updated products in db."""
-    try:
-        product_ids: list[int] = [item.product_id for item in products]
-        products_db = await transaction.session.execute(
-            select(models.ProductDB).where(
-                models.ProductDB.product_id.in_(product_ids),
-            ),
-        )
-        await _check_products_db(products_db, products)
-
-        return products_db.scalars().all()
-    except Exception as e:
-        logger.error(f'Error in _get_products: {e}')
-        raise
-
-
 async def get_products_quantity(
     products: list[int],
     transaction: SessionTransaction,

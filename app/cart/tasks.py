@@ -1,15 +1,14 @@
 # ruff:  noqa: D202 D205 T201 D212
-import re
 from decimal import Decimal
 from typing import Any, Self
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from loguru import logger
 from faststream.rabbit import RabbitQueue
+from app.cart.services import calculate_freight, consistency_inventory
 
 from app.entities.cart import CartPayment
 from app.entities.coupon import CouponResponse
-from app.entities.product import ProductSoldOutError
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 from app.infra.constants import OrderStatus, PaymentMethod
 from app.infra.payment_gateway.stripe_gateway import (
@@ -80,68 +79,23 @@ async def checkout(
                 bootstrap=bootstrap,
             )
             affiliate_id = coupon.affiliate_id
-        products_db = await bootstrap.cart_uow.get_products(
-            products=cart.cart_items,
-            bootstrap=bootstrap,
+        product_ids: list[int] = [item.product_id for item in cart.cart_items]
+        products_db = await bootstrap.cart_repository.get_products_quantity(
+            products=product_ids,
+            transaction=bootstrap.db().begin(),
+        )
+        consistency_inventory(
+            cart,
+            products_inventory=products_db,
         )
         cart.get_products_price_and_discounts(products_db)
-        products_inventory = await bootstrap.cart_uow.get_products_quantity(
-            cart.cart_items,
+        cart = calculate_freight(
+            cart=cart,
+            products_db=products_db,
             bootstrap=bootstrap,
         )
-        products_in_cart = []
-        products_in_inventory = []
-        cart_quantities = []
-        for product in products_db:
-            logger.info(cart)
-            logger.info(type(cart))
-            for cart_item in cart.cart_items:
-                products_in_cart.append(product.product_id)
-                if any(
-                    item['product_id'] == product.product_id
-                    for item in products_inventory
-                ):
-                    products_in_inventory.append(product.product_id)
-                for item in products_inventory:
-                    if (
-                        cart_item.product_id == item['product_id']
-                        and cart_item.quantity > item['quantity']
-                    ):
-                        cart_quantities.append(cart_item.model_dump())
-
-        products_not_in_both = list(
-            set(products_in_cart) ^ set(products_in_inventory),
-        )
-
-        if cart_quantities:
-            raise ProductSoldOutError(
-                f'Os seguintes items solicitados estão com um pedido acima dos nossos estoques {cart_quantities}',
-            )
-        if len(products_db) != len(products_inventory):
-            raise ProductSoldOutError(
-                f'Os seguintes produtos não possuem em estoque {products_not_in_both}',
-            )
-        cart.get_products_price_and_discounts(products_db)
-        zipcode = cart.zipcode
-        no_spaces = zipcode.replace(' ', '')
-        no_special_chars = re.sub(r'[^a-zA-Z0-9]', '', no_spaces)
-        cart.zipcode = no_special_chars
-        freight_package = bootstrap.freight.calculate_volume_weight(
-            products=products_db,
-        )
-        if not cart.freight_product_code:
-            raise HTTPException(
-                status_code=400,
-                detail='Freight product code not found',
-            )
-        freight = bootstrap.freight.get_freight(
-            cart.freight_product_code,
-            freight_package=freight_package,
-            zipcode=cart.zipcode,
-        )
-        cart.freight = freight
         cart.calculate_subtotal(
-            discount=coupon.discount if cart.coupon else 0,
+            coupon=coupon if cart.coupon else None,
         )
         match cart.payment_method:
             case (PaymentMethod.CREDIT_CARD.value):
@@ -216,7 +170,7 @@ async def checkout(
                         )
                     await bootstrap.message.broker.publish(
                         {
-                            'mail_to': user.email,
+                            'mail_to': user['email'],
                             'order_id': order_id if order_id else '',
                         },
                         queue=RabbitQueue('notification_order_paid'),
