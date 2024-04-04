@@ -607,31 +607,6 @@ files = [
 ]
 
 [[package]]
-name = "databases"
-version = "0.9.0"
-description = "Async database support for Python."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "databases-0.9.0-py3-none-any.whl", hash = "sha256:9ee657c9863b34f8d3a06c06eafbe1bda68af2a434b56996312edf1f1c0b6297"},
-    {file = "databases-0.9.0.tar.gz", hash = "sha256:d2f259677609bf187737644c95fa41701072e995dfeb8d2882f335795c5b61b0"},
-]
-
-[package.dependencies]
-aiosqlite = {version = "*", optional = true, markers = "extra == \"sqlite\""}
-sqlalchemy = ">=2.0.7"
-
-[package.extras]
-aiomysql = ["aiomysql"]
-aiopg = ["aiopg"]
-aiosqlite = ["aiosqlite"]
-asyncmy = ["asyncmy"]
-asyncpg = ["asyncpg"]
-mysql = ["aiomysql"]
-postgresql = ["asyncpg"]
-sqlite = ["aiosqlite"]
-
-[[package]]
 name = "decorator"
 version = "5.1.1"
 description = "Decorators for Humans"
@@ -3551,4 +3526,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "e5ada4b026252ffa97515e0b926a50d94991027ae41b280443129cace1a8275e"
+content-hash = "0f1f3dc80437ceeac6d37f06d7e8c6d2125f57bd6f1328af7068497079664962"
