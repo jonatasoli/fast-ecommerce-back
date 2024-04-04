@@ -19,6 +19,7 @@ loguru = "*"
 bcrypt = "*"
 Jinja2 = "*"
 mail-service = "*"
+python-multipart = "*"
 sendgrid = "*"
 httpx = "*"
 sentry-sdk = {version = "*", extras = ["fastapi"]}
