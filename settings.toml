@@ -31,8 +31,8 @@ CLIENT_API_TIMEOUT = 10
 
 
 [testing]
-DATABASE_URL="postgresql://postgres_user:pass123@localhost/ecommerce-test"
-DATABASE_URI="postgresql+asyncpg://postgres_user:pass123@localhost/ecommerce-test"
+DATABASE_URL="postgresql+psycopg://postgres_user:pass123@localhost/ecommerce-test"
+DATABASE_URI="postgresql+psycopg://postgres_user:pass123@localhost/ecommerce-test"
 API_MAIL_URL="https://testapi.com/"
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 LOG_LEVEL="DEBUG"
