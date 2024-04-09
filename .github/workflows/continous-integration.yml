@@ -58,8 +58,8 @@ jobs:
 
         - name: Run tests
           env:
-            DYNACONF_DATABASE_URL: "postgresql://postgres_user:pass123@localhost/ecommerce-test"
-            DYNACONF_DATABASE_URI: "postgresql+asyncpg://postgres_user:pass123@localhost/ecommerce-test"
+            DYNACONF_DATABASE_URL: "postgresql+psycopg://postgres_user:pass123@localhost/ecommerce-test"
+            DYNACONF_DATABASE_URI: "postgresql+psycopg://postgres_user:pass123@localhost/ecommerce-test"
             DYNACONF_REDIS_HOST: "localhost"
             DYNACONF_REDIS_PORT: "6379"
             DYNACONF_REDIS_DB: 0
