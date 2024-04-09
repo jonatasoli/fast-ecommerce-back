@@ -4,33 +4,26 @@ version = "0.2.1"
 description = "Ecommerce API"
 authors = ["Jônatas Oliveira <contact@jonatasoliveira.dev>"]
 license = "AGPL-3.0-or-later"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
 fastapi = "*"
 alembic = "*"
 sqlalchemy = {version = "~2", extras = ["asyncio"]}
-databases = {version = "*", extras = ["postgress", "sqlite"]}
-passlib = "*"
+passlib = {extras = ["bcrypt"], version = "*"}
 pyjwt = "*"
 python-dotenv = "*"
 asyncpg = "*"
 aiosqlite = "*"
 loguru = "*"
-mail-service = "*"
-python-jose = {version = "*", extras = ["cryptography"]}
-python-multipart = "*"
-bcrypt = "^3.2.2"
-beautifulsoup4 = "*"
-lxml = "*"
+bcrypt = "*"
 Jinja2 = "*"
+mail-service = "*"
+python-multipart = "*"
 sendgrid = "*"
 httpx = "*"
-pytest-asyncio = "*"
-importlib-metadata = "*"
-typing-extensions = "*"
 sentry-sdk = {version = "*", extras = ["fastapi"]}
-cloudinary = "*"
 Pillow = "*"
 aiofiles = "*"
 boto3 = "*"
@@ -38,17 +31,16 @@ zipp = "*"
 dynaconf = "*"
 redis = "*"
 stripe = "*"
-pydantic-settings = "*"
-propan = {version = "~0.1", extras = ["async-rabbit"]}
 mercadopago = "*"
-uvicorn = {extras = ["standard"], version = "~0.27"}
+uvicorn = {extras = ["standard"], version = "*"}
 cython = "*"
-psycopg = {extras = ["binary", "pool"], version = "^3.1.18"}
-psycopg2-binary = "^2.9.9"
-solarwinds-apm = "^1.4.0"
+psycopg = {extras = ["binary", "pool"], version = "*"}
+faststream = {extras = ["rabbit"], version = "*"}
+opentelemetry-distro = "^0.45b0"
+opentelemetry-exporter-otlp = "^1.24.0"
+opentelemetry-instrumentation-logging = "^0.45b0"
 
 [tool.poetry.group.dev.dependencies]
-blue = "*"
 isort = "*"
 ruff = "*"
 coverage = "*"

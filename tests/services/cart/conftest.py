@@ -1,5 +1,5 @@
 from typing import Any
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import pytest
 from app.cart.uow import MemoryUnitOfWork
 from app.cart import repository as cart_repository
@@ -20,10 +20,8 @@ class Command(BaseModel):
     user: Any
     payment: Any
 
-    class Config:
-        """Pydantic configs."""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-        arbitrary_types_allowed = True
 
 
 async def bootstrap(  # noqa: PLR0913

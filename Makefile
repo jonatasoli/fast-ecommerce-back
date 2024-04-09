@@ -11,11 +11,12 @@ shell:
 	@poetry shell
 
 format:
-	@blue app/ 
-	@blue tests/ 
+	# @blue app/ 
+	# @blue tests/ 
+	@ruff . --fix
 
 lint:
-	@blue app/ tests/ --check
+	# @blue app/ tests/ --check
 	@ruff check app/entities
 	@ruff check app/cart/services.py
 	@ruff check app/catalog/services.py
@@ -28,7 +29,7 @@ lint:
 test:
 	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/ -x --cov=fast_ecommerce -vv
 
-post-test:
+post_test:
 	@coverage html
 
 configs:

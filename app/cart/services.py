@@ -1,10 +1,10 @@
 # ruff: noqa: PLR1714
 import re
-from decimal import Decimal
 
 from fastapi import HTTPException
 from loguru import logger
-from propan.brokers.rabbit import RabbitQueue
+from faststream.rabbit import RabbitQueue
+
 
 from app.entities.address import CreateAddress
 from app.entities.cart import (
@@ -107,33 +107,26 @@ async def calculate_cart(
             status_code=400,
             detail='Cart uuid is not the same as the cache uuid',
         )
+    product_ids: list[int] = [item.product_id for item in cart.cart_items]
     async with bootstrap.db() as db:
-        products_db = await bootstrap.cart_repository.get_products(
-            cart.cart_items,
-            transaction=db.begin(),
-        )
         products_inventory = (
             await bootstrap.cart_repository.get_products_quantity(
-                cart.cart_items,
+                product_ids,
                 transaction=db.begin(),
             )
         )
-    cart_quantities = consistency_inventory(
-        products_db=products_db,
-        cache_cart=cache_cart,
+    cart = consistency_inventory(
+        cart,
         products_inventory=products_inventory,
     )
-    if cart_quantities:
+    if cart:
         cache.set(
             str(cart.uuid),
             cache_cart.model_dump_json(),
             ex=DEFAULT_CART_EXPIRE,
         )
-        raise ProductSoldOutError(
-            cart_quantities,
-        )
 
-    cart.get_products_price_and_discounts(products_db)
+    cart.get_products_price_and_discounts(products_inventory)
     if cart.coupon:
         async with bootstrap.db() as session:
             coupon = await bootstrap.cart_repository.get_coupon_by_code(
@@ -147,7 +140,7 @@ async def calculate_cart(
         )
     cart = calculate_freight(
         cart=cart,
-        products_db=products_db,
+        products_db=products_inventory,
         bootstrap=bootstrap,
     )
     if cart.cart_items:
@@ -191,49 +184,21 @@ def calculate_freight(
 
 
 def consistency_inventory(
-    products_db: ProductCart,
-    cache_cart: CartBase,
+    cart: CartBase,
+    *,
     products_inventory: list,
-) -> dict:
+) -> CartBase:
     """Check if products there are in invetory."""
-    products_in_cart = []
-    products_in_inventory = []
-    cart_quantities = {}
-    for product in products_db:
-        for cart_item in cache_cart.cart_items:
-            products_in_cart.append(product.product_id)
-            if any(
-                item['product_id'] == product.product_id
-                for item in products_inventory
-            ):
-                products_in_inventory.append(product.product_id)
-            for item in products_inventory:
-                if (
-                    cart_item.product_id == item['product_id']
-                    and cart_item.quantity > item['quantity']
-                ):
-                    cart_quantities.update(
-                        {
-                            f'{cart_item.product_id}': {
-                                'product_id': cart_item.product_id,
-                                'product_name': cart_item.name,
-                                'available_quantity': item['quantity']
-                                if item['quantity'] > 0
-                                else 0,
-                            },
-                        },
-                    )
-                    cart_item.quantity = 0
-                    cart_item.price = Decimal(0)
-    products_not_in_both = list(
-        set(products_in_cart) ^ set(products_in_inventory),
-    )
-    if len(products_db) != len(products_inventory):
-        raise ProductSoldOutError(  # noqa: TRY003
-            f'Os seguintes produtos não possuem em estoque {products_not_in_both}',  # noqa: EM102
-        )
+    if len(cart.cart_items) != len(products_inventory):
+        raise ProductSoldOutError
+    for product in products_inventory:
+        for cart_item in cart.cart_items:
+            if cart_item.product_id == product.product_id:
+                if cart_item.quantity > product.quantity:
+                    raise ProductSoldOutError
+                cart_item.available_quantity = max(product.quantity, 0)
 
-    return cart_quantities
+    return cart
 
 
 async def add_user_to_cart(
@@ -505,7 +470,7 @@ async def checkout(
             'user': user,
         },
         queue=RabbitQueue('checkout'),
-        callback=True,
+        rpc=True,
     )
     logger.info('Finish Checkout task')
     order_id = None

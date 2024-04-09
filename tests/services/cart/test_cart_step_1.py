@@ -1,4 +1,3 @@
-import asyncio
 from decimal import Decimal
 from unittest.mock import Mock
 from uuid import UUID
@@ -6,42 +5,12 @@ import pytest
 from pytest_mock import MockerFixture
 from app.entities.cart import CartBase
 
-from app.entities.product import ProductCart, ProductInventoryDB
+from app.entities.product import ProductCart
 from app.cart.services import add_product_to_cart, calculate_cart
 from app.infra.bootstrap.cart_bootstrap import Command
 from app.infra.database import get_async_session
-from tests.factories_db import InventoryDBFactory, ProductDBFactory
+from tests.factories_db import ProductDBFactory
 from tests.fake_functions import fake, fake_url_path
-
-
-def merge_product_inventory(productdb, inventorydb) -> ProductInventoryDB:
-    merged_object = ProductInventoryDB(
-        product_id=productdb.product_id,
-        name=productdb.name,
-        uri=productdb.uri,
-        price=productdb.price,
-        active=productdb.active,
-        direct_sales=productdb.direct_sales,
-        description=productdb.description,
-        image_path=productdb.image_path,
-        installments_config=productdb.installments_config,
-        installments_list=productdb.installments_list,
-        discount=productdb.discount,
-        category_id=productdb.category_id,
-        showcase=productdb.showcase,
-        show_discount=productdb.show_discount,
-        height=productdb.height,
-        width=productdb.width,
-        weight=productdb.weight,
-        length=productdb.length,
-        diameter=productdb.diameter,
-        quantity=inventorydb.quantity,
-        sku=productdb.sku,
-        inventory_id=inventorydb.inventory_id,
-        order_id=inventorydb.order_id,
-        operation=inventorydb.operation,
-    )
-    return merged_object
 
 
 def create_product_cart(
@@ -207,32 +176,19 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
         showcase=False,
         show_discount=False,
     )
-    inventorydb_1 = await asyncio.to_thread(
-        InventoryDBFactory,
-        product=productdb_1,
-        inventory_id=1,
-    )
-    inventorydb_2 = await asyncio.to_thread(
-        InventoryDBFactory,
-        product=productdb_2,
-        inventory_id=2,
-    )
 
     bootstrap = await memory_bootstrap
     bootstrap.db = get_async_session()
-    mocker.patch.object(
-        bootstrap.cart_repository,
-        'get_products',
-        return_value=[productdb_1, productdb_2],
-    )
     bootstrap.cache = Mock()
-    product_inventory_1 = merge_product_inventory(productdb_1, inventorydb_1)
-    product_inventory_2 = merge_product_inventory(productdb_2, inventorydb_2)
+    product_inventory_1 = productdb_1
+    product_inventory_2 = productdb_2
+    product_inventory_1.quantity = 100
+    product_inventory_2.quantity = 100
 
     async def async_mock(*args, **kwargs) -> list:
         return [
-            product_inventory_1.model_dump(),
-            product_inventory_2.model_dump(),
+            product_inventory_1,
+            product_inventory_2,
         ]
 
     mocker.patch.object(

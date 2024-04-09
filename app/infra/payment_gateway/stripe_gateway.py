@@ -1,7 +1,7 @@
 from typing import Self
 from loguru import logger
 import stripe
-from stripe.error import InvalidRequestError
+from stripe import InvalidRequestError
 from app.entities.cart import CreateCreditCardPaymentMethod
 from app.payment.entities import PaymentAcceptError
 from config import settings

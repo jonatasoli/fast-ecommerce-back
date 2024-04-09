@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
+from pydantic.dataclasses import dataclass
 import redis as cache_client
 from app.infra import stripe
 from app.cart import uow
@@ -21,10 +22,7 @@ class Command(BaseModel):
     user: Any
     payment: Any
 
-    class Config:
-        """Pydantic configs."""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 async def bootstrap(  # noqa: PLR0913

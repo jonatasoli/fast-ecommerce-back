@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 import httpx
-from dynaconf import settings
+from config import settings
 from fastapi import HTTPException
 from loguru import logger
 from sqlalchemy.orm import Session

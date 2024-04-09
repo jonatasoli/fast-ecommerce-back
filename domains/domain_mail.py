@@ -1,4 +1,4 @@
-from dynaconf import settings
+from config import settings
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
 from mail_service.sendmail import SendMail, send_mail_sendgrid

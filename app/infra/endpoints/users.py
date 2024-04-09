@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.infra.models import UserDB
 from app.infra.worker import task_message_bus
 
-from dynaconf import settings
+from config import settings
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, InstrumentedAttribute, sessionmaker

@@ -8,6 +8,9 @@ from schemas.order_schema import CategoryInDB
 class ProductSoldOutError(Exception):
     """Represent produt is Sold out."""
 
+    def __init__(self: Self) -> None:
+        super().__init__('There are products in not inventory.')
+
 
 INSTALLMENT_CONFIG_DEFAULT = 1
 
@@ -19,6 +22,7 @@ class ProductCart(BaseModel):
     name: str | None
     image_path: str | None
     quantity: int
+    available_quantity: int = 0
     price: Decimal | None = None
     discount_price: Decimal = Decimal(0)
 

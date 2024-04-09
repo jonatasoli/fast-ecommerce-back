@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
+from pydantic.dataclasses import dataclass
 import redis as cache_client
 from sqlalchemy.orm import sessionmaker
 from app.infra import redis
@@ -15,10 +16,8 @@ class Command(BaseModel):
     user_uow: Any
     cache: redis.MemoryClient | cache_client.Redis
 
-    class Config:
-        """Pydantic configs."""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-        arbitrary_types_allowed = True
 
 
 async def bootstrap(
