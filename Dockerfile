@@ -10,11 +10,13 @@ ENV PYTHONUNBUFFERED=1 \
 
 ENV PATH="$PATH:$POETRY_HOME/bin"
 
-WORKDIR /app/
+RUN apt-get update -y && apt install build-essential curl --no-install-recommends -y 
 
-RUN apt-get update -y && apt install build-essential curl --no-install-recommends -y && curl -sSL https://install.python-poetry.org | python3 -
+WORKDIR /app/
 
 COPY . /app
 
-RUN poetry config virtualenvs.create false && poetry install --without dev
-RUN opentelemetry-bootstrap --action=install
+RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN poetry config virtualenvs.create false
+RUN poetry install --without dev
+RUN poetry run opentelemetry-bootstrap --action=install
