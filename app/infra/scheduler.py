@@ -10,15 +10,14 @@ DEFAULT_TTL=172800
 broker = RabbitBroker("amqp://guest:guest@localhost:5672//")
 
 taskiq_broker = BrokerWrapper(broker)
-for _ in range(10):
-    taskiq_broker.task(
-        queue="in-queue",
-        schedule=[{
-            "cron": "*/1 * * * *",
-        }],
+taskiq_broker.task(
+    queue="in-queue",
+    schedule=[{
+        "cron": "*/1 * * * *",
+        # "cron": "0 */12 * * *",
+    }],
     )
 
-# "cron": "0 */12 * * *",
 
 scheduler = StreamScheduler(
     broker=taskiq_broker,
