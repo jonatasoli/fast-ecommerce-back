@@ -97,7 +97,7 @@ def override_get_db():
 
 # TODO: Annotation slowly the db function in this time.
 @pytest.fixture()
-def db(): #noqa: ANN201
+def db():
     """Generate db session."""
     _engine = get_engine()
         # Reflect all tables from metadata

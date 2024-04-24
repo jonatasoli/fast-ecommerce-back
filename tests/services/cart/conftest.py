@@ -33,7 +33,7 @@ async def bootstrap(  # noqa: PLR0913
     message: Any = None,
     freight: Any = None,
     user: Any = None,
-    payment: Any = None,  # noqa: ANN401
+    payment: Any = None,
 ) -> Command:
     """Create a command function to use in the application."""
     return Command(
