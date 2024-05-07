@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.infra.database import get_async_session
 from app.report import services
 from app.report.entities import UserSalesComissions
-from domains import domain_user
+from app.user import services as domain_user
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 
