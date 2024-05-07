@@ -136,6 +136,33 @@ def get_affiliate(
     return user
 
 
+async def _get_affiliate(
+    token: str,
+    db,
+) -> UserSchema:
+    """Return Afiliate user."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials',
+        headers={'WWW-Authenticate': 'Bearer'},
+    )
+    try:
+        payload = decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+        document: str = payload.get('sub')
+        if document is None:
+            raise credentials_exception
+    except DecodeError:
+        raise_credential_error()
+
+    user = await _get_user_by_document(document, db=db)
+    if user is None or user.role_id == Roles.USER.value:
+        raise_credential_error()
+    return user
+
 def get_affiliate_urls(
     user: UserDB,
     db: Session,
@@ -284,6 +311,16 @@ def _get_user_from_document(document: str, *, db: sessionmaker) -> UserSchema:
         return UserSchema.model_validate(user_db)
 
 
+async def _get_user_by_document(document: str, *, db) -> UserSchema:
+    """Get user from database."""
+    async with db() as session:
+        user_query = select(UserDB).where(UserDB.document == document)
+        user_db = await session.scalar(user_query)
+        if not user_db:
+            raise CredentialError
+        return UserSchema.model_validate(user_db)
+
+    
 def check_token(f):   # noqa: ANN001, ANN201
     """Annotation to check current jwt token is valid."""
 
