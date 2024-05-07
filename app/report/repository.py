@@ -24,14 +24,14 @@ async def get_user_sales_comissions(
     released: bool,
     db: Session,
 ):
-    async with db.begin() as session:
+    async with db as session:
         query = (
             Select(SalesCommissionDB)
             .filter(SalesCommissionDB.user_id == user.user_id)
             .filter(SalesCommissionDB.paid == paid)
             .filter(SalesCommissionDB.released == released)
         )
-        comission = await session.execute(query)
+        comission = await session.scalars(query)
         return UserSalesComissions(
             comissions=[
                 Commission(
@@ -43,7 +43,7 @@ async def get_user_sales_comissions(
                     released=c.released,
                     paid=c.paid,
                 )
-                for c in comission.scalars().all()
+                for c in comission.all()
             ],
         )
 

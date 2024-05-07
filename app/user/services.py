@@ -313,7 +313,7 @@ def _get_user_from_document(document: str, *, db: sessionmaker) -> UserSchema:
 
 async def _get_user_by_document(document: str, *, db) -> UserSchema:
     """Get user from database."""
-    async with db() as session:
+    async with db as session:
         user_query = select(UserDB).where(UserDB.document == document)
         user_db = await session.scalar(user_query)
         if not user_db:
