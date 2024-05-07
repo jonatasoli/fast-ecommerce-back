@@ -31,7 +31,7 @@ async def get_user_sales_comissions(
 ) -> UserSalesComissions:
     """Get report sales comissions."""
     async with db().begin() as session:
-        user = domain_user._get_affiliate(token, db=session)
+        user = await domain_user._get_affiliate(token, db=session)
         return await services.get_user_sales_comissions(
             user=user,
             paid=paid,
