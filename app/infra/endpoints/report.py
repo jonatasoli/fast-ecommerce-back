@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.infra.database import get_async_session
 from app.report import services
 from app.report.entities import UserSalesComissions
-from domains import domain_user
+from app.user import services as domain_user
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 
@@ -30,10 +30,11 @@ async def get_user_sales_comissions(
     db: Session = Depends(get_async_session),
 ) -> UserSalesComissions:
     """Get report sales comissions."""
-    user = domain_user.get_affiliate(token)
-    return await services.get_user_sales_comissions(
-        user=user,
-        paid=paid,
-        released=released,
-        db=db,
-    )
+    async with db() as session:
+        user = await domain_user._get_affiliate(token, db=session)
+        return await services.get_user_sales_comissions(
+            user=user,
+            paid=paid,
+            released=released,
+            db=session,
+        )
