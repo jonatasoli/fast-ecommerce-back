@@ -110,7 +110,7 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
             )
 
         return product
-    except Exception as e:
+    except Exception as e: # noqa: BLE001
         logger.error(f'Erro em obter os produto - { e }')
         raise e from Exception
 
