@@ -81,7 +81,7 @@ async def test_add_product_to_new_cart_should_set_in_cache(
     cache_spy.assert_called_once_with(
         str(cart_response.uuid),
         cart_response.model_dump_json(),
-        ex=600000,
+        ex=432000,
     )
 
 

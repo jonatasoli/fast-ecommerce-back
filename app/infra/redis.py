@@ -1,5 +1,6 @@
 import abc
-from typing import ClassVar, Self
+from typing import ClassVar, Dict, Self, Union
+from typing import List
 
 from pydantic.types import Json
 from config import settings
@@ -26,6 +27,9 @@ class RedisCache(AbstractCache):
     def _client(self: Self) -> redis.Redis:
         return self.redis
 
+    def get_all_keys_with_lower_ttl(self: Self, ttl_target: int) -> List[str]:
+        """Get all keys with ttl lower to target ttl and return."""
+        return [key.decode('utf-8') for key in self.redis.keys('*') if self.redis.ttl(key) < ttl_target]
 
 class MemoryClient:
     cache: ClassVar[dict[str, str]] = {}

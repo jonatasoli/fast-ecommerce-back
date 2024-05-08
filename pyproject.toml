@@ -39,6 +39,7 @@ faststream = {extras = ["rabbit"], version = "*"}
 opentelemetry-distro = "^0.45b0"
 opentelemetry-exporter-otlp = "^1.24.0"
 opentelemetry-instrumentation-logging = "^0.45b0"
+taskiq-faststream = "^0.1.8"
 
 [tool.poetry.group.dev.dependencies]
 isort = "*"
@@ -61,9 +62,9 @@ taskipy = "*"
 
 
 [tool.ruff]
-lint.select = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+lint.select = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "C4", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "FBT", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
 src = ["app", "tests"]
-lint.fixable = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+lint.fixable = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "FBT", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
 lint.unfixable = []
 lint.ignore = ["D100", "D101", "D102", "D107", "D203", "D213"]
 # Exclude a variety of commonly ignored directories.
@@ -96,12 +97,17 @@ mypy-init-return = true
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "N999"]
-"/**/tests/*.py" = ["S101","PLR2004", "B008", 'N806', 'D103', 'F821', 'ANN201', 'ANN001', 'N999']
+"/**/tests/*.py" = ["S101","PLR2004", "B008", 'N806', 'D103', 'F821', 'N999']
 "app/infra/*" = ["B008", "A002","A001", "A003", "RUF100","FBT001", "F811","F401","TRY302"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
 known-third-party = ["fastapi"]
+
+[tool.ruff.format]
+preview = true
+quote-style = 'single'
+
 
 [tool.pylint.main]
 lint.ignore = [ "pyproject.toml", "conftest.py" ]
@@ -123,9 +129,6 @@ markers = [
 ]
 pythonpath = "."
 
-
-[tool.blue]
-extend-exclude = '(migrations/)'
 
 [tool.coverage.run]
 omit = [
