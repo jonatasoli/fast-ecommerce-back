@@ -1,0 +1,8 @@
+{
+  "cron": [
+    {
+      "command": "",
+      "schedule": "@daily"
+    }
+  ]
+}

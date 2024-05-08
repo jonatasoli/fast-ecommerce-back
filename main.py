@@ -35,9 +35,26 @@ from app.mail.tasks import task_message_bus
 from app.cart.tasks import task_message_bus # noqa: F811
 from app.report.tasks import task_message_bus # noqa: F811
 from app.entities.product import ProductSoldOutError
+from collections import defaultdict
 
 app = FastAPI(lifespan=task_message_bus.lifespan_context)
 
+request_counts = defaultdict(int)
+
+
+def rate_limit_exceeded(ip: str, limit: int) -> bool:
+    """Check hit limit."""
+    return request_counts[ip] > limit
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Middleware to hit limit."""
+    ip = request.client.host
+    if rate_limit_exceeded(ip, limit=10):
+        return JSONResponse({"error": "Rate limit exceeded"}, status_code=429)
+    request_counts[ip] += 1
+    return await call_next(request)
 
 class InterceptHandler(logging.Handler):
     def emit(self, record):

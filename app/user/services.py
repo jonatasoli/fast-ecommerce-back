@@ -136,7 +136,7 @@ def get_affiliate(
     return user
 
 
-async def _get_affiliate(
+async def get_affiliate_by_token(
     token: str,
     db,
 ) -> UserSchema:
@@ -227,8 +227,8 @@ def create_access_token(
 async def save_token_reset_password(
     document: str,
     *,
-    message,  # noqa: ANN001
-    db,  # noqa: ANN001
+    message,
+    db,
 ) -> None:
     """Create request to reset password."""
     access_token_expires = timedelta(
@@ -276,7 +276,7 @@ def reset_password(
         session.commit()
 
 
-def get_admin(token: str, *, db: sessionmaker):   # noqa: ANN201
+def get_admin(token: str, *, db: sessionmaker):
     """Get admin user."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -320,12 +320,12 @@ async def _get_user_by_document(document: str, *, db) -> UserSchema:
             raise CredentialError
         return UserSchema.model_validate(user_db)
 
-    
-def check_token(f):   # noqa: ANN001, ANN201
+
+def check_token(f):
     """Annotation to check current jwt token is valid."""
 
     @wraps(f)
-    def check_jwt(*args, **kwargs):   # noqa: ANN003, ANN002, ANN202
+    def check_jwt(*args, **kwargs):
         """Check jwt token."""
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -4,6 +4,7 @@ import re
 from fastapi import HTTPException
 from loguru import logger
 from faststream.rabbit import RabbitQueue
+from pydantic import ValidationError
 
 
 from app.entities.address import CreateAddress
@@ -29,13 +30,16 @@ from app.entities.product import ProductCart, ProductSoldOutError
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
 from app.infra.constants import PaymentGatewayAvailable, PaymentMethod
+from app.infra.crm.rd_station import send_abandonated_cart_to_crm
+from app.infra.redis import RedisCache
 
 
 class UserAddressNotFoundError(Exception):
     """User address not found."""
 
 
-DEFAULT_CART_EXPIRE = 600_000
+DEFAULT_CART_EXPIRE = 432_000
+DEFAULT_ABANDONED_CART = 172800
 
 
 def create_or_get_cart(
@@ -511,3 +515,24 @@ async def get_coupon(code: str, bootstrap: Command) -> CouponResponse:
                 detail='Coupon not found',
             )
     return coupon
+
+
+
+async def get_cart_and_send_to_crm(_cache = RedisCache) -> None:
+    """Get all keys and set user data to CRM."""
+    cache = _cache()
+    cache_cart = None
+    keys = cache.get_all_keys_with_lower_ttl(ttl_target=DEFAULT_ABANDONED_CART)
+    for k in keys:
+        cart = cache.redis.get(k)
+        try:
+            logger.info("Start sending to CRM")
+            cache_cart = CartUser.model_validate_json(cart)
+            logger.info(cache_cart.user_data)
+            await send_abandonated_cart_to_crm(cache_cart.user_data)
+            cache.redis.delete(k)
+
+        except ValidationError:
+            logger.error(f"Cart not valid to send for CRM. {k}")
+            cache.redis.delete(k)
+            cache_cart = None

@@ -383,3 +383,14 @@ class SalesCommissionDB(Base):
         backref='sales_commission',
         uselist=False,
     )
+
+
+class SettingsDB(Base):
+    __tablename__ = 'settings'
+
+    settings_id: Mapped[int] = mapped_column(primary_key=True)
+    field: Mapped[str]
+    value: Mapped[Json] = mapped_column(JSON)
+    settings_category_id: Mapped[int]
+    description: Mapped[str]
+    is_active: Mapped[bool]

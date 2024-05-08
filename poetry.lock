@@ -2022,6 +2022,16 @@ files = [
 tests = ["pytest"]
 
 [[package]]
+name = "pycron"
+version = "3.0.0"
+description = "Simple cron-like parser, which determines if current datetime matches conditions."
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "pycron-3.0.0.tar.gz", hash = "sha256:b916044e3e8253d5409c68df3ac64a3472c4e608dab92f40e8f595e5d3acb3de"},
+]
+
+[[package]]
 name = "pydantic"
 version = "2.6.4"
 description = "Data validation using Python type hints"
@@ -2391,6 +2401,17 @@ files = [
 
 [package.extras]
 dev = ["atomicwrites (==1.4.1)", "attrs (==23.2.0)", "coverage (==7.4.1)", "hatch", "invoke (==2.2.0)", "more-itertools (==10.2.0)", "pbr (==6.0.0)", "pluggy (==1.4.0)", "py (==1.11.0)", "pytest (==8.0.0)", "pytest-cov (==4.1.0)", "pytest-timeout (==2.2.0)", "pyyaml (==6.0.1)", "ruff (==0.2.1)"]
+
+[[package]]
+name = "pytz"
+version = "2024.1"
+description = "World timezone definitions, modern and historical"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pytz-2024.1-py2.py3-none-any.whl", hash = "sha256:328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319"},
+    {file = "pytz-2024.1.tar.gz", hash = "sha256:2a29735ea9c18baf14b448846bde5a48030ed267578472d8955cd0e7443a9812"},
+]
 
 [[package]]
 name = "pyyaml"
@@ -2845,6 +2866,70 @@ colorama = ">=0.4.4,<0.5.0"
 mslex = {version = ">=1.1.0,<2.0.0", markers = "sys_platform == \"win32\""}
 psutil = ">=5.7.2,<6.0.0"
 tomli = {version = ">=2.0.1,<3.0.0", markers = "python_version >= \"3.7\" and python_version < \"4.0\""}
+
+[[package]]
+name = "taskiq"
+version = "0.11.1"
+description = "Distributed task queue with full async support"
+optional = false
+python-versions = "<4.0.0,>=3.8.1"
+files = [
+    {file = "taskiq-0.11.1-py3-none-any.whl", hash = "sha256:35a058f5478aeffc048a1ab23728077d88ce162b30452d0eef8282793c607a58"},
+    {file = "taskiq-0.11.1.tar.gz", hash = "sha256:cf21f2fc433293ff5c01dbb0fc3cef4d0a9f90641ca48e82594043003512f261"},
+]
+
+[package.dependencies]
+anyio = ">=3"
+importlib-metadata = "*"
+packaging = ">=19"
+pycron = ">=3.0.0,<4.0.0"
+pydantic = ">=1.0,<=3.0"
+pytz = "*"
+taskiq_dependencies = ">=1.3.1,<2"
+typing-extensions = ">=3.10.0.0"
+
+[package.extras]
+cbor = ["cbor2 (>=5.4.6,<6.0.0)"]
+metrics = ["prometheus_client (>=0,<1)"]
+msgpack = ["msgpack (>=1.0.7,<2.0.0)"]
+orjson = ["orjson (>=3.9.9,<4.0.0)"]
+reload = ["gitignore-parser (>=0,<1)", "watchdog (>=2.1.9,<3.0.0)"]
+uv = ["uvloop (>=0.16.0,<1)"]
+zmq = ["pyzmq (>=23.2.0,<24.0.0)"]
+
+[[package]]
+name = "taskiq-dependencies"
+version = "1.5.3"
+description = "FastAPI like dependency injection implementation"
+optional = false
+python-versions = "<4.0.0,>=3.8.1"
+files = [
+    {file = "taskiq_dependencies-1.5.3-py3-none-any.whl", hash = "sha256:ffa81997b8d6f4be0b2e08280b241dc3cecd9b49ff1fd259688e244d977cadd4"},
+    {file = "taskiq_dependencies-1.5.3.tar.gz", hash = "sha256:ee52d01e6683cafbeb0a0b0e4abf58b2d304d7db0769e024fe0a0e8bcedadc57"},
+]
+
+[[package]]
+name = "taskiq-faststream"
+version = "0.1.8"
+description = "FastStream - taskiq integration to schedule FastStream tasks"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "taskiq_faststream-0.1.8-py3-none-any.whl", hash = "sha256:44c50a4808f8bb4657eceb21cf22c8fc1905b248e10de94fed85172909266262"},
+    {file = "taskiq_faststream-0.1.8.tar.gz", hash = "sha256:d93a57409f3cabb908ac356e26b04bfb3f289247d8b8c6e58cf87ee2117579b0"},
+]
+
+[package.dependencies]
+faststream = ">=0.3.14,<0.6.0"
+taskiq = ">=0.10.0,<1.0.0"
+
+[package.extras]
+dev = ["coverage[toml] (>=7.2.0,<8.0.0)", "faststream[kafka]", "faststream[nats]", "faststream[rabbit]", "faststream[redis]", "mypy (>=1.8.0,<1.10.0)", "pre-commit (>=3.6.0,<4.0.0)", "pytest (>=7.4.0,<9)", "ruff (==0.4.1)"]
+kafka = ["faststream[kafka]"]
+nats = ["faststream[nats]"]
+rabbit = ["faststream[rabbit]"]
+redis = ["faststream[redis]"]
+test = ["coverage[toml] (>=7.2.0,<8.0.0)", "faststream[kafka]", "faststream[nats]", "faststream[rabbit]", "faststream[redis]", "pytest (>=7.4.0,<9)"]
 
 [[package]]
 name = "termcolor"
@@ -3445,4 +3530,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "da95b7e1ba30f9941234afb8aa745cdfc99f6eb8653a9d3095ee77098fef4adf"
+content-hash = "8d0514821fd258d6f016de2a63ebbfdf8473d5a84d74db5579a137fda8b4dd4a"

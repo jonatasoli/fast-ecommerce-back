@@ -131,7 +131,7 @@ class AbstractRepository(abc.ABC):
 
 
 class SqlAlchemyRepository(AbstractRepository):
-    def __init__(self: Self, session: Any) -> None:   # noqa: ANN401
+    def __init__(self: Self, session: Any) -> None:
         super().__init__()
         self.session = session
 
@@ -418,3 +418,5 @@ async def _get_coupon_by_code(
             return coupon.scalar_one()
     except NoResultFound as nrf:
         raise CouponNotFoundError from nrf
+
+
