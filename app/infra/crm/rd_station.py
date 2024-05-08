@@ -12,10 +12,10 @@ DEFAULT_SUCESS_CODE = 200
 class NotSendToCRMError(Exception):
     ...
 
-async def send_abandonated_cart_to_crm(user_data: UserData, *, db = get_async_session()):
+async def send_abandonated_cart_to_crm(user_data: UserData, *, get_settings=repository.get_settings, db = get_async_session()):
     """Send user to CRM RD Station."""
     async with db.begin() as session:
-         crm_settings = await repository.get_settings(CRM_FIELD, transaction=session)
+        crm_settings = await get_settings(CRM_FIELD, transaction=session)
 
     _url = crm_settings.value.get('url')
     _access_key = crm_settings.value.get('access_key')
@@ -24,7 +24,7 @@ async def send_abandonated_cart_to_crm(user_data: UserData, *, db = get_async_se
     _payload = {
         "deal": {
             "deal_stage_id": f'{_deal_stage_id}',
-            "name": f"{_deal_name} Teste",
+            "name": f"{_deal_name}",
         },
         "contacts": [
             {
@@ -44,7 +44,6 @@ async def send_abandonated_cart_to_crm(user_data: UserData, *, db = get_async_se
         "content-type": "application/json",
     }
 
-    token = httpx.get(f'{_url}/token/check?token={_access_key}', headers={ 'accept': 'application/json'})
     lead = requests.post(f'{_url}/deals?token={_access_key}', json=_payload, headers=headers, timeout=500)
     if lead.status_code != DEFAULT_SUCESS_CODE:
         raise NotSendToCRMError

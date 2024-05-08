@@ -4,17 +4,17 @@ from taskiq.schedule_sources import LabelScheduleSource
 from taskiq_faststream import BrokerWrapper
 from faststream.rabbit import RabbitBroker
 from app.cart import services as cart
+from config import settings
 
 DEFAULT_TTL=172800
 
-broker = RabbitBroker("amqp://guest:guest@localhost:5672//")
+broker = RabbitBroker(f"{settings.BROKER_URL}")
 
 taskiq_broker = BrokerWrapper(broker)
 taskiq_broker.task(
     queue="in-queue",
     schedule=[{
-        "cron": "*/1 * * * *",
-        # "cron": "0 */12 * * *",
+        "cron": "0 */12 * * *",
     }],
     )
 
