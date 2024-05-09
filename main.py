@@ -51,7 +51,7 @@ def rate_limit_exceeded(ip: str, limit: int) -> bool:
 async def rate_limit_middleware(request: Request, call_next):
     """Middleware to hit limit."""
     ip = request.client.host
-    if rate_limit_exceeded(ip, limit=10):
+    if rate_limit_exceeded(ip, limit=100):
         return JSONResponse({"error": "Rate limit exceeded"}, status_code=429)
     request_counts[ip] += 1
     return await call_next(request)
