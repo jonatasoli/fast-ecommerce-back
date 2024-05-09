@@ -11,7 +11,7 @@
             "type":        "startup",
             "name":        "web check",
             "description": "Checking if the app responds to the /docs endpoint",
-            "path":        "/docs",
+            "path":        "/openapi.json",
             "attempts": 3
         }
     ]
@@ -21,6 +21,9 @@
       "quantity": 2
     },
     "tasks": {
+      "quantity": 1
+    },
+    "migration": {
       "quantity": 1
     }
   }
