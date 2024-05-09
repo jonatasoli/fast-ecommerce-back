@@ -1,4 +1,4 @@
-.PHONY: install update shell format lint test sec export configs upgrade run migrate post-test
+.PHONY: install update shell format lint test sec export configs upgrade run migrate post-test task
 
 
 install:
