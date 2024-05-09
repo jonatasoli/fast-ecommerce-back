@@ -43,3 +43,6 @@ run:
 
 migrate:
 	@poetry run alembic revision --autogenerate
+
+task:
+	@poetry run taskiq scheduler app.infra.scheduler:scheduler
