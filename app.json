@@ -4,5 +4,24 @@
       "command": "",
       "schedule": "@daily"
     }
-  ]
+  ],
+  "healthchecks": {
+    "web": [
+        {
+            "type":        "startup",
+            "name":        "web check",
+            "description": "Checking if the app responds to the /docs endpoint",
+            "path":        "/docs",
+            "attempts": 3
+        }
+    ]
+  },
+  "formation": {
+    "web": {
+      "quantity": 2
+    },
+    "tasks": {
+      "quantity": 1
+    }
+  }
 }
