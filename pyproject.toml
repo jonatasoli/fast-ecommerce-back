@@ -36,7 +36,6 @@ uvicorn = {extras = ["standard"], version = "*"}
 cython = "*"
 psycopg = {extras = ["binary", "pool"], version = "*"}
 faststream = {extras = ["rabbit"], version = "*"}
-opentelemetry-distro = "^0.45b0"
 opentelemetry-exporter-otlp = "^1.24.0"
 opentelemetry-instrumentation-logging = "^0.45b0"
 taskiq-faststream = "^0.1.8"
@@ -60,6 +59,11 @@ anyio = "*"
 pyright = "*"
 taskipy = "*"
 
+
+
+[tool.poetry.group.otel.dependencies]
+opentelemetry-distro = "^0.45b0"
+opentelemetry-exporter-otlp = "^1.24.0"
 
 [tool.ruff]
 lint.select = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "C4", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "FBT", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
