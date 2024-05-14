@@ -1,6 +1,5 @@
 import logging
 import sys
-from threading import Timer
 from fastapi.responses import JSONResponse
 
 import sentry_sdk
@@ -36,39 +35,9 @@ from app.mail.tasks import task_message_bus
 from app.cart.tasks import task_message_bus # noqa: F811
 from app.report.tasks import task_message_bus # noqa: F811
 from app.entities.product import ProductSoldOutError
-from collections import defaultdict
-from datetime import datetime, timedelta
 
 app = FastAPI(lifespan=task_message_bus.lifespan_context)
 
-request_counts = defaultdict(int)
-rate_limit_reset_time = None
-
-
-def rate_limit_exceeded(ip: str, limit: int) -> bool:
-    """Check hit limit."""
-    global rate_limit_reset_time
-    if rate_limit_reset_time is None or rate_limit_reset_time < datetime.datetime.now():
-        request_counts[ip] = 0
-        rate_limit_reset_time = datetime.now() + timedelta(hours=1)
-    return request_counts[ip] > limit
-
-
-@app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    """Middleware to hit limit."""
-    ip = request.client.host
-    if rate_limit_exceeded(ip, limit=100):
-        return JSONResponse({"error": "Rate limit exceeded"}, status_code=429)
-    request_counts[ip] += 1
-    response = await call_next(request)
-    reset_timer = Timer(timedelta(hours=1).total_seconds(), reset_counter, [ip])
-    reset_timer.start()
-    return response
-
-def reset_counter(ip):
-  """Reset counter for a specific IP after timer fires."""
-  request_counts[ip] = 0
 
 class InterceptHandler(logging.Handler):
     def emit(self, record):

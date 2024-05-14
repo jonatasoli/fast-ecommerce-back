@@ -51,7 +51,12 @@ async def get_order_users_id(
         raise
 
 
-@order.get('/orders', summary="Create an item", status_code=status.HTTP_200_OK, tags=["admin"])
+@order.get(
+    '/orders',
+    summary="Create an item",
+    status_code=status.HTTP_200_OK,
+     tags=["admin"],
+ )
 async def get_orders(
     dates: str | None = None,
     status: str | None = None,
