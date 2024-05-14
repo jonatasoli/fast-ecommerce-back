@@ -51,16 +51,22 @@ async def get_order_users_id(
         raise
 
 
-@order.get('/orders', status_code=200)
-async def get_orders_paid(
+@order.get('/orders', summary="Create an item", status_code=status.HTTP_200_OK, tags=["admin"])
+async def get_orders(
     dates: str | None = None,
     status: str | None = None,
     user_id: int | None = None,
     db: Session = Depends(get_db),
-) -> None:
-    """Get orders paid."""
+):
+    """## [ADMIN] Get orders paid.
+
+    - **date_initial** -> Optional determine start date period if empty return all
+    - **date_final** -> Optional determine final date period if empty return all
+    - **status** -> Optional filter orders by status
+    - **user_id** -> Optional filter by user_id
+    """
     try:
-        return services.get_orders_paid(db, dates, status, user_id)
+        return services.get_orders(db, dates, status, user_id)
     except Exception:
         raise
 

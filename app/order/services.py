@@ -270,8 +270,20 @@ def get_product_by_id(db: Session, id: int) -> ProductDB | None:
     return db.query(ProductDB).filter(ProductDB.product_id == id).first()
 
 
-def get_orders_paid(db: Session, dates=None, status=None, user_id=None):
+def get_orders(db: Session, dates=None, status=None, user_id=None):
     """Get Orders Paid."""
+    with db:
+        orders_query = (
+            select(OrderDB)
+            .joinedload(OrderItemsDB)
+            .joinedload(ProductDB)
+            .order_by(OrderDB.order_id.desc())
+        )
+        orders = db.execute(orders_query).scalars().all()
+    return orders
+
+
+
 
 
 def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
