@@ -57,7 +57,12 @@ async def product_inventory(
     db: Session = Depends(get_async_session),
 ):
     """Get products inventory."""
-    return await product_services.inventory_transaction(product_id, inventory=inventory, token=token, db=db)
+    return await product_services.inventory_transaction(
+        product_id,
+        inventory=inventory,
+        token=token,
+        db=db,
+    )
 
 @product.post(
     '/create-product',

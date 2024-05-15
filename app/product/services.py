@@ -33,5 +33,4 @@ async def get_inventory(token, db, verify_admin=verify_admin):
 
 async def inventory_transaction(product_id: int, *, inventory, token, db):
     """Add product transaction."""
-    ...
 
