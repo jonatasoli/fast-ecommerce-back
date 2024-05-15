@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.infra import file_upload
 from app.product import repository
+from app.user.services import verify_admin
 
 
 def upload_image(
@@ -22,3 +23,15 @@ def upload_image(
         db.commit()
         new_image_path = db_product.image_path
     return new_image_path
+
+
+async def get_inventory(token, db, verify_admin=verify_admin):
+    """Get products inventory."""
+    verify_admin(token, db=db)
+    async with db() as transaction:
+        return await repository.get_inventory(transaction=transaction)
+
+async def inventory_transaction(product_id: int, *, inventory, token, db):
+    """Add product transaction."""
+    ...
+

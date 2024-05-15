@@ -7,15 +7,17 @@ from loguru import logger
 from redis.commands.core import AsyncHyperlogCommands
 from sqlalchemy.orm import Session
 from app.entities.product import (
+    InventoryTransaction,
     ProductCreate,
     ProductCreateResponse,
     ProductInDB,
     ProductInDBResponse,
 )
+from app.infra.database import get_async_session
 from app.infra.models import ProductDB
-from app.product import services as product_services
 
 from app.order import services
+from app.product import services as product_services
 from app.infra import deps
 from app.infra.deps import get_db
 from schemas.order_schema import (
@@ -29,6 +31,33 @@ product = APIRouter(
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+
+
+@product.get(
+    '/inventory',
+    status_code=status.HTTP_200_OK,
+    tags=['admin'],
+)
+async def product_inventory(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_async_session),
+):
+    """Get products inventory."""
+    return await product_services.get_inventory(token=token, db=db)
+
+@product.post(
+    '/inventory/{product_id}/transaction',
+    status_code=status.HTTP_201_CREATED,
+    tags=['admin'],
+)
+async def product_inventory(
+    product_id: int,
+    inventory: InventoryTransaction,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_async_session),
+):
+    """Get products inventory."""
+    return await product_services.inventory_transaction(product_id, inventory=inventory, token=token, db=db)
 
 @product.post(
     '/create-product',
