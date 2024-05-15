@@ -419,4 +419,50 @@ async def _get_coupon_by_code(
     except NoResultFound as nrf:
         raise CouponNotFoundError from nrf
 
+async def get_product_by_id(
+    product_id: int,
+    transaction,
+):
+    """Must return a product by id."""
+    async with transaction as session:
+        product_query = select(
+                models.ProductDB.product_id,
+                models.ProductDB.name,
+                models.ProductDB.uri,
+                models.ProductDB.price,
+                models.ProductDB.active,
+                models.ProductDB.direct_sales,
+                models.ProductDB.description,
+                models.ProductDB.image_path,
+                models.ProductDB.installments_config,
+                models.ProductDB.installments_list,
+                models.ProductDB.discount,
+                models.ProductDB.category_id,
+                models.ProductDB.showcase,
+                models.ProductDB.feature,
+                models.ProductDB.show_discount,
+                models.ProductDB.height,
+                models.ProductDB.width,
+                models.ProductDB.weight,
+                models.ProductDB.length,
+                models.ProductDB.diameter,
+                models.ProductDB.sku,
+                models.ProductDB.currency,
+                func.coalesce(func.sum(models.InventoryDB.quantity), 0).label(
+                    'quantity',
+                ),
+            ).options(lazyload('*')).outerjoin(
+                models.InventoryDB,
+                models.ProductDB.product_id == models.InventoryDB.product_id,
+            ).where(
+                models.ProductDB.product_id == product_id,
+            ).group_by(
+                models.ProductDB.product_id,
+            )
+        product = await transaction.execute(product_query)
+        adapter = TypeAdapter(ProductInDB)
+        product = adapter.validate_python(product.first())
+        if not product:
+            raise ProductNotFoundError
+        return product
 

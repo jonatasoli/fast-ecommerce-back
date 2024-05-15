@@ -113,6 +113,7 @@ def test_add_product_to_cart() -> None:
         product_id=product_id,
         quantity=1,
         price=fake_decimal(),
+        available_quantity=10,
     )
 
     # Assert
@@ -135,6 +136,7 @@ def test_add_duplicate_product_should_increase_quantity() -> None:
         price=fake_decimal(),
         product_id=product_id,
         quantity=1,
+        available_quantity=10,
     )
 
     # Assert

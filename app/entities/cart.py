@@ -101,6 +101,7 @@ class CartBase(BaseModel):
         self: Self,
         product_id: int,
         quantity: int,
+        available_quantity: int,
         price: Decimal,
         name: str | None,
         image_path: str | None,
@@ -112,6 +113,7 @@ class CartBase(BaseModel):
                 item.image_path = image_path
                 item.quantity += quantity
                 item.price += price
+                item.available_quantity=available_quantity
                 return self
 
         self.cart_items.append(
@@ -121,6 +123,7 @@ class CartBase(BaseModel):
                 price=price,
                 name=name,
                 image_path=image_path,
+                available_quantity=available_quantity,
             ),
         )
         return self
@@ -294,6 +297,7 @@ def generate_new_cart(
     product: ProductInDB,
     price: Decimal,
     quantity: int,
+    available_quantity: int,
 ) -> CartBase:
     """Generate new cart."""
     if not product:
@@ -304,6 +308,7 @@ def generate_new_cart(
         name=product.name,
         image_path=product.image_path,
         quantity=quantity,
+        available_quantity=available_quantity,
         price=product.price,
         discount_price=product.discount,
     )
