@@ -1,3 +1,4 @@
+from datetime import timedelta
 import sys
 from os.path import abspath
 from os.path import dirname as d
@@ -16,13 +17,17 @@ from sqlalchemy.schema import (
     Table,
 )
 
+from tests.factories_db import RoleDBFactory
+
 root_dir = d(abspath(__file__))
 print(f'ROOT {root_dir}')
 sys.path.append(root_dir)
 
+from app.infra.constants import DocumentType, Roles
+from app.user.services import create_access_token, gen_hash
 from config import settings
 
-from app.infra.models import Base
+from app.infra.models import Base, UserDB
 from app.infra.database import get_engine
 from main import app
 from app.infra.deps import get_db
@@ -136,3 +141,76 @@ def t_client(clean_db, override_get_db) -> Generator:
     logger.info(f'{ settings.current_env }')
     with TestClient(app) as c:
         yield c
+
+@pytest.fixture()
+def user(db):
+    new_role = RoleDBFactory(role_id=Roles.USER.value)
+    db.add(new_role)
+
+    user = UserDB(
+        name='Teste',
+        username='Teste',
+        email='teste@test.com',
+        password=gen_hash('testtest'),
+        document_type=DocumentType.CPF.value,
+        document='12345678901',
+        phone='11123456789',
+        role_id=Roles.USER.value,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    user.clean_password = 'testtest'
+
+    return user
+
+@pytest.fixture()
+def token(user):
+    access_token_expires = timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+    )
+
+    access_token = create_access_token(
+        data={'sub': user.document},
+        expires_delta=access_token_expires,
+    )
+
+    return access_token
+
+@pytest.fixture()
+def admin_user(db):
+    new_role = RoleDBFactory(role_id=Roles.ADMIN.value)
+    db.add(new_role)
+
+    user = UserDB(
+        name='Teste',
+        username='Teste',
+        email='teste@test.com',
+        password=gen_hash('testtest'),
+        document_type=DocumentType.CPF.value,
+        document='12345678901',
+        phone='11123456789',
+        role_id=Roles.ADMIN.value,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    db.commit()
+
+    user.clean_password = 'testtest'
+
+    return user
+
+@pytest.fixture()
+def admin_token(admin_user):
+    access_token_expires = timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+    )
+
+    access_token = create_access_token(
+        data={'sub': admin_user.document},
+        expires_delta=access_token_expires,
+    )
+
+    return access_token

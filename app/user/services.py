@@ -300,6 +300,35 @@ def get_admin(token: str, *, db: sessionmaker):
         raise credentials_exception
     return user
 
+def verify_admin(token: str, *, db):
+    """Get admin user."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials',
+        headers={'WWW-Authenticate': 'Bearer'},
+    )
+    try:
+        payload = decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+        document: str = payload.get('sub')
+        if document is None:
+            raise credentials_exception
+    except DecodeError:
+        raise_credential_error()
+
+    with db as session:
+        user_query = select(UserDB).where(UserDB.document == document)
+        user_db = session.scalar(user_query)
+        if not user_db:
+            raise CredentialError
+        user = UserSchema.model_validate(user_db)
+    if user is None or user.role_id != Roles.ADMIN.value:
+        raise credentials_exception
+    return user
+
 
 def _get_user_from_document(document: str, *, db: sessionmaker) -> UserSchema:
     """Get user from database."""

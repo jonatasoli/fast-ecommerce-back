@@ -7,6 +7,7 @@ from tests.fake_functions import fake, fake_decimal, fake_url, fake_url_path
 
 def test_give_valid_product_payload_should_create_product(
     db,
+    admin_token,
 ) -> None:
     """Must create valid product."""
     category = CategoryFactory()
@@ -26,7 +27,7 @@ def test_give_valid_product_payload_should_create_product(
     )
 
     # Act
-    product_response = create_product(product_data, db=db)
+    product_response = create_product(product_data, token=admin_token, db=db)
 
     # Assert
     assert product_response
