@@ -16,6 +16,7 @@ from tests.fake_functions import fake, fake_url_path
 def create_product_cart(
     product_id: int = 1,
     quantity: int = 1,
+    available_quantity: int = 10,
     discount_price: Decimal = Decimal(0),
 ) -> ProductCart:
     """Must create product in db."""
@@ -25,6 +26,7 @@ def create_product_cart(
         product_id=product_id,
         quantity=quantity,
         discount_price=discount_price,
+        available_quantity=available_quantity,
     )
 
 
@@ -37,13 +39,15 @@ async def test_add_product_to_new_cart(
     # Arrange
     product = create_product_cart()
     productdb = ProductDBFactory(product_id=1, discount=0)
+    productdb.quantity = 10
     bootstrap = await memory_bootstrap
     mocker.patch.object(
-        bootstrap.uow,
+        bootstrap.cart_repository,
         'get_product_by_id',
         return_value=productdb,
     )
     bootstrap.cache = Mock()
+    bootstrap.db = get_async_session()
 
     # Act
     cart_response = await add_product_to_cart(None, product, bootstrap)
@@ -65,13 +69,15 @@ async def test_add_product_to_new_cart_should_set_in_cache(
     # Arrange
     product = create_product_cart()
     productdb = ProductDBFactory(product_id=1, discount=0)
+    productdb.quantity = 10
     bootstrap = await memory_bootstrap
     mocker.patch.object(
-        bootstrap.uow,
+        bootstrap.cart_repository,
         'get_product_by_id',
         return_value=productdb,
     )
     bootstrap.cache = Mock()
+    bootstrap.db = get_async_session()
     cache_spy = mocker.spy(bootstrap.cache, 'set')
 
     # Act
@@ -95,21 +101,25 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
     current_product = create_product_cart(
         product_id=2,
         quantity=1,
+        available_quantity=10,
     )
     new_product = create_product_cart(
         product_id=1,
         quantity=1,
+        available_quantity=10,
     )
 
     productdb = ProductDBFactory(product_id=1, discount=0)
+    productdb.quantity = 10
     bootstrap = await memory_bootstrap
     mocker.patch.object(
-        bootstrap.uow,
+        bootstrap.cart_repository,
         'get_product_by_id',
         return_value=productdb,
     )
     bootstrap.cache = Mock()
     mocker.spy(bootstrap.cache, 'set')
+    bootstrap.db = get_async_session()
 
     uuid = fake.uuid4()
     cart = CartBase(
@@ -168,6 +178,7 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
         showcase=False,
         show_discount=False,
     )
+    productdb_1.quantity = 10
     productdb_2 = ProductDBFactory(
         product_id=2,
         discount=Decimal('50'),
@@ -176,6 +187,7 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
         showcase=False,
         show_discount=False,
     )
+    productdb_2.quantity=10
 
     bootstrap = await memory_bootstrap
     bootstrap.db = get_async_session()

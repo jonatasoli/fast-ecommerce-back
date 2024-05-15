@@ -71,7 +71,11 @@ async def add_product_to_cart(
 ) -> CartBase:
     """Must add product to new cart and return cart."""
     cache = bootstrap.cache
-    product_db = await bootstrap.uow.get_product_by_id(product.product_id)
+    async with bootstrap.db() as session:
+        product_db = await bootstrap.cart_repository.get_product_by_id(
+            product.product_id,
+            transaction=session,
+        )
     logger.info(f'product_db: {product_db}')
     cart = None
     if cart_uuid:
@@ -81,6 +85,7 @@ async def add_product_to_cart(
             product=product_db,
             price=product_db.price,
             quantity=product.quantity,
+            available_quantity=product_db.quantity,
         )
     else:
         cart = cache.get(cart_uuid)
@@ -91,6 +96,7 @@ async def add_product_to_cart(
             name=product_db.name,
             price=product_db.price,
             image_path=product_db.image_path,
+            available_quantity=product_db.quantity,
         )
     cache.set(str(cart.uuid), cart.model_dump_json(), ex=DEFAULT_CART_EXPIRE)
     return cart
