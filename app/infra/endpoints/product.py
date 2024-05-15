@@ -2,6 +2,7 @@
 from types import ModuleType
 from typing import Any, Callable
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
 from redis.commands.core import AsyncHyperlogCommands
 from sqlalchemy.orm import Session
@@ -27,19 +28,23 @@ product = APIRouter(
     tags=['product'],
 )
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 @product.post(
     '/create-product',
+    summary='[Admin] Create new product',
     status_code=status.HTTP_201_CREATED,
     response_model=ProductInDBResponse,
+    tags=['admin'],
 )
 def create_product(
     *,
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(deps.get_db),
     product_data: ProductCreate,
 ) -> ProductInDBResponse:
     """Create product."""
-    product = services.create_product(product_data, db=db)
+    product = services.create_product(product_data, token=token, db=db)
     if not product:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -53,15 +58,18 @@ def create_product(
     summary='Put image in product.',
     description='Get product_id and image file and update to image client.',
     status_code=status.HTTP_200_OK,
+    tags=['admin'],
 )
 def upload_image(
     product_id: int,
     *,
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
     image: UploadFile = File(...),
 ) -> None:
     """Upload image."""
     try:
+        _ = token
         return product_services.upload_image(product_id, db=db, image=image)
     except Exception:
         raise
@@ -70,17 +78,23 @@ def upload_image(
 @product.post('/upload-image-gallery/', status_code=200)
 def upload_image_gallery(
     product_id: int,
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
     imagegallery: UploadFile = File(...),
 ) -> None:
     """Upload image gallery."""
     try:
+        _ = token
         return services.upload_image_gallery(product_id, db, imagegallery)
     except Exception:
         raise
 
 
-@product.get('/images/gallery/{uri}', status_code=200)
+@product.get(
+    '/images/gallery/{uri}',
+    status_code=status.HTTP_200_OK,
+    tags=['admin'],
+ )
 def get_images_gallery(uri: str, db: Session = Depends(get_db)) -> None:
     """Get images gallery."""
     try:
@@ -89,7 +103,11 @@ def get_images_gallery(uri: str, db: Session = Depends(get_db)) -> None:
         raise
 
 
-@product.delete('/delete/image-gallery/{id}', status_code=200)
+@product.delete(
+    '/delete/image-gallery/{id}',
+     status_code=status.HTTP_200_OK,
+     tags=['admin'],
+ )
 def delete_image(id: int, db: Session = Depends(get_db)) -> None:
     """Delete image."""
     try:
@@ -117,26 +135,38 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
 
 @product.patch(
     '/update/{id}',
-    status_code=200,
+    status_code=status.HTTP_200_OK,
     response_model=ProductFullResponse,
+    tags=['admin'],
 )
 def patch_product(
     id: int,
     value: ProductPatchRequest,
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> ProductFullResponse:
     """Put product."""
     try:
+        _ = token
         return services.patch_product(db, id, value)
     except Exception as e:
         logger.error(f'Erro em atualizar o produto - { e }')
         raise
 
 
-@product.delete('/delete/{id}', status_code=200)
-def delete_product(id: int, db: Session = Depends(get_db)) -> None:
+@product.delete(
+    '/delete/{id}',
+    status_code=status.HTTP_200_OK,
+    tags=['admin'],
+)
+def delete_product(
+    id: int,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+ ) -> None:
     """Delete product."""
     try:
+        _ = token
         return services.delete_product(db, id)
     except Exception:
         raise

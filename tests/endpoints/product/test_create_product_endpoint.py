@@ -8,7 +8,7 @@ from tests.fake_functions import fake, fake_url, fake_url_path
 URL = '/product/create-product'
 
 
-def test_given_valid_payload_should_create_product(t_client, db):
+def test_given_valid_payload_should_create_product(t_client, db, admin_token):
     """Must create product by payload."""
     # Arrange
     category_id = None
@@ -28,9 +28,10 @@ def test_given_valid_payload_should_create_product(t_client, db):
         'image_path': fake_url_path(),
         'sku': fake.pystr(),
     }
+    headers = { 'Authorization': f'Bearer {admin_token}' }
 
     # Act
-    response = t_client.post(URL, json=product_data)
+    response = t_client.post(URL, json=product_data, headers=headers)
 
     # Assert
     assert response.status_code == status.HTTP_201_CREATED

@@ -23,6 +23,7 @@ from app.infra.models import (
     OrderDB,
     OrderItemsDB,
 )
+from app.user.services import verify_admin
 from schemas.order_schema import (
     CategoryInDB,
     ImageGalleryResponse,
@@ -114,9 +115,12 @@ def get_product(db: Session, uri) -> ProductInDB | None:
 def create_product(
     product_data: ProductCreate,
     *,
+    token,
+    verify_admin = verify_admin,
     db: Session,
 ) -> ProductInDBResponse:
     """Create new product."""
+    verify_admin(token, db=db)
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
     db_product.description = json.dumps(product_data.description)
     try:
