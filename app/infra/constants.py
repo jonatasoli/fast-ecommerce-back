@@ -55,6 +55,7 @@ class PaymentStatus(enum.Enum):
     CANCELLED = 'CANCELLED'
 
 
-class InventoryOperation(enum.Enum):
+class InventoryOperation(enum.StrEnum):
     INCREASE = 'INCREASE'
     DECREASE = 'DECREASE'
+
