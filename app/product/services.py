@@ -25,12 +25,13 @@ def upload_image(
     return new_image_path
 
 
-async def get_inventory(token, db, verify_admin=verify_admin):
+async def get_inventory(token, *, page, offset, db, verify_admin=verify_admin):
     """Get products inventory."""
     verify_admin(token, db=db)
-    async with db() as transaction:
-        return await repository.get_inventory(transaction=transaction)
+    async with db().begin() as transaction:
+        return await repository.get_inventory(transaction, page=page, offset=offset)
 
 async def inventory_transaction(product_id: int, *, inventory, token, db):
     """Add product transaction."""
+
 

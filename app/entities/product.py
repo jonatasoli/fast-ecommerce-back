@@ -169,3 +169,11 @@ class ListProducts(BaseModel):
 class InventoryTransaction(BaseModel):
     operation: InventoryOperation
     quantity: int
+
+
+class InventoryResponse(BaseModel):
+    inventory: list[ProductInDB]
+    page: int
+    offset: int
+    total_pages: int
+    total_records: int

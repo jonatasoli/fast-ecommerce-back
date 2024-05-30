@@ -1,12 +1,14 @@
 import json
 import math
-from typing import Any
+from typing import Any, List
 
 from fastapi import HTTPException, status
 from loguru import logger
+from pydantic import TypeAdapter
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, aliased
 
+from app.entities.order import OrderInDB, OrderResponse
 from app.entities.product import (
     ProductCategoryInDB,
     ProductCreate,
@@ -274,20 +276,27 @@ def get_product_by_id(db: Session, id: int) -> ProductDB | None:
     return db.query(ProductDB).filter(ProductDB.product_id == id).first()
 
 
-def get_orders(db: Session, dates=None, status=None, user_id=None):
+def get_orders(page, offset, *, db):
     """Get Orders Paid."""
-    with db:
+    with db().begin() as db:
         orders_query = (
             select(OrderDB)
-            .joinedload(OrderItemsDB)
-            .joinedload(ProductDB)
             .order_by(OrderDB.order_id.desc())
         )
-        orders = db.execute(orders_query).scalars().all()
-    return orders
+        total_records = db.session.scalar(select(func.count(OrderDB.order_id)))
+        if page > 1:
+            orders_query = orders_query.offset((page - 1) * offset)
+        orders_query = orders_query.limit(offset)
 
-
-
+        orders_db = db.session.execute(orders_query)
+        adapter = TypeAdapter(List[OrderInDB])
+    return OrderResponse(
+        orders=adapter.validate_python(orders_db.scalars().all()),
+        page=page,
+        offset=offset,
+        total_pages=math.ceil(total_records / offset) if total_records else 1,
+        total_records=total_records if total_records else 0,
+    )
 
 
 def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:

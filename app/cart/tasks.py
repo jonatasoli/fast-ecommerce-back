@@ -16,10 +16,10 @@ from app.infra.payment_gateway.stripe_gateway import (
 )
 from app.infra.worker import task_message_bus
 from app.inventory.tasks import decrease_inventory
-from app.order.entities import (
+from app.entities.order import (
     CreateOrderStatusStepError,
     OrderDBUpdate,
-    OrderNotFound,
+    OrderNotFoundError,
 )
 from app.order.tasks import (
     create_order,
@@ -259,7 +259,7 @@ async def create_pending_payment_and_order(
         )
         if not order_id:
             msg = f'Is not possible create order with cart {cart.uuid}'
-            raise OrderNotFound(
+            raise OrderNotFoundError(
                 msg,
             )
         payment_id = await create_pending_payment(

@@ -38,12 +38,16 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
     status_code=status.HTTP_200_OK,
     tags=['admin'],
 )
-async def product_inventory(
+async def get_product_inventory(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_async_session),
+    page: int = 1,
+    offset: int = 10,
 ):
     """Get products inventory."""
-    return await product_services.get_inventory(token=token, db=db)
+    return await product_services.get_inventory(
+        token=token, page=page, offset=offset, db=db,
+    )
 
 @product.post(
     '/inventory/{product_id}/transaction',

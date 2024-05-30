@@ -6,7 +6,7 @@ from app.entities.coupon import CouponResponse
 from app.infra.custom_decorators import database_uow
 from app.infra.models import OrderDB
 from app.order import repository as order_repository
-from app.order.entities import OrderDBUpdate
+from app.entities.order import OrderDBUpdate
 
 
 @database_uow()

@@ -156,6 +156,7 @@ class OrderItemsDB(Base):
         backref=backref('order_items', uselist=False),
         cascade='all,delete',
         foreign_keys=[order_id],
+        lazy='joined',
     )
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
     product = relationship(
@@ -163,6 +164,7 @@ class OrderItemsDB(Base):
         backref=backref('product', uselist=False),
         cascade='all,delete',
         foreign_keys=[product_id],
+        lazy='joined',
     )
     quantity: Mapped[int]
     price: Mapped[Decimal]
