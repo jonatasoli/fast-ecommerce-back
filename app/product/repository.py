@@ -1,10 +1,11 @@
+import math
 from typing import List
 from pydantic import TypeAdapter
 from sqlalchemy import select
 from sqlalchemy.orm import Session, lazyload
 from sqlalchemy import func
 
-from app.entities.product import ProductInDB
+from app.entities.product import InventoryResponse, ProductInDB
 from app.infra.models import CategoryDB, InventoryDB, ProductDB
 
 
@@ -15,7 +16,7 @@ def get_product_by_id(product_id: int, *, db: Session):
     )
 
 
-async def get_inventory(transaction):
+async def get_inventory(transaction, *, page, offset):
     """Get inventory products."""
     quantity_query = (
         select(
@@ -58,8 +59,20 @@ async def get_inventory(transaction):
             ProductDB.product_id,
             CategoryDB.category_id,
         )
+        .order_by(ProductDB.product_id.desc())
     )
-    products_db = await transaction.execute(quantity_query)
+    total_records = await transaction.session.scalar(select(func.count(ProductDB.product_id)))
+    if page > 1:
+        quantity_query = quantity_query.offset((page - 1) * offset)
+    quantity_query = quantity_query.limit(offset)
+
+    products_db = await transaction.session.execute(quantity_query)
     adapter = TypeAdapter(List[ProductInDB])
-    return adapter.validate_python(products_db.all())
+    return InventoryResponse(
+        inventory=adapter.validate_python(products_db.all()),
+        page=page,
+        offset=offset,
+        total_pages=math.ceil(total_records / offset) if total_records else 1,
+        total_records=total_records if total_records else 0,
+    )
 

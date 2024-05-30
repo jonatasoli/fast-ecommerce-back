@@ -300,7 +300,7 @@ def get_admin(token: str, *, db: sessionmaker):
         raise credentials_exception
     return user
 
-def verify_admin(token: str, *, db):
+async def verify_admin(token: str, *, db):
     """Get admin user."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -319,9 +319,9 @@ def verify_admin(token: str, *, db):
     except DecodeError:
         raise_credential_error()
 
-    with db as session:
+    async with db() as session:
         user_query = select(UserDB).where(UserDB.document == document)
-        user_db = session.scalar(user_query)
+        user_db = await session.scalar(user_query)
         if not user_db:
             raise CredentialError
         user = UserSchema.model_validate(user_db)

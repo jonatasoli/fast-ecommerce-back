@@ -14,7 +14,7 @@ from app.infra.models import (
     OrderStatusStepsDB,
     ProductDB,
 )
-from app.order.entities import OrderDBUpdate
+from app.entities.order import OrderDBUpdate
 
 
 async def create_order(
