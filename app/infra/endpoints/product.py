@@ -33,6 +33,26 @@ product = APIRouter(
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 
+@product.post(
+    '/upload-image/{product_id}',
+    summary='Put image in product.',
+    description='Get product_id and image file and update to image client.',
+    status_code=status.HTTP_200_OK,
+    tags=['admin'],
+)
+def upload_image(
+    product_id: int,
+    *,
+    db: Session = Depends(get_db),
+    image: UploadFile = File(...),
+) -> str:
+    """Upload image."""
+    try:
+        return product_services.upload_image(product_id, db=db, image=image)
+    except Exception:
+        raise
+
+
 @product.get(
     '/inventory',
     status_code=status.HTTP_200_OK,
@@ -89,28 +109,6 @@ def create_product(
             detail='Error in create product',
         )
     return product
-
-
-@product.post(
-    '/upload-image/{product_id}',
-    summary='Put image in product.',
-    description='Get product_id and image file and update to image client.',
-    status_code=status.HTTP_200_OK,
-    tags=['admin'],
-)
-def upload_image(
-    product_id: int,
-    *,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
-    image: UploadFile = File(...),
-) -> None:
-    """Upload image."""
-    try:
-        _ = token
-        return product_services.upload_image(product_id, db=db, image=image)
-    except Exception:
-        raise
 
 
 @product.post('/upload-image-gallery/', status_code=200)
