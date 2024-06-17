@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, lazyload
 from sqlalchemy import func
 
-from app.entities.product import InventoryResponse, ProductInDB
+from app.entities.product import InventoryResponse, InventoryTransaction, ProductInDB
 from app.infra.models import CategoryDB, InventoryDB, ProductDB
 
 
@@ -75,4 +75,20 @@ async def get_inventory(transaction, *, page, offset):
         total_pages=math.ceil(total_records / offset) if total_records else 1,
         total_records=total_records if total_records else 0,
     )
+
+
+async def add_inventory_transaction(
+        product_id: int,
+        inventory: InventoryTransaction,
+        transaction,
+) -> InventoryDB:
+    """Add inventory in InventoryDB."""
+    inventorydb = InventoryDB(
+        product_id=product_id,
+        quantity=inventory.quantity,
+        operation=inventory.operation,
+    )
+    transaction.session.add(inventorydb)
+    await transaction.session.commit()
+    return inventorydb
 

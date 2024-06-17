@@ -33,5 +33,11 @@ async def get_inventory(token, *, page, offset, db, verify_admin=verify_admin):
 
 async def inventory_transaction(product_id: int, *, inventory, token, db):
     """Add product transaction."""
+    async with db().begin() as transaction:
+        return await repository.add_inventory_transaction(
+            product_id,
+            inventory,
+            transaction,
+        )
 
 
