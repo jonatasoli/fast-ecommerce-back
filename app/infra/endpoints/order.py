@@ -12,10 +12,10 @@ from app.order import services
 from app.infra.deps import get_db
 from app.infra.models import PaymentDB, OrderDB
 from schemas.order_schema import (
-    OrderFullResponse,
     OrderSchema,
     TrackingFullResponse,
     OrderUserListResponse,
+    OrderFullResponse,
 )
 
 order = APIRouter(
@@ -75,16 +75,16 @@ async def get_order_users_id(
 
 
 
-@order.put('/{id}', status_code=200)
-async def put_order(
+@order.patch('/{id}', status_code=status.HTTP_204_NO_CONTENT)
+async def patch_order(
     *,
-    db: Session = Depends(get_db),
-    value: OrderFullResponse,
     id: int,
+    product: OrderFullResponse,
+    db: Session = Depends(get_db),
 ) -> None:
     """Put order."""
     try:
-        return services.put_order(db, value, id)
+        return services.patch_product(id, product_data=product, db=db)
     except Exception:
         raise
 

@@ -362,7 +362,6 @@ async def get_products_quantity(
             )
         )
         products_db = await transaction.session.execute(quantity_query)
-        await _check_products_db(products_db, products)
         adapter = TypeAdapter(List[ProductInDB])
         return adapter.validate_python(products_db.all())
 

@@ -3,15 +3,16 @@ from decimal import Decimal
 from typing import Any
 
 from pydantic import Json
-from sqlalchemy import JSON, ForeignKey, BIGINT
+from sqlalchemy import JSON, ForeignKey, BIGINT, select, func
 from sqlalchemy.orm import (
     DeclarativeBase,
     backref,
     Mapped,
     mapped_column,
     relationship,
+    column_property
 )
-from sqlalchemy.sql import func
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from app.infra.constants import DocumentType
 
@@ -39,6 +40,27 @@ class CategoryDB(Base):
     image_path: Mapped[str | None]
 
 
+class InventoryDB(Base):
+    __tablename__ = 'inventory'
+
+    inventory_id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
+    product: Mapped['ProductDB'] = relationship(
+        "ProductDB",
+        back_populates="inventory"
+    )
+    order_id: Mapped[int | None] = mapped_column(ForeignKey('order.order_id'))
+    order = relationship(
+        'OrderDB',
+        backref=backref('inventory', uselist=False),
+        cascade='all,delete',
+        foreign_keys=[order_id],
+    )
+    quantity: Mapped[int]
+    operation: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now())
+
+
 class ProductDB(Base):
     __tablename__ = 'product'
 
@@ -58,18 +80,12 @@ class ProductDB(Base):
     )
     category: Mapped['CategoryDB'] = relationship(
         foreign_keys=[category_id],
-        backref='ProductDB',
+        backref='products',
         cascade='all,delete',
         uselist=False,
         lazy='joined',
     )
-    inventory = relationship(
-        'InventoryDB',
-        backref=backref('ProductDB', uselist=False),
-        cascade='all,delete',
-        foreign_keys=[product_id],
-        primaryjoin='ProductDB.product_id == InventoryDB.product_id',
-    )
+    inventory = relationship("InventoryDB", back_populates="product")
     showcase: Mapped[bool] = mapped_column(default=False)
     feature: Mapped[bool] = mapped_column(default=False, server_default='0')
     show_discount: Mapped[bool] = mapped_column(default=False)
@@ -80,6 +96,13 @@ class ProductDB(Base):
     diameter: Mapped[Decimal | None]
     sku: Mapped[str]
     currency: Mapped[str] = mapped_column(default='BRL')
+
+    quantity = column_property(
+        select(func.coalesce(func.sum(InventoryDB.quantity), 0))
+        .where(InventoryDB.product_id == product_id)
+        .correlate_except(InventoryDB)  # Correlate the subquery
+        .scalar_subquery(),
+    )
 
 
 class CouponsDB(Base):
@@ -189,23 +212,6 @@ class ImageGalleryDB(Base):
     category_id: Mapped[int] = mapped_column(primary_key=True)
     url: Mapped[str]
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
-
-
-class InventoryDB(Base):
-    __tablename__ = 'inventory'
-
-    inventory_id: Mapped[int] = mapped_column(primary_key=True)
-    product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
-    order_id: Mapped[int | None] = mapped_column(ForeignKey('order.order_id'))
-    order = relationship(
-        'OrderDB',
-        backref=backref('inventory', uselist=False),
-        cascade='all,delete',
-        foreign_keys=[order_id],
-    )
-    quantity: Mapped[int]
-    operation: Mapped[str]
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
 
 class TransactionDB(Base):

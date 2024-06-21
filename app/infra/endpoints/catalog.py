@@ -1,5 +1,6 @@
 # ruff: noqa: ANN401 FBT002
 from typing import Any
+from app.infra.database import get_async_session
 from fastapi import APIRouter, Depends, status
 from app.catalog.entities import Categories
 from app.catalog.services import get_categories_by_filter
@@ -46,13 +47,13 @@ def get_showcase(*, db: Session = Depends(get_db)) -> Any:
     status_code=status.HTTP_200_OK,
     response_model=ProductsResponse,
 )
-def get_products_all(
+async def get_products_all(
     offset: int = 10,
     page: int = 1,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get products all."""
-    return services.get_product_all(page=page, offset=offset, db=db)
+    return await services.get_product_all(page=page, offset=offset, db=db)
 
 
 @catalog.get(
@@ -78,7 +79,7 @@ def get_latest_products(
     status_code=status.HTTP_200_OK,
     response_model=ProductsResponse,
 )
-def get_products_all(
+def get_products_featured(
     offset: int = 2,
     page: int = 1,
     db: Session = Depends(get_db),
