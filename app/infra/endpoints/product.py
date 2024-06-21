@@ -1,29 +1,22 @@
 # ruff: noqa: ANN401 TRY301 TRY300
-from types import ModuleType
-from typing import Any, Callable
+from typing import Any
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
-from redis.commands.core import AsyncHyperlogCommands
 from sqlalchemy.orm import Session
 from app.entities.product import (
     InventoryTransaction,
     ProductCreate,
-    ProductCreateResponse,
     ProductInDB,
     ProductInDBResponse,
+    ProductPatchRequest,
 )
 from app.infra.database import get_async_session
-from app.infra.models import ProductDB
 
 from app.order import services
 from app.product import services as product_services
 from app.infra import deps
 from app.infra.deps import get_db
-from schemas.order_schema import (
-    ProductFullResponse,
-    ProductPatchRequest,
-)
 
 product = APIRouter(
     prefix='/product',
@@ -89,20 +82,20 @@ async def product_inventory(
     )
 
 @product.post(
-    '/create-product',
+    '/',
     summary='[Admin] Create new product',
     status_code=status.HTTP_201_CREATED,
     response_model=ProductInDBResponse,
     tags=['admin'],
 )
-def create_product(
+async def create_product(
     *,
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(deps.get_db),
+    db= Depends(get_async_session),
     product_data: ProductCreate,
 ) -> ProductInDBResponse:
     """Create product."""
-    product = services.create_product(product_data, token=token, db=db)
+    product = await product_services.create_product(product_data, token=token, db=db)
     if not product:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -121,7 +114,7 @@ def upload_image_gallery(
     """Upload image gallery."""
     try:
         _ = token
-        return services.upload_image_gallery(product_id, db, imagegallery)
+        return product_services.upload_image_gallery(product_id, db, imagegallery)
     except Exception:
         raise
 
@@ -134,25 +127,25 @@ def upload_image_gallery(
 def get_images_gallery(uri: str, db: Session = Depends(get_db)) -> None:
     """Get images gallery."""
     try:
-        return services.get_images_gallery(db, uri)
+        return product_services.get_images_gallery(db, uri)
     except Exception:
         raise
 
 
 @product.delete(
     '/delete/image-gallery/{id}',
-     status_code=status.HTTP_200_OK,
+     status_code=status.HTTP_204_NO_CONTENT,
      tags=['admin'],
  )
 def delete_image(id: int, db: Session = Depends(get_db)) -> None:
     """Delete image."""
     try:
-        return services.delete_image_gallery(id, db)
+        return product_services.delete_image_gallery(id, db)
     except Exception:
         raise
 
 
-@product.get('/{uri:path}', status_code=200, response_model=ProductInDB)
+@product.get('/{uri:path}', status_code=status.HTTP_200_OK, response_model=ProductInDB)
 def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
     """GET product uri."""
     try:
@@ -171,28 +164,27 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
 
 @product.patch(
     '/update/{id}',
-    status_code=status.HTTP_200_OK,
-    response_model=ProductFullResponse,
+    status_code=status.HTTP_204_NO_CONTENT,
     tags=['admin'],
 )
-def patch_product(
-    id: int,
-    value: ProductPatchRequest,
+async def patch_product(
+    product_id: int,
+    columns_update: ProductPatchRequest,
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
-) -> ProductFullResponse:
+    db: Session = Depends(get_async_session),
+) -> None:
     """Put product."""
-    try:
-        _ = token
-        return services.patch_product(db, id, value)
-    except Exception as e:
-        logger.error(f'Erro em atualizar o produto - { e }')
-        raise
+    _ = token
+    await product_services.update_product(
+        product_id,
+        update_data=columns_update,
+        db=db,
+    )
 
 
 @product.delete(
     '/delete/{id}',
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_204_NO_CONTENT,
     tags=['admin'],
 )
 def delete_product(
@@ -203,7 +195,7 @@ def delete_product(
     """Delete product."""
     try:
         _ = token
-        return services.delete_product(db, id)
+        return product_services.delete_product(db, id)
     except Exception:
         raise
 

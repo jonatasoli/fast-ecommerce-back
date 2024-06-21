@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from typing import Self
+from typing import Any, Self
 from pydantic import BaseModel, ConfigDict, Json
 from app.infra.constants import InventoryOperation
 from schemas.order_schema import CategoryInDB
@@ -12,6 +12,17 @@ class ProductSoldOutError(Exception):
     def __init__(self: Self) -> None:
         super().__init__('There are products in not inventory.')
 
+class ProductNotCreatedError(Exception):
+    """Represent product is not created."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('Product is not created')
+
+class ProductNotFoundError(Exception):
+    """Represent product is not created."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('Product not found')
 
 INSTALLMENT_CONFIG_DEFAULT = 1
 
@@ -55,10 +66,10 @@ class ProductInDB(BaseModel):
     category_id: int
     showcase: bool
     show_discount: bool
-    height: int
-    width: int
-    weight: int
-    length: int
+    height: int | None
+    width: int | None
+    weight: int | None
+    length: int | None
     diameter: int | None
     quantity: int = 0
     sku: str
@@ -93,10 +104,10 @@ class ProductCategoryInDB(BaseModel):
     category: CategoryInDB
     showcase: bool
     show_discount: bool
-    height: int
-    width: int
-    weight: int
-    length: int
+    height: int | None
+    width: int | None
+    weight: int | None
+    length: int | None
     diameter: int | None
     sku: str
     quantity: int = 0
@@ -141,9 +152,9 @@ class ProductCreate(BaseModel):
     uri: str
     price: Decimal | float
     category_id: int
-    description: dict | str | None
-    image_path: str
     sku: str
+    description: dict | str | None = None
+    image_path: str | None = None
     direct_sales: bool | None = None
     installments_config: int = INSTALLMENT_CONFIG_DEFAULT
     installments_list: dict | None = None
@@ -157,7 +168,7 @@ class ProductCreate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ProductInDBResponse(ProductCreate):
+class ProductCreateInDBResponse(ProductCreate):
     product_id: int
 
 
@@ -177,3 +188,44 @@ class InventoryResponse(BaseModel):
     offset: int
     total_pages: int
     total_records: int
+
+
+class ProductPatchRequest(BaseModel):
+    name: str | None = None
+    uri: str | None = None
+    price: int | None = None
+    direct_sales: bool | None = None
+    description: Json | None = None
+    image_path: str | None = None
+    installments_config: int | None = None
+    installments_list: dict | None = None
+    category_id: int | None = None
+    discount: int | None = None
+    showcase: bool | None = None
+    show_discount: bool | None = None
+    heigth: float | None = None
+    width: float | None = None
+    weigth: float | None = None
+    length: float | None = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProductInDBResponse(BaseModel):
+    product_id: int | None = None
+    name: str
+    uri: str
+    price: int
+    direct_sales: bool | None = None
+    description: Json | None = None
+    image_path: str | None = None
+    installments_config: int | None = None
+    installments_list: dict | None = None
+    category_id: int
+    discount: int | None = None
+    showcase: bool
+    show_discount: bool | None = None
+    heigth: float | None = None
+    width: float | None = None
+    weigth: float | None = None
+    length: float | None = None
+    model_config = ConfigDict(from_attributes=True)

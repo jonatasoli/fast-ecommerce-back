@@ -6,7 +6,7 @@ from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session, aliased, joinedload, selectinload, contains_eager
 
 from app.entities.order import OrderInDB, OrderResponse
 from app.entities.product import (
@@ -14,6 +14,7 @@ from app.entities.product import (
     ProductCreate,
     ProductInDB,
     ProductInDBResponse,
+    ProductPatchRequest,
     ProductsResponse,
 )
 from app.infra.file_upload import optimize_image
@@ -34,8 +35,6 @@ from schemas.order_schema import (
     TrackingFullResponse,
     OrderUserListResponse,
     ProductListOrderResponse,
-    ProductPatchRequest,
-    ProductFullResponse,
 )
 
 
@@ -143,13 +142,14 @@ def update_product(product: ProductDB, product_data: dict) -> ProductDB:
 
 
 def patch_product(
-    db: Session,
-    id,
+    product_id,
+    *,
     product_data: ProductPatchRequest,
-) -> ProductFullResponse:
+    db,
+) -> None:
     """Update Product."""
     values = product_data.model_dump(exclude_none=True)
-    product = get_product_by_id(db, id)
+    product = get_product_by_id(db, product_id)
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -158,7 +158,6 @@ def patch_product(
     with db:
         update_product(product, values)
         db.commit()
-        return ProductFullResponse.model_validate(product)
 
 
 def delete_product(db: Session, product_id: int) -> None:
@@ -512,86 +511,23 @@ def get_products_category(
     )
 
 
-def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
+async def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
     """Get all products."""
-    products = None
-    total_records = 0
-    with db:
-        category_alias = aliased(CategoryDB)
+    async with db().begin() as transaction:
         products = (
-            select(
-                ProductDB.product_id,
-                ProductDB.name,
-                ProductDB.uri,
-                ProductDB.price,
-                ProductDB.active,
-                ProductDB.direct_sales,
-                ProductDB.description,
-                ProductDB.image_path,
-                ProductDB.installments_config,
-                ProductDB.installments_list,
-                ProductDB.discount,
-                ProductDB.category_id,
-                ProductDB.showcase,
-                ProductDB.feature,
-                ProductDB.show_discount,
-                ProductDB.height,
-                ProductDB.width,
-                ProductDB.weight,
-                ProductDB.length,
-                ProductDB.diameter,
-                ProductDB.sku,
-                ProductDB.currency,
-                func.coalesce(func.sum(InventoryDB.quantity), 0).label(
-                    'quantity',
-                ),
-                category_alias.category_id.label('category_id_1'),
-                category_alias.name.label('name_1'),
-                category_alias.path,
-                category_alias.menu,
-                category_alias.showcase.label('showcase_1'),
-                category_alias.image_path.label('image_path_1'),
-            )
-            .outerjoin(
-                InventoryDB,
-                InventoryDB.product_id == ProductDB.product_id,
-            )
-            .outerjoin(
-                category_alias,
-                ProductDB.category_id == category_alias.category_id,
-            )
+            select(ProductDB)
             .where(ProductDB.active == True)
-            .group_by(ProductDB.product_id, category_alias.category_id)
             .order_by(ProductDB.product_id.asc())
         )
-        total_records = db.scalar(select(func.count(ProductDB.product_id)))
+        total_records = await transaction.session.scalar(select(func.count(ProductDB.product_id)))
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
 
-    result = db.execute(products)
-    column_names = result.keys()
-    products = result.fetchall()
-    products_list = []
-
-    for product in products:
-        product_dict = dict(zip(column_names, product))
-        if 'category_id_1' in product_dict:
-            product_dict['category'] = {
-                'category_id': product_dict['category_id_1'],
-                'name': product_dict['name_1'],
-                'path': product_dict['path'],
-                'menu': product_dict['menu'],
-                'showcase': product_dict['showcase_1'],
-                'image_path': product_dict['image_path_1'],
-            }
-            del product_dict['category_id_1']
-            del product_dict['name_1']
-            del product_dict['path']
-            del product_dict['menu']
-            del product_dict['showcase_1']
-            del product_dict['image_path_1']
-        products_list.append(ProductCategoryInDB.model_validate(product_dict))
+        result = await transaction.session.execute(products)
+        adapter = TypeAdapter(List[ProductCategoryInDB])
+        products_list = result.scalars().all()
+        products_list = adapter.validate_python(products_list)
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,

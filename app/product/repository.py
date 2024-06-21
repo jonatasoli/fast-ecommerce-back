@@ -1,15 +1,22 @@
+import json
 import math
 from typing import List
+from loguru import logger
 from pydantic import TypeAdapter
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, lazyload
 from sqlalchemy import func
+from sqlalchemy.util import await_only
 
-from app.entities.product import InventoryResponse, InventoryTransaction, ProductInDB
+from app.entities.product import InventoryResponse, InventoryTransaction, ProductCreate, ProductInDB, ProductInDBResponse, ProductNotCreatedError, ProductPatchRequest
 from app.infra.models import CategoryDB, InventoryDB, ProductDB
 
+def create_product_not_found_exception() -> ProductNotCreatedError:
+    """Shoud raise exception if product is not created."""
+    raise ProductNotCreatedError
 
-def get_product_by_id(product_id: int, *, db: Session):
+
+def get_product_by_id(product_id: int, *, db):
     """Get product by id."""
     return db.scalar(
         select(ProductDB).where(ProductDB.product_id == product_id),
@@ -61,7 +68,9 @@ async def get_inventory(transaction, *, page, offset):
         )
         .order_by(ProductDB.product_id.desc())
     )
-    total_records = await transaction.session.scalar(select(func.count(ProductDB.product_id)))
+    total_records = await transaction.session.scalar(
+        select(func.count(ProductDB.product_id)),
+    )
     if page > 1:
         quantity_query = quantity_query.offset((page - 1) * offset)
     quantity_query = quantity_query.limit(offset)
@@ -92,3 +101,34 @@ async def add_inventory_transaction(
     await transaction.session.commit()
     return inventorydb
 
+
+async def create_product(
+    product_data: ProductCreate,
+    transaction,
+    ):
+    """Create a new product in DB."""
+    db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
+    db_product.description = json.dumps(product_data.description)
+    try:
+        async with transaction:
+            transaction.add(db_product)
+            await transaction.commit()
+        if not db_product:
+            create_product_not_found_exception()
+    except Exception as e:
+        logger.error(e)
+        raise
+    else:
+        return db_product
+
+
+async def delete_product(
+        product_id: int,
+        *,
+        transaction,
+    ) -> None:
+    """Delete product."""
+    async with transaction:
+        return await transaction.scalar(
+            delete(ProductDB).where(ProductDB.product_id == product_id)
+        )
