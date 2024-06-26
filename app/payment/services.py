@@ -1,9 +1,10 @@
 # ruff: noqa: ANN401
-from app.entities.payment import PaymentNotification, PaymentStatusResponse
+from app.entities.payment import PaymentInDB, PaymentNotification, PaymentStatusResponse
 
 from faststream.rabbit import RabbitQueue
 from typing import Any
 from loguru import logger
+from app.payment import repository
 
 
 async def update_payment(
@@ -61,3 +62,16 @@ async def get_payment_status(
             transaction=session,
         )
     return PaymentStatusResponse.model_validate(payment)
+
+
+async def get_payment(
+    gateway_payment_id: int,
+    db,
+) -> PaymentInDB:
+    """Get payment status."""
+    async with db().begin() as session:
+        payment = await repository.get_payment(
+            gateway_payment_id,
+            transaction=session,
+        )
+    return PaymentInDB.model_validate(payment)

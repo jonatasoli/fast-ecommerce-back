@@ -124,3 +124,20 @@ class CustomerInDB(BaseModel):
     status: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PaymentInDB(BaseModel):
+    """Payment db."""
+
+    payment_id: int
+    order_id: int
+    amount: int | Decimal
+    token: str | None
+    gateway_payment_id: int
+    status: str
+    authorization: str | None
+    payment_method: str | None
+    payment_gateway: str | None
+    amount_with_fee: int | None
+    freight_amount: int | None
+    model_config = ConfigDict(from_attributes=True)
