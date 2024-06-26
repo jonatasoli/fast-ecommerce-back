@@ -16,9 +16,9 @@ def create_product_not_found_exception() -> ProductNotCreatedError:
     raise ProductNotCreatedError
 
 
-def get_product_by_id(product_id: int, *, db):
+async def get_product_by_id(product_id: int, *, transaction):
     """Get product by id."""
-    return db.scalar(
+    return await transaction.session.scalar(
         select(ProductDB).where(ProductDB.product_id == product_id),
     )
 

@@ -5,6 +5,22 @@ from pydantic import BaseModel, ConfigDict
 from decimal import Decimal
 
 
+class PaymentAcceptError(Exception):
+    ...
+
+
+class PaymentIntentError(Exception):
+    ...
+
+
+class CreatePaymentError(Exception):
+    ...
+
+
+class CustomerNotFoundError(Exception):
+    ...
+
+
 class CreditCardInformation(BaseModel):
     credit_card_name: str | None = None
     credit_card_number: str | None = None
@@ -95,3 +111,16 @@ def validate_payment(
         msg = 'Payment not succeeded'
         raise ValueError(msg)
     return 'succeeded'
+
+class CustomerInDB(BaseModel):
+    """Cusotmer model."""
+
+    customer_id: int
+    user_id: int
+    customer_uuid: str
+    payment_gateway: str
+    token: str
+    issuer_id: str
+    status: bool
+
+    model_config = ConfigDict(from_attributes=True)

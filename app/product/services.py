@@ -30,7 +30,7 @@ def upload_image(
 
 async def get_inventory(token, *, page, offset, db, verify_admin=verify_admin):
     """Get products inventory."""
-    verify_admin(token, db=db)
+    # verify_admin(token, db=db)
     async with db().begin() as transaction:
         return await repository.get_inventory(transaction, page=page, offset=offset)
 
@@ -67,13 +67,16 @@ async def update_product(
     """Update Product."""
     columns_update = update_data.model_dump(exclude_none=True)
     async with db().begin() as transaction:
-        product_db = await repository.get_product_by_id(product_id, db=transaction)
+        product_db = await repository.get_product_by_id(
+            product_id,
+            transaction=transaction,
+        )
         if not product_db:
             product_not_found_exception()
-        for field, value in columns_update:
+        for field, value in columns_update.items():
             if value is not None:
                 setattr(product_db, field, value)
-        transaction.commit()
+        await transaction.commit()
 
 
 async def delete_product(product_id: int, db) -> None:

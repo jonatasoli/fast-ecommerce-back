@@ -6,6 +6,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from loguru import logger
 
 from sqlalchemy.sql import select
+from sqlalchemy.sql.operators import istrue
 
 from app.entities.cart import CartPayment
 from app.entities.payment import PaymentDBUpdate
@@ -131,6 +132,7 @@ async def get_customer(
         select(CustomerDB)
         .where(CustomerDB.user_id == user_id)
         .where(CustomerDB.payment_gateway == payment_gateway)
+        .where(CustomerDB.status.is_(True))
     )
     return await transaction.session.scalar(customer_query)
 

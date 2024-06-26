@@ -1,9 +1,10 @@
+from contextlib import suppress
 from typing import Any
 from app.infra.models import PaymentDB
 
 from sqlalchemy.orm import SessionTransaction
 from app.entities.cart import CartPayment
-from app.entities.payment import PaymentDBUpdate
+from app.entities.payment import CustomerInDB, PaymentDBUpdate,CustomerNotFoundError
 from app.infra.custom_decorators import database_uow
 from app.payment import repository as payment_repository
 
@@ -76,16 +77,18 @@ async def uow_create_customer(
     payment_gateway: str,
     bootstrap: Any,
     transaction: SessionTransaction | None,
-) -> str:
+) -> CustomerInDB | None:
     """Create a new customer."""
     if not transaction:
         msg = 'Transaction must be provided'
         raise ValueError(msg)
-    customer_db = await payment_repository.get_customer(
-        user_id,
-        payment_gateway=payment_gateway,
-        transaction=transaction,
-    )
+    customer_db = None
+    with suppress(CustomerNotFoundError):
+        customer_db = await payment_repository.get_customer(
+            user_id,
+            payment_gateway=payment_gateway,
+            transaction=transaction,
+        )
     if not customer_db:
         customer_db = await payment_repository.create_customer(
             user_id=user_id,
@@ -93,7 +96,7 @@ async def uow_create_customer(
             payment_gateway=payment_gateway,
             transaction=transaction,
         )
-    customer_id = customer_db.customer_uuid
+    customer_id = CustomerInDB.model_validate(customer_db)
 
 
 @database_uow()

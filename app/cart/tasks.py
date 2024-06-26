@@ -26,7 +26,7 @@ from app.order.tasks import (
     create_order_status_step,
     update_order,
 )
-from app.payment.entities import CreatePaymentError, PaymentAcceptError
+from app.entities.payment import CreatePaymentError, PaymentAcceptError
 from app.payment.tasks import create_pending_payment, update_payment
 
 PAYMENT_STATUS_ERROR_MESSAGE = 'This payment intent is not paid yet'
