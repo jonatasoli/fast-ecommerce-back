@@ -33,15 +33,15 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
     status_code=status.HTTP_200_OK,
     tags=['admin'],
 )
-def upload_image(
+async def upload_image(
     product_id: int,
     *,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_session),
     image: UploadFile = File(...),
 ) -> str:
     """Upload image."""
     try:
-        return product_services.upload_image(product_id, db=db, image=image)
+        return await product_services.upload_image(product_id, db=db, image=image)
     except Exception:
         raise
 

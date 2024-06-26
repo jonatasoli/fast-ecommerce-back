@@ -10,7 +10,7 @@ from sqlalchemy.orm import (
     Mapped,
     mapped_column,
     relationship,
-    column_property
+    column_property,
 )
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -47,7 +47,7 @@ class InventoryDB(Base):
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
     product: Mapped['ProductDB'] = relationship(
         "ProductDB",
-        back_populates="inventory"
+        back_populates="inventory",
     )
     order_id: Mapped[int | None] = mapped_column(ForeignKey('order.order_id'))
     order = relationship(

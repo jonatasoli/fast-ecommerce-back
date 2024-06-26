@@ -4,11 +4,10 @@ from typing import List
 from loguru import logger
 from pydantic import TypeAdapter
 from sqlalchemy import delete, select
-from sqlalchemy.orm import Session, lazyload
+from sqlalchemy.orm import lazyload
 from sqlalchemy import func
-from sqlalchemy.util import await_only
 
-from app.entities.product import InventoryResponse, InventoryTransaction, ProductCreate, ProductInDB, ProductInDBResponse, ProductNotCreatedError, ProductPatchRequest
+from app.entities.product import InventoryResponse, InventoryTransaction, ProductCreate, ProductInDB, ProductNotCreatedError
 from app.infra.models import CategoryDB, InventoryDB, ProductDB
 
 def create_product_not_found_exception() -> ProductNotCreatedError:
@@ -130,5 +129,5 @@ async def delete_product(
     """Delete product."""
     async with transaction:
         return await transaction.scalar(
-            delete(ProductDB).where(ProductDB.product_id == product_id)
+            delete(ProductDB).where(ProductDB.product_id == product_id),
         )
