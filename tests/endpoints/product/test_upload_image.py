@@ -1,6 +1,4 @@
 from httpx import AsyncClient
-from pytest_mock import MockerFixture
-from sqlalchemy.orm import Session
 from main import app
 import pytest
 from tests.factories_db import (
@@ -15,23 +13,23 @@ URL = '/product'
 
 @pytest.mark.skip('TODO: need create mock file upload')
 async def test_add_new_image_file_in_product(
-    mocker: MockerFixture,
-    db: Session,
+    asyncdb,
 ) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
     product_id = None
-    with db:
+    db = await asyncdb()
+    async with db().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
-        db.add_all([category, config_fee])
-        db.flush()
+        transaction.add_all([category, config_fee])
+        await transaction.flush()
         product_db = ProductDBFactory(
             category=category,
             installment_config=config_fee,
         )
-        db.add(product_db)
-        db.commit()
+        transaction.add(product_db)
+        await transaction.commit()
         product_id = product_db.product_id
 
     # Act

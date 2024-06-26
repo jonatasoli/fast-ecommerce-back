@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import ConfigDict, BaseModel, Json, SecretStr
+from pydantic import ConfigDict, BaseModel, SecretStr
 
 
 class ProductSchema(BaseModel):

@@ -1,14 +1,15 @@
 from pytest_mock import MockerFixture
-from sqlalchemy.orm import Session
 from app.product import repository
 from app.product.services import upload_image
 from tests.factories_db import ProductDBFactory
 from tests.fake_functions import fake_file
+import pytest
 
 
-def test_upload_image_should_change_image_path(
+@pytest.mark.asyncio()
+async def test_upload_image_should_change_image_path(
     mocker: MockerFixture,
-    db: Session,
+    asyncdb,
 ) -> None:
     """Should change image patch in specifict product_id."""
     # Arrange
@@ -24,9 +25,10 @@ def test_upload_image_should_change_image_path(
     image_client_mock.optimize_image.return_value = new_image_path
 
     # Act
-    response = upload_image(
+    session = await asyncdb
+    response = await upload_image(
         product_id,
-        db=db,
+        db=session,
         image=fake_file(),
         image_client=image_client_mock,
     )

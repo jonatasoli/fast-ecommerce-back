@@ -199,7 +199,7 @@ def create_pix(
     request_options = mercadopago.config.RequestOptions()
     idenpotency_key = uuid4()
     request_options.custom_headers = {
-        'x-idempotency-key': f'{idenpotency_key}'
+        'x-idempotency-key': f'{idenpotency_key}',
     }
 
 

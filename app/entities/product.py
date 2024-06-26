@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from typing import Any, Self
+from typing import Self
 from pydantic import BaseModel, ConfigDict, Json
 from app.infra.constants import InventoryOperation
 from schemas.order_schema import CategoryInDB
@@ -216,7 +216,7 @@ class ProductInDBResponse(BaseModel):
     product_id: int | None = None
     name: str
     uri: str
-    price: int
+    price: int | Decimal
     direct_sales: bool | None = None
     description: Json | None = None
     image_path: str | None = None

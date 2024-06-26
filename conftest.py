@@ -3,6 +3,7 @@ import sys
 from os.path import abspath
 from os.path import dirname as d
 from collections.abc import Generator
+from sqlalchemy.ext.asyncio.session import AsyncSession
 
 import pytest
 from fastapi.testclient import TestClient
@@ -28,7 +29,7 @@ from app.user.services import create_access_token, gen_hash
 from config import settings
 
 from app.infra.models import Base, UserDB
-from app.infra.database import get_engine
+from app.infra.database import get_async_engine, get_engine
 from main import app
 from app.infra.deps import get_db
 
@@ -214,3 +215,21 @@ def admin_token(admin_user):
     )
 
     return access_token
+
+
+@pytest.fixture()
+async def asyncdb():
+    """Generate asyncdb session."""
+    _engine = get_async_engine()
+
+    # --- Alterações aqui ---
+    async with _engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+    return sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=_engine,
+        class_=AsyncSession,
+    )

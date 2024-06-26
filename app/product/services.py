@@ -9,22 +9,26 @@ from app.user.services import verify_admin
 
 
 def product_not_found_exception():
+    """Product not found."""
     raise ProductNotFoundError
 
-def upload_image(
+async def upload_image(
     product_id: int,
     *,
-    db: Session,
+    db,
     image: UploadFile,
     image_client: Callable = file_upload,
 ) -> str:
     """Upload image."""
     image_path = image_client.optimize_image(image)
     new_image_path = ''
-    with db:
-        db_product = repository.get_product_by_id(product_id, db=db)
+    async with db().begin() as transaction:
+        db_product = await repository.get_product_by_id(
+            product_id,
+            transaction=transaction,
+        )
         db_product.image_path = image_path
-        db.commit()
+        await transaction.session.commit()
         new_image_path = db_product.image_path
     return new_image_path
 

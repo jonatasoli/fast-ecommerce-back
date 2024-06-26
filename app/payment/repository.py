@@ -6,7 +6,6 @@ from sqlalchemy.orm.exc import NoResultFound
 from loguru import logger
 
 from sqlalchemy.sql import select
-from sqlalchemy.sql.operators import istrue
 
 from app.entities.cart import CartPayment
 from app.entities.payment import PaymentDBUpdate
