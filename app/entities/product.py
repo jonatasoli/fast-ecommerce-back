@@ -36,6 +36,7 @@ class ProductCart(BaseModel):
     quantity: int
     available_quantity: int = 0
     price: Decimal | None = None
+    description: str | None = None
     discount_price: Decimal = Decimal(0)
 
     def update_price(self: Self, new_price: Decimal) -> 'ProductCart':
@@ -192,10 +193,11 @@ class InventoryResponse(BaseModel):
 
 class ProductPatchRequest(BaseModel):
     name: str | None = None
+    sku: str | None = None
     uri: str | None = None
-    price: int | None = None
+    price: float | Decimal | None = None
     direct_sales: bool | None = None
-    description: Json | None = None
+    description: Json | dict | str | None = None
     image_path: str | None = None
     installments_config: int | None = None
     installments_list: dict | None = None

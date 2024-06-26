@@ -1,4 +1,6 @@
 import json
+from uuid import uuid4
+import mercadopago
 from contextlib import suppress
 from decimal import Decimal
 from loguru import logger
@@ -62,6 +64,14 @@ class MercadoPagoPixPaymentResponse(BaseModel):
     amounts: dict | None = None
 
 
+class PaymentNotFoundError(Exception):
+    ...
+
+
+def raise_payment_not_found():
+    raise PaymentNotFoundError
+
+
 def get_payment_client() -> SDK:
     """Get mercado pago cli sdk."""
     return SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
@@ -112,9 +122,6 @@ def attach_customer_in_payment_method(
     card_response = None
     card_response = client.card().create(customer_uuid, card_data)
 
-    # card_response = client.post(
-    #     f'{settings.MERCADO_PAGO_URL}/v1/customers/{customer_uuid}/cards/', data=json.dumps(card_data)
-    # )
     if card_response.get('error'):
         raise CardAlreadyUseError(card_response.get('message'))
     if card_response['status'] != 201:
@@ -146,6 +153,9 @@ def create_credit_card_payment(
         )
     logger.info('Gateway Response')
     logger.info(f'{payment_response["response"]}')
+    if payment_response["response"].get('status') not in [200, 201]:
+        logger.info(payment_response)
+        raise_payment_not_found()
     return MercadoPagoPaymentResponse.model_validate(
         payment_response['response'],
     )
@@ -170,15 +180,33 @@ def cancel_credit_card_reservation(
     )
 
 
-def create_pix(customer_id, amount, client: SDK = get_payment_client()):
+def create_pix(
+        customer_id,
+        *,
+        customer_email: str,
+        amount: Decimal | float,
+        description: str,
+        client: SDK = get_payment_client(),
+):
     """Create pix in mercado pago."""
     payment_data = {
         'transaction_amount': amount,
         'payment_method_id': 'pix',
-        'payer': {'type': 'customer', 'id': customer_id},
+        'description': description,
+        'installments': 1,
+        'payer': {'type': 'customer', 'id': customer_id, 'email': customer_email},
+    }
+    request_options = mercadopago.config.RequestOptions()
+    idenpotency_key = uuid4()
+    request_options.custom_headers = {
+        'x-idempotency-key': f'{idenpotency_key}'
     }
 
-    payment_response = client.payment().create(payment_data)
+
+    payment_response = client.payment().create(payment_data, request_options)
+    if payment_response.get('status') not in [200, 201]:
+        logger.info(payment_response)
+        raise_payment_not_found()
     return MercadoPagoPixPaymentResponse.model_validate(
         payment_response['response'],
     )
@@ -192,7 +220,7 @@ def get_payment_status(
     payment = client.get(
         f'{settings.MERCADO_PAGO_URL}/v1/payments/{payment_id}',
     )
-    if payment.status_code != 200 and payment.status_code != 201:
+    if payment.status_code not in [200, 201]:
         msg = 'payment not found'
         raise PaymentStatusError(msg)
     return payment.json()

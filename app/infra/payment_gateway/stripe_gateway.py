@@ -3,7 +3,7 @@ from loguru import logger
 import stripe
 from stripe import InvalidRequestError
 from app.entities.cart import CreateCreditCardPaymentMethod
-from app.payment.entities import PaymentAcceptError
+from app.entities.payment import PaymentAcceptError
 from config import settings
 
 

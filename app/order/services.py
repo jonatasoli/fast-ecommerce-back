@@ -6,7 +6,8 @@ from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session, aliased, joinedload, selectinload, contains_eager
+from sqlalchemy.orm import Session, aliased
+from app.product import repository
 
 from app.entities.order import OrderInDB, OrderResponse
 from app.entities.product import (
@@ -271,8 +272,15 @@ def get_installments(product_id: int, *, db: Session) -> int:
         return _installments
 
 
-def get_product_by_id(db: Session, id: int) -> ProductDB | None:
-    return db.query(ProductDB).filter(ProductDB.product_id == id).first()
+async def get_product_by_id(product_id: int, db) -> ProductInDB:
+    """Search product by id."""
+    async with db().begin() as transaction:
+        product_db = await repository.get_product_by_id(
+            product_id,
+            transaction=transaction,
+        )
+    return ProductInDB.model_validate(product_db)
+
 
 
 def get_orders(page, offset, *, db):

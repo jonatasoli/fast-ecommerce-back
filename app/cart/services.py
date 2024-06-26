@@ -1,4 +1,5 @@
 # ruff: noqa: PLR1714
+from contextlib import suppress
 import re
 
 from fastapi import HTTPException
@@ -26,6 +27,7 @@ from app.entities.coupon import (
     CouponNotFoundError,
     CouponResponse,
 )
+from app.entities.payment import CustomerNotFoundError
 from app.entities.product import ProductCart, ProductSoldOutError
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
@@ -219,17 +221,20 @@ async def add_user_to_cart(
 ) -> CartUser:
     """Must validate token user if is valid add user id in cart."""
     user = bootstrap.user.get_user(token)
-    customer_stripe_uuid = await bootstrap.cart_uow.get_customer(
-        user.user_id,
-        payment_gateway=PaymentGatewayAvailable.STRIPE.name,
-        bootstrap=bootstrap,
-    )
-    customer_mercadopago_uuid = await bootstrap.cart_uow.get_customer(
-        user.user_id,
-        payment_gateway=PaymentGatewayAvailable.MERCADOPAGO.name,
-        bootstrap=bootstrap,
-    )
-    if not customer_stripe_uuid or not customer_mercadopago_uuid:
+    customer_stripe = None
+    customer_mercadopago = None
+    with suppress(CustomerNotFoundError):
+        customer_stripe = await bootstrap.cart_uow.get_customer(
+            user.user_id,
+            payment_gateway=PaymentGatewayAvailable.STRIPE.name,
+            bootstrap=bootstrap,
+        )
+        customer_mercadopago = await bootstrap.cart_uow.get_customer(
+            user.user_id,
+            payment_gateway=PaymentGatewayAvailable.MERCADOPAGO.name,
+            bootstrap=bootstrap,
+        )
+    if not customer_stripe or not customer_mercadopago:
         await bootstrap.message.broker.publish(
             {'user_id': user.user_id, 'user_email': user.email},
             queue=RabbitQueue('create_customer'),
@@ -341,10 +346,16 @@ async def add_payment_information(  # noqa: PLR0913
         payment,
         CreatePixPaymentMethod,
     ):
+        description = " ".join(
+            item.name for item in cache_cart.cart_items if item.name
+        )
+
         payment_gateway = 'mercadopago_gateway'
         _payment = getattr(bootstrap.payment, payment_gateway).create_pix(
+            customer.customer_uuid,
+            customer_email=user.email,
+            description=description,
             amount=int(cache_cart.subtotal),
-            customer_id=customer,
         )
         qr_code = _payment.point_of_interaction.transaction_data.qr_code
         qr_code_base64 = (
@@ -355,7 +366,7 @@ async def add_payment_information(  # noqa: PLR0913
             **cache_cart.model_dump(),
             payment_method=payment_method,
             gateway_provider=payment.payment_gateway,
-            customer_id=customer,
+            customer_id=customer.customer_uuid,
             pix_qr_code=qr_code,
             pix_qr_code_base64=qr_code_base64,
             pix_payment_id=payment_id,
@@ -381,7 +392,7 @@ async def add_payment_information(  # noqa: PLR0913
         card_token=payment.card_token,
         card_issuer=payment.card_issuer,
         card_brand=payment.card_brand,
-        customer_uuid=customer,
+        customer_uuid=customer.customer_uuid,
         email=user.email,
     )
     if not payment_method_id:
@@ -395,7 +406,7 @@ async def add_payment_information(  # noqa: PLR0913
         payment_method_id=payment_method_id,
         gateway_provider=payment.payment_gateway,
         card_token=payment.card_token,
-        customer_id=customer,
+        customer_id=customer.customer_uuid,
         installments=installments,
     )
     _payment_installment_fee = await bootstrap.cart_uow.get_installment_fee(
@@ -428,7 +439,7 @@ async def preview(
         payment_intent = bootstrap.payment.create_payment_intent(
             amount=cache_cart.subtotal,
             currency='brl',
-            customer_id=user.customer_id,
+            customer_id=user.customer_uuid,
             payment_method=cache_cart.payment_method_id,
             installments=cache_cart.installments,
         )

@@ -53,14 +53,34 @@ def upload_image(
 )
 async def get_product_inventory(
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_async_session),
     page: int = 1,
     offset: int = 10,
+    db: Session = Depends(get_async_session),
 ):
     """Get products inventory."""
     return await product_services.get_inventory(
         token=token, page=page, offset=offset, db=db,
     )
+
+
+@product.get(
+    '/{product_id}',
+    status_code=status.HTTP_200_OK,
+    response_model=ProductInDB,
+)
+async def get_product_by_id(
+        product_id: int,
+        db = Depends(get_async_session),
+) -> ProductInDB:
+    """GET product by id."""
+    product = await services.get_product_by_id(product_id, db=db)
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Product not found',
+        )
+    return product
+
 
 @product.post(
     '/inventory/{product_id}/transaction',
@@ -163,7 +183,7 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
 
 
 @product.patch(
-    '/update/{id}',
+    '/{product_id}',
     status_code=status.HTTP_204_NO_CONTENT,
     tags=['admin'],
 )
@@ -173,7 +193,7 @@ async def patch_product(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_async_session),
 ) -> None:
-    """Put product."""
+    """Patch product."""
     _ = token
     await product_services.update_product(
         product_id,

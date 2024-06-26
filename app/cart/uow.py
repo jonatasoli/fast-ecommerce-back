@@ -9,7 +9,7 @@ from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
 from app.infra.custom_decorators import database_uow
 from app.infra.database import get_async_session
-from app.entities.payment import ConfigFee
+from app.entities.payment import ConfigFee, CustomerInDB, CustomerNotFoundError
 
 from app.payment import repository as payment_repository
 
@@ -19,6 +19,10 @@ if TYPE_CHECKING:
     from app.entities.address import AddressBase
     from sqlalchemy.orm import SessionTransaction, sessionmaker
 
+
+def customer_not_found_exception():
+    """Raise customer not found Error."""
+    raise CustomerNotFoundError
 
 class AbstractUnitOfWork(abc.ABC):
     cart = repository.AbstractRepository
@@ -290,7 +294,7 @@ async def get_customer(
     payment_gateway: str,
     bootstrap: Any,
     transaction: SessionTransaction | None,
-) -> str | None:
+) -> CustomerInDB:
     """Must return a customer by user id."""
     if not transaction:
         msg = 'Transaction must be provided'
@@ -300,10 +304,9 @@ async def get_customer(
         payment_gateway=payment_gateway,
         transaction=transaction,
     )
-    custumer_uuid = None
-    if customer:
-        custumer_uuid = customer.customer_uuid
-    return custumer_uuid
+    if not customer:
+        customer_not_found_exception()
+    return CustomerInDB.model_validate(customer)
 
 
 @database_uow()
