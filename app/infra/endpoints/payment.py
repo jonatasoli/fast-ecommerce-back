@@ -1,5 +1,6 @@
+from app.infra.database import get_async_session
 from loguru import logger
-from app.entities.payment import PaymentNotification, PaymentStatusResponse
+from app.entities.payment import PaymentInDB, PaymentNotification, PaymentStatusResponse
 from payment.schema import ConfigCreditCardResponse
 from fastapi import APIRouter, Depends, status
 from app.payment import repository
@@ -61,4 +62,20 @@ async def payment_status(
     return await services.get_payment_status(
         gateway_payment_id,
         bootstrap=bootstrap,
+    )
+
+
+@payment.get(
+    '/{gateway_payment_id}',
+    status_code=status.HTTP_200_OK,
+    response_model=PaymentInDB,
+)
+async def payment_status(
+    gateway_payment_id: int,
+    db = Depends(get_async_session),
+) -> PaymentInDB:
+    """Payment status."""
+    return await services.get_payment(
+        gateway_payment_id,
+        db=db,
     )
