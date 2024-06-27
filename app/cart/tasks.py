@@ -189,6 +189,7 @@ async def checkout(
                     user=user,
                     gateway_payment_id=cart.pix_payment_id,
                     bootstrap=bootstrap,
+                    pix=True,
                 )
                 gateway_payment_id = cart.pix_payment_id
                 logger.info(
@@ -247,6 +248,7 @@ async def create_pending_payment_and_order(
     gateway_payment_id: int,
     bootstrap: Any,
     authorization: str = 'PENDING',
+    pix: bool = False,
 ) -> tuple[int, int]:
     """Create pending payment and order."""
     try:
@@ -269,6 +271,7 @@ async def create_pending_payment_and_order(
             authorization=authorization,
             payment_gateway=payment_gateway,
             gateway_payment_id=gateway_payment_id,
+            pix=pix,
             bootstrap=bootstrap,
         )
         if not payment_id:
