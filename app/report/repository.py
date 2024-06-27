@@ -4,7 +4,7 @@ from sqlalchemy import Select, and_
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.infra.models import SalesCommissionDB
-from app.report.entities import Commission, UserSalesComissions
+from app.entities.report import Commission, UserSalesComissions
 
 
 def create_sales_commission(

@@ -82,7 +82,11 @@ async def get_product_by_id(
     return product
 
 
-@product.get('/uri/{uri:path}', status_code=status.HTTP_200_OK, response_model=ProductInDB)
+@product.get(
+    '/uri/{uri:path}',
+    status_code=status.HTTP_200_OK,
+    response_model=ProductInDB,
+)
 def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
     """GET product uri."""
     try:

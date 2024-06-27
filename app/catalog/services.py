@@ -1,7 +1,7 @@
 # ruff: noqa: ANN401 FBT001
 from typing import Any
 
-from app.catalog.entities import Categories
+from app.entities.catalog import Categories
 
 
 async def get_categories_by_filter(

@@ -2,7 +2,7 @@
 from typing import Any
 from app.infra.database import get_async_session
 from fastapi import APIRouter, Depends, status
-from app.catalog.entities import Categories
+from app.entities.catalog import Categories
 from app.catalog.services import get_categories_by_filter
 from app.entities.product import ProductsResponse
 from app.infra.bootstrap.catalog_bootstrap import Command, bootstrap
