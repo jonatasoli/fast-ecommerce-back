@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import update
-from sqlalchemy.orm import Session, SessionTransaction
+from sqlalchemy.orm import SessionTransaction
 from sqlalchemy.sql import select
 
 from app.entities.cart import CartPayment
@@ -128,12 +128,12 @@ async def create_order_item(
     return order_item.order_items_id
 
 
-def get_order_items(order_id: int, transaction: Session) -> list:
+def get_order_items(order_id: int, transaction) -> list:
     """Return Order Items."""
     order_query = (
         select(OrderItemsDB)
         .join(ProductDB, OrderItemsDB.product_id == ProductDB.product_id)
         .where(OrderItemsDB.order_id == order_id)
     )
-    order_db = transaction.session.execute(order_query)
+    order_db = transaction.execute(order_query)
     return order_db.scalars().all()
