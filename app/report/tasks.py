@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.infra.database import get_session
 from app.infra.worker import task_message_bus
-from app.report.entities import Commission
+from app.entities.report import Commission
 from app.report.repository import update_commissions
 from app.report.services import create_sales_commission
 

@@ -3,7 +3,7 @@ import sys
 from fastapi.responses import JSONResponse
 
 import sentry_sdk
-from app.entities.cart import ProductNotFoundError
+from app.entities.cart import CheckoutProcessingError, ProductNotFoundError
 from app.entities.coupon import CouponDontMatchWithUserError, CouponNotFoundError
 from app.entities.user import CredentialError, UserDuplicateError
 from app.infra.freight.correios_br import CorreiosInvalidReturnError
@@ -188,6 +188,21 @@ async def user_dont_match_with_coupon(
             'detail': 'Coupon is invalid for this user.',
         },
     )
+
+
+@app.exception_handler(CheckoutProcessingError)
+async def checkout_processor_error(
+    _: Request,
+    exc: CheckoutProcessingError,
+) -> JSONResponse:
+    """Problem with checkout service."""
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={
+            'detail': 'Error with checkout service.',
+        },
+    )
+
 
 # set loguru format for root logger
 logging.getLogger().handlers = [InterceptHandler()]

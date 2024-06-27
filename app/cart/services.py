@@ -14,6 +14,7 @@ from app.entities.cart import (
     CartUser,
     CartShipping,
     CartPayment,
+    CheckoutProcessingError,
     CreateCheckoutResponse,
     CreateCreditCardPaymentMethod,
     CreateCreditCardTokenPaymentMethod,
@@ -42,6 +43,11 @@ class UserAddressNotFoundError(Exception):
 
 DEFAULT_CART_EXPIRE = 432_000
 DEFAULT_ABANDONED_CART = 172800
+
+
+def raise_checkout_error():
+    """Raise checkout errors."""
+    raise CheckoutProcessingError
 
 
 def create_or_get_cart(
@@ -509,6 +515,8 @@ async def checkout(
             _gateway_payment_id = str(_gateway_payment_id.pop())
         if isinstance(_gateway_payment_id, int):
             _gateway_payment_id = str(_gateway_payment_id)
+    if not order_id:
+        raise_checkout_error()
     return CreateCheckoutResponse(
         message=str(checkout_task.get('message')),
         status='processing',

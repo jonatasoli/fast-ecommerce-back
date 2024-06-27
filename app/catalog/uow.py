@@ -1,5 +1,5 @@
 from typing import Any
-from app.catalog.entities import Categories, Category
+from app.entities.catalog import Categories, Category
 from app.catalog import repository as catalog_repository
 
 

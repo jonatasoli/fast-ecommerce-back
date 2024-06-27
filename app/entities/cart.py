@@ -12,7 +12,7 @@ from app.entities.product import ProductCart, ProductInDB
 from app.entities.user import UserAddress, UserData
 from pydantic import BaseModel
 
-from app.freight.entities import Freight
+from app.entities.freight import Freight
 
 
 class CartNotFoundPriceError(Exception):
@@ -48,6 +48,13 @@ class InvalidCartFormatError(Exception):
 
     def __init__(self: Self) -> None:
         super().__init__('Invalid cart format')
+
+
+class CheckoutProcessingError(Exception):
+    """Raise when cart is invalid."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('Checkout error processing')
 
 
 def generate_cart_uuid() -> UUID:

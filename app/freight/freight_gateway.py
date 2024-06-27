@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from app.entities.product import ProductInDB
 
-from app.freight.entities import Freight, FreightPackage, calculate_package
+from app.entities.freight import Freight, FreightPackage, calculate_package
 from app.infra.freight.correios_br import (
     PACKAGE_TYPE,
     DeliveryPriceParams,

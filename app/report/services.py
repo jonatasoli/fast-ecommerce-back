@@ -3,7 +3,7 @@ from typing import Any
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.infra.database import get_session
-from app.report.entities import Commission
+from app.entities.report import Commission
 from app.report import repository
 from app.infra.models import SalesCommissionDB
 
