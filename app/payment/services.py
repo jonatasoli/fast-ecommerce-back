@@ -1,5 +1,10 @@
 # ruff: noqa: ANN401
-from app.entities.payment import PaymentInDB, PaymentNotification, PaymentStatusResponse
+from app.entities.payment import (
+    PaymentInDB,
+    PaymentNotFoundError,
+    PaymentNotification,
+    PaymentStatusResponse,
+)
 
 from faststream.rabbit import RabbitQueue
 from typing import Any
@@ -61,6 +66,8 @@ async def get_payment_status(
             gateway_payment_id,
             transaction=session,
         )
+    if not payment:
+        raise PaymentNotFoundError
     return PaymentStatusResponse.model_validate(payment)
 
 

@@ -21,6 +21,10 @@ class CustomerNotFoundError(Exception):
     ...
 
 
+class PaymentNotFoundError(Exception):
+    ...
+
+
 class CreditCardInformation(BaseModel):
     credit_card_name: str | None = None
     credit_card_number: str | None = None

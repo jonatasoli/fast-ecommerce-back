@@ -22,6 +22,7 @@ async def create_pending_payment(
     gateway_payment_id: int | str,
     user_id: int,
     bootstrap: Any,
+    pix: bool = False,
 ) -> int:
     """Create a new payment."""
     return await bootstrap.payment_uow.uow_create_pending_payment(
@@ -31,6 +32,7 @@ async def create_pending_payment(
         authorization=authorization,
         payment_gateway=payment_gateway,
         gateway_payment_id=gateway_payment_id,
+        pix=pix,
         bootstrap=bootstrap,
     )
 
