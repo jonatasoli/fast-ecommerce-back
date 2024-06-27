@@ -39,7 +39,7 @@ from schemas.order_schema import (
 )
 
 
-def get_product(db: Session, uri) -> ProductInDB | None:
+def get_product(db: Session, uri: str) -> ProductInDB | None:
     """Return specific product."""
     with db:
         category_alias = aliased(CategoryDB)

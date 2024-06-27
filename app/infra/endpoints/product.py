@@ -82,6 +82,23 @@ async def get_product_by_id(
     return product
 
 
+@product.get('/uri/{uri:path}', status_code=status.HTTP_200_OK, response_model=ProductInDB)
+def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
+    """GET product uri."""
+    try:
+        product = services.get_product(db, uri)
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Product not found',
+            )
+
+        return product
+    except Exception as e: # noqa: BLE001
+        logger.error(f'Erro em obter os produto - { e }')
+        raise e from Exception
+
+
 @product.post(
     '/inventory/{product_id}/transaction',
     status_code=status.HTTP_201_CREATED,
@@ -163,23 +180,6 @@ def delete_image(id: int, db: Session = Depends(get_db)) -> None:
         return product_services.delete_image_gallery(id, db)
     except Exception:
         raise
-
-
-@product.get('/{uri:path}', status_code=status.HTTP_200_OK, response_model=ProductInDB)
-def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
-    """GET product uri."""
-    try:
-        product = services.get_product(db, uri)
-        if not product:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail='Product not found',
-            )
-
-        return product
-    except Exception as e: # noqa: BLE001
-        logger.error(f'Erro em obter os produto - { e }')
-        raise e from Exception
 
 
 @product.patch(
