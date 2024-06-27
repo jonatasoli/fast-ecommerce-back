@@ -196,8 +196,10 @@ async def checkout(
                     f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success',
                 )
                 bootstrap.cache.set(cart_uuid, 18000)
+                bootstrap.cache.delete(cart_uuid)
             case (_):
                 raise Exception('Payment method not found')
+
 
     except PaymentAcceptError:
         await bootstrap.message.broker.publish(

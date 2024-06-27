@@ -20,6 +20,7 @@ async def uow_create_pending_payment(
     bootstrap: Any,
     gateway_payment_id: int | str,
     transaction: SessionTransaction | None,
+    pix: bool = False,
 ) -> int:
     """Create a new payment."""
     if not transaction:
@@ -29,7 +30,7 @@ async def uow_create_pending_payment(
         order_id,
         transaction=transaction,
     )
-    if not payment:
+    if not payment or pix:
         payment = await payment_repository.create_payment(
             cart,
             order_id=order_id,
