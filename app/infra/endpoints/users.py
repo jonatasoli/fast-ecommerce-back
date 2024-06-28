@@ -51,21 +51,14 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 )
 async def get_affiliate_user(
     *,
-    request: Request,
     # TODO : uncomment when remove the mock
-    # token: str = Depends(oauth2_scheme),  # noqa: ERA001
-    db: Session = Depends(get_db),
+    request: Request,
+    token: str = Depends(oauth2_scheme),  # noqa: ERA001
+    db: Session = Depends(get_session),
 ) -> UserCouponResponse:
     """Get user."""
-    token = await login_for_access_token(
-        form_data=OAuth2PasswordRequestForm(
-            username=settings.USERNAME,
-            password=settings.PASSWORD,
-        ),
-        db=db,
-    )   # TODO : mock to be removed
-    token = token.get('access_token')
-    user = services.get_affiliate(token)
+    user = services.get_affiliate(token, db=db)
+    logger.info(user.user_id)
     return services.get_affiliate_urls(
         user=user,
         db=db,
