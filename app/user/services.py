@@ -110,6 +110,7 @@ def check_existent_user(db: Session, document: str, password: str) -> UserDB:
 
 def get_affiliate(
     token: str,
+    *,
     db: sessionmaker,
 ) -> UserSchema:
     """Return Afiliate user."""
@@ -170,8 +171,8 @@ def get_affiliate_urls(
 ) -> UserCouponResponse:
     """Get affiliate user and return code urls."""
     _urls = []
-    with db:
-        coupons = db.query(CouponsDB).filter(
+    with db() as transaction:
+        coupons = transaction.query(CouponsDB).filter(
             CouponsDB.affiliate_id == user.user_id,
         )
         for coupon in coupons:
