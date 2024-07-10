@@ -1,4 +1,3 @@
-# ruff:  noqa: D202 D205 T201 D212
 from decimal import Decimal
 from typing import Any, Self
 
@@ -106,6 +105,9 @@ async def checkout(
                         amount=cart.subtotal,
                         card_token=cart.card_token,
                         installments=cart.installments,
+                        customer_email=user['email'],
+                        payment_intent_id=cart.payment_intent,
+                        payment_method=cart.payment_method_id,
                     )
                 )
                 payment_id, order_id = await create_pending_payment_and_order(
@@ -202,35 +204,35 @@ async def checkout(
 
 
     except PaymentAcceptError:
-        await bootstrap.message.broker.publish(
-            {
-                'mail_to': user['email'],
-                'order_id': order_id if order_id else '',
-                'reason': 'Dados do cartão incorreto ou sem limite disponível',
-            },
-            queue=RabbitQueue('notification_order_cancelled'),
-        )
+        # await bootstrap.message.broker.publish(
+        #     {
+        #         'mail_to': user['email'],
+        #         'order_id': order_id if order_id else '',
+        #         'reason': 'Dados do cartão incorreto ou sem limite disponível',
+        #     },
+        #     queue=RabbitQueue('notification_order_cancelled'),
+        # )
         return PAYMENT_STATUS_ERROR_MESSAGE
     except PaymentGatewayRequestError:
-        await bootstrap.message.broker.publish(
-            {
-                'mail_to': user['email'],
-                'order_id': order_id if order_id else '',
-                'reason': 'Erro quando foi chamado o emissor do cartão tente novamente mais tarde',
-            },
-            queue=RabbitQueue('notification_order_cancelled'),
-        )
+        # await bootstrap.message.broker.publish(
+        #     {
+        #         'mail_to': user['email'],
+        #         'order_id': order_id if order_id else '',
+        #         'reason': 'Erro quando foi chamado o emissor do cartão tente novamente mais tarde',
+        #     },
+        #     queue=RabbitQueue('notification_order_cancelled'),
+        # )
         return PAYMENT_REQUEST_ERROR_MESSAGE
     except Exception as e:
         logger.error(f'Error in checkout: {e}')
-        await bootstrap.message.broker.publish(
-            {
-                'mail_to': user['email'],
-                'order_id': order_id if order_id else '',
-                'reason': 'Erro desconhecido favor entre em contato conosco',
-            },
-            queue=RabbitQueue('notification_order_cancelled'),
-        )
+        # await bootstrap.message.broker.publish(
+        #     {
+        #         'mail_to': user['email'],
+        #         'order_id': order_id if order_id else '',
+        #         'reason': 'Erro desconhecido favor entre em contato conosco',
+        #     },
+        #     queue=RabbitQueue('notification_order_cancelled'),
+        # )
         raise
     return {
         'order_id': {order_id},

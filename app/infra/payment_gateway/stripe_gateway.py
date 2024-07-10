@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Self
 from loguru import logger
 import stripe
@@ -44,24 +45,30 @@ def create_payment_intent(
     """Must create a payment intent."""
     _ = installments
     return stripe.PaymentIntent.create(
-        amount=amount,
+        amount=int(amount*100),
         currency=currency,
         customer=customer_id,
         payment_method=payment_method,
     )
 
 
-def confirm_payment_intent(
+def create_credit_card_payment(
+    *,
     payment_intent_id: str,
     payment_method: str,
-    receipt_email: str,
+    customer_email: str,
+    card_token: str = '',
+    customer_id: int,
+    amount: Decimal | float = 0,
+    installments: int = 1,
 ) -> stripe.PaymentIntent:
-    """Must confirm a payment intent."""
+    """Must confirm a payment intent in Stripe case."""
     try:
         payment_accept = stripe.PaymentIntent.confirm(
             payment_intent_id,
             payment_method=payment_method,
-            receipt_email=receipt_email,
+            receipt_email=customer_email,
+            return_url=f'{settings.BASE_URL}/payment/callback',
         )
         if payment_accept.get('error'):
             raise PaymentAcceptError(payment_accept['error'])
@@ -72,13 +79,16 @@ def confirm_payment_intent(
 
 
 def attach_customer_in_payment_method(
+    customer_uuid: str,
     payment_method_id: str,
-    customer_id: str,
+    card_token: str | None = None,
+    card_issuer: str | None = None,
 ) -> stripe.PaymentMethod:
     """Must attach a customer in payment method."""
+    _ = card_token, card_issuer
     return stripe.PaymentMethod.attach(
         payment_method_id,
-        customer=customer_id,
+        customer=customer_uuid,
     )
 
 
