@@ -135,6 +135,9 @@ def create_credit_card_payment(
     amount,
     card_token,
     installments,
+    payment_intent_id: str = '',
+    payment_method: str = '',
+    customer_email: str = '',
     client: SDK = get_payment_client(),
 ):
     payment_data = {
@@ -153,7 +156,7 @@ def create_credit_card_payment(
         )
     logger.info('Gateway Response')
     logger.info(f'{payment_response["response"]}')
-    if payment_response["response"].get('status') not in [200, 201]:
+    if payment_response["response"].get('status') not in [200, 201, 'authorized']:
         logger.info(payment_response)
         raise_payment_not_found()
     return MercadoPagoPaymentResponse.model_validate(
