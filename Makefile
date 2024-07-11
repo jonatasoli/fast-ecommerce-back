@@ -13,7 +13,7 @@ shell:
 format:
 	# @blue app/ 
 	# @blue tests/ 
-	@ruff . --fix
+	@ruff check . --fix
 
 lint:
 	# @blue app/ tests/ --check
