@@ -418,7 +418,9 @@ async def add_payment_information(  # noqa: PLR0913
             detail='Payment method id not found',
         )
     # TODO: FIX CART
-    token = payment.card_token if getattr(payment, 'card_token', None) else payment_method_id
+    token = payment.card_token if getattr(
+        payment, 'card_token', None,
+    ) else payment_method_id
     cart = CartPayment(
         **cache_cart.model_dump(),
         payment_method=PaymentMethod.CREDIT_CARD.value,
