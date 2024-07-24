@@ -195,6 +195,7 @@ class ProductPatchRequest(BaseModel):
     name: str | None = None
     sku: str | None = None
     uri: str | None = None
+    active: bool | None = None
     price: float | Decimal | None = None
     direct_sales: bool | None = None
     description: Json | dict | str | None = None
