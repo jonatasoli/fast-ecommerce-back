@@ -78,6 +78,7 @@ def get_product(db: Session, uri: str) -> ProductInDB | None:
                 category_alias.image_path.label('image_path_1'),
             )
             .where(ProductDB.uri == uri)
+            .where(ProductDB.active.is_(True))
             .outerjoin(
                 InventoryDB,
                 InventoryDB.product_id == ProductDB.product_id,
