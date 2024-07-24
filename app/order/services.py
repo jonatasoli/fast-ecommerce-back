@@ -6,7 +6,7 @@ from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session, aliased, lazyload
 from app.product import repository
 
 from app.entities.order import OrderInDB, OrderResponse
@@ -42,7 +42,6 @@ from schemas.order_schema import (
 def get_product(db: Session, uri: str) -> ProductInDB | None:
     """Return specific product."""
     with db:
-        category_alias = aliased(CategoryDB)
         query_product = (
             select(
                 ProductDB.product_id,
@@ -70,49 +69,29 @@ def get_product(db: Session, uri: str) -> ProductInDB | None:
                 func.coalesce(func.sum(InventoryDB.quantity), 0).label(
                     'quantity',
                 ),
-                category_alias.category_id.label('category_id_1'),
-                category_alias.name.label('name_1'),
-                category_alias.path,
-                category_alias.menu,
-                category_alias.showcase.label('showcase_1'),
-                category_alias.image_path.label('image_path_1'),
             )
+            .options(lazyload('*'))
             .where(ProductDB.uri == uri)
             .where(ProductDB.active.is_(True))
+            .join(
+                CategoryDB,
+                CategoryDB.category_id == ProductDB.category_id,
+            )
             .outerjoin(
                 InventoryDB,
-                InventoryDB.product_id == ProductDB.product_id,
+                ProductDB.product_id == InventoryDB.product_id,
             )
-            .outerjoin(
-                category_alias,
-                ProductDB.category_id == category_alias.category_id,
+            .group_by(
+                ProductDB.product_id,
+                CategoryDB.category_id,
             )
-            .group_by(ProductDB.product_id, category_alias.category_id)
+            .order_by(ProductDB.product_id.desc())
         )
-        result = db.execute(query_product)
-        column_names = result.keys()
-        product = result.first()
-        if not product:
+
+        productdb = db.execute(query_product)
+        if not productdb:
             return None
-        product_dict = dict(zip(column_names, product))
-        if 'category_id_1' in product_dict:
-            product_dict['category'] = {
-                'category_id': product_dict['category_id_1'],
-                'name': product_dict['name_1'],
-                'path': product_dict['path'],
-                'menu': product_dict['menu'],
-                'showcase': product_dict['showcase_1'],
-                'image_path': product_dict['image_path_1'],
-            }
-            del product_dict['category_id_1']
-            del product_dict['name_1']
-            del product_dict['path']
-            del product_dict['menu']
-            del product_dict['showcase_1']
-            del product_dict['image_path_1']
-        if product_dict:
-            return ProductInDB.model_validate(product_dict)
-        return None
+        return ProductInDB.model_validate(productdb.first())
 
 
 def create_product(
