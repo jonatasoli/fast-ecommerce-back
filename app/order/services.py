@@ -5,9 +5,10 @@ from typing import Any, List
 from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session, aliased, lazyload
+from sqlalchemy import asc, func, select
+from sqlalchemy.orm import Session, lazyload
 from app.product import repository
+from faststream.rabbit import RabbitQueue
 
 from app.entities.order import OrderInDB, OrderResponse
 from app.entities.product import (
@@ -37,6 +38,10 @@ from schemas.order_schema import (
     OrderUserListResponse,
     ProductListOrderResponse,
 )
+
+
+class NotFoundCategoryError(Exception):
+    """Not Found Category Exception."""
 
 
 def get_product(db: Session, uri: str) -> ProductInDB | None:
@@ -89,9 +94,9 @@ def get_product(db: Session, uri: str) -> ProductInDB | None:
         )
 
         productdb = db.execute(query_product)
-        if not productdb:
-            return None
-        return ProductInDB.model_validate(productdb.first())
+    if not productdb:
+        return None
+    return ProductInDB.model_validate(productdb.first())
 
 
 def create_product(
@@ -167,32 +172,23 @@ def upload_image_gallery(
     return image_path
 
 
-def delete_image_gallery(id: int, db: Session) -> None:
-    """Delete image galery."""
-    with db:
-        db.execute(
-            select(ImageGalleryDB).where(ImageGalleryDB.id == id),
-        ).delete()
-        db.commit()
-
-
 def get_images_gallery(db: Session, uri: str) -> dict:
     """Get image gallery."""
+    images_list = []
     with db:
         product_id_query = select(ProductDB).where(ProductDB.uri == uri)
         product_id = db.execute(product_id_query).scalars().first()
         images_query = select.query(ImageGalleryDB).where(
-            ImageGalleryDB.product_id == product_id.id,
+            ImageGalleryDB.product_id == product_id.product_id if product_id else None,
         )
         images = db.execute(images_query).scalars().all()
-        images_list = []
 
         for image in images:
-            images_list.append(ImageGalleryResponse.from_orm(image))
+            images_list.append(ImageGalleryResponse.model_validate(image))
 
-        if images:
-            return {'images': images_list}
-        return {'images': []}
+    if images:
+        return {'images': images_list}
+    return {'images': []}
 
 
 def get_showcase(db: Session) -> list:
@@ -200,57 +196,13 @@ def get_showcase(db: Session) -> list:
     with db:
         showcases_query = (
             select(ProductDB)
-            .where(ProductDB.showcase == True)
-            .where(ProductDB.active == True)
+            .where(ProductDB.showcase.is_(True))
+            .where(ProductDB.active.is_(True))
         )
         showcases = db.execute(showcases_query).scalars().all()
+        adapter = TypeAdapter(List[ProductCategoryInDB])
 
-        return [
-            ProductCategoryInDB.model_validate(showcase)
-            for showcase in showcases
-        ]
-
-
-def get_installments(product_id: int, *, db: Session) -> int:
-    """Get installments."""
-    with db:
-        _product_config_query = select(ProductDB).where(
-            ProductDB.product_id == product_id,
-        )
-        product = db.scalar(_product_config_query)
-        if not product:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail='Product not found',
-            )
-        _total_amount = 0
-        _total_amount_fee = 0
-        _installments = []
-
-        for n in range(1, 13):
-            if n <= 3:
-                _installment = (product.price / n) / 100
-                _installments.append(
-                    {
-                        'name': f'{n} x R${round(_installment, 2)}',
-                        'value': f'{n}',
-                    },
-                )
-                logger.debug(f'Parcela sem juros {_installment}')
-            else:
-                _total_amount_fee = int(product.price) * (1 + (0.0199 * n))
-                _installment = (_total_amount_fee / n) / 100
-                _installments.append(
-                    {
-                        'name': f'{n} x R${round(_installment, 2)}',
-                        'value': f'{n}',
-                    },
-                )
-                logger.debug(f'Parcela com juros {_installment}')
-
-        logger.debug(f'array de parcelas {_installments}')
-        return _installments
-
+    return adapter.validate_python(showcases)
 
 async def get_product_by_id(product_id: int, db) -> ProductInDB:
     """Search product by id."""
@@ -383,34 +335,27 @@ def get_category(db: Session) -> dict:
     category_list = []
 
     for category in categorys:
-        category_list.append(CategoryInDB.from_orm(category))
+        category_list.append(CategoryInDB.model_validate(category))
     return {'category': category_list}
 
 
-class NotFoundCategoryException(Exception):
-    """Not Found Category Exception."""
-
-
-def get_products_category(
+async def get_products_category(
     *,
     offset: int,
     page: int,
     path: str,
-    db: Session,
+    db,
 ) -> ProductsResponse:
     """Get products and category."""
-    products = None
-    products_category = []
-    with db:
+    async with db().begin() as transaction:
         category_query = select(CategoryDB).where(CategoryDB.path == path)
-        category = db.scalar(category_query)
+        category = await transaction.session.scalar(category_query)
 
         if not category:
-            raise NotFoundCategoryException
+            raise NotFoundCategoryError
 
         logger.info(category.path, category.category_id)
 
-        category_alias = aliased(CategoryDB)
         products_query = (
             select(
                 ProductDB.product_id,
@@ -438,26 +383,20 @@ def get_products_category(
                 func.coalesce(func.sum(InventoryDB.quantity), 0).label(
                     'quantity',
                 ),
-                category_alias.category_id.label('category_id_1'),
-                category_alias.name.label('name_1'),
-                category_alias.path,
-                category_alias.menu,
-                category_alias.showcase.label('showcase_1'),
-                category_alias.image_path.label('image_path_1'),
             )
             .where(ProductDB.category_id == category.category_id)
-            .where(ProductDB.active == True)
+            .where(ProductDB.active.is_(True))
             .outerjoin(
                 InventoryDB,
                 InventoryDB.product_id == ProductDB.product_id,
             )
             .outerjoin(
-                category_alias,
-                ProductDB.category_id == category_alias.category_id,
+                CategoryDB,
+                ProductDB.category_id == CategoryDB.category_id,
             )
-            .group_by(ProductDB.product_id, category_alias.category_id)
+            .group_by(ProductDB.product_id, CategoryDB.category_id)
         )
-        total_records = db.scalar(
+        total_records = await transaction.session.scalar(
             select(func.count(ProductDB.product_id)).where(
                 ProductDB.category_id == category.category_id,
             ),
@@ -465,76 +404,81 @@ def get_products_category(
         if page > 1:
             products_query = products_query.offset((page - 1) * offset)
         products_query = products_query.limit(offset)
+        products = await transaction.session.execute(products_query)
+        adapter = TypeAdapter(List[ProductInDB])
 
-        products = db.execute(products_query)
-
-        keys = products.keys()
-        for product in products:
-            product_dict = dict(zip(keys, product))
-            if 'category_id_1' in product_dict:
-                product_dict['category'] = {
-                    'category_id': product_dict['category_id_1'],
-                    'name': product_dict['name_1'],
-                    'path': product_dict['path'],
-                    'menu': product_dict['menu'],
-                    'showcase': product_dict['showcase_1'],
-                    'image_path': product_dict['image_path_1'],
-                }
-                del product_dict['category_id_1']
-                del product_dict['name_1']
-                del product_dict['path']
-                del product_dict['menu']
-                del product_dict['showcase_1']
-                del product_dict['image_path_1']
-            products_category.append(
-                ProductCategoryInDB.model_validate(product_dict),
-            )
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
         total_pages=math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
-        products=products_category,
+        products=adapter.validate_python(products.all()),
     )
 
 
-async def get_product_all(offset: int, page: int, db: Session) -> ProductsResponse:
+async def get_product_all(offset: int, page: int, db) -> ProductsResponse:
     """Get all products."""
     async with db().begin() as transaction:
         products = (
-            select(ProductDB)
-            .where(ProductDB.active == True)
-            .order_by(ProductDB.product_id.asc())
+            select(
+                ProductDB.product_id,
+                ProductDB.name,
+                ProductDB.uri,
+                ProductDB.price,
+                ProductDB.active,
+                ProductDB.direct_sales,
+                ProductDB.description,
+                ProductDB.image_path,
+                ProductDB.installments_config,
+                ProductDB.installments_list,
+                ProductDB.discount,
+                ProductDB.category_id,
+                ProductDB.showcase,
+                ProductDB.feature,
+                ProductDB.show_discount,
+                ProductDB.height,
+                ProductDB.width,
+                ProductDB.weight,
+                ProductDB.length,
+                ProductDB.diameter,
+                ProductDB.sku,
+                ProductDB.currency,
+            )
+            .outerjoin(
+                CategoryDB,
+                ProductDB.category_id == CategoryDB.category_id,
+            )
+            .where(ProductDB.active.is_(True))
+            .group_by(ProductDB.product_id, CategoryDB.category_id)
+            .order_by(asc(ProductDB.product_id))
         )
-        total_records = await transaction.session.scalar(select(func.count(ProductDB.product_id)))
+        total_records = await transaction.session.scalar(
+            select(func.count(ProductDB.product_id)),
+        )
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
-
-        result = await transaction.session.execute(products)
-        adapter = TypeAdapter(List[ProductCategoryInDB])
-        products_list = result.scalars().all()
-        products_list = adapter.validate_python(products_list)
+        products = await transaction.session.execute(products)
+        adapter = TypeAdapter(List[ProductInDB])
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
         total_pages=math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
-        products=products_list,
+        products=adapter.validate_python(products.all()),
     )
 
 
-def get_latest_products(
+async def get_latest_products(
     offset: int,
     page: int,
-    db: Session,
+    db,
 ) -> ProductsResponse:
     """Get latests products."""
     products = None
-    with db:
-        category_alias = aliased(CategoryDB)
+    async with db().begin() as transaction:
         products = (
             select(
                 ProductDB.product_id,
@@ -562,105 +506,108 @@ def get_latest_products(
                 func.coalesce(func.sum(InventoryDB.quantity), 0).label(
                     'quantity',
                 ),
-                category_alias.category_id.label('category_id_1'),
-                category_alias.name.label('name_1'),
-                category_alias.path,
-                category_alias.menu,
-                category_alias.showcase.label('showcase_1'),
-                category_alias.image_path.label('image_path_1'),
             )
             .outerjoin(
                 InventoryDB,
                 InventoryDB.product_id == ProductDB.product_id,
             )
             .outerjoin(
-                category_alias,
-                ProductDB.category_id == category_alias.category_id,
+                CategoryDB,
+                ProductDB.category_id == CategoryDB.category_id,
             )
-            .where(ProductDB.active == True)
-            .group_by(ProductDB.product_id, category_alias.category_id)
+            .where(ProductDB.active.is_(True))
+            .group_by(ProductDB.product_id, CategoryDB.category_id)
         )
-        total_records = db.scalar(select(func.count(ProductDB.product_id)))
+        total_records = await transaction.session.scalar(
+            select(func.count(ProductDB.product_id)),
+        )
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
-        products = products.order_by(ProductDB.product_id.desc())
+        products = await transaction.session.execute(products)
+        adapter = TypeAdapter(List[ProductInDB])
 
-        result = db.execute(products)
-        column_names = result.keys()
-        products = result.fetchall()
-    products_list = []
-
-    for product in products:
-        product_dict = dict(zip(column_names, product))
-        if 'category_id_1' in product_dict:
-            product_dict['category'] = {
-                'category_id': product_dict['category_id_1'],
-                'name': product_dict['name_1'],
-                'path': product_dict['path'],
-                'menu': product_dict['menu'],
-                'showcase': product_dict['showcase_1'],
-                'image_path': product_dict['image_path_1'],
-            }
-            del product_dict['category_id_1']
-            del product_dict['name_1']
-            del product_dict['path']
-            del product_dict['menu']
-            del product_dict['showcase_1']
-            del product_dict['image_path_1']
-        products_list.append(ProductCategoryInDB.model_validate(product_dict))
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
         total_pages=math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
-        products=products_list,
+        products=adapter.validate_python(products.all()),
     )
 
 
-def get_featured_products(
+async def get_featured_products(
     offset: int,
     page: int,
-    db: Session,
+    db,
 ) -> ProductsResponse:
     """Get Featured products."""
-    products = None
-    with db:
-        products = select(ProductDB).where(
-            ProductDB.feature == True,
-            ProductDB.active == True,
+    async with db().begin() as transaction:
+        products = (
+            select(
+                ProductDB.product_id,
+                ProductDB.name,
+                ProductDB.uri,
+                ProductDB.price,
+                ProductDB.active,
+                ProductDB.direct_sales,
+                ProductDB.description,
+                ProductDB.image_path,
+                ProductDB.installments_config,
+                ProductDB.installments_list,
+                ProductDB.discount,
+                ProductDB.category_id,
+                ProductDB.showcase,
+                ProductDB.feature,
+                ProductDB.show_discount,
+                ProductDB.height,
+                ProductDB.width,
+                ProductDB.weight,
+                ProductDB.length,
+                ProductDB.diameter,
+                ProductDB.sku,
+                ProductDB.currency,
+            )
+            .options(lazyload('*'))
+            .join(
+                CategoryDB,
+                ProductDB.category_id == CategoryDB.category_id,
+            )
+            .where(
+                ProductDB.feature.is_(True),
+                ProductDB.active.is_(True),
+            )
+            .group_by(ProductDB.product_id, CategoryDB.category_id)
         )
-        total_records = db.scalar(select(func.count(ProductDB.product_id)))
+        total_records = await transaction.session.scalar(
+            select(func.count(ProductDB.product_id)),
+        )
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
 
-        products = db.scalars(products).all()
-    products_list = []
-
-    for product in products:
-        products_list.append(ProductCategoryInDB.model_validate(product))
+        products = await transaction.session.execute(products)
+        adapter = TypeAdapter(List[ProductInDB])
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
         total_pages=math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
-        products=products_list,
+        products=adapter.validate_python(products.all()),
     )
 
 
-def search_products(
+async def search_products(
     search: str,
     offset: int,
     page: int,
-    db: Session,
+    db,
 ) -> ProductsResponse:
     """Search Products."""
     products = None
-    with (db):
-        category_alias = aliased(CategoryDB)
+    async with db().begin() as transaction:
         products = (
             select(
                 ProductDB.product_id,
@@ -688,27 +635,22 @@ def search_products(
                 func.coalesce(func.sum(InventoryDB.quantity), 0).label(
                     'quantity',
                 ),
-                category_alias.category_id.label('category_id_1'),
-                category_alias.name.label('name_1'),
-                category_alias.path,
-                category_alias.menu,
-                category_alias.showcase.label('showcase_1'),
-                category_alias.image_path.label('image_path_1'),
+            )
+            .options(lazyload('*'))
+            .outerjoin(
+                CategoryDB,
+                ProductDB.category_id == CategoryDB.category_id,
+            )
+            .outerjoin(
+                InventoryDB,
+                InventoryDB.product_id == ProductDB.product_id,
             )
             .where(
                 ProductDB.name.ilike(f'%{search}%'),
             )
-            .outerjoin(
-                InventoryDB,
-                InventoryDB.product_id == ProductDB.product_id,
-            )
-            .outerjoin(
-                category_alias,
-                ProductDB.category_id == category_alias.category_id,
-            )
-            .group_by(ProductDB.product_id, category_alias.category_id)
+            .group_by(ProductDB.product_id, CategoryDB.category_id)
         )
-        total_records = db.scalar(
+        total_records = await transaction.session.scalar(
             select(func.count(ProductDB.product_id)).where(
                 ProductDB.name.ilike(f'%{search}%'),
             ),
@@ -716,33 +658,13 @@ def search_products(
         if page > 1:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
-        products = db.execute(products)
-    products_list = []
-
-    keys = products.keys()
-    for product in products:
-        product_dict = dict(zip(keys, product))
-        if 'category_id_1' in product_dict:
-            product_dict['category'] = {
-                'category_id': product_dict['category_id_1'],
-                'name': product_dict['name_1'],
-                'path': product_dict['path'],
-                'menu': product_dict['menu'],
-                'showcase': product_dict['showcase_1'],
-                'image_path': product_dict['image_path_1'],
-            }
-            del product_dict['category_id_1']
-            del product_dict['name_1']
-            del product_dict['path']
-            del product_dict['menu']
-            del product_dict['showcase_1']
-            del product_dict['image_path_1']
-        products_list.append(ProductCategoryInDB.model_validate(product_dict))
+        products = await transaction.session.execute(products)
+        adapter = TypeAdapter(List[ProductInDB])
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
         total_pages=math.ceil(total_records / offset) if total_records else 1,
         page=page,
         offset=offset,
-        products=products_list,
+        products=adapter.validate_python(products.all()),
     )

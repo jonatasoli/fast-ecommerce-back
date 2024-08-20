@@ -20,7 +20,7 @@ from tests.fake_functions import fake, fake_url_path
 URL = '/cart'
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_estimate_products_in_cart(db) -> None:
     """Must add product in new cart and return cart."""
     # Arrange

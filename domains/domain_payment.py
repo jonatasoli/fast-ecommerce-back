@@ -274,7 +274,7 @@ def process_payment(
         if _installments > 12:
             msg = 'O número máximo de parcelas é 12'
             raise Exception(msg)
-        elif _installments >= _config_installments.min_installment_with_fee:
+        if _installments >= _config_installments.min_installment_with_fee:
             _total_amount = _total_amount * (
                 (1 + _config_installments.fee) ** _installments
             )
@@ -346,8 +346,7 @@ def process_payment(
             if _product_decrease.quantity < 0:
                 msg = 'Produto esgotado'
                 raise Exception(msg)
-            else:
-                db.add(_product_decrease)
+            db.add(_product_decrease)
 
         if checkout_data.get('payment_method') == 'credit-card':
             logger.info('------------CREDIT CARD--------------')
@@ -367,21 +366,20 @@ def process_payment(
             logger.error('CREDIT CARD RESPONSE')
             logger.debug(f'{_payment}')
             return credit_card_payment(db=db, payment=_payment)
-        else:
-            _slip_expire = datetime.now() + timedelta(days=3)
-            _payment = SlipPayment(
-                amount=db_payment.amount,
-                api_key=settings.GATEWAY_API,
-                payment_method='boleto',
-                customer=_customer,
-                type='individual',
-                country='br',
-                boleto_expiration_date=_slip_expire.strftime('%Y/%m/%d'),
-                email=_customer.get('email'),
-                name=_customer.get('name'),
-                documents=[{'type': 'cpf', 'number': user.document}],
-            )
-            return slip_payment(db=db, payment=_payment)
+        _slip_expire = datetime.now() + timedelta(days=3)
+        _payment = SlipPayment(
+            amount=db_payment.amount,
+            api_key=settings.GATEWAY_API,
+            payment_method='boleto',
+            customer=_customer,
+            type='individual',
+            country='br',
+            boleto_expiration_date=_slip_expire.strftime('%Y/%m/%d'),
+            email=_customer.get('email'),
+            name=_customer.get('name'),
+            documents=[{'type': 'cpf', 'number': user.document}],
+        )
+        return slip_payment(db=db, payment=_payment)
 
     except Exception as e:
         raise e

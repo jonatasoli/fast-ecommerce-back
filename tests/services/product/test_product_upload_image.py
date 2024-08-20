@@ -6,7 +6,7 @@ from tests.fake_functions import fake_file
 import pytest
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_upload_image_should_change_image_path(
     mocker: MockerFixture,
     asyncdb,

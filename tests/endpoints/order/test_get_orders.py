@@ -9,7 +9,7 @@ from tests.factories_db import OrderFactory, OrderStatusStepsFactory, UserDBFact
 URL = '/order'
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_give_no_orders_should_return_empty_list() -> None:
     """Should return empty list."""
     # Act
@@ -24,7 +24,7 @@ async def test_give_no_orders_should_return_empty_list() -> None:
     assert response.request.method == 'GET'
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_get_all_orders(mocker: MockerFixture, db) -> None:
     """Should Return Orders."""
     # Arrange

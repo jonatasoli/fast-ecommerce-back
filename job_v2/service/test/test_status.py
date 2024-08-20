@@ -15,7 +15,7 @@ order = {
 
 
 # @mock.patch("job_v2.service.status.ReturnGatewayID", return_value=order)
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_gateway_id(mocker):
     gateway_id = ReturnGatewayID(order['payment_id']).gateway_id()
     print(gateway_id)
@@ -24,7 +24,7 @@ def test_gateway_id(mocker):
 
 # @mock.patch("job_v2.service.status.get_db", return_value=order)
 # @mock.patch("job_v2.service.status.UpdateStatus", return_value="db")
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_update_status(mocker, db):
     gateway_id = ReturnGatewayID(order['payment_id']).gateway_id()
     update = UpdateStatus(Order, gateway_id, db).update_status()

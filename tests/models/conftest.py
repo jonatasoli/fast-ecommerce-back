@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from app.infra.models import Base
 
 
-@pytest.fixture()
+@pytest.fixture
 def session() -> sessionmaker:
     engine = create_engine('sqlite:///:memory:')
     Session = sessionmaker(

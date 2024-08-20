@@ -8,7 +8,7 @@ from pydantic import BaseModel
 class MockRequestResponse(BaseModel):
     value: dict
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_successful_send_to_crm(mocker):
     # Mock data
     user_data = UserData(user_id=1, name='test', document='12345678901', email="test@example.com", phone="1234567890")
@@ -38,7 +38,7 @@ async def test_successful_send_to_crm(mocker):
     assert user_data.email in mock_requests_post.call_args.kwargs["json"]["contacts"][0]["emails"][0]["email"]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_send_to_crm_fails_with_bad_status_code(mocker):
     # Mock data
     user_data = UserData(user_id=1, name='test', document='12345678901', email="test@example.com", phone="1234567890")
@@ -68,7 +68,7 @@ async def test_send_to_crm_fails_with_bad_status_code(mocker):
     )
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_get_settings_raises_exception(mocker):
     # Mock data
     user_data = UserData(user_id=1, name='test', document='12345678901', email="test@example.com", phone="1234567890")

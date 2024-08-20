@@ -62,8 +62,7 @@ class Product:
         if _product_decrease.quantity < 0:
             msg = 'Produto esgotado'
             raise TypeError(msg)
-        else:
-            _product.add_product(_product_decrease)
+        _product.add_product(_product_decrease)
 
 
 class ShoppingCart:
@@ -100,7 +99,7 @@ class ShoppingCart:
         if _installments > 12:
             msg = 'O número máximo de parcelas é 12'
             raise TypeError(msg)
-        elif _installments >= _config_installments.min_installment_with_fee:
+        if _installments >= _config_installments.min_installment_with_fee:
             _total_amount = _total_amount * (
                 (1 + Decimal(_config_installments.fee)) ** _installments
             )
@@ -143,8 +142,7 @@ class ProcessPayment:
         _db_payment = self.db_payment()
         if self.checkout_data.get('payment_method') == 'credit-card':
             return self.payment_credit_card(_db_payment)
-        else:
-            return self.payment_slip(_db_payment)
+        return self.payment_slip(_db_payment)
 
     def payment_credit_card(self, db_payment):
         try:
