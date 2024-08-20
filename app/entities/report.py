@@ -17,3 +17,11 @@ class Commission(BaseModel):
 
 class UserSalesComissions(BaseModel):
     comissions: list[Commission] | list[None]
+
+
+class InformUserProduct(BaseModel):
+    """Data to inform admin user product."""
+
+    product_id: int
+    phone: str
+    email: str

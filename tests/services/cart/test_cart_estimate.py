@@ -13,7 +13,7 @@ from tests.services.cart.test_cart_step_1 import create_product_cart
 from tests.fake_functions import fake
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_estimate_cart_with_product(
     memory_bootstrap: Command,
     mocker: MockerFixture,
@@ -79,7 +79,7 @@ async def test_estimate_cart_with_product(
     assert cart_response.discount == discount
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_estimate_cart_with_coupon_discount(
     memory_bootstrap: Command,
     mocker: MockerFixture,

@@ -30,7 +30,7 @@ def create_product_cart(
     )
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_add_product_to_new_cart(
     memory_bootstrap: Command,
     mocker: MockerFixture,
@@ -60,7 +60,7 @@ async def test_add_product_to_new_cart(
     assert cart_response.cart_items[0].quantity == product.quantity
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_add_product_to_new_cart_should_set_in_cache(
     memory_bootstrap: Command,
     mocker: MockerFixture,
@@ -91,7 +91,7 @@ async def test_add_product_to_new_cart_should_set_in_cache(
     )
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_add_product_to_current_cart_should_add_new_product_should_calculate_subtotal(
     memory_bootstrap: Command,
     mocker: MockerFixture,
@@ -149,7 +149,7 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
     assert cart_response.cart_items[1].quantity == new_product.quantity
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
     memory_bootstrap: Command,
     mocker: MockerFixture,

@@ -97,7 +97,7 @@ transacton_with_shipping_and_document_error = {
 }
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_create_product_():  # TODO Fix product ENDPOINT
     db_product = ProductSchema(
         description='Test Product',
@@ -120,7 +120,7 @@ def test_create_product_():  # TODO Fix product ENDPOINT
     assert db_product.id == 1
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_create_config(t_client):
     _config = {'fee': '0.0599', 'min_installment': 3, 'max_installment': 12}
 
@@ -130,7 +130,7 @@ def test_create_config(t_client):
     assert response.get('fee') == '0.0599'
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_create_product(t_client):
     product = {
         'description': 'Test Product',
@@ -159,7 +159,7 @@ def test_create_product(t_client):
     assert response.get('name') == 'Test'
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_payment(t_client):
     data = {
         'transaction': transacton_with_shipping,
@@ -173,7 +173,7 @@ def test_payment(t_client):
     assert response.get('payment_status') == 'PAGAMENTO REALIZADO'
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_payment_with_document_error(t_client):
     data = {
         'transaction': transacton_with_shipping_and_document_error,

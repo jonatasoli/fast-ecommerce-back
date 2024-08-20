@@ -13,7 +13,7 @@ async def example_function(arg1=None, arg2=None):
     return fake.random_int()
 
 
-@pytest.fixture()
+@pytest.fixture
 def temporary_async_sessionmaker():
     engine = create_async_engine(
         'sqlite+aiosqlite:///mydatabase.db',
@@ -28,7 +28,7 @@ def temporary_async_sessionmaker():
 
 
 # @pytest.mark.asyncio()
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_database_uow_success_should_call_begin(
     temporary_async_sessionmaker,
     mocker,
@@ -48,7 +48,7 @@ async def test_database_uow_success_should_call_begin(
     session_spy.assert_called_once()
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_database_uow_success_should_call_commit(
     temporary_async_sessionmaker,
     mocker,
@@ -73,7 +73,7 @@ async def test_database_uow_success_should_call_commit(
 
 # Exceção do SQLAlchemy
 # @pytest.mark.asyncio()
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_database_uow_sqlalchemy_error_should_call_begin(
     temporary_async_sessionmaker,
     mocker,
@@ -94,7 +94,7 @@ async def test_database_uow_sqlalchemy_error_should_call_begin(
     session.assert_called_once()
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_database_uow_sqlalchemy_error_should_call_rollback(
     temporary_async_sessionmaker,
     mocker,
@@ -118,7 +118,7 @@ async def test_database_uow_sqlalchemy_error_should_call_rollback(
 
 # Preservação de Argumentos
 # @pytest.mark.asyncio()
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_database_uow_preserve_args_should_call_begin(
     temporary_async_sessionmaker,
     mocker,
@@ -139,7 +139,7 @@ async def test_database_uow_preserve_args_should_call_begin(
     session_spy.assert_called_once()
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_database_uow_preserve_args_should_call_commit(
     temporary_async_sessionmaker,
     mocker,
@@ -166,7 +166,7 @@ async def async_example_function():
 
 
 # @pytest.mark.asyncio()
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_database_uow_async_function_should_call_begin(
     temporary_async_sessionmaker,
     mocker,
@@ -186,7 +186,7 @@ async def test_database_uow_async_function_should_call_begin(
     session_spy.assert_called_once()
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_database_uow_async_function_should_call_commit(
     temporary_async_sessionmaker,
     mocker,

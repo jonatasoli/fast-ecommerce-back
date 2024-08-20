@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.infra.database import get_async_session
 from app.report import services
-from app.entities.report import UserSalesComissions
+from app.entities.report import InformUserProduct, UserSalesComissions
 from app.user import services as domain_user
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
@@ -35,6 +35,20 @@ async def get_user_sales_comissions(
         return await services.get_user_sales_comissions(
             user=user,
             paid=paid,
-            released=released,
-            db=session,
+            released=released, db=session,
         )
+
+
+@report.post(
+    '/inform',
+    summary='receive the user phone and e-mail and send to administrators',
+    description='sent e-mail to admins to inform the user would like know when product is back',
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def inform_product_user(
+        *,
+        inform: InformUserProduct,
+        token: str = Depends(oauth2_scheme),
+        db: Session = Depends(get_async_session),
+):
+    ...

@@ -102,7 +102,7 @@ def override_get_db():
 
 
 # TODO: Annotation slowly the db function in this time.
-@pytest.fixture()
+@pytest.fixture
 def db():
     """Generate db session."""
     _engine = get_engine()
@@ -143,7 +143,7 @@ def t_client(clean_db, override_get_db) -> Generator:
     with TestClient(app) as c:
         yield c
 
-@pytest.fixture()
+@pytest.fixture
 def user(db):
     new_role = RoleDBFactory(role_id=Roles.USER.value)
     db.add(new_role)
@@ -166,7 +166,7 @@ def user(db):
 
     return user
 
-@pytest.fixture()
+@pytest.fixture
 def token(user):
     access_token_expires = timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -179,7 +179,7 @@ def token(user):
 
     return access_token
 
-@pytest.fixture()
+@pytest.fixture
 def admin_user(db):
     new_role = RoleDBFactory(role_id=Roles.ADMIN.value)
     db.add(new_role)
@@ -203,7 +203,7 @@ def admin_user(db):
 
     return user
 
-@pytest.fixture()
+@pytest.fixture
 def admin_token(admin_user):
     access_token_expires = timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -217,7 +217,7 @@ def admin_token(admin_user):
     return access_token
 
 
-@pytest.fixture()
+@pytest.fixture
 async def asyncdb():
     """Generate asyncdb session."""
     _engine = get_async_engine()

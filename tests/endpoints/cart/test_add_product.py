@@ -18,7 +18,7 @@ from config import settings
 URL = '/cart'
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_add_product_in_new_cart(db) -> None:
     """Must add product in new cart and return cart."""
     # Arrange

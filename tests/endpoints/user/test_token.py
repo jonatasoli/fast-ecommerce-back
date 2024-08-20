@@ -5,7 +5,7 @@ from main import app
 
 URL = '/user'
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_get_token(admin_user):
     async with AsyncClient(app=app, base_url='http://test') as client:
         response = await client.post(

@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_create_order(t_client):
     order = {
         'id': 3,
@@ -32,7 +32,7 @@ def test_put_order(t_client):
     assert response.get('tracking_number') == '3334131'
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_get_order_id(t_client):
     r = t_client.get('/order/1')
     response = r.json()
@@ -40,7 +40,7 @@ def test_get_order_id(t_client):
     assert response.get('name') == 'Jonatas L Oliveira'
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_get_order_user_id(t_client):
     r = t_client.get('/order/user/1')
     response = r.json()
@@ -48,7 +48,7 @@ def test_get_order_user_id(t_client):
     assert response.get('name') == 'Jonatas L Oliveira'
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_order_status(t_client: str) -> None:
     """Test order status."""
     orderState = {'order_id': 1, 'payment_id': 1, 'order_status': 'paid'}

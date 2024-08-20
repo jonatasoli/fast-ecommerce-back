@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import ConfigDict, BaseModel, SecretStr
 
@@ -52,7 +53,7 @@ class ProductListOrderResponse(BaseModel):
     product_id: int | None = None
     name: str | None = None
     uri: str | None = None
-    price: int | None = None
+    price: int | Decimal | None = None
     quantity: int | None = None
     model_config = ConfigDict(from_attributes=True)
 

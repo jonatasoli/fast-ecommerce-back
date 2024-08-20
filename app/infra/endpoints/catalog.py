@@ -50,7 +50,7 @@ def get_showcase(*, db: Session = Depends(get_db)) -> Any:
 async def get_products_all(
     offset: int = 10,
     page: int = 1,
-    db: Session = Depends(get_async_session),
+    db = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get products all."""
     return await services.get_product_all(page=page, offset=offset, db=db)
@@ -63,13 +63,13 @@ async def get_products_all(
     status_code=status.HTTP_200_OK,
     response_model=ProductsResponse,
 )
-def get_latest_products(
+async def get_latest_products(
     offset: int = 10,
     page: int = 1,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get latest products."""
-    return services.get_latest_products(page=page, offset=offset, db=db)
+    return await services.get_latest_products(page=page, offset=offset, db=db)
 
 
 @catalog.get(
@@ -79,13 +79,13 @@ def get_latest_products(
     status_code=status.HTTP_200_OK,
     response_model=ProductsResponse,
 )
-def get_products_featured(
+async def get_products_featured(
     offset: int = 2,
     page: int = 1,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get products all."""
-    return services.get_featured_products(page=page, offset=offset, db=db)
+    return await services.get_featured_products(page=page, offset=offset, db=db)
 
 
 @catalog.get(
@@ -95,14 +95,14 @@ def get_products_featured(
     status_code=status.HTTP_200_OK,
     response_model=ProductsResponse,
 )
-def search_products(
+async def search_products(
     search: str,
     offset: int = 2,
     page: int = 1,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get search term products."""
-    return services.search_products(
+    return await services.search_products(
         search=search,
         offset=offset,
         page=page,
@@ -133,15 +133,15 @@ async def get_categories(
 
 
 @catalog.get('/category/products/{path}', status_code=200)
-def get_product_category(
+async def get_product_category(
     path: str,
     offset: int = 2,
     page: int = 1,
-    db: Session = Depends(get_db),
-) -> None:
+    db = Depends(get_async_session),
+) -> ProductsResponse:
     """Get product category."""
     try:
-        return services.get_products_category(
+        return await services.get_products_category(
             offset=offset,
             page=page,
             path=path,

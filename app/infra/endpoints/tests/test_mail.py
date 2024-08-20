@@ -21,7 +21,7 @@ mail = {
 }
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 @mock.patch('domains.domain_mail.send_mail', return_value=mail)
 def test_send_mail(t_client):
     mail_data = MailTrackingNumber(
