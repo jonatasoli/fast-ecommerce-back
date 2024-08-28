@@ -1,10 +1,11 @@
+from typing import List
 from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from app.infra.database import get_async_session
 from app.report import services
-from app.entities.report import InformUserProduct, UserSalesComissions
+from app.entities.report import Commission, InformUserProduct, UserSalesCommissions
 from app.user import services as domain_user
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
@@ -20,7 +21,7 @@ report = APIRouter(
     summary='Get user sales commissions',
     description='Return sales commissions to user is filter sales or not paid sales',
     status_code=status.HTTP_200_OK,
-    response_model=UserSalesComissions,
+    response_model=UserSalesCommissions,
 )
 async def get_user_sales_comissions(
     *,
@@ -28,7 +29,7 @@ async def get_user_sales_comissions(
     released: bool = False,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_async_session),
-) -> UserSalesComissions:
+) -> List[Commission | None]:
     """Get report sales comissions."""
     async with db() as session:
         user = await domain_user.get_affiliate_by_token(token, db=session)

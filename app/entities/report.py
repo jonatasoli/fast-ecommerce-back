@@ -15,8 +15,8 @@ class Commission(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserSalesComissions(BaseModel):
-    comissions: list[Commission] | list[None]
+class UserSalesCommissions(BaseModel):
+    commissions: list[Commission] | list
 
 
 class InformUserProduct(BaseModel):

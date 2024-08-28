@@ -1,5 +1,5 @@
 # ruff: noqa: ANN401 FBT001 B008
-from typing import Any
+from typing import Any, List
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.infra.database import get_session
@@ -13,14 +13,15 @@ async def get_user_sales_comissions(
     paid: bool,
     released: bool,
     db: Session,
-) -> SalesCommissionDB:
+) -> List[Commission | None]:
     """Get user sales commissions."""
-    return await repository.get_user_sales_comissions(
-        user=user,
-        paid=paid,
-        released=released,
-        db=db,
-    )
+    async with db.begin() as transaction:
+        return await repository.get_user_sales_comissions(
+            user,
+            paid=paid,
+            released=released,
+            transaction=transaction,
+        )
 
 
 def create_sales_commission(
@@ -28,4 +29,10 @@ def create_sales_commission(
     db: sessionmaker = get_session(),
 ) -> SalesCommissionDB:
     """Get sales commit at all."""
-    return repository.create_sales_commission(sales_commission, db=db)
+    with db.begin() as session:
+        comission_db = repository.create_sales_commission(
+            sales_commission,
+            transaction=session,
+    )
+        session.commit()
+    return comission_db
