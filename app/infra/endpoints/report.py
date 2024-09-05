@@ -1,4 +1,7 @@
 from typing import List
+
+from requests.models import HTTPError
+from app.entities.user import UserNotAdminError
 from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -50,6 +53,13 @@ async def inform_product_user(
         *,
         inform: InformUserProduct,
         token: str = Depends(oauth2_scheme),
-        db: Session = Depends(get_async_session),
+        db = Depends(get_async_session),
 ):
-    ...
+    """Get user and product and inform admins."""
+    async with db() as session:
+        if not (_ := domain_user.get_admin(token, db=session)):
+            raise UserNotAdminError
+        return await services.notify_product_to_admin(
+            inform=inform,
+            db=session,
+        )

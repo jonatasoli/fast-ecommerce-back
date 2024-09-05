@@ -376,6 +376,7 @@ class UserResetPasswordDB(Base):
 
 class SalesCommissionDB(Base):
     __tablename__ = 'sales_commission'
+
     commissions_wallet_id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
     order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
@@ -402,3 +403,14 @@ class SettingsDB(Base):
     settings_category_id: Mapped[int]
     description: Mapped[str]
     is_active: Mapped[bool]
+
+
+class InformUserProductDB(Base):
+    __tablename__ = 'inform_product_user'
+
+    inform_product_user_id: Mapped[int] = mapped_column(primary_key=True)
+    user_mail: Mapped[str]
+    user_phone: Mapped[str]
+    product_id: Mapped[int]
+    product_name: Mapped[str]
+    sended: Mapped[bool]

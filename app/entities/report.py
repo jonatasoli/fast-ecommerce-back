@@ -25,3 +25,12 @@ class InformUserProduct(BaseModel):
     product_id: int
     phone: str
     email: str
+
+
+class InformUserProductInDB(BaseModel):
+    """Data represents table inform_product_to_admin."""
+
+    user_mail: str
+    user_phone: str
+    product_id: int
+    product_name: str
