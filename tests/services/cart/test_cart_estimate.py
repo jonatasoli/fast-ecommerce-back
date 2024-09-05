@@ -17,11 +17,7 @@ from tests.fake_functions import fake
 async def test_estimate_cart_with_product(
     memory_bootstrap: Command,
     mocker: MockerFixture,
-) -> None:
-    """Should return valid cart."""
-    # Arrange
-    cart_items = []
-    product_1 = create_product_cart()
+) -> None: """Should return valid cart.""" # Arrange cart_items = [] product_1 = create_product_cart()
     product_2 = create_product_cart(product_id=2)
     cart_items.append(product_1)
     cart_items.append(product_2)

@@ -6,6 +6,7 @@ from app.infra.constants import InventoryOperation
 from app.infra.models import (
     CouponsDB,
     CreditCardFeeConfigDB,
+    InformUserProductDB,
     InventoryDB,
     PaymentDB,
 )
@@ -190,3 +191,14 @@ class CouponFactory(factory.Factory):
     discount = Decimal('0.1')
     qty = fake.pyint(min_value=1, max_value=999)
     active = True
+
+
+class InformUserProductDBFactory(factory.Factory):
+    class Meta:
+        model = InformUserProductDB
+
+    product_id = fake.pyint(min_value=1, max_value=999)
+    product_name = fake.pystr()
+    user_mail = fake_email()
+    user_phone = fake.phone_number()
+    sended = fake.pybool()
