@@ -228,8 +228,8 @@ async def asyncdb():
         await conn.run_sync(Base.metadata.create_all)
 
     return sessionmaker(
-        autocommit=False,
-        autoflush=False,
+        autoflush=True,
+        expire_on_commit=False,
         bind=_engine,
         class_=AsyncSession,
     )

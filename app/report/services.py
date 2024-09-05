@@ -51,15 +51,15 @@ async def notify_product_to_admin(
 ):
     """Get user, product info and send notification to admin."""
     async with db.begin() as transaction:
-        admins = repository.get_admins(
+        admins = await repository.get_admins(
             transaction=transaction,
         )
-        product_db = product_repository.get_product_by_id(
+        product_db = await product_repository.get_product_by_id(
             inform.product_id,
             transaction=transaction,
         )
         product = ProductInDB.model_validate(product_db)
-        inform_db = repository.save_user_inform(
+        inform_db = await repository.save_user_inform(
             inform=inform,
             product=product,
             transaction=transaction,
@@ -71,8 +71,8 @@ async def notify_product_to_admin(
             'admin_email': admins,
             'product_id': inform_db.product_id,
             'product_name': inform_db.product_name,
-            'user_email': inform_db.user_email,
+            'user_email': inform_db.user_mail,
             'user_phone': inform_db.user_phone,
         },
         queue=RabbitQueue('inform_product_to_admin'),
-    )
+        )
