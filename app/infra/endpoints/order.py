@@ -64,8 +64,8 @@ async def get_order(
 async def get_order_users_id(
     *,
     db: Session = Depends(get_db),
-    id: None,
-) -> None:
+    id,
+):
     """Get order users id."""
     try:
         return services.get_order_users(db, id)
@@ -73,24 +73,31 @@ async def get_order_users_id(
         raise
 
 
-
-
-@order.patch('/{id}', status_code=status.HTTP_204_NO_CONTENT)
+@order.patch('/{order_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def patch_order(
+    *,
+    order_id: int,
+    db: Session = Depends(get_db),
+) -> None:
+    """Patch order."""
+
+
+@order.put('/{order_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def put_order(
     *,
     id: int,
     product: OrderFullResponse,
     db: Session = Depends(get_db),
 ) -> None:
-    """Put order."""
+    """Patch order."""
     try:
         return services.patch_product(id, product_data=product, db=db)
     except Exception:
         raise
 
 
-@order.put(
-    '/tracking_number/{order_id}',
+@order.patch(
+    '/{order_id}/tracking_number',
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def tracking_number(
@@ -98,7 +105,7 @@ async def tracking_number(
     tracking: TrackingFullResponse,
     db: async_sessionmaker = Depends(get_async_session),
 ) -> None:
-    """Put trancking number."""
+    """Patch trancking number."""
     try:
         message = task_message_bus
         return await services.put_tracking_number(
@@ -112,12 +119,12 @@ async def tracking_number(
 
 
 @order.post('/check_order/{id}', status_code=200)
-async def put_trancking_number(
+async def post_trancking_number(
     id: int,
     check: bool,
     db: Session = Depends(get_db),
 ) -> int:
-    """Put trancking number."""
+    """Post trancking number."""
     try:
         return services.checked_order(db, id, check)
     except Exception:

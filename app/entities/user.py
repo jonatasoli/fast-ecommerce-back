@@ -18,6 +18,9 @@ class PasswordEmptyError(Exception):
     """Raise if password is empty."""
 
 
+class UserNotAdminError(Exception):
+    """Raise if user not admin."""
+
 class UserData(BaseModel):
     user_id: int
     name: str
