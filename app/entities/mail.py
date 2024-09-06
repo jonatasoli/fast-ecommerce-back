@@ -34,3 +34,10 @@ class MailFormCourses(BaseModel):
     phone: str
     course: str
     option: str
+
+
+class MailInformUserProduct(BaseModel):
+    product_name: str
+    mail_to: str
+    user_mail: str
+    user_phone: str

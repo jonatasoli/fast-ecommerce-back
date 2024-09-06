@@ -9,6 +9,7 @@ from app.order import repository as order_repository
 
 from app.entities.mail import (
     MailFormCourses,
+    MailInformUserProduct,
     MailOrderCancelled,
     MailOrderPaied,
     MailOrderProcessed,
@@ -167,3 +168,22 @@ def send_mail_form_courses(db, mail_data: MailFormCourses):
     )
     logger.debug(template)
     send_email(course)
+
+def send_mail_from_inform_ask_product_by_user(
+    db,
+    mail_data: MailInformUserProduct,
+):
+    """Email inform ask product by user."""
+    template = env.get_template('mail_inform_user_product.html').render(
+       product_name=mail_data.product_name,
+       user_mail=mail_data.user_mail,
+       user_phone=mail_data.user_phone,
+    )
+
+    inform = Mail(
+        from_email=settings.EMAIL_FROM,
+        to_emails=mail_data.mail_to,
+        subject=f'Pedido de aviso de retorno do produto {mail_data.product_name}!',
+        plain_text_content=str(template),
+        html_content=template,
+    )
