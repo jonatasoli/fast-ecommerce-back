@@ -46,7 +46,8 @@ async def get_user_sales_comissions(
 @report.post(
     '/inform',
     summary='receive the user phone and e-mail and send to administrators',
-    description='sent e-mail to admins to inform the user would like know when product is back',
+    description='Sent e-mail to admins to inform the user would like know\
+        when product is back',
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def inform_product_user(
