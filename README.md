@@ -2,48 +2,54 @@
 ## ApiRest in development
 
  [Pre-requirements](#pre-requirements)
- [Install](#install) 
- [Technologies](#technologies) 
+ [Install](#install)
+ [Technologies](#technologies)
 
 ## Pre-requirements
-+ PostgreSQL
-+ Repository clone
++ Dcoker and docker-compose
++ Install [pyenv](https://github.com/pyenv/pyenv)
+```bash
+curl https://pyenv.run | bash
+pyenv install 3.12.4
+pyenv global 3.12.4
 ```
++ Repository clone
+```bash
 git clone https://github.com/jonatasoli/fast-ecommerce-back.git
 ```
-```
-cd fast-ecommerce
+```bash
+cd fast-ecommerce-back
 cd app
 ```
++ Start docker-compose file
+```bash
+docker-compose up -d
+```
 
-+ Virtualenv
++ Virtualenv with poetry
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
 ```
- pip install virtualenv
-```
-Create Virtualenv
+Create Virtualenv and install requirements
+````bash
+poetry install
 ````
-virtualenv (namevirtualenv)
-````
-Activate virtualenv
-Windows 
-````
-(namevirtualenv)\Scripts\activate.bat
-````
-Linux ou Mac
-````
-source (namevirtualenv)/bin/activate
-````
-Install requiriments
-````
-pip install -r requirements.txt
+Enter Linux ou Mac
+````bash
+poetry shell
 ````
 
 ## Install
-````
+````bash
 alembic upgrade head
+or
+make upgrade
 ````
-````
+Run project
+```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8001
+or
+make run
 ````
 
 ## Tests
@@ -149,4 +155,4 @@ suggest test product
 + [PostgreSql](https://www.postgresql.org/)
 + [FastApi](https://fastapi.tiangolo.com/)
 + [DynaConf](https://www.dynaconf.com/)
-
++ [FastStrean](https://faststream.airt.ai/latest/)
