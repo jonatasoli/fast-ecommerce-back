@@ -1,64 +1,68 @@
-[tool.poetry]
+[project]
 name = "fast-ecommerce"
 version = "0.2.1"
 description = "Ecommerce API"
-authors = ["Jônatas Oliveira <contact@jonatasoliveira.dev>"]
+authors = [
+    {author = "Jônatas Oliveira", email = "contact@jonatasoliveira.dev"},
+]
 license = "AGPL-3.0-or-later"
-package-mode = false
+readme = "README.md"
+requires-python = ">=3.12"
 
-[tool.poetry.dependencies]
-python = "^3.12"
-fastapi = "*"
-alembic = "*"
-sqlalchemy = {version = "~2", extras = ["asyncio"]}
-passlib = {extras = ["bcrypt"], version = "*"}
-pyjwt = "*"
-python-dotenv = "*"
-asyncpg = "*"
-aiosqlite = "*"
-loguru = "*"
-bcrypt = "*"
-Jinja2 = "*"
-mail-service = "*"
-python-multipart = "*"
-sendgrid = "*"
-httpx = "*"
-sentry-sdk = {version = "*", extras = ["fastapi"]}
-Pillow = "*"
-aiofiles = "*"
-boto3 = "*"
-zipp = "*"
-dynaconf = "*"
-redis = "*"
-stripe = "*"
-mercadopago = "*"
-uvicorn = {extras = ["standard"], version = "*"}
-cython = "*"
-psycopg = {extras = ["binary", "pool"], version = "*"}
-faststream = {extras = ["rabbit"], version = "*"}
-opentelemetry-exporter-otlp = "^1.24.0"
-opentelemetry-instrumentation-logging = "^0.45b0"
-taskiq-faststream = "^0.1.8"
+dependencies = [
+    "aiofiles>=24.1.0",
+    "aiosqlite>=0.20.0",
+    "alembic>=1.13.2",
+    "asyncpg>=0.29.0",
+    "bcrypt>=4.2.0",
+    "boto3>=1.35.15",
+    "cython>=3.0.11",
+    "dynaconf>=3.2.6",
+    "fastapi>=0.114.0",
+    "faststream[rabbit]>=0.5.23",
+    "httpx>=0.27.2",
+    "jinja2>=3.1.4",
+    "loguru>=0.7.2",
+    "mail-service>=1.0.5",
+    "mercadopago>=2.2.3",
+    "opentelemetry-exporter-otlp>=1.27.0",
+    "opentelemetry-instrumentation-logging>=0.48b0",
+    "passlib[bcrypt]>=1.7.4",
+    "pillow>=10.4.0",
+    "psycopg[binary,pool]>=3.2.1",
+    "pyjwt>=2.9.0",
+    "python-dotenv>=1.0.1",
+    "python-multipart>=0.0.9",
+    "redis>=5.0.8",
+    "sendgrid>=6.11.0",
+    "sentry-sdk[fastapi]>=2.14.0",
+    "sqlalchemy[asyncio]>=2.0.34",
+    "stripe>=10.10.0",
+    "taskiq-faststream>=0.2.0",
+    "uvicorn[standard]>=0.30.6",
+    "zipp>=3.20.1",
+]
 
-[tool.poetry.group.dev.dependencies]
-isort = "*"
-ruff = "*"
-coverage = "*"
-pytest = "*"
-ipdb = "*"
-pytest-mock = "*"
-pytest-cov = "*"
-pytest-sugar = "*"
-pytest-watch = "*"
-pytest-ordering = "*"
-pytest-asyncio = "*"
-factory-boy = "*"
-pytest-env = "*"
-ruff-lsp = "*"
-anyio = "*"
-pyright = "*"
-taskipy = "*"
-
+[tool.uv]
+dev-dependencies = [
+    "anyio>=4.4.0",
+    "coverage>=7.6.1",
+    "factory-boy>=3.3.1",
+    "ipdb>=0.13.13",
+    "isort>=5.13.2",
+    "pyright>=1.1.379",
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0.0",
+    "pytest-env>=1.1.4",
+    "pytest-mock>=3.14.0",
+    "pytest-ordering>=0.6",
+    "pytest-sugar>=1.0.0",
+    "pytest-watch>=4.2.0",
+    "ruff>=0.6.4",
+    "ruff-lsp>=0.0.56",
+    "taskipy>=1.13.0",
+]
 
 
 [tool.poetry.group.otel.dependencies]
@@ -67,13 +71,12 @@ opentelemetry-exporter-otlp = "^1.24.0"
 
 [tool.ruff]
 lint.select = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "C4", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "FBT", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
-src = ["app", "tests"]
 lint.fixable = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "FBT", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
 lint.unfixable = []
 lint.ignore = ["D100", "D101", "D102", "D107", "D203", "D213"]
+src = ["app", "tests"]
 # Exclude a variety of commonly ignored directories.
-exclude = [
-    ".bzr",
+exclude = [ ".bzr",
     ".direnv",
     ".eggs",
     ".git",
@@ -141,9 +144,9 @@ omit = [
 [tool.coverage.report]
 skip_empty = true
 
+
+[tool.uv.workspace]
+members = ["test"]
+
 [virtualenvs]
 path = ".venv"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

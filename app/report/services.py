@@ -1,5 +1,5 @@
 # ruff: noqa: ANN401 FBT001 B008
-from typing import Any, List
+from typing import Any
 from app.entities.product import ProductInDB
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -17,7 +17,7 @@ async def get_user_sales_comissions(
     paid: bool,
     released: bool,
     db: Session,
-) -> List[Commission | None]:
+) -> list[Commission | None]:
     """Get user sales commissions."""
     async with db.begin() as transaction:
         return await repository.get_user_sales_comissions(

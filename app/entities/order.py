@@ -1,6 +1,5 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import List
 from pydantic import BaseModel, ConfigDict
 
 from app.entities.product import ProductInDB
@@ -40,12 +39,12 @@ class OrderInDB(BaseModel):
 
 class OrderItemInDB(BaseModel):
     order: OrderInDB
-    products: List[ProductInDB]
+    products: list[ProductInDB]
     model_config = ConfigDict(from_attributes=True)
 
 
 class OrderItemResponse(BaseModel):
-    order_items: List[OrderItemInDB]
+    order_items: list[OrderItemInDB]
     page: int
     offset: int
     total_pages: int
@@ -53,7 +52,7 @@ class OrderItemResponse(BaseModel):
 
 
 class OrderResponse(BaseModel):
-    orders: List[OrderInDB]
+    orders: list[OrderInDB]
     page: int
     offset: int
     total_pages: int

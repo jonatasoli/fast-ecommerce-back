@@ -1,3 +1,3 @@
-web: poetry run opentelemetry-instrument --service_name=teste uvicorn main:app --workers 2 --host 0.0.0.0 --port $PORT
-tasks: poetry run taskiq scheduler app.infra.scheduler:scheduler
-migration: poetry run alembic upgrade head
+web: uv run uvicorn main:app --port $PORT --host 0.0.0.0
+tasks: uv run taskiq scheduler app.infra.scheduler:scheduler
+migration: uv run alembic upgrade head
