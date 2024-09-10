@@ -1,14 +1,11 @@
-FROM python:3.12-slim
-
-ENV POETRY_VIRTUALENVS_CREATE=false
-
+FROM python:3.12-slim-bookworm
 
 RUN apt-get update -y && apt install build-essential curl --no-install-recommends -y 
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 WORKDIR /app/
 
 COPY . /app
 
-RUN pip install poetry
-RUN poetry install --without dev
-RUN opentelemetry-bootstrap -a install
+RUN uv sync --frozen --no-cache

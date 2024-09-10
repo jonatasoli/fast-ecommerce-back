@@ -42,7 +42,7 @@ def fake_email() -> str:
 
 
 def fake_date_time() -> dt.datetime:
-    return cast(dt.datetime, fake.date_time(tzinfo=dt.timezone.utc))
+    return cast(dt.datetime, fake.date_time(tzinfo=dt.UTC))
 
 
 def fake_dict() -> dict[str, Any]:

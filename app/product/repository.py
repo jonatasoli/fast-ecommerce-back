@@ -1,6 +1,5 @@
 import json
 import math
-from typing import List
 from loguru import logger
 from pydantic import TypeAdapter
 from sqlalchemy import delete, select
@@ -75,7 +74,7 @@ async def get_inventory(transaction, *, page, offset):
     quantity_query = quantity_query.limit(offset)
 
     products_db = await transaction.session.execute(quantity_query)
-    adapter = TypeAdapter(List[ProductInDB])
+    adapter = TypeAdapter(list[ProductInDB])
     return InventoryResponse(
         inventory=adapter.validate_python(products_db.all()),
         page=page,

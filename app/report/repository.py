@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 from app.entities.product import ProductInDB
 from app.entities.user import UserInDB
@@ -41,7 +40,7 @@ async def get_user_sales_comissions(
         )
     )
     commissions = await transaction.session.execute(query)
-    adapter = TypeAdapter(List[Commission])
+    adapter = TypeAdapter(list[Commission])
     return UserSalesCommissions(
         commissions=adapter.validate_python(commissions.scalars().all()),
     )
@@ -67,7 +66,7 @@ async def get_admins(transaction):
     async with transaction:
         query = select(UserDB).where(UserDB.role_id == Roles.ADMIN.value)
         admin_db = await transaction.scalars(query)
-        adapter = TypeAdapter(List[UserInDB])
+        adapter = TypeAdapter(list[UserInDB])
         return adapter.validate_python(admin_db)
 
 

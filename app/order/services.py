@@ -1,6 +1,6 @@
 import json
 import math
-from typing import Any, List
+from typing import Any
 
 from fastapi import HTTPException, status
 from loguru import logger
@@ -200,7 +200,7 @@ def get_showcase(db: Session) -> list:
             .where(ProductDB.active.is_(True))
         )
         showcases = db.execute(showcases_query).scalars().all()
-        adapter = TypeAdapter(List[ProductCategoryInDB])
+        adapter = TypeAdapter(list[ProductCategoryInDB])
 
     return adapter.validate_python(showcases)
 
@@ -228,7 +228,7 @@ def get_orders(page, offset, *, db):
         orders_query = orders_query.limit(offset)
 
         orders_db = db.session.execute(orders_query)
-        adapter = TypeAdapter(List[OrderInDB])
+        adapter = TypeAdapter(list[OrderInDB])
     return OrderResponse(
         orders=adapter.validate_python(orders_db.scalars().all()),
         page=page,
@@ -405,7 +405,7 @@ async def get_products_category(
             products_query = products_query.offset((page - 1) * offset)
         products_query = products_query.limit(offset)
         products = await transaction.session.execute(products_query)
-        adapter = TypeAdapter(List[ProductInDB])
+        adapter = TypeAdapter(list[ProductInDB])
 
 
     return ProductsResponse(
@@ -460,7 +460,7 @@ async def get_product_all(offset: int, page: int, db) -> ProductsResponse:
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
         products = await transaction.session.execute(products)
-        adapter = TypeAdapter(List[ProductInDB])
+        adapter = TypeAdapter(list[ProductInDB])
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
@@ -525,7 +525,7 @@ async def get_latest_products(
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
         products = await transaction.session.execute(products)
-        adapter = TypeAdapter(List[ProductInDB])
+        adapter = TypeAdapter(list[ProductInDB])
 
 
     return ProductsResponse(
@@ -588,7 +588,7 @@ async def get_featured_products(
         products = products.limit(offset)
 
         products = await transaction.session.execute(products)
-        adapter = TypeAdapter(List[ProductInDB])
+        adapter = TypeAdapter(list[ProductInDB])
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
@@ -659,7 +659,7 @@ async def search_products(
             products = products.offset((page - 1) * offset)
         products = products.limit(offset)
         products = await transaction.session.execute(products)
-        adapter = TypeAdapter(List[ProductInDB])
+        adapter = TypeAdapter(list[ProductInDB])
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,

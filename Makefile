@@ -2,13 +2,13 @@
 
 
 install:
-	@poetry install
+	@uv install
 
 update:
-	@poetry update
+	@uv update
 
 shell:
-	@poetry shell
+	@uv shell
 
 format:
 	# @blue app/ 
@@ -27,7 +27,7 @@ lint:
 	# @ruff check tests/ --ignore S101
 
 test:
-	FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/ -x --cov=fast_ecommerce -vv
+	@uv run FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/ -x --cov=fast_ecommerce -vv
 
 post_test:
 	@coverage html
@@ -36,13 +36,13 @@ configs:
 	dynaconf -i src.config.settings list
 
 upgrade:
-	@poetry run alembic upgrade head
+	@uv run alembic upgrade head
 
 run:
-	@poetry run uvicorn main:app --reload --host 0.0.0.0 --port 8001
+	@uv run uvicorn main:app --reload --host 0.0.0.0 --port 8001
 
 migrate:
-	@poetry run alembic revision --autogenerate
+	@uv run alembic revision --autogenerate
 
 task:
-	@poetry run taskiq scheduler app.infra.scheduler:scheduler
+	@uv run taskiq scheduler app.infra.scheduler:scheduler

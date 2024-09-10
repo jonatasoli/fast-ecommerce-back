@@ -32,7 +32,7 @@ async def get_user_sales_comissions(
     released: bool = False,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_async_session),
-) -> List[Commission | None]:
+) -> list[Commission | None]:
     """Get report sales comissions."""
     async with db() as session:
         user = await domain_user.get_affiliate_by_token(token, db=session)

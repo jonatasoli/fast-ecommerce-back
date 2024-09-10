@@ -1,5 +1,5 @@
 import abc
-from typing import Any, List, Self
+from typing import Any, Self
 from loguru import logger
 from pydantic import TypeAdapter
 
@@ -315,7 +315,7 @@ def sync_get_coupon_by_code(
 async def get_products_quantity(
     products: list[int],
     transaction: SessionTransaction,
-) -> List[ProductInDB]:
+) -> list[ProductInDB]:
     """Must return products quantity."""
     try:
         quantity_query = (
@@ -362,7 +362,7 @@ async def get_products_quantity(
             )
         )
         products_db = await transaction.session.execute(quantity_query)
-        adapter = TypeAdapter(List[ProductInDB])
+        adapter = TypeAdapter(list[ProductInDB])
         return adapter.validate_python(products_db.all())
 
     except Exception as e:
