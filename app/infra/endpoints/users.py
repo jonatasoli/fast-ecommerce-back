@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Dict, Any
+from typing import Any
 
 from sqlalchemy import select
 from app.infra.models import UserDB
@@ -14,7 +14,7 @@ from sqlalchemy.orm.base import _T_co
 from app.entities.user import UserCouponResponse, UserInDB, UserSchema
 from app.infra.bootstrap.user_bootstrap import Command, bootstrap
 from loguru import logger
-from app.infra.database import get_session
+from app.infra.database import get_async_session, get_session
 
 from domains import domain_user
 from app.infra.deps import get_db
