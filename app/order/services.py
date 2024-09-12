@@ -2,6 +2,7 @@ import json
 import math
 from typing import Any
 
+from constants import OrderStatus
 from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
@@ -127,7 +128,7 @@ def update_product(product: ProductDB, product_data: dict) -> ProductDB:
     return product
 
 
-def patch_product(
+async def patch_product(
     product_id,
     *,
     product_data: ProductPatchRequest,
@@ -135,15 +136,35 @@ def patch_product(
 ) -> None:
     """Update Product."""
     values = product_data.model_dump(exclude_none=True)
-    product = get_product_by_id(db, product_id)
+    product = await get_product_by_id(db, product_id)
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Product not found',
         )
-    with db:
+    async with db:
         update_product(product, values)
         db.commit()
+
+
+async def complete_order(
+    order_id,
+    *,
+    db,
+) -> None:
+    """Complete Order."""
+    async with db().begin() as transaction:
+        order_query = select(OrderDB).where(OrderDB.order_id==order_id)
+        order = await transaction.session.scalar(order_query)
+
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Order not found',
+            )
+        order.order_status = OrderStatus.SHIPPING_COMPLETE.value
+        transaction.session.add(order)
+        transaction.session.commit()
 
 
 def delete_product(db: Session, product_id: int) -> None:

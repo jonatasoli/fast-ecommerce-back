@@ -4,9 +4,11 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import Session, sessionmaker
+from app.entities.user import UserNotAdminError
 from app.infra.worker import task_message_bus
 
 from app.infra.database import get_async_session, get_session
+from app.user.services import get_admin, verify_admin
 from constants import OrderStatus
 from app.order import services
 from app.infra.deps import get_db
@@ -17,6 +19,8 @@ from schemas.order_schema import (
     OrderUserListResponse,
     OrderFullResponse,
 )
+from fastapi.security import OAuth2PasswordBearer
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 order = APIRouter(
     prefix='/order',
@@ -83,15 +87,15 @@ async def patch_order(
 
 
 @order.put('/{order_id}', status_code=status.HTTP_204_NO_CONTENT)
-async def put_order(
-    *,
-    id: int,
-    product: OrderFullResponse,
-    db: Session = Depends(get_db),
+async def complete_order(
+    order_id: int,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_async_session),
 ) -> None:
     """Patch order."""
+    await verify_admin(token, db=db)
     try:
-        return services.patch_product(id, product_data=product, db=db)
+        return await services.complete_order(order_id,db=db)
     except Exception:
         raise
 
@@ -103,9 +107,11 @@ async def put_order(
 async def tracking_number(
     order_id: int,
     tracking: TrackingFullResponse,
+    token: str = Depends(oauth2_scheme),
     db: async_sessionmaker = Depends(get_async_session),
 ) -> None:
     """Patch trancking number."""
+    _ = token
     try:
         message = task_message_bus
         return await services.put_tracking_number(
@@ -122,9 +128,13 @@ async def tracking_number(
 async def post_trancking_number(
     id: int,
     check: bool,
-    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+    db = Depends(get_db),
 ) -> int:
     """Post trancking number."""
+    with db() as session:
+        if not (_ := get_admin(token, db=session)):
+            raise UserNotAdminError
     try:
         return services.checked_order(db, id, check)
     except Exception:
