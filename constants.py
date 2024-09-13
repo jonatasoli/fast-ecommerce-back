@@ -19,3 +19,16 @@ class OrderStatus(enum.Enum):
     SHIPPING_ORDER = 'SHIPPING_ORDER'
     GENERATE_INVOICE = 'GENERATE_INVOICE'
     SHIPPING_COMPLETE = 'SHIPPING_COMPLETE'
+
+
+class Direction(enum.StrEnum):
+    asc = 'asc'
+    desc = 'desc'
+
+
+class UserOrderBy(enum.StrEnum):
+    id = 'id'
+    username = 'username'
+    mail = 'mail'
+    document = 'document'
+    phone = 'phone'
