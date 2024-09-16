@@ -109,3 +109,19 @@ class UserSchema(BaseModel):
 class UserInDB(UserSchema):
     password: str
     role_id: int
+
+
+class UserUpdate(BaseModel):
+    name: str | None
+    document: str | None
+    phone: str | None
+    role_id: int | None
+    email: str | None
+
+
+class UsersDBResponse(BaseModel):
+    users: list[UserInDB]
+    page: int
+    limit: int
+    total_pages: int
+    total_records: int

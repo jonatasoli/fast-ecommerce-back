@@ -20,7 +20,7 @@ from app.infra.endpoints.order import order
 from app.infra.endpoints.product import product
 from app.infra.endpoints.catalog import catalog
 from app.infra.endpoints.shipping import shipping
-from app.infra.endpoints.users import user
+from app.infra.endpoints.users import user, users
 from app.infra.endpoints.payment import payment
 from app.infra.endpoints.cart import cart
 from app.infra.endpoints.default import (
@@ -222,6 +222,7 @@ logger.add(
 logging.getLogger('uvicorn.access').handlers = [InterceptHandler()]
 
 app.include_router(user)
+app.include_router(users)
 app.include_router(payment)
 app.include_router(shipping)
 app.include_router(order)

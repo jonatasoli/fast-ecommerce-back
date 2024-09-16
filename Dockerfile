@@ -5,7 +5,6 @@ RUN apt-get update -y && apt install build-essential curl --no-install-recommend
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 WORKDIR /app/
-
 COPY . /app
 
 RUN uv sync --frozen --no-cache
