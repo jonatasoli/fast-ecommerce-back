@@ -10,7 +10,7 @@ from constants import Direction
 
 
 class UsersOderByDB(enum.Enum):
-    id = models.UserDB.user_id
+    user_id = models.UserDB.user_id
     username = models.UserDB.username
     mail = models.UserDB.email
     document = models.UserDB.document
@@ -66,8 +66,8 @@ async def get_users(
     transaction,
 ):
     """Select all users."""
-    query_users = select(models.UserDB)
     async with transaction:
+        query_users = select(models.UserDB)
         if search_name:
             query_users = query_users.where(
                 models.UserDB.name.like(search_name),
@@ -79,22 +79,22 @@ async def get_users(
 
         if order_by and direction == Direction.asc:
             query_users = query_users.order_by(
-                asc(UsersOderByDB[order_by].value),
+                asc(getattr(UsersOderByDB, order_by)),
             )
         else:
             query_users = query_users.order_by(desc(
-                UsersOderByDB[order_by].value),
+                getattr(UsersOderByDB, order_by)),
             )
 
-    total_records = await transaction.session.scalar(
-        select(func.count(models.UserDB.user_id)),
-    )
-    if page > 1:
-        query_users = query_users.offset((page - 1) * limit)
-    query_users = query_users.limit(limit)
+        total_records = await transaction.scalar(
+            select(func.count(models.UserDB.user_id)),
+        )
+        if page > 1:
+            query_users = query_users.offset((page - 1) * limit)
+        query_users = query_users.limit(limit)
 
-    users_db = await transaction.session.scalars(query_users)
-    adapter = TypeAdapter(list[UserInDB])
+        users_db = await transaction.scalars(query_users)
+        adapter = TypeAdapter(list[UserInDB])
 
     return UsersDBResponse(
         users=adapter.validate_python(users_db.all()),

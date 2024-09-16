@@ -458,7 +458,7 @@ async def get_users( # noqa: PLR0913
     db,
 ):
     """Get users with filters."""
-    async with db().begin() as transaction:
+    async with db() as transaction:
         return await repository.get_users(
             search_name=search_name,
             search_document=search_document,
