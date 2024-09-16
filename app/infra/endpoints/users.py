@@ -226,9 +226,9 @@ async def get_users( # noqa: PLR0913
     db: sessionmaker = Depends(get_async_session),
 ) -> UsersDBResponse:
     """Get user."""
-    # await services.verify_admin(
-    #     token=token, db=db,
-    # )
+    await services.verify_admin(
+        token=token, db=db,
+    )
     return await services.get_users(
         search_name=search_name,
         search_document=search_document,
