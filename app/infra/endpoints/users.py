@@ -11,11 +11,17 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, InstrumentedAttribute, sessionmaker
 from sqlalchemy.orm.base import _T_co
 
-from app.entities.user import UserCouponResponse, UserInDB, UserSchema
+from app.entities.user import (
+    UserCouponResponse,
+    UserInDB, UserSchema,
+    UserUpdate,
+    UsersDBResponse,
+)
 from app.infra.bootstrap.user_bootstrap import Command, bootstrap
 from loguru import logger
 from app.infra.database import get_async_session, get_session
 
+from constants import Direction, UserOrderBy
 from domains import domain_user
 from app.infra.deps import get_db
 from app.entities.user import (
@@ -36,6 +42,10 @@ async def get_bootstrap() -> Command:
 user = APIRouter(
     prefix='/user',
     tags=['user'],
+)
+users = APIRouter(
+    prefix='/users',
+    tags=['users'],
 )
 
 
@@ -160,3 +170,71 @@ async def reset_password(
 ) -> None:
     """Reset password."""
     services.reset_password(token, db=db, data=response_model)
+
+
+@user.patch(
+    '/{user_id}',
+    response_model=UserInDB,
+    status_code=status.HTTP_200_OK,
+)
+async def update_user(
+    user_update: UserUpdate,
+    token: str,
+    user_id: int,
+    db: sessionmaker = Depends(get_async_session),
+) -> UserInDB:
+    """Update user."""
+    await services.verify_admin(
+        token=token, db=db,
+    )
+    return await services.update_user(
+        user_id,
+        update_user=user_update,
+        db=db,
+
+    )
+
+@user.get(
+    '/{user_id}',
+    status_code=status.HTTP_200_OK,
+    response_model=UserInDB,
+)
+async def get_user_by_id(
+    user_id: int,
+    token: str,
+    db: sessionmaker = Depends(get_async_session),
+) -> UserInDB:
+    """Get user."""
+    await services.verify_admin(
+        token=token, db=db,
+    )
+    return await services.get_user_by_id(user_id, db=db)
+
+@users.get(
+    '/',
+    status_code=status.HTTP_200_OK,
+    response_model= UsersDBResponse,
+)
+async def get_users( # noqa: PLR0913
+    token: str,
+    search_name: str,
+    search_document: str,
+    order_by: str = UserOrderBy.id,
+    direction: str = Direction.asc,
+    limit: int = 10,
+    page: int = 1,
+    db: sessionmaker = Depends(get_session),
+) -> UsersDBResponse:
+    """Get user."""
+    await services.verify_admin(
+        token=token, db=db,
+    )
+    return await services.get_users(
+        search_name=search_name,
+        search_document=search_document,
+        order_by=order_by,
+        direction=direction,
+        limit=limit,
+        page=page,
+        db=db,
+    )

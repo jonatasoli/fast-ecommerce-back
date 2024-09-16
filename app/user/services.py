@@ -23,11 +23,14 @@ from app.entities.user import (
     UserNotFoundError,
     UserResponseResetPassword,
     UserSchema,
+    UserUpdate,
 )
 from app.infra.models import RoleDB, UserDB, CouponsDB, UserResetPasswordDB
 from jwt import DecodeError, encode, decode
+from app.user import repository
 from config import settings
 from sqlalchemy.orm import Session, sessionmaker
+
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
@@ -410,3 +413,58 @@ def verify_password(password: str, check_password: str) -> bool:
     if not _password_match:
         raise CredentialError
     return _password_match
+
+
+async def update_user(
+    user_id: int,
+    *,
+    update_user: UserUpdate,
+    db,
+) -> UserInDB:
+    """Update user."""
+    async with db().begin() as transaction:
+        user_db = await repository.get_user_by_id(user_id, transaction=transaction)
+        if not user_db:
+            raise_credential_error()
+        update_data = update_user.model_dump(exclude_none=True)
+        for key, value in update_data.items():
+            setattr(user_db, key, value)
+        transaction.add(user_db)
+        await transaction.commit()
+    return UserInDB.model_validate(user_db)
+
+
+async def get_user_by_id(
+    user_id: int,
+    *,
+    db,
+) -> UserInDB:
+    """Update user."""
+    async with db().begin() as transaction:
+        user_db = await repository.get_user_by_id(user_id, transaction=transaction)
+        if not user_db:
+            raise_credential_error()
+    return UserInDB.model_validate(user_db)
+
+
+async def get_users( # noqa: PLR0913
+    *,
+    search_name: str | None,
+    search_document: str | None,
+    order_by: str,
+    direction: str,
+    limit: int,
+    page: int,
+    db,
+):
+    """Get users with filters."""
+    async with db().begin() as transaction:
+        return await repository.get_users(
+            search_name=search_name,
+            search_document=search_document,
+            order_by=order_by,
+            direction=direction,
+            page=page,
+            limit=limit,
+            transaction=transaction,
+    )
