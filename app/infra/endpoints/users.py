@@ -216,19 +216,19 @@ async def get_user_by_id(
     response_model= UsersDBResponse,
 )
 async def get_users( # noqa: PLR0913
-    token: str,
-    search_name: str,
-    search_document: str,
-    order_by: str = UserOrderBy.id,
+    search_name: str | None = None,
+    search_document: str | None = None,
+    token: str = Depends(oauth2_scheme),
+    order_by: str = UserOrderBy.user_id,
     direction: str = Direction.asc,
     limit: int = 10,
     page: int = 1,
-    db: sessionmaker = Depends(get_session),
+    db: sessionmaker = Depends(get_async_session),
 ) -> UsersDBResponse:
     """Get user."""
-    await services.verify_admin(
-        token=token, db=db,
-    )
+    # await services.verify_admin(
+    #     token=token, db=db,
+    # )
     return await services.get_users(
         search_name=search_name,
         search_document=search_document,
