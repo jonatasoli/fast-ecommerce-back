@@ -53,11 +53,11 @@ class UserDBFactory(factory.Factory):
     class Params:
         role = SubFactory(RoleDBFactory)
 
-    name = fake.name()
-    username = fake.user_name()
-    email = fake_email()
-    document = fake_cpf()
-    phone = fake.phone_number()
+    name = factory.LazyAttribute(lambda _: fake.name())
+    username = factory.LazyAttribute(lambda _: fake.user_name())
+    email = factory.LazyAttribute(lambda _: fake_email())
+    document = factory.LazyAttribute(lambda _: fake_cpf())
+    phone = factory.LazyAttribute(lambda _: fake.phone_number())
     password = fake.password()
     role_id = SelfAttribute('role.role_id')
 

@@ -4,7 +4,7 @@ from pydantic import TypeAdapter
 from sqlalchemy import asc, func, select, update
 
 from sqlalchemy.sql import desc
-from app.entities.user import UserInDB, UsersDBResponse
+from app.entities.user import UserFilters, UserInDB, UsersDBResponse
 from app.infra import models
 from constants import Direction
 
@@ -57,50 +57,44 @@ async def update_user(
 
 async def get_users(
     *,
-    search_document: str | None,
-    search_name: str | None,
-    order_by: str,
-    direction: str,
-    page: int,
-    limit: int,
+    filters: UserFilters,
     transaction,
 ):
     """Select all users."""
-    async with transaction:
-        query_users = select(models.UserDB)
-        if search_name:
-            query_users = query_users.where(
-                models.UserDB.name.like(search_name),
-            )
-        elif search_document:
-            query_users = query_users.where(
-                models.UserDB.document.like(search_document),
-            )
-
-        if order_by and direction == Direction.asc:
-            query_users = query_users.order_by(
-                asc(getattr(UsersOderByDB, order_by)),
-            )
-        else:
-            query_users = query_users.order_by(desc(
-                getattr(UsersOderByDB, order_by)),
-            )
-
-        total_records = await transaction.scalar(
-            select(func.count(models.UserDB.user_id)),
+    query_users = select(models.UserDB)
+    if filters.search_name:
+        query_users = query_users.where(
+            models.UserDB.name.like(f'%{filters.search_name}'),
         )
-        if page > 1:
-            query_users = query_users.offset((page - 1) * limit)
-        query_users = query_users.limit(limit)
+    elif filters.search_document:
+        query_users = query_users.where(
+            models.UserDB.document.like(f'%{filters.search_document}%'),
+        )
 
-        users_db = await transaction.scalars(query_users)
-        adapter = TypeAdapter(list[UserInDB])
+    if filters.order_by and filters.direction == Direction.asc:
+        query_users = query_users.order_by(
+            asc(getattr(UsersOderByDB, filters.order_by)),
+        )
+    else:
+        query_users = query_users.order_by(desc(
+            getattr(UsersOderByDB, filters.order_by)),
+        )
+
+    total_records = await transaction.session.scalar(
+        select(func.count(models.UserDB.user_id)),
+    )
+    if filters.page > 1:
+        query_users = query_users.offset((filters.page - 1) * filters.limit)
+    query_users = query_users.limit(filters.limit)
+
+    users_db = await transaction.session.scalars(query_users)
+    adapter = TypeAdapter(list[UserInDB])
 
     return UsersDBResponse(
-        users=adapter.validate_python(users_db.all()),
-        page=page,
-        limit=limit,
-        total_pages=math.ceil(total_records / limit) if total_records else 1,
+        users=adapter.validate_python(users_db),
+        page=filters.page,
+        limit=filters.limit,
+        total_pages=math.ceil(total_records / filters.limit) if total_records else 1,
         total_records=total_records if total_records else 0,
     )
 
