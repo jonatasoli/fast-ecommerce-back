@@ -13,6 +13,7 @@ from sqlalchemy.orm.base import _T_co
 
 from app.entities.user import (
     UserCouponResponse,
+    UserFilters,
     UserInDB, UserSchema,
     UserUpdate,
     UsersDBResponse,
@@ -30,7 +31,7 @@ from app.entities.user import (
     Token,
     UserResponseResetPassword,
 )
-from app.user import services
+from app.user import repository, services
 from app.entities.user import CredentialError
 
 
@@ -215,26 +216,17 @@ async def get_user_by_id(
     status_code=status.HTTP_200_OK,
     response_model= UsersDBResponse,
 )
-async def get_users( # noqa: PLR0913
-    search_name: str | None = None,
-    search_document: str | None = None,
+async def get_users(
     token: str = Depends(oauth2_scheme),
-    order_by: str = UserOrderBy.user_id,
-    direction: str = Direction.asc,
-    limit: int = 10,
-    page: int = 1,
+    filters: UserFilters = Depends(UserFilters),
     db: sessionmaker = Depends(get_async_session),
 ) -> UsersDBResponse:
     """Get user."""
     await services.verify_admin(
         token=token, db=db,
     )
-    return await services.get_users(
-        search_name=search_name,
-        search_document=search_document,
-        order_by=order_by,
-        direction=direction,
-        limit=limit,
-        page=page,
-        db=db,
-    )
+    async with db().begin() as transaction:
+        return await repository.get_users(
+            filters=filters,
+            transaction=transaction,
+        )

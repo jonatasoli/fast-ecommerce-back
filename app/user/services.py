@@ -445,26 +445,3 @@ async def get_user_by_id(
         if not user_db:
             raise_credential_error()
     return UserInDB.model_validate(user_db)
-
-
-async def get_users( # noqa: PLR0913
-    *,
-    search_name: str | None,
-    search_document: str | None,
-    order_by: str,
-    direction: str,
-    limit: int,
-    page: int,
-    db,
-):
-    """Get users with filters."""
-    async with db() as transaction:
-        return await repository.get_users(
-            search_name=search_name,
-            search_document=search_document,
-            order_by=order_by,
-            direction=direction,
-            page=page,
-            limit=limit,
-            transaction=transaction,
-    )

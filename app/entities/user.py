@@ -1,6 +1,8 @@
 import enum
 from pydantic import BaseModel, ConfigDict, SecretStr
 
+from constants import Direction, UserOrderBy
+
 
 class CredentialError(Exception):
     """Raise if token is not valid."""
@@ -125,3 +127,12 @@ class UsersDBResponse(BaseModel):
     limit: int
     total_pages: int
     total_records: int
+
+
+class UserFilters(BaseModel):
+    search_name: str | None = None
+    search_document: str | None = None
+    order_by: UserOrderBy = UserOrderBy.user_id
+    direction: Direction = Direction.asc
+    limit: int = 10
+    page: int = 1
