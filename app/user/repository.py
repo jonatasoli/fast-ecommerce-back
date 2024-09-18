@@ -24,8 +24,7 @@ async def get_user_by_id(
 ) -> models.UserDB:
     """Get an user by its id."""
     user_query = select(models.UserDB).where(models.UserDB.user_id == user_id)
-    async with transaction:
-        return await transaction.session.scalar(user_query)
+    return await transaction.session.scalar(user_query)
 
 async def get_user_by_username(
     username: str,

@@ -429,8 +429,8 @@ async def update_user(
         update_data = update_user.model_dump(exclude_none=True)
         for key, value in update_data.items():
             setattr(user_db, key, value)
-        transaction.add(user_db)
-        await transaction.commit()
+        transaction.session.add(user_db)
+        await transaction.session.commit()
     return UserInDB.model_validate(user_db)
 
 

@@ -114,11 +114,11 @@ class UserInDB(UserSchema):
 
 
 class UserUpdate(BaseModel):
-    name: str | None
-    document: str | None
-    phone: str | None
-    role_id: int | None
-    email: str | None
+    name: str | None = None
+    document: str | None = None
+    phone: str | None = None
+    role_id: int | None = None
+    email: str | None = None
 
 
 class UsersDBResponse(BaseModel):

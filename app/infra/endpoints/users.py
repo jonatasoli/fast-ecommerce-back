@@ -179,9 +179,9 @@ async def reset_password(
     status_code=status.HTTP_200_OK,
 )
 async def update_user(
-    user_update: UserUpdate,
-    token: str,
     user_id: int,
+    user_update: UserUpdate,
+    token: str = Depends(oauth2_scheme),
     db: sessionmaker = Depends(get_async_session),
 ) -> UserInDB:
     """Update user."""
@@ -202,7 +202,7 @@ async def update_user(
 )
 async def get_user_by_id(
     user_id: int,
-    token: str,
+    token: str = Depends(oauth2_scheme),
     db: sessionmaker = Depends(get_async_session),
 ) -> UserInDB:
     """Get user."""
