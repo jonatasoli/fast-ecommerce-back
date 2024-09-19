@@ -10,6 +10,7 @@ from constants import Direction
 
 
 class UsersOderByDB(enum.Enum):
+    string_name = models.UserDB.name
     user_id = models.UserDB.user_id
     username = models.UserDB.username
     mail = models.UserDB.email
