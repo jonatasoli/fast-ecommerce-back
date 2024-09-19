@@ -29,7 +29,7 @@ class Direction(enum.StrEnum):
 class UserOrderBy(enum.StrEnum):
     user_id = 'user_id'
     username = 'username'
-    string_name = 'name'
+    string_name = 'string_name'
     mail = 'mail'
     document = 'document'
     phone = 'phone'
