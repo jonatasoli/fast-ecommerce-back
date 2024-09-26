@@ -111,13 +111,19 @@ async def test_get_users_with_ordering_and_pagination(mocker, db):
     assert response.total_pages == 3
 
 
-@pytest.mark.skip
-async def test_get_users_no_filters(mocker):
+@pytest.mark.asyncio
+async def test_get_users_no_filters(mocker, db):
     """Test query with no filters."""
     # Arrange
+    role = RoleDBFactory()
+    db.add(role)
+    db.flush()
+    users = UserDBFactory.create_batch(size=3, role_id=role.role_id)
+    db.add_all(users)
+    db.flush()
     transaction = mocker.MagicMock()
-    mock_scalar = transaction.scalar = mocker.AsyncMock(return_value=100)  # mock the count query result
-    mock_scalars = transaction.scalars = mocker.AsyncMock()
+    transaction.session.scalars = mocker.AsyncMock(return_value=users)
+    transaction.session.scalar = mocker.AsyncMock(return_value=15)
 
     filters = UserFilters(
         search_name=None,
@@ -132,9 +138,9 @@ async def test_get_users_no_filters(mocker):
     response = await get_users(filters=filters, transaction=transaction)
 
     # Assert
-    transaction.scalars.assert_called_once()
-    query_str = str(transaction.scalars.call_args[0][0])  # Get the query as string
-    assert "ORDER BY" in query_str  # Ensure there's an ORDER BY clause
-    assert mock_scalar.called  # Ensure total_records query was called
-    assert isinstance(response, UsersDBResponse)  # Ensure return type is correct
-    assert response.total_records == 100  # Ensure total count is returned
+    transaction.session.scalars.assert_called_once()
+    query_str = str(transaction.session.scalars.call_args[0][0])
+    assert "ORDER BY" in query_str
+    assert transaction.session.scalar.called
+    assert isinstance(response, UsersDBResponse)
+    assert response.total_records == 15
