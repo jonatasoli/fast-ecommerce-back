@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from loguru import logger
 from sqlalchemy import inspect
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.schema import (
     DropConstraint,
     DropTable,
@@ -108,16 +108,12 @@ def db():
     _engine = get_engine()
         # Reflect all tables from metadata
     metadata = Base.metadata
-    metadata.reflect(bind=_engine)
+    metadata.drop_all(_engine)
+    metadata.create_all(_engine)
 
-    Base.metadata.drop_all(bind=_engine, checkfirst=True)
-    Base.metadata.create_all(bind=_engine)
-    testing_session_local = sessionmaker(
-        autocommit=False,
-        autoflush=False,
-        bind=_engine,
-    )
-    return testing_session_local()
+    with Session(_engine) as session:
+        yield session
+        session.rollback()
 
 
 @pytest.fixture(scope='session')

@@ -62,6 +62,7 @@ dev-dependencies = [
     "ruff>=0.6.4",
     "ruff-lsp>=0.0.56",
     "taskipy>=1.13.0",
+    "pytest-timeout>=2.3.1",
 ]
 
 
