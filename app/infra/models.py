@@ -398,11 +398,13 @@ class SettingsDB(Base):
     __tablename__ = 'settings'
 
     settings_id: Mapped[int] = mapped_column(primary_key=True)
+    locale: Mapped[str]
+    provider: Mapped[str]
     field: Mapped[str]
     value: Mapped[Json] = mapped_column(JSON)
-    settings_category_id: Mapped[int]
-    description: Mapped[str]
-    is_active: Mapped[bool]
+    description: Mapped[str | None]
+    is_active: Mapped[bool] =  mapped_column(default=True)
+    is_default: Mapped[bool] = mapped_column(default=False)
 
 
 class InformUserProductDB(Base):
