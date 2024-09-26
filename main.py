@@ -31,6 +31,7 @@ from app.infra.endpoints.default import (
     sales,
 )
 from app.infra.endpoints.report import report
+from app.infra.endpoints.settings import settings as settingsconfig
 from app.mail.tasks import task_message_bus
 from app.cart.tasks import task_message_bus # noqa: F811
 from app.report.tasks import task_message_bus # noqa: F811
@@ -237,6 +238,7 @@ app.include_router(report)
 app.include_router(campaing)
 app.include_router(sales)
 app.include_router(task_message_bus)
+app.include_router(settingsconfig)
 
 
 def create_app():
