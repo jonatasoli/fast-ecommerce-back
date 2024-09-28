@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from decimal import Decimal
 from app.entities.product import ProductInDB
+from loguru import logger
 
 
 class MetricError(Exception):
@@ -47,6 +48,10 @@ def calculate_package(products: list[ProductInDB]) -> FreightPackage:
             else product.diameter
         )
         if not _metric:
+            logger.error("Error to calc freight!")
+            logger.error(product)
+            logger.error("products")
+            logger.error(products)
             raise raise_metric_error()
         volume += product.height * _metric
 
