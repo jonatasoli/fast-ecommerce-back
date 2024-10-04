@@ -4,7 +4,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
 
 
-class Commission(BaseModel):
+class CreateCommissionInDB(BaseModel):
     order_id: int
     user_id: int
     commission: Decimal
@@ -12,11 +12,17 @@ class Commission(BaseModel):
     release_date: datetime
     released: bool = False
     paid: bool = False
+    payment_id: int
+    active: bool = False
     model_config = ConfigDict(from_attributes=True)
 
 
+class CommissionInDB(CreateCommissionInDB):
+    commission_id: int
+
+
 class UserSalesCommissions(BaseModel):
-    commissions: list[Commission] | list
+    commissions: list[CommissionInDB] | list
 
 
 class InformUserProduct(BaseModel):

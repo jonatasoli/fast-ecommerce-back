@@ -6,9 +6,9 @@ from typing import Any
 from loguru import logger
 from sqlalchemy.orm import sessionmaker
 
+from app.entities.coupon import CouponResponse
 from app.infra.database import get_session
 from app.infra.worker import task_message_bus
-from app.entities.report import Commission
 from app.report.repository import update_commissions
 from app.report.services import create_sales_commission
 
@@ -18,26 +18,24 @@ def task_create_sales_commission(
     user_id: int,
     order_id: int,
     subtotal: Decimal,
-    coupon_id: int,
-    commission_percentage: Decimal | None = None,
+    coupon: CouponResponse,
+    payment_id: int,
 ) -> None:
     logger.info(f'Creating sales commission for order {order_id}')
-    if not commission_percentage:
+    if not coupon.commission_percentage or not coupon.limit_price:
         logger.error(
-            f'Commission percentage is zero or not set for Coupon {coupon_id=} and order {order_id=}',
+            f'''
+                Commission percentage is zero or not set for
+                Coupon {coupon.coupon_id=} and order {order_id=}',
+            ''',
         )
         return
-    today = datetime.now()
-    release_data = today + timedelta(days=30)
-    commission_value = Decimal(subtotal) * Decimal(commission_percentage)
     create_sales_commission(
-        Commission(
-            order_id=order_id,
-            user_id=user_id,
-            commission=commission_value,
-            date_created=today,
-            release_date=release_data,
-        ),
+        order_id=order_id,
+        user_id=user_id,
+        subtotal=subtotal,
+        coupon=coupon,
+        payment_id=payment_id,
     )
 
 

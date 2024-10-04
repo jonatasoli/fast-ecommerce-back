@@ -1,10 +1,13 @@
 # ruff: noqa: ANN401 FBT001 B008
+from datetime import datetime, timedelta, UTC
+from decimal import Decimal
 from typing import Any
+from app.entities.coupon import CouponResponse
 from app.entities.product import ProductInDB
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from app.infra.database import get_session
-from app.entities.report import Commission, InformUserProduct
+from app.entities.report import CommissionInDB, CreateCommissionInDB, InformUserProduct
 from app.report import repository
 from app.product import repository as product_repository
 from app.infra.models import SalesCommissionDB
@@ -16,8 +19,8 @@ async def get_user_sales_comissions(
     user: Any,
     paid: bool,
     released: bool,
-    db: Session,
-) -> list[Commission | None]:
+    db,
+) -> list[CommissionInDB | None]:
     """Get user sales commissions."""
     async with db.begin() as transaction:
         return await repository.get_user_sales_comissions(
@@ -28,14 +31,32 @@ async def get_user_sales_comissions(
         )
 
 
-def create_sales_commission(
-    sales_commission: Commission,
+def create_sales_commission( # noqa: PLR0913
+    order_id: int,
+    user_id: int,
+    subtotal: Decimal,
+    coupon: CouponResponse,
+    payment_id: int,
     db: sessionmaker = get_session(),
 ) -> SalesCommissionDB:
     """Get sales commit at all."""
+    today = datetime.now(tz=UTC)
+    release_data = today + timedelta(days=30)
+    if not coupon or not coupon.commission_percentage:
+        raise ValueError
+    commission_value = Decimal(subtotal) * Decimal(coupon.commission_percentage)
+
     with db.begin() as transaction:
         comission_db = repository.create_sales_commission(
-            sales_commission,
+            CreateCommissionInDB(
+                order_id=order_id,
+                user_id=user_id,
+                commission=commission_value,
+                date_created=today,
+                release_date=release_data,
+                payment_id=payment_id,
+
+            ),
             transaction=transaction,
     )
         transaction.commit()

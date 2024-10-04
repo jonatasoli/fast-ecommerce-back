@@ -20,7 +20,8 @@ class CouponCreate(CouponBase):
     qty: int = 1
     affiliate_id: int | None = None
     discount: Decimal
-    commission_percentage: Decimal | None = None
+    discount_price: Decimal | None = None
+    limit_price: Decimal | None = None
 
 
 class CouponUpdate(CouponCreate):

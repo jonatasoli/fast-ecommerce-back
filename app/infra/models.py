@@ -118,6 +118,8 @@ class CouponsDB(Base):
     )
     code: Mapped[str]
     discount: Mapped[Decimal]
+    discount_price: Mapped[Decimal | None]
+    limit_price: Mapped[Decimal | None]
     commission_percentage: Mapped[Decimal | None]
     qty: Mapped[int]
     active: Mapped[bool] = mapped_column(default=True)
@@ -337,7 +339,6 @@ class UserDB(Base):
     customer_id: Mapped[str] = mapped_column(nullable=True)
     card_id: Mapped[str] = mapped_column(nullable=True)
     payment_method: Mapped[str] = mapped_column(nullable=True)
-    franchise_id: Mapped[str] = mapped_column(nullable=True)
 
     update_email_on_next_login: Mapped[bool] = mapped_column(
         default=False,
@@ -383,8 +384,10 @@ class SalesCommissionDB(Base):
     commission: Mapped[Decimal]
     date_created: Mapped[datetime]
     release_date: Mapped[datetime]
+    payment_id: Mapped[int] = mapped_column(ForeignKey('payment.payment_id'))
     released: Mapped[bool] = mapped_column(default=False)
     paid: Mapped[bool] = mapped_column(default=False)
+    active: Mapped[bool] = mapped_column(default=False)
 
     # Virtual relationship fields
     user: Mapped['UserDB'] = relationship(

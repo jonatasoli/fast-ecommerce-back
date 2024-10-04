@@ -56,6 +56,12 @@ class CheckoutProcessingError(Exception):
     def __init__(self: Self) -> None:
         super().__init__('Checkout error processing')
 
+class CouponLimitPriceError(Exception):
+    """Raise when coupon limit is below the subtotal."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('The price limit is below for the subototal')
+
 
 def generate_cart_uuid() -> UUID:
     """Generate UUID to Cart."""
@@ -174,6 +180,11 @@ class CartBase(BaseModel):
                 if coupon and coupon.discount > 0:
                     item.discount_price = item.price * coupon.discount
                     self.discount += item.discount_price * item.quantity
+
+            if coupon and coupon.discount_price and coupon.discount_price > 0:
+                if coupon.limit_price and subtotal < coupon.limit_price:
+                    raise CouponLimitPriceError
+                self.discount = coupon.discount_price
             self.subtotal = subtotal - self.discount
             if self.freight and self.freight.price:
                 self.total = (subtotal + self.freight.price) - self.discount

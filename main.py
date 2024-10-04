@@ -3,7 +3,7 @@ import sys
 from fastapi.responses import JSONResponse
 
 import sentry_sdk
-from app.entities.cart import CheckoutProcessingError, ProductNotFoundError
+from app.entities.cart import CheckoutProcessingError, CouponLimitPriceError, ProductNotFoundError
 from app.entities.coupon import CouponDontMatchWithUserError, CouponNotFoundError
 from app.entities.user import CredentialError, UserDuplicateError
 from app.infra.freight.correios_br import CorreiosInvalidReturnError
@@ -190,6 +190,20 @@ async def user_dont_match_with_coupon(
         },
     )
 
+@app.exception_handler(CouponLimitPriceError)
+async def coupon_limit_error(
+    _: Request,
+    exc: CouponLimitPriceError,
+) -> JSONResponse:
+    """User don't match with coupon user_id raise status code 409."""
+    conflict_with_coupon = 439
+    return JSONResponse(
+        status_code=conflict_with_coupon,
+        content={
+            'detail': 'Coupon is not accepable for this preconditions.',
+        },
+    )
+
 
 @app.exception_handler(CheckoutProcessingError)
 async def checkout_processor_error(
@@ -242,6 +256,7 @@ app.include_router(settingsconfig)
 
 
 def create_app():
+    """Create app factory."""
     app = FastAPI()
     origins = [
         'localhost',
