@@ -30,4 +30,5 @@ class CouponUpdate(CouponCreate):
 
 class CouponResponse(CouponCreate):
     coupon_id: int
+    commission_percentage: Decimal = Decimal(0)
     model_config = ConfigDict(from_attributes=True)
