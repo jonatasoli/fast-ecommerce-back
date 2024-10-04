@@ -166,6 +166,12 @@ async def checkout(
                         },
                         queue=RabbitQueue('notification_order_paid'),
                     )
+                logger.debug('Debug comission credit card')
+                logger.debug(f'Order Id {order_id}')
+                logger.debug(f'Affiliate {affiliate_id}')
+                logger.debug(f'subtotal {cart.subtotal}')
+                logger.debug(f'Coupon {coupon}')
+                logger.debug(f'payment_Id {payment_id}')
                 if all([order_id, affiliate_id, coupon, payment_id]):
                     await bootstrap.message.broker.publish(
                         {
@@ -198,6 +204,12 @@ async def checkout(
                     f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success',
                 )
                 bootstrap.cache.set(cart_uuid, 18000)
+                logger.debug('Debug comission Pix')
+                logger.debug(f'Order Id {order_id}')
+                logger.debug(f'Affiliate {affiliate_id}')
+                logger.debug(f'subtotal {cart.subtotal}')
+                logger.debug(f'Coupon {coupon}')
+                logger.debug(f'payment_Id {payment_id}')
                 if all([order_id, affiliate_id, coupon, payment_id]):
                     await bootstrap.message.broker.publish(
                         {
