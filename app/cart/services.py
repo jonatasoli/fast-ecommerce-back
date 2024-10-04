@@ -140,7 +140,7 @@ async def calculate_cart(
     if cart:
         cache.set(
             str(cart.uuid),
-            cache_cart.model_dump_json(),
+            cart.model_dump_json(),
             ex=DEFAULT_CART_EXPIRE,
         )
 

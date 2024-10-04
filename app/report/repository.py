@@ -8,11 +8,11 @@ from sqlalchemy.orm import Session
 from pydantic import TypeAdapter
 
 from app.infra.models import InformUserProductDB, SalesCommissionDB, UserDB
-from app.entities.report import Commission, InformUserProduct, UserSalesCommissions
+from app.entities.report import CommissionInDB, InformUserProduct, UserSalesCommissions
 
 
 def create_sales_commission(
-    sales_commission: Commission,
+    sales_commission: CommissionInDB,
     transaction,
 ) -> SalesCommissionDB:
     """Save commission in database."""
@@ -40,7 +40,7 @@ async def get_user_sales_comissions(
         )
     )
     commissions = await transaction.session.execute(query)
-    adapter = TypeAdapter(list[Commission])
+    adapter = TypeAdapter(list[CommissionInDB])
     return UserSalesCommissions(
         commissions=adapter.validate_python(commissions.scalars().all()),
     )

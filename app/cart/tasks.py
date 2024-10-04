@@ -159,23 +159,23 @@ async def checkout(
                         send_mail=True,
                         bootstrap=bootstrap,
                     )
-                    if all([order_id, affiliate_id, coupon]):
-                        await bootstrap.message.broker.publish(
-                            {
-                                'user_id': affiliate_id,
-                                'order_id': order_id,
-                                'commission_percentage': coupon.commission_percentage,
-                                'coupon_id': coupon.coupon_id,
-                                'subtotal': cart.subtotal,
-                            },
-                            queue=RabbitQueue('sales_commission'),
-                        )
                     await bootstrap.message.broker.publish(
                         {
                             'mail_to': user['email'],
                             'order_id': order_id if order_id else '',
                         },
                         queue=RabbitQueue('notification_order_paid'),
+                    )
+                if all([order_id, affiliate_id, coupon, payment_id]):
+                    await bootstrap.message.broker.publish(
+                        {
+                            'user_id': affiliate_id,
+                            'order_id': order_id,
+                            'subtotal': cart.subtotal,
+                            'coupon': coupon,
+                            'payment_id': payment_id,
+                        },
+                        queue=RabbitQueue('sales_commission'),
                     )
                 logger.info(
                     f'Checkout cart {cart_uuid} with payment {payment_id} processed with success',
@@ -198,41 +198,28 @@ async def checkout(
                     f'Checkout cart {cart_uuid} with payment {payment_id} concluded with success',
                 )
                 bootstrap.cache.set(cart_uuid, 18000)
+                if all([order_id, affiliate_id, coupon, payment_id]):
+                    await bootstrap.message.broker.publish(
+                        {
+                            'user_id': affiliate_id,
+                            'order_id': order_id,
+                            'subtotal': cart.subtotal,
+                            'coupon': coupon,
+                            'payment_id': payment_id,
+                        },
+                        queue=RabbitQueue('sales_commission'),
+                    )
                 bootstrap.cache.delete(cart_uuid)
             case (_):
                 raise Exception('Payment method not found')
 
 
     except PaymentAcceptError:
-        # await bootstrap.message.broker.publish(
-        #     {
-        #         'mail_to': user['email'],
-        #         'order_id': order_id if order_id else '',
-        #         'reason': 'Dados do cartão incorreto ou sem limite disponível',
-        #     },
-        #     queue=RabbitQueue('notification_order_cancelled'),
-        # )
         return PAYMENT_STATUS_ERROR_MESSAGE
     except PaymentGatewayRequestError:
-        # await bootstrap.message.broker.publish(
-        #     {
-        #         'mail_to': user['email'],
-        #         'order_id': order_id if order_id else '',
-        #         'reason': 'Erro quando foi chamado o emissor do cartão tente novamente mais tarde',
-        #     },
-        #     queue=RabbitQueue('notification_order_cancelled'),
-        # )
         return PAYMENT_REQUEST_ERROR_MESSAGE
     except Exception as e:
         logger.error(f'Error in checkout: {e}')
-        # await bootstrap.message.broker.publish(
-        #     {
-        #         'mail_to': user['email'],
-        #         'order_id': order_id if order_id else '',
-        #         'reason': 'Erro desconhecido favor entre em contato conosco',
-        #     },
-        #     queue=RabbitQueue('notification_order_cancelled'),
-        # )
         raise
     return {
         'order_id': {order_id},

@@ -4,11 +4,9 @@ from app.entities.settings import MainSettings
 from app.entities.user import UserNotAdminError, UserNotFoundError
 from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
 
 from app.infra.database import get_async_session
 from app.settings import repository
-from app.entities.report import Commission, InformUserProduct, UserSalesCommissions
 from app.user import services as domain_user
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
