@@ -11,18 +11,6 @@ from app.infra.models import InformUserProductDB, SalesCommissionDB, UserDB
 from app.entities.report import CommissionInDB, InformUserProduct, UserSalesCommissions
 
 
-def create_sales_commission(
-    sales_commission: CommissionInDB,
-    transaction,
-) -> SalesCommissionDB:
-    """Save commission in database."""
-    with transaction:
-        commission = SalesCommissionDB(**sales_commission.model_dump())
-        transaction.add(commission)
-        transaction.flush()
-    return commission
-
-
 async def get_user_sales_comissions(
     user,
     *,

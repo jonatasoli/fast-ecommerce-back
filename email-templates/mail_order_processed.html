@@ -1,11 +1,14 @@
 <html>
   <head>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    >
   </head>
 
   <h2>Seu pedido número: {{order_id}} foi recebido!</h2>
-    <table class="table-auto">
-    <thead>
+    <table>
+    <thead data-theme="light">
       <tr>
         <th>Produto</th>
         <th>Quantidade</th>
@@ -18,6 +21,8 @@
       <tr>
         <td>{{item.product.name}}</td>
         <td>{{item.quantity}}</td>
+        <td>R${{item.price}}</td>
+        <td>{{item.quantity}} * {{item.quantity}}</td>
       </tr>
       {% endfor %}
     </tbody>

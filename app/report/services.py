@@ -2,12 +2,11 @@
 from datetime import datetime, timedelta, UTC
 from decimal import Decimal
 from typing import Any
-from app.entities.coupon import CouponResponse
 from app.entities.product import ProductInDB
 from sqlalchemy.orm import sessionmaker
 
 from app.infra.database import get_session
-from app.entities.report import CommissionInDB, CreateCommissionInDB, InformUserProduct
+from app.entities.report import CommissionInDB, InformUserProduct
 from app.report import repository
 from app.product import repository as product_repository
 from app.infra.models import SalesCommissionDB
@@ -35,32 +34,29 @@ def create_sales_commission( # noqa: PLR0913
     order_id: int,
     user_id: int,
     subtotal: Decimal,
-    coupon: CouponResponse,
+    commission_percentage: Decimal | None,
     payment_id: int,
     db: sessionmaker = get_session(),
 ) -> SalesCommissionDB:
     """Get sales commit at all."""
     today = datetime.now(tz=UTC)
     release_data = today + timedelta(days=30)
-    if not coupon or not coupon.commission_percentage:
+    if not commission_percentage:
         raise ValueError
-    commission_value = Decimal(subtotal) * Decimal(coupon.commission_percentage)
+    commission_value = Decimal(subtotal) * Decimal(commission_percentage)
 
     with db.begin() as transaction:
-        comission_db = repository.create_sales_commission(
-            CreateCommissionInDB(
+        commission_db = SalesCommissionDB(
                 order_id=order_id,
                 user_id=user_id,
                 commission=commission_value,
                 date_created=today,
                 release_date=release_data,
                 payment_id=payment_id,
-
-            ),
-            transaction=transaction,
-    )
+        )
+        transaction.add(commission_db)
         transaction.commit()
-    return comission_db
+    return commission_db
 
 
 async def notify_product_to_admin(
