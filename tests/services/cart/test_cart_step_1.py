@@ -8,7 +8,7 @@ from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from app.cart.services import add_product_to_cart, calculate_cart
 from app.infra.bootstrap.cart_bootstrap import Command
-from app.infra.database import get_async_session
+from app.infra.database import get_async_session, get_session
 from tests.factories_db import ProductDBFactory
 from tests.fake_functions import fake, fake_url_path
 
@@ -33,6 +33,7 @@ def create_product_cart(
 @pytest.mark.asyncio
 async def test_add_product_to_new_cart(
     memory_bootstrap: Command,
+    db,
     mocker: MockerFixture,
 ) -> None:
     """Must add product to new cart and return cart_id."""
@@ -220,12 +221,14 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
         'get',
         return_value=cart.model_dump_json(),
     )
+    session = get_session()
 
     # Act
     cart_response = await calculate_cart(
         uuid=str(uuid),
         cart=cart,
         bootstrap=bootstrap,
+        session=session,
     )
 
     # Assert

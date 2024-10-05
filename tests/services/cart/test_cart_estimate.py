@@ -6,7 +6,7 @@ from pytest_mock import MockerFixture
 from app.cart.services import calculate_cart
 from app.entities.cart import CartBase
 from app.infra.bootstrap.cart_bootstrap import Command
-from app.infra.database import get_async_session
+from app.infra.database import get_async_session, get_session
 from tests.factories_db import CouponFactory, ProductDBFactory
 from tests.services.cart.test_cart_step_1 import create_product_cart
 
@@ -63,12 +63,14 @@ async def test_estimate_cart_with_product(
             product_quantity_2,
         ],
     )
+    session = get_session()
 
     # Act
     cart_response = await calculate_cart(
         uuid=cart.uuid,
         cart=cart,
         bootstrap=bootstrap,
+        session=session,
     )
 
     # Assert
@@ -137,12 +139,14 @@ async def test_estimate_cart_with_coupon_discount(
             product_quantity_2,
         ],
     )
+    session = get_session()
 
     # Act
     cart_response = await calculate_cart(
         uuid=cart.uuid,
         cart=cart,
         bootstrap=bootstrap,
+        session=session,
     )
 
     # Assert
