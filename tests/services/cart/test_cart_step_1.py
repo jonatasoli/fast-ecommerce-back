@@ -40,7 +40,7 @@ async def test_add_product_to_new_cart(
     product = create_product_cart()
     productdb = ProductDBFactory(product_id=1, discount=0)
     productdb.quantity = 10
-    bootstrap = await memory_bootstrap
+    bootstrap = memory_bootstrap
     mocker.patch.object(
         bootstrap.cart_repository,
         'get_product_by_id',
@@ -70,7 +70,7 @@ async def test_add_product_to_new_cart_should_set_in_cache(
     product = create_product_cart()
     productdb = ProductDBFactory(product_id=1, discount=0)
     productdb.quantity = 10
-    bootstrap = await memory_bootstrap
+    bootstrap = memory_bootstrap
     mocker.patch.object(
         bootstrap.cart_repository,
         'get_product_by_id',
@@ -111,7 +111,7 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
 
     productdb = ProductDBFactory(product_id=1, discount=0)
     productdb.quantity = 10
-    bootstrap = await memory_bootstrap
+    bootstrap = memory_bootstrap
     mocker.patch.object(
         bootstrap.cart_repository,
         'get_product_by_id',
@@ -189,7 +189,7 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
     )
     productdb_2.quantity=10
 
-    bootstrap = await memory_bootstrap
+    bootstrap = memory_bootstrap
     bootstrap.db = get_async_session()
     bootstrap.cache = Mock()
     product_inventory_1 = productdb_1
