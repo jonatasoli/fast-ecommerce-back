@@ -7,7 +7,7 @@ from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 from pydantic import TypeAdapter
 
-from app.infra.models import InformUserProductDB, SalesCommissionDB, UserDB
+from app.infra.models import CoProducerFeeDB, FeeDB, InformUserProductDB, SalesCommissionDB, UserDB
 from app.entities.report import CommissionInDB, InformUserProduct, UserSalesCommissions
 
 
@@ -75,3 +75,13 @@ async def save_user_inform(
         transaction.add(inform_db)
     return inform_db
 
+
+def get_fees(transaction):
+    """Get active fees."""
+    query = select(FeeDB).where(FeeDB.active.is_(True))
+    return transaction.scalars(query).all()
+
+def get_coproducer(transaction):
+    """Get co producers."""
+    query = select(CoProducerFeeDB).where(CoProducerFeeDB.active.is_(True))
+    return transaction.scalars(query).all()
