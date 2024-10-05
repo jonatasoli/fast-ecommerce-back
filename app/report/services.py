@@ -40,7 +40,6 @@ def create_sales_commission( # noqa: PLR0913
     db: sessionmaker = get_session(),
 ) -> SalesCommissionDB:
     """Get sales commit at all."""
-
     with db.begin() as transaction:
         fees = repository.get_fees(transaction)
         total_with_fees = subtotal
@@ -56,9 +55,7 @@ def create_sales_commission( # noqa: PLR0913
                 total_with_fees -= total_with_fees * (co_producer_fee.percentage / 100)
 
         if not commission_percentage:
-            raise ValueError(
-                "Nenhum percentual de comissão de vendedor ativo encontrado",
-            )
+            raise ValueError('Error with percentage in report') #noqa: EM101 TRY003
 
         free_freight = 700
         freight_tax = 65
