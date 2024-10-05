@@ -1,6 +1,7 @@
 # ruff: noqa: PLR1714
 from contextlib import suppress
 import re
+from app.campaign import repository as campaign_repository
 
 from fastapi import HTTPException
 from loguru import logger
@@ -114,6 +115,7 @@ async def calculate_cart(
     uuid: str,
     cart: CartBase,
     bootstrap: Command,
+    session,
 ) -> CartBase:
     """Must calculate cart and return cart."""
     cache = bootstrap.cache
@@ -146,10 +148,10 @@ async def calculate_cart(
 
     cart.get_products_price_and_discounts(products_inventory)
     if cart.coupon:
-        async with bootstrap.db() as session:
+        async with bootstrap.db() as transaction:
             coupon = await bootstrap.cart_repository.get_coupon_by_code(
                 cart.coupon,
-                transaction=session.begin(),
+                transaction=transaction.begin(),
             )
     if cart.coupon and not coupon:
         raise HTTPException(
@@ -160,6 +162,7 @@ async def calculate_cart(
         cart=cart,
         products_db=products_inventory,
         bootstrap=bootstrap,
+        session=session,
     )
     if cart.cart_items:
         cart.calculate_subtotal(
@@ -177,8 +180,14 @@ def calculate_freight(
     cart: CartBase,
     products_db: ProductCart,
     bootstrap: Command,
+    session,
 ) -> CartBase:
     """Calculate Freight."""
+    with session.begin() as transaction:
+        campaign = campaign_repository.get_campaign(
+            free_shipping=True,
+            transaction=transaction,
+        )
     if cart.zipcode:
         zipcode = cart.zipcode
         no_spaces = zipcode.replace(' ', '')
@@ -197,6 +206,8 @@ def calculate_freight(
             freight_package=freight_package,
             zipcode=cart.zipcode,
         )
+        if campaign and cart.subtotal > campaign.min_purchase_value:
+           freight.price = 0
         cart.freight = freight
     return cart
 

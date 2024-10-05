@@ -13,6 +13,7 @@ from app.product import repository as product_repository
 from app.infra.models import SalesCommissionDB
 from faststream.rabbit import RabbitQueue
 from app.infra.worker import task_message_bus
+from app.campaign import repository as campaign_repository
 
 
 async def get_user_sales_comissions(
@@ -57,10 +58,11 @@ def create_sales_commission( # noqa: PLR0913
         if not commission_percentage:
             raise ValueError('Error with percentage in report') #noqa: EM101 TRY003
 
-        free_freight = 700
-        freight_tax = 65
-        if subtotal > free_freight:
-            total_with_fees = total_with_fees - freight_tax
+        campaign = campaign_repository.get_campaign(
+            transaction=transaction,
+        )
+        if campaign and subtotal > campaign.min_purchase_value:
+            total_with_fees = total_with_fees - campaign.commission_fee_value
         commission_value = total_with_fees * commission_percentage
         today = datetime.now(tz=UTC)
         release_data = today + timedelta(days=30)

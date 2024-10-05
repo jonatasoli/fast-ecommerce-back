@@ -15,6 +15,7 @@ from app.entities.coupon import CouponResponse
 from app.entities.product import ProductCart
 from app.infra.bootstrap.cart_bootstrap import Command, bootstrap
 from fastapi import APIRouter, Depends, status
+from app.infra.database import get_async_session, get_session
 from loguru import logger
 
 from app.cart import services
@@ -108,12 +109,14 @@ async def estimate(
     *,
     cart: CartBase,
     bootstrap: Command = Depends(get_bootstrap),
+    session = Depends(get_session),
 ) -> CartBase:
     """Add product to cart."""
     return await services.calculate_cart(
         uuid=uuid,
         cart=cart,
         bootstrap=bootstrap,
+        session=session,
     )
 
 
