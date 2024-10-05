@@ -22,8 +22,8 @@ from app.infra.bootstrap.user_bootstrap import Command, bootstrap
 from loguru import logger
 from app.infra.database import get_async_session, get_session
 
-from constants import Direction, UserOrderBy
-from domains import domain_user
+from app.infra.constants import Direction, UserOrderBy
+from legacy import domain_user
 from app.infra.deps import get_db
 from app.entities.user import (
     SignUp,

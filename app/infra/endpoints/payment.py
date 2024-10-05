@@ -1,12 +1,12 @@
 from app.infra.database import get_async_session
 from loguru import logger
 from app.entities.payment import PaymentInDB, PaymentNotification, PaymentStatusResponse
-from payment.schema import ConfigCreditCardResponse
 from fastapi import APIRouter, Depends, status
 from app.payment import repository
 from app.payment import services
-from payment.schema import (
+from app.entities.payment import (
     ConfigCreditCardInDB,
+    ConfigCreditCardResponse,
 )
 from app.infra.bootstrap.payment_bootstrap import Command, bootstrap
 

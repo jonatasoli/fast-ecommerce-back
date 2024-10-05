@@ -1,4 +1,3 @@
-
 import httpx
 from fastapi import HTTPException, status
 from loguru import logger
@@ -6,7 +5,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from app.infra.models import AddressDB
-from schemas.order_schema import CheckoutSchema
+from app.entities.order import CheckoutSchema
 
 
 def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
