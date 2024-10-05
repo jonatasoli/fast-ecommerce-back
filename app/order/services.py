@@ -2,7 +2,7 @@ import json
 import math
 from typing import Any
 
-from constants import OrderStatus
+from app.infra.constants import OrderStatus
 from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
@@ -30,7 +30,7 @@ from app.infra.models import (
     OrderItemsDB,
 )
 from app.user.services import verify_admin
-from schemas.order_schema import (
+from app.entities.order import (
     CategoryInDB,
     ImageGalleryResponse,
     OrderFullResponse,

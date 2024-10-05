@@ -3,8 +3,13 @@ from decimal import Decimal
 from typing import Self
 from pydantic import BaseModel, ConfigDict, Json
 from app.infra.constants import InventoryOperation
-from schemas.order_schema import CategoryInDB
 
+
+class CategoryInDB(BaseModel):
+    category_id: int
+    name: str
+    path: str
+    model_config = ConfigDict(from_attributes=True)
 
 class ProductSoldOutError(Exception):
     """Represent produt is Sold out."""

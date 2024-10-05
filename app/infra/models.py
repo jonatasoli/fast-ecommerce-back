@@ -419,3 +419,20 @@ class InformUserProductDB(Base):
     product_id: Mapped[int]
     product_name: Mapped[str]
     sended: Mapped[bool]
+
+class FeeDB(Base):
+    __tablename__ = 'fees'
+
+    fee_id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    fee_type: Mapped[str]
+    value: Mapped[Decimal]
+    active: Mapped[bool] = mapped_column(default=True)
+
+class CoProducerFeeDB(Base):
+    __tablename__ = 'co_producer_fees'
+
+    co_producer_fee_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    percentage: Mapped[Decimal]
+    active: Mapped[bool] = mapped_column(default=True)

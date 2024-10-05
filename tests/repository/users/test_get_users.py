@@ -3,7 +3,7 @@ import pytest
 
 from app.entities.user import UserFilters, UsersDBResponse
 from app.user.repository import get_users
-from constants import Direction
+from app.infra.constants import Direction
 from tests.factories_db import RoleDBFactory, UserDBFactory
 
 @pytest.mark.asyncio

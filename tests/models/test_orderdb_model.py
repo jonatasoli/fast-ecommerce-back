@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from constants import StepsOrder
+from app.infra.constants import StepsOrder
 from app.infra.models import OrderDB, OrderStatusStepsDB
 from tests.factories_db import (
     OrderFactory,

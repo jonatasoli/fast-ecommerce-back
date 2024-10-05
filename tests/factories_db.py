@@ -2,7 +2,7 @@ from decimal import Decimal
 import factory
 from factory.declarations import SelfAttribute, SubFactory
 from faker import Faker
-from app.infra.constants import InventoryOperation
+from app.infra.constants import InventoryOperation, OrderStatus, StepsOrder
 from app.infra.models import (
     CouponsDB,
     CreditCardFeeConfigDB,
@@ -17,7 +17,6 @@ from app.infra.models import UploadedImageDB
 from app.infra.models import UserDB
 from app.infra.models import RoleDB
 from app.infra.models import CategoryDB, OrderDB, OrderStatusStepsDB, ProductDB
-from constants import OrderStatus, StepsOrder
 from tests.fake_functions import (
     fake_cpf,
     fake_decimal,

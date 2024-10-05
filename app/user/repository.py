@@ -6,7 +6,7 @@ from sqlalchemy import asc, func, select, update
 from sqlalchemy.sql import desc
 from app.entities.user import UserFilters, UserInDB, UsersDBResponse
 from app.infra import models
-from constants import Direction
+from app.infra.constants import Direction
 
 
 class UsersOderByDB(enum.Enum):

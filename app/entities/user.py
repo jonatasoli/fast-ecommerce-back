@@ -1,7 +1,7 @@
 import enum
 from pydantic import BaseModel, ConfigDict, SecretStr
 
-from constants import Direction, UserOrderBy
+from app.infra.constants import Direction, UserOrderBy
 
 
 class CredentialError(Exception):
