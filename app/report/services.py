@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, UTC
 from decimal import Decimal
 from typing import Any
 from app.entities.product import ProductInDB
+from app.infra.constants import FeeType
 from sqlalchemy.orm import sessionmaker
 
 from app.infra.database import get_session
@@ -39,13 +40,34 @@ def create_sales_commission( # noqa: PLR0913
     db: sessionmaker = get_session(),
 ) -> SalesCommissionDB:
     """Get sales commit at all."""
-    today = datetime.now(tz=UTC)
-    release_data = today + timedelta(days=30)
-    if not commission_percentage:
-        raise ValueError
-    commission_value = Decimal(subtotal) * Decimal(commission_percentage)
 
     with db.begin() as transaction:
+        fees = repository.get_fees(transaction)
+        total_with_fees = subtotal
+        for fee in fees:
+            if fee.fee_type == FeeType.PERCENTAGE:
+                total_with_fees -= total_with_fees * fee.value
+            if fee.fee_type == FeeType.FIXED:
+                total_with_fees -= fee.value
+
+        co_producers_fee = repository.get_coproducer(transaction)
+        if co_producers_fee:
+            for co_producer_fee in co_producers_fee:
+                total_with_fees -= total_with_fees * (co_producer_fee.percentage / 100)
+
+        if not commission_percentage:
+            raise ValueError(
+                "Nenhum percentual de comissão de vendedor ativo encontrado",
+            )
+
+        free_freight = 700
+        freight_tax = 65
+        if subtotal > free_freight:
+            total_with_fees = total_with_fees - freight_tax
+        commission_value = total_with_fees * commission_percentage
+        today = datetime.now(tz=UTC)
+        release_data = today + timedelta(days=30)
+
         commission_db = SalesCommissionDB(
                 order_id=order_id,
                 user_id=user_id,
