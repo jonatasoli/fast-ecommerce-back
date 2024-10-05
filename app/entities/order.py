@@ -132,7 +132,7 @@ class TrackingFullResponse(BaseModel):
 
 
 class OrderCl:
-    def __init__(
+    def __init__( #noqa: PLR0913
         self,
         payment_id: int,
         id_pagarme: str,
@@ -156,7 +156,6 @@ class OrderCl:
         zipcode: int,
         user_affiliate: str,
         amount: int,
-        checked: bool,
         products: list,
     ):
         self.payment_id = payment_id
@@ -181,7 +180,7 @@ class OrderCl:
         self.zipcode = zipcode
         self.user_affiliate = user_affiliate
         self.amount = amount
-        self.checked = checked
+        self.checked = False
         self.products = products
 
 
