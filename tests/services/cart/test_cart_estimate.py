@@ -28,7 +28,7 @@ async def test_estimate_cart_with_product(
 
     productdb_1 = ProductDBFactory(product_id=1, discount=0)
     productdb_2 = ProductDBFactory(product_id=2, discount=0)
-    bootstrap = await memory_bootstrap
+    bootstrap = memory_bootstrap
     mocker.patch.object(
         bootstrap.uow,
         'get_product_by_id',
@@ -95,7 +95,7 @@ async def test_estimate_cart_with_coupon_discount(
 
     productdb_1 = ProductDBFactory(product_id=1, discount=Decimal('0'))
     productdb_2 = ProductDBFactory(product_id=2, discount=Decimal('0'))
-    bootstrap = await memory_bootstrap
+    bootstrap =  memory_bootstrap
     mocker.patch.object(
         bootstrap.uow,
         'get_product_by_id',

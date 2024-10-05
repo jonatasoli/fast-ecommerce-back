@@ -25,7 +25,7 @@ async def test_upload_image_should_change_image_path(
     image_client_mock.optimize_image.return_value = new_image_path
 
     # Act
-    session = await asyncdb
+    session = asyncdb
     response = await upload_image(
         product_id,
         db=session,

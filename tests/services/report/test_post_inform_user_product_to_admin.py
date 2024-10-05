@@ -32,7 +32,7 @@ async def test_input_to_user_admin(mocker, asyncdb):
     credit_card_config = CreditCardFeeConfigFactory()
     category = CategoryFactory()
     product = None
-    db = await asyncdb
+    db = asyncdb
     async with db() as transaction:
         transaction.add(category)
         transaction.add(credit_card_config)
