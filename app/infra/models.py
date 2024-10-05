@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
+from enum import Enum
 from typing import Any
 
 from pydantic import Json
@@ -14,7 +15,7 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from app.infra.constants import DocumentType
+from app.infra.constants import DiscountType, DocumentType
 
 
 class Base(DeclarativeBase):
@@ -436,3 +437,18 @@ class CoProducerFeeDB(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
     percentage: Mapped[Decimal]
     active: Mapped[bool] = mapped_column(default=True)
+
+
+class CampaignDB(Base):
+    __tablename__ = 'campaign'
+
+    campaign_id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    start_date: Mapped[datetime]
+    end_date: Mapped[datetime]
+    active: Mapped[bool] = mapped_column(default=True)
+    discount_type: Mapped[str]
+    discount_value: Mapped[Decimal | None]
+    free_shipping: Mapped[bool]
+    min_purchase_value: Mapped[Decimal | None]
+    commission_fee_value: Mapped[Decimal | None]

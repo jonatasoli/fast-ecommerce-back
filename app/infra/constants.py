@@ -97,3 +97,9 @@ class UserOrderBy(enum.StrEnum):
     mail = 'mail'
     document = 'document'
     phone = 'phone'
+
+
+class DiscountType(enum.StrEnum):
+    PERCENTAGE = 'PERCENTAGE'
+    FIXED = 'FIXED'
+    FREE_SHIPPING = 'FREE_SHIPPING'
