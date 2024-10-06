@@ -123,15 +123,18 @@ async def checkout(
                     authorization=payment_response.authorization_code,
                     bootstrap=bootstrap,
                 )
+                _payment_id = payment_id
                 gateway_payment_id = payment_response.authorization_code
+                logger.debug(f'PAyment Response {payment_response}')
                 cart.payment_intent = payment_response.id
+                logger.debug(f'Payment Intent {cart.payment_intent}')
                 authorization = payment_response.authorization_code
                 payment_accept = bootstrap.payment.accept_payment(
                     payment_gateway=cart.gateway_provider,
                     payment_id=cart.payment_intent,
                 )
 
-                logger.info(f'Payment response: {payment_accept}')
+                logger.debug(f'Payment response: {payment_accept}')
 
                 # TODO: check if order is in inventory for decrease
                 await decrease_inventory(
@@ -162,30 +165,34 @@ async def checkout(
                         send_mail=True,
                         bootstrap=bootstrap,
                     )
+                    logger.debug('Debug comission credit card')
+                    logger.debug(f'Order Id {order_id}')
+                    logger.debug(f'Affiliate {affiliate_id}')
+                    logger.debug(f'subtotal {cart.subtotal}')
+                    logger.debug(f'Coupon {coupon}')
+                    logger.debug(f'payment_Id {_payment_id}')
+                    logger.debug(f'payment_Id 2 {payment_id}')
+                    if all([order_id, affiliate_id, coupon, _payment_id]):
+                        logger.debug('Credit Card task start')
+                        await bootstrap.message.broker.publish(
+                            {
+                                'user_id': affiliate_id,
+                                'order_id': order_id,
+                                'subtotal': cart.subtotal,
+                                'coupon_id': coupon.coupon_id,
+                                'commission_percentage': coupon.commission_percentage,
+                                'payment_id': _payment_id,
+                            },
+                            queue=RabbitQueue('sales_commission'),
+                        )
+                    else:
+                        logger.debug('Not commission')
                     await bootstrap.message.broker.publish(
                         {
                             'mail_to': user['email'],
                             'order_id': order_id if order_id else '',
                         },
                         queue=RabbitQueue('notification_order_paid'),
-                    )
-                logger.debug('Debug comission credit card')
-                logger.debug(f'Order Id {order_id}')
-                logger.debug(f'Affiliate {affiliate_id}')
-                logger.debug(f'subtotal {cart.subtotal}')
-                logger.debug(f'Coupon {coupon}')
-                logger.debug(f'payment_Id {payment_id}')
-                if all([order_id, affiliate_id, coupon, payment_id]):
-                    await bootstrap.message.broker.publish(
-                        {
-                            'user_id': affiliate_id,
-                            'order_id': order_id,
-                            'subtotal': cart.subtotal,
-                            'coupon_id': coupon.coupon_id,
-                            'commission_percentage': coupon.commission_percentage,
-                            'payment_id': payment_id,
-                        },
-                        queue=RabbitQueue('sales_commission'),
                     )
                 logger.info(
                     f'Checkout cart {cart_uuid} with payment {payment_id} processed with success',
