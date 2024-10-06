@@ -389,6 +389,8 @@ class SalesCommissionDB(Base):
     released: Mapped[bool] = mapped_column(default=False)
     paid: Mapped[bool] = mapped_column(default=False)
     active: Mapped[bool] = mapped_column(default=False)
+    cancelled: Mapped[bool] = mapped_column(default=False, server_default='0')
+    cancelled_at: Mapped[datetime | None]
 
     # Virtual relationship fields
     user: Mapped['UserDB'] = relationship(

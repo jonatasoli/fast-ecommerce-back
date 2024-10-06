@@ -10,7 +10,7 @@ from faststream.rabbit import RabbitQueue
 from typing import Any
 from loguru import logger
 from app.payment import repository
-
+from app.report import repository as report_repository
 
 async def update_payment(
     payment_data: PaymentNotification,
@@ -39,6 +39,12 @@ async def update_payment(
         )
         order_id = payment_db[0].order_id
     if payment['status'] == 'approved' or payment['status'] == 'authorized':
+        await report_repository.update_payment_commissions(
+            paid_status=True,
+            payment_id=payment_db.payment_id,
+            db=session,
+            cancelled_status=False,
+        )
         await bootstrap.message.broker.publish(
             {
                 'mail_to': user.email,
@@ -47,6 +53,12 @@ async def update_payment(
             queue=RabbitQueue('notification_order_paid'),
         )
     if payment['status'] == 'cancelled':
+        await report_repository.update_payment_commissions(
+            paid_status=False,
+            payment_id=payment_db.payment_id,
+            db=session,
+            cancelled_status=True,
+        )
         await bootstrap.message.broker.publish(
             {
                 'mail_to': user.email,
