@@ -1,5 +1,6 @@
 # ruff: noqa: PLR1714
 from contextlib import suppress
+from decimal import Decimal
 import re
 from app.campaign import repository as campaign_repository
 
@@ -184,6 +185,7 @@ def calculate_freight(
 ) -> CartBase:
     """Calculate Freight."""
     with session.begin() as transaction:
+        logger.debug("Search campaign")
         campaign = campaign_repository.get_campaign(
             free_shipping=True,
             transaction=transaction,
@@ -206,8 +208,10 @@ def calculate_freight(
             freight_package=freight_package,
             zipcode=cart.zipcode,
         )
+        logger.debug(f'Campaign: {campaign}')
         if campaign and cart.subtotal > campaign.min_purchase_value:
-           freight.price = 0
+            logger.debug('Campaign')
+            freight.price = Decimal(0.01)
         cart.freight = freight
     return cart
 

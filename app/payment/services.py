@@ -18,12 +18,14 @@ async def update_payment(
 ) -> None:
     """Update payment."""
     order_id, user = None, None
+    logger.debug(f'Data Payment {payment_data}')
     payment = bootstrap.payment.get_payment_status(
         payment_id=payment_data.data.id,
         payment_gateway='MERCADOPAGO',
     )
     logger.info(f'Gateway {payment}')
     logger.info(f'Status {payment["status"]}')
+    payment_db = None
     async with bootstrap.db().begin() as session:
         payment_db = await bootstrap.payment_repository.update_payment_status(
             payment_data.data.id,
@@ -39,6 +41,7 @@ async def update_payment(
         )
         order_id = payment_db[0].order_id
     if payment['status'] == 'approved' or payment['status'] == 'authorized':
+        logger.debug(f'PAyment DB {payment_db}')
         await report_repository.update_payment_commissions(
             paid_status=True,
             payment_id=payment_db.payment_id,
