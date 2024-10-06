@@ -19,6 +19,7 @@ async def update_payment(
     """Update payment."""
     order_id, user = None, None
     logger.debug(f'Data Payment {payment_data}')
+    logger.debug(f'Data Payment ID {payment_data.data.id}')
     payment = bootstrap.payment.get_payment_status(
         payment_id=payment_data.data.id,
         payment_gateway='MERCADOPAGO',
@@ -44,7 +45,7 @@ async def update_payment(
         logger.debug(f'PAyment DB {payment_db}')
         await report_repository.update_payment_commissions(
             paid_status=True,
-            payment_id=payment_db.payment_id,
+            payment_id=payment_db[0].payment_id,
             db=session,
             cancelled_status=False,
         )
@@ -58,7 +59,7 @@ async def update_payment(
     if payment['status'] == 'cancelled':
         await report_repository.update_payment_commissions(
             paid_status=False,
-            payment_id=payment_db.payment_id,
+            payment_id=payment_db[0].payment_id,
             db=session,
             cancelled_status=True,
         )

@@ -46,7 +46,7 @@ async def update_payment(
     bootstrap: Any,
 ):
     """Update payment status."""
-    await bootstrap.payment_uow.uow_update_payment(
+    return await bootstrap.payment_uow.uow_update_payment(
         payment_id,
         payment_status=payment_status,
         authorization=authorization,
