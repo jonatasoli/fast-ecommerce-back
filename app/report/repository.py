@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from app.entities.product import ProductInDB
 from app.entities.user import UserInDB
@@ -45,6 +45,29 @@ def update_commissions(date_threshold: datetime, db) -> None:
         )
         commission_db = transaction.scalar(query)
         commission_db.paid = True
+        transaction.add(commission_db)
+        transaction.commit()
+
+
+def update_payment_commissions(
+    *,
+    payment_id:int,
+    paid_status: bool,
+    db,
+    cancelled_status: bool = False,
+) -> None:
+    """Update comission status."""
+    with db as transaction:
+        query = select(SalesCommissionDB).where(
+            SalesCommissionDB.payment_id == payment_id,
+        )
+        commission_db = transaction.scalar(query)
+        commission_db.paid = paid_status
+        if cancelled_status:
+            today = datetime.now(tz=UTC)
+            commission_db.cancelled_at = cancelled_status
+            commission_db.cancelled_at = today
+            commission_db.paid = False
         transaction.add(commission_db)
         transaction.commit()
 
