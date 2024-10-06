@@ -186,7 +186,7 @@ class CartBase(BaseModel):
                     raise CouponLimitPriceError
                 self.discount = coupon.discount_price
             self.subtotal = subtotal - self.discount
-            if self.freight and self.freight.price:
+            if self.freight and self.freight.price >= 0:
                 self.total = (subtotal + self.freight.price) - self.discount
         except TypeError as err:
             logger.error('Price or quantity not found in cart item')
