@@ -187,7 +187,10 @@ class CartBase(BaseModel):
                 self.discount = coupon.discount_price
             self.subtotal = subtotal - self.discount
             logger.debug(f'Frete {self.freight}')
-            logger.debug(f'Preco {self.freight.price}')
+            _freight_price = self.freight.price if getattr(
+                self.freight, 'price', 0,
+            ) else 0
+            logger.debug(f'Preco {_freight_price}')
             if self.freight and self.freight.price >= 0:
                 logger.debug('Sum freight')
                 self.total = (subtotal + self.freight.price) - self.discount
