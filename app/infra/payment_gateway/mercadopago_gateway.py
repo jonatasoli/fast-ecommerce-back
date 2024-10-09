@@ -36,7 +36,7 @@ class MercadoPagoPaymentResponse(BaseModel):
 
     id: int
     authorization_code: str
-    date_created: str
+    date_created: str | None = None
     date_approved: str | None = None
     currency_id: str
     payment_method: dict
@@ -156,7 +156,12 @@ def create_credit_card_payment(
         )
     logger.info('Gateway Response')
     logger.info(f'{payment_response["response"]}')
-    if payment_response["response"].get('status') not in [200, 201, 'authorized']:
+    if payment_response["response"].get('status') not in [
+        200,
+        201,
+        'authorized',
+        'in_process',
+    ]:
         logger.info(payment_response)
         raise_payment_not_found()
     return MercadoPagoPaymentResponse.model_validate(
