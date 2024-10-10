@@ -259,7 +259,7 @@ def get_orders(page, offset, *, db):
     )
 
 
-def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
+def get_user_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
     """Given order_id return Order with user data."""
     with db:
         order_query = (
@@ -305,6 +305,16 @@ def get_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
         return [
             OrderUserListResponse.model_validate(order) for order in orders_obj
         ]
+
+def get_order(db: Session, order_id: int) -> OrderInDB:
+    """Given order_id return Order with user data."""
+    with db:
+        order_query = (
+            select(OrderDB)
+            .where(OrderDB.order_id == order_id)
+        )
+        order = db.scalar(order_query)
+        return OrderInDB.model_validate(order)
 
 
 def get_order_users(db: Session, id):

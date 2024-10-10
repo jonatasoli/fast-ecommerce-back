@@ -18,6 +18,7 @@ from app.entities.order import (
     TrackingFullResponse,
     OrderUserListResponse,
     OrderFullResponse,
+    OrderInDB,
 )
 from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
@@ -50,15 +51,29 @@ async def get_orders(
         return services.get_orders(page, offset, db=db)
     except Exception:
         raise
-@order.get('/{id}', status_code=200)
-async def get_order(
+
+@order.get('/user/{user_id}', status_code=200)
+async def get_user_order(
     *,
     db: Session = Depends(get_db),
-    id: int,
+    user_id: int,
 ) -> list[OrderUserListResponse]:
     """Get order."""
     try:
-        return services.get_order(db, id)
+        return services.get_user_order(db, user_id)
+    except Exception as e:
+        logger.error(e)
+        raise
+
+@order.get('/{order_id}', status_code=200)
+async def get_order(
+    *,
+    db: Session = Depends(get_db),
+    order_id: int,
+) -> OrderInDB:
+    """Get order."""
+    try:
+        return services.get_order(db, order_id)
     except Exception as e:
         logger.error(e)
         raise

@@ -367,7 +367,7 @@ def check_token(f):
         )
         try:
             payload = decode(
-                kwargs.get('token', None),
+                kwargs.get('token'),
                 settings.SECRET_KEY,
                 algorithms=[settings.ALGORITHM],
             )
