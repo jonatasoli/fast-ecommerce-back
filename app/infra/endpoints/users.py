@@ -70,10 +70,14 @@ async def get_affiliate_user(
     """Get user."""
     user = services.get_affiliate(token, db=db)
     logger.info(user.user_id)
+    if settings.FRONTEND_URLS:
+        base_url = settings.FRONTEND_URLS
+    else:
+        base_url = str(request.base_url)
     return services.get_affiliate_urls(
         user=user,
         db=db,
-        base_url=str(request.base_url),
+        base_url=base_url,
     )
 
 
