@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
 from sqlalchemy import asc, func, select
-from sqlalchemy.orm import Session, lazyload
+from sqlalchemy.orm import Session, lazyload, selectinload
 from app.product import repository
 from faststream.rabbit import RabbitQueue
 
@@ -241,6 +241,7 @@ def get_orders(page, offset, *, db):
     with db().begin() as db:
         orders_query = (
             select(OrderDB)
+            .options(selectinload(OrderDB.items))
             .order_by(OrderDB.order_id.desc())
         )
         total_records = db.session.scalar(select(func.count(OrderDB.order_id)))

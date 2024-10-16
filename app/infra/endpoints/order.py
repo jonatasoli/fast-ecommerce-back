@@ -79,15 +79,15 @@ async def get_order(
         raise
 
 
-@order.get('/user/{id}', status_code=200)
+@order.get('/user/{user_id}', status_code=200)
 async def get_order_users_id(
     *,
     db: Session = Depends(get_db),
-    id,
+    user_id,
 ):
     """Get order users id."""
     try:
-        return services.get_order_users(db, id)
+        return services.get_order_users(db, user_id)
     except Exception:
         raise
 

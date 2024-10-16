@@ -23,6 +23,17 @@ class OrderDBUpdate(BaseModel):
     checked: bool | None = None
 
 
+class OrderItemInDB(BaseModel):
+    order_items_id: int
+    order_id: int
+    product_id: int
+    product: ProductInDB
+    quantity: int
+    price: Decimal
+    discount_price: Decimal | None
+    model_config = ConfigDict(from_attributes=True)
+
+
 class OrderInDB(BaseModel):
     order_id: int
     affiliate_id: int | None
@@ -34,12 +45,7 @@ class OrderInDB(BaseModel):
     order_status: str
     freight: str | None
     coupon_id: int | None
-    model_config = ConfigDict(from_attributes=True)
-
-
-class OrderItemInDB(BaseModel):
-    order: OrderInDB
-    products: list[ProductInDB]
+    items: list[OrderItemInDB] | None
     model_config = ConfigDict(from_attributes=True)
 
 
