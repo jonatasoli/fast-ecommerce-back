@@ -1,8 +1,9 @@
+from datetime import UTC, datetime
 import json
 import math
 from typing import Any
 
-from app.infra.constants import OrderStatus
+from app.infra.constants import OrderStatus, PaymentStatus
 from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
@@ -11,7 +12,7 @@ from sqlalchemy.orm import Session, lazyload, selectinload
 from app.product import repository
 from faststream.rabbit import RabbitQueue
 
-from app.entities.order import OrderInDB, OrderResponse
+from app.entities.order import CancelOrder, OrderInDB, OrderNotFoundError, OrderResponse
 from app.entities.product import (
     ProductCategoryInDB,
     ProductCreate,
@@ -316,6 +317,25 @@ def get_order(db: Session, order_id: int) -> OrderInDB:
         )
         order = db.scalar(order_query)
         return OrderInDB.model_validate(order)
+
+
+def delete_order(order_id: int, *, cancel: CancelOrder, db) -> None:
+    """Soft delete order."""
+    with db:
+        order_query = (
+            select(OrderDB)
+            .options(selectinload(OrderDB.items))
+            .where(OrderDB.order_id == order_id)
+        )
+        order = db.scalar(order_query)
+        if not order:
+            raise OrderNotFoundError
+        order.order_status = PaymentStatus.CANCELLED
+        order.checked = False
+        order.cancelled_at = datetime.now(tz=UTC)
+        order.cancelled_reason=cancel.cancel_reason
+        db.add(order)
+        db.commit()
 
 
 def get_order_users(db: Session, id):

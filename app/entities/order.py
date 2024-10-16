@@ -49,6 +49,10 @@ class OrderInDB(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class CancelOrder(BaseModel):
+    cancel_reason: str
+
+
 class OrderItemResponse(BaseModel):
     order_items: list[OrderItemInDB]
     page: int
