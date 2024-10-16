@@ -14,6 +14,7 @@ from app.order import services
 from app.infra.deps import get_db
 from app.infra.models import PaymentDB, OrderDB
 from app.entities.order import (
+    CancelOrder,
     OrderSchema,
     TrackingFullResponse,
     OrderUserListResponse,
@@ -113,6 +114,17 @@ async def complete_order(
         return await services.complete_order(order_id,db=db)
     except Exception:
         raise
+
+
+@order.delete('/{order_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_order(
+    *,
+    db: Session = Depends(get_db),
+    cancel_reason: CancelOrder,
+    order_id: int,
+) -> None:
+    """Delete order."""
+    services.delete_order(order_id, cancel=cancel_reason, db=db)
 
 
 @order.patch(
