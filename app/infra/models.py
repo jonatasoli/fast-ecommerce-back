@@ -171,6 +171,15 @@ class OrderDB(Base):
         ForeignKey('coupons.coupon_id'),
     )
 
+    # Virtual fields
+    items: Mapped[list['OrderItemsDB']] = relationship(
+        'OrderItemsDB',
+        backref='orders',
+        cascade='all,delete',
+        foreign_keys='OrderItemsDB.order_id',
+        lazy='joined',
+    )
+
 
 class OrderItemsDB(Base):
     __tablename__ = 'order_items'
@@ -179,7 +188,7 @@ class OrderItemsDB(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
     order = relationship(
         'OrderDB',
-        backref=backref('order_items', uselist=False),
+        backref=backref('order_items'),
         cascade='all,delete',
         foreign_keys=[order_id],
         lazy='joined',
