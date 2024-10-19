@@ -3,6 +3,7 @@ import math
 from pydantic import TypeAdapter
 from sqlalchemy import asc, func, select, update
 
+from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import desc
 from app.entities.user import UserFilters, UserInDB, UsersDBResponse
 from app.infra import models
@@ -24,7 +25,9 @@ async def get_user_by_id(
     transaction,
 ) -> models.UserDB:
     """Get an user by its id."""
-    user_query = select(models.UserDB).where(models.UserDB.user_id == user_id)
+    user_query = select(models.UserDB).options(
+        selectinload(models.UserDB.addresses),
+    ).where(models.UserDB.user_id == user_id)
     return await transaction.session.scalar(user_query)
 
 async def get_user_by_username(
@@ -33,7 +36,9 @@ async def get_user_by_username(
     transaction,
 ) -> models.UserDB | None:
     """Get an user by its username."""
-    user_query = select(models.UserDB).where(
+    user_query = select(models.UserDB).options(
+        selectinload(models.UserDB.addresses),
+    ).where(
         models.UserDB.username == username,
     )
     async with transaction:
@@ -61,7 +66,9 @@ async def get_users(
     transaction,
 ):
     """Select all users."""
-    query_users = select(models.UserDB)
+    query_users = select(models.UserDB).options(
+        selectinload(models.UserDB.addresses),
+    )
     if filters.search_name:
         query_users = query_users.where(
             models.UserDB.name.like(f'%{filters.search_name}'),

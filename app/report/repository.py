@@ -4,7 +4,7 @@ from app.entities.product import ProductInDB
 from app.entities.user import UserInDB
 from app.infra.constants import Roles
 from sqlalchemy import select, and_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from pydantic import TypeAdapter
 
 from app.infra.models import CoProducerFeeDB, FeeDB, InformUserProductDB, SalesCommissionDB, UserDB
@@ -76,7 +76,11 @@ async def update_payment_commissions(
 async def get_admins(transaction):
     """Get list of admins."""
     async with transaction:
-        query = select(UserDB).where(UserDB.role_id == Roles.ADMIN.value)
+        query = select(UserDB).options(
+            selectinload(UserDB.addresses),
+        ).where(
+            UserDB.role_id == Roles.ADMIN.value,
+        )
         admin_db = await transaction.scalars(query)
         adapter = TypeAdapter(list[UserInDB])
         return adapter.validate_python(admin_db)

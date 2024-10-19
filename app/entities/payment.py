@@ -142,8 +142,8 @@ class PaymentInDB(BaseModel):
     authorization: str | None
     payment_method: str | None
     payment_gateway: str | None
-    amount_with_fee: int | None
-    freight_amount: int | None
+    amount_with_fee: Decimal | None
+    freight_amount: Decimal | None
     model_config = ConfigDict(from_attributes=True)
 
 

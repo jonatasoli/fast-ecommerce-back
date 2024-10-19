@@ -44,6 +44,19 @@ class UserAddress(BaseModel):
     zip_code: str
 
 
+class UserAddressInDB(BaseModel):
+    user_id: int | None
+    street: str
+    street_number: str
+    address_complement: str
+    neighborhood: str
+    city: str
+    state: str
+    country: str
+    zipcode: str
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserDBGet(BaseModel):
     user_id: int
     name: str
@@ -105,6 +118,7 @@ class UserSchema(BaseModel):
     email: str | None = None
     full_name: str | None = None
     disabled: bool | None = None
+    addresses: list[UserAddressInDB] | None = None
     model_config = ConfigDict(from_attributes=True)
 
 
