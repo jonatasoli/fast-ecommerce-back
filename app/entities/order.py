@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, SecretStr
 
+from app.entities.payment import PaymentInDB
 from app.entities.product import ProductInDB
 from app.entities.user import UserInDB
 
@@ -46,6 +47,7 @@ class OrderInDB(BaseModel):
     freight: str | None
     coupon_id: int | None
     items: list[OrderItemInDB] | None
+    payment: PaymentInDB | None = None
     model_config = ConfigDict(from_attributes=True)
 
 

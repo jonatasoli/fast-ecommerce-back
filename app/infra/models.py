@@ -142,6 +142,39 @@ class CouponsDB(Base):
     )
 
 
+class PaymentDB(Base):
+    __tablename__ = 'payment'
+
+    payment_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    user: Mapped['UserDB'] = relationship(
+        foreign_keys=[user_id],
+        backref='payment',
+        cascade='all,delete',
+        uselist=False,
+    )
+    order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
+    amount: Mapped[Decimal]
+    amount_with_fee: Mapped[Decimal] = mapped_column(server_default='0')
+    token: Mapped[str]
+    gateway_payment_id: Mapped[int] = mapped_column(BIGINT, server_default='0')
+    status: Mapped[str]
+    authorization: Mapped[str]
+    payment_method: Mapped[str]
+    payment_gateway: Mapped[str]
+    installments: Mapped[int]
+    processed: Mapped[bool] = mapped_column(default=False)
+    processed_at: Mapped[datetime | None]
+    freight_amount: Mapped[Decimal] = mapped_column(server_default='0')
+
+    order: Mapped['OrderDB'] = relationship(
+        'OrderDB',
+        back_populates='payment',
+        foreign_keys=[order_id],  # Verifique se essa linha está correta
+        uselist=False,
+    )
+
+
 class OrderDB(Base):
     __tablename__ = 'order'
 
@@ -178,6 +211,13 @@ class OrderDB(Base):
         cascade='all,delete',
         foreign_keys='OrderItemsDB.order_id',
         lazy='joined',
+        overlaps="order_items",
+    )
+    payment: Mapped['PaymentDB'] = relationship(
+        'PaymentDB',
+        foreign_keys=[PaymentDB.order_id],
+        back_populates="order",
+        uselist=False,
     )
 
 
@@ -192,6 +232,7 @@ class OrderItemsDB(Base):
         cascade='all,delete',
         foreign_keys=[order_id],
         lazy='joined',
+        overlaps="orders, items",
     )
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
     product = relationship(
@@ -268,38 +309,6 @@ class CustomerDB(Base):
     created_at: Mapped[datetime] = mapped_column(default=func.now())
 
 
-class PaymentDB(Base):
-    __tablename__ = 'payment'
-
-    payment_id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
-    user: Mapped['UserDB'] = relationship(
-        foreign_keys=[user_id],
-        backref='payment',
-        cascade='all,delete',
-        uselist=False,
-    )
-    order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
-    order: Mapped['OrderDB'] = relationship(
-        foreign_keys=[order_id],
-        backref='payment',
-        cascade='all,delete',
-        uselist=False,
-    )
-    amount: Mapped[Decimal]
-    amount_with_fee: Mapped[Decimal] = mapped_column(server_default='0')
-    token: Mapped[str]
-    gateway_payment_id: Mapped[int] = mapped_column(BIGINT, server_default='0')
-    status: Mapped[str]
-    authorization: Mapped[str]
-    payment_method: Mapped[str]
-    payment_gateway: Mapped[str]
-    installments: Mapped[int]
-    processed: Mapped[bool] = mapped_column(default=False)
-    processed_at: Mapped[datetime | None]
-    freight_amount: Mapped[Decimal] = mapped_column(server_default='0')
-
-
 class CreditCardFeeConfigDB(Base):
     __tablename__ = 'credit_card_fee_config'
 
@@ -358,6 +367,13 @@ class UserDB(Base):
         server_default='0',
     )
 
+    addresses: Mapped[list['AddressDB'] | None] = relationship(
+        'AddressDB',
+        back_populates='user',
+        cascade='all, delete',
+        lazy='joined',
+    )
+
 
 class AddressDB(Base):
     __tablename__ = 'address'
@@ -374,6 +390,11 @@ class AddressDB(Base):
     zipcode: Mapped[str]
     uuid: Mapped[str] = mapped_column(nullable=True)
     active: Mapped[bool] = mapped_column(default=False)
+
+    user: Mapped['UserDB'] = relationship(
+        'UserDB',
+        back_populates='addresses',
+    )
 
 
 class UserResetPasswordDB(Base):

@@ -3,12 +3,13 @@ import json
 import math
 from typing import Any
 
+from app.entities.user import UserAddressInDB
 from app.infra.constants import OrderStatus, PaymentStatus
 from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
 from sqlalchemy import asc, func, select
-from sqlalchemy.orm import Session, lazyload, selectinload
+from sqlalchemy.orm import Session, joinedload, lazyload, selectinload
 from app.product import repository
 from faststream.rabbit import RabbitQueue
 
@@ -23,12 +24,14 @@ from app.entities.product import (
 )
 from app.infra.file_upload import optimize_image
 from app.infra.models import (
+    AddressDB,
     CategoryDB,
     ImageGalleryDB,
     InventoryDB,
     ProductDB,
     OrderDB,
     OrderItemsDB,
+    UserDB,
 )
 from app.user.services import verify_admin
 from app.entities.order import (
@@ -241,8 +244,11 @@ def get_orders(page, offset, *, db):
     """Get Orders Paid."""
     with db().begin() as db:
         orders_query = (
-            select(OrderDB)
-            .options(selectinload(OrderDB.items))
+            select(OrderDB).options(
+                joinedload(OrderDB.user),
+                joinedload(OrderDB.payment),
+                selectinload(OrderDB.items),
+            )
             .order_by(OrderDB.order_id.desc())
         )
         total_records = db.session.scalar(select(func.count(OrderDB.order_id)))
@@ -250,7 +256,7 @@ def get_orders(page, offset, *, db):
             orders_query = orders_query.offset((page - 1) * offset)
         orders_query = orders_query.limit(offset)
 
-        orders_db = db.session.execute(orders_query)
+        orders_db = db.session.execute(orders_query).unique()
         adapter = TypeAdapter(list[OrderInDB])
     return OrderResponse(
         orders=adapter.validate_python(orders_db.scalars().all()),
@@ -265,7 +271,11 @@ def get_user_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
     """Given order_id return Order with user data."""
     with db:
         order_query = (
-            select(OrderDB)
+            select(OrderDB).options(
+            joinedload(OrderDB.user),
+            joinedload(OrderDB.payment),
+            selectinload(OrderDB.items),
+            )
             .where(OrderDB.user_id == user_id)
             .order_by(OrderDB.order_id.desc())
         )
@@ -313,18 +323,45 @@ def get_order(db: Session, order_id: int) -> OrderInDB:
     with db:
         order_query = (
             select(OrderDB)
+            .options(
+            joinedload(OrderDB.user),
+            joinedload(OrderDB.payment),
+            joinedload(OrderDB.items).joinedload(OrderItemsDB.product),
+            joinedload(OrderDB.user).joinedload(UserDB.addresses.and_(
+                AddressDB.address_id == (
+                    select(func.max(AddressDB.address_id))
+                    .where(AddressDB.user_id == OrderDB.user_id)
+                ),
+            )),
+        )
             .where(OrderDB.order_id == order_id)
         )
         order = db.scalar(order_query)
-        return OrderInDB.model_validate(order)
+        _order = OrderInDB.model_validate(order)
+        last_address_subquery = (
+            select(AddressDB)
+            .where(AddressDB.user_id == order.user_id)
+            .order_by(AddressDB.address_id.desc())
+            .limit(1)
+        )
+        if order and order.user:
+            last_address = db.scalar(last_address_subquery)
+            if last_address:
+                _order.user.addresses = [UserAddressInDB.model_validate(last_address)]
+            else:
+                _order.user.addresses = []
+        return _order
 
 
 def delete_order(order_id: int, *, cancel: CancelOrder, db) -> None:
     """Soft delete order."""
     with db:
         order_query = (
-            select(OrderDB)
-            .options(selectinload(OrderDB.items))
+            select(OrderDB).options(
+            joinedload(OrderDB.user),
+            joinedload(OrderDB.payment),
+            selectinload(OrderDB.items),
+            )
             .where(OrderDB.order_id == order_id)
         )
         order = db.scalar(order_query)
