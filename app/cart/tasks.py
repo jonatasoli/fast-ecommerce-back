@@ -105,7 +105,7 @@ async def checkout(
                     bootstrap.payment.create_credit_card_payment(
                         payment_gateway=cart.gateway_provider,
                         customer_id=cart.customer_id,
-                        amount=cart.subtotal,
+                        amount=cart.total,
                         card_token=cart.card_token,
                         installments=cart.installments,
                         customer_email=user['email'],
