@@ -28,7 +28,7 @@ from app.entities.cart import (
 from app.entities.coupon import (
     CouponDontMatchWithUserError,
     CouponNotFoundError,
-    CouponResponse,
+    CouponInDB,
 )
 from app.entities.payment import CustomerNotFoundError
 from app.entities.product import ProductCart, ProductSoldOutError
@@ -562,7 +562,7 @@ async def checkout(
     )
 
 
-async def get_coupon(code: str, bootstrap: Command) -> CouponResponse:
+async def get_coupon(code: str, bootstrap: Command) -> CouponInDB:
     """Must get coupon and return cart."""
     async with bootstrap.db().begin() as transaction:
         coupon = await bootstrap.cart_uow.get_coupon_by_code(

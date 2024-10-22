@@ -6,7 +6,7 @@ from sqlalchemy.orm import SessionTransaction
 from sqlalchemy.sql import select
 
 from app.entities.cart import CartPayment
-from app.entities.coupon import CouponResponse
+from app.entities.coupon import CouponInDB
 from app.infra.constants import OrderStatus
 from app.infra.models import (
     OrderDB,
@@ -20,7 +20,7 @@ from app.entities.order import OrderDBUpdate
 async def create_order(
     cart: CartPayment,
     *,
-    coupon: CouponResponse | None,
+    coupon: CouponInDB | None,
     user_id: int,
     transaction: SessionTransaction,
     affiliate_id: int | None,
@@ -135,5 +135,5 @@ def get_order_items(order_id: int, transaction) -> list:
         .join(ProductDB, OrderItemsDB.product_id == ProductDB.product_id)
         .where(OrderItemsDB.order_id == order_id)
     )
-    order_db = transaction.execute(order_query)
+    order_db = transaction.execute(order_query).unique()
     return order_db.scalars().all()

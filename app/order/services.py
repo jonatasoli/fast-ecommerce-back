@@ -271,52 +271,42 @@ def get_user_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
     """Given order_id return Order with user data."""
     with db:
         order_query = (
-            select(OrderDB).options(
-            joinedload(OrderDB.user),
-            joinedload(OrderDB.payment),
-            selectinload(OrderDB.items),
+            select(OrderDB)
+            .options(
+                joinedload(OrderDB.user),
+                joinedload(OrderDB.payment),
+                selectinload(OrderDB.items)
+                .joinedload(OrderItemsDB.product),
             )
             .where(OrderDB.user_id == user_id)
             .order_by(OrderDB.order_id.desc())
         )
-        orders = db.execute(order_query).scalars().all()
-        orders_obj = []
-        for order in orders:
-            items_query = (
-                select(OrderItemsDB)
-                .join(
-                    ProductDB,
-                    OrderItemsDB.product_id == ProductDB.product_id,
-                )
-                .where(OrderItemsDB.order_id == order.order_id)
+        orders = db.execute(order_query).scalars().unique().all()
+        orders_obj = [
+            OrderUserListResponse(
+                order_id=order.order_id,
+                cancelled_at=order.cancelled_at,
+                cancelled_reason=order.cancelled_reason,
+                freight=order.freight,
+                order_date=order.order_date,
+                order_status=order.order_status,
+                tracking_number=order.tracking_number,
+                products=[
+                    ProductListOrderResponse(
+                        product_id=item.product.product_id,
+                        name=item.product.name,
+                        uri=item.product.uri,
+                        price=item.price,
+                        quantity=item.quantity,
+                    )
+                    for item in order.items
+                ],
             )
-            items = db.execute(items_query).scalars().all()
-            products_list = [
-                ProductListOrderResponse(
-                    product_id=item.product_id,
-                    name=item.product.name,
-                    uri=item.product.uri,
-                    price=item.price,
-                    quantity=item.quantity,
-                )
-                for item in items
-            ]
-
-            orders_obj.append(
-                OrderUserListResponse(
-                    order_id=order.order_id,
-                    cancelled_at=order.cancelled_at,
-                    cancelled_reason=order.cancelled_reason,
-                    freight=order.freight,
-                    order_date=order.order_date,
-                    order_status=order.order_status,
-                    tracking_number=order.tracking_number,
-                    products=products_list,
-                ),
-            )
-        return [
-            OrderUserListResponse.model_validate(order) for order in orders_obj
+            for order in orders
         ]
+
+        return [OrderUserListResponse.model_validate(order) for order in orders_obj]
+
 
 def get_order(db: Session, order_id: int) -> OrderInDB:
     """Given order_id return Order with user data."""
@@ -373,10 +363,6 @@ def delete_order(order_id: int, *, cancel: CancelOrder, db) -> None:
         order.cancelled_reason=cancel.cancel_reason
         db.add(order)
         db.commit()
-
-
-def get_order_users(db: Session, id):
-    ...
 
 
 def put_order(db: Session, order_data: OrderFullResponse, id):

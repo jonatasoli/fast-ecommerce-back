@@ -11,7 +11,7 @@ from app.entities.cart import (
     CreateCreditCardTokenPaymentMethod,
     CreatePixPaymentMethod,
 )
-from app.entities.coupon import CouponResponse
+from app.entities.coupon import CouponInDB
 from app.entities.product import ProductCart
 from app.infra.bootstrap.cart_bootstrap import Command, bootstrap
 from fastapi import APIRouter, Depends, status
@@ -39,7 +39,7 @@ async def get_bootstrap() -> Command:
     description='Search coupon by code and return the coupon if exists',
     status_code=status.HTTP_200_OK,
     response_description='Search Coupon',
-    response_model=CouponResponse,
+    response_model=CouponInDB,
     #     status.HTTP_400_BAD_REQUEST: {
     #         "coupon is invalid",
     #     },
@@ -51,7 +51,7 @@ async def get_coupon(
     coupon: str,
     *,
     bootstrap: Command = Depends(get_bootstrap),
-) -> CouponResponse:
+) -> CouponInDB:
     """Get coupon."""
     return await services.get_coupon(
         code=coupon,

@@ -55,22 +55,22 @@ async def update_payment_commissions(
     cancelled_status: bool = False,
 ) -> None:
     """Update comission status."""
-    dir(db)
     async with db as transaction:
         query = select(SalesCommissionDB).where(
             SalesCommissionDB.payment_id == payment_id,
         )
         commission_db = await transaction.session.scalar(query)
-        commission_db.paid = paid_status
-        commission_db.active = True
-        if cancelled_status:
-            today = datetime.now(tz=UTC)
-            commission_db.cancelled_at = cancelled_status
-            commission_db.cancelled_at = today
-            commission_db.paid = False
-            commission_db.active = False
-        transaction.session.add(commission_db)
-        await transaction.session.commit()
+        if commission_db:
+            commission_db.paid = paid_status
+            commission_db.active = True
+            if cancelled_status:
+                today = datetime.now(tz=UTC)
+                commission_db.cancelled_at = cancelled_status
+                commission_db.cancelled_at = today
+                commission_db.paid = False
+                commission_db.active = False
+            transaction.session.add(commission_db)
+            await transaction.session.commit()
 
 
 async def get_admins(transaction):

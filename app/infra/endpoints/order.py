@@ -80,19 +80,6 @@ async def get_order(
         raise
 
 
-@order.get('/user/{user_id}', status_code=200)
-async def get_order_users_id(
-    *,
-    db: Session = Depends(get_db),
-    user_id,
-):
-    """Get order users id."""
-    try:
-        return services.get_order_users(db, user_id)
-    except Exception:
-        raise
-
-
 @order.patch('/{order_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def patch_order(
     *,

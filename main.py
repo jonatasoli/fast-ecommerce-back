@@ -26,11 +26,11 @@ from app.infra.endpoints.cart import cart
 from app.infra.endpoints.default import (
     inventory,
     reviews,
-    coupons,
     campaing,
     sales,
 )
 from app.infra.endpoints.report import report
+from app.infra.endpoints.coupon import coupon
 from app.infra.endpoints.settings import settings as settingsconfig
 from app.mail.tasks import task_message_bus
 from app.cart.tasks import task_message_bus # noqa: F811
@@ -247,7 +247,7 @@ app.include_router(catalog)
 app.include_router(cart)
 app.include_router(inventory)
 app.include_router(reviews)
-app.include_router(coupons)
+app.include_router(coupon)
 app.include_router(report)
 app.include_router(campaing)
 app.include_router(sales)
