@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import Depends
 
 from app.entities.cart import CartPayment
-from app.entities.coupon import CouponResponse
+from app.entities.coupon import CouponInDB
 from app.infra.bootstrap.task_bootstrap import Command
 from app.infra.models import OrderDB
 from app.entities.order import OrderDBUpdate
@@ -14,7 +14,7 @@ from app.infra.bootstrap.task_bootstrap import bootstrap
 async def create_order(
     cart: CartPayment,
     affiliate_id: int | None,
-    coupon: CouponResponse | None,
+    coupon: CouponInDB | None,
     user: Any,
     bootstrap: Command,
 ) -> int:

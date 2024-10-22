@@ -12,6 +12,10 @@ class CouponDontMatchWithUserError(Exception):
 
 class CouponBase(BaseModel):
     code: str
+    user_id: int | None = None
+    product_id: int | None = None
+    discount_price: Decimal | None = None
+    limit_price: Decimal | None = None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -28,7 +32,15 @@ class CouponUpdate(CouponCreate):
     ...
 
 
-class CouponResponse(CouponCreate):
+class CouponInDB(CouponCreate):
     coupon_id: int
-    commission_percentage: Decimal = Decimal(0)
+    commission_percentage: Decimal | None = Decimal(0)
     model_config = ConfigDict(from_attributes=True)
+
+
+class CouponsResponse(BaseModel):
+    page: int
+    offset: int
+    total_pages: int
+    total_records: int
+    coupons: list[CouponInDB]

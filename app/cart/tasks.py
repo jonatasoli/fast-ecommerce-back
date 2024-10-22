@@ -8,7 +8,7 @@ from faststream.rabbit import RabbitQueue
 from app.cart.services import calculate_freight, consistency_inventory
 
 from app.entities.cart import CartPayment
-from app.entities.coupon import CouponResponse
+from app.entities.coupon import CouponInDB
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command
 from app.infra.constants import OrderStatus, PaymentMethod
 from app.infra.payment_gateway.stripe_gateway import (
@@ -263,7 +263,7 @@ async def checkout(
 async def create_pending_payment_and_order(
     cart: CartPayment,
     affiliate_id: int | None,
-    coupon: CouponResponse | None,
+    coupon: CouponInDB | None,
     user: Any,
     payment_gateway: str,
     gateway_payment_id: int,

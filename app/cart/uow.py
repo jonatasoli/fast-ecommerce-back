@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 from decimal import Decimal
 from typing import Any, Self, TYPE_CHECKING
-from app.entities.coupon import CouponBase, CouponResponse
+from app.entities.coupon import CouponBase, CouponInDB
 
 from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
@@ -134,7 +134,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     async def _get_coupon_by_code(self: Self, code: str) -> CouponBase:
         """Must return a coupon by code."""
         coupon_db = await self.cart.get_coupon_by_code(code=code)
-        return CouponResponse.model_validate(coupon_db)
+        return CouponInDB.model_validate(coupon_db)
 
     async def _get_address_by_id(
         self: Self,
@@ -278,7 +278,7 @@ async def get_coupon_by_code(
     *,
     bootstrap: Any,
     transaction: SessionTransaction,
-) -> CouponResponse:
+) -> CouponInDB:
     """Must return a coupon by code."""
     coupon_db = await repository.get_coupon_by_code(
         code,
