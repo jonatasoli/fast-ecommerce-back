@@ -474,6 +474,7 @@ async def get_products_category(
         total_records = await transaction.session.scalar(
             select(func.count(ProductDB.product_id)).where(
                 ProductDB.category_id == category.category_id,
+                ProductDB.active.is_(True),
             ),
         )
         if page > 1:
