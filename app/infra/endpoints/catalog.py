@@ -132,7 +132,7 @@ async def get_categories(
         raise
 
 
-@catalog.get('/category/products/{path}', status_code=200)
+@catalog.get('/category/products/{path}', status_code=status.HTTP_200_OK)
 async def get_product_category(
     path: str,
     offset: int = 2,
