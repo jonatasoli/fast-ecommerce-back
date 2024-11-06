@@ -21,7 +21,7 @@ from app.infra.worker import task_message_bus
 class Command(BaseModel):
     """Command to use in the application."""
 
-    db: sessionmaker
+    db: Any
     uow: uow.AbstractUnitOfWork
     cart_uow: Any
     cart_repository: Any
@@ -35,7 +35,7 @@ class Command(BaseModel):
 
 
 async def bootstrap(  # noqa: PLR0913
-    db: sessionmaker = get_session(),
+    db = get_session(),
     uow: uow.AbstractUnitOfWork = None,
     cart_uow: Any = uow,
     cart_repository: Any = cart_repository,

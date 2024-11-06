@@ -102,7 +102,7 @@ async def notify_product_to_admin(
             product=product,
             transaction=transaction,
         )
-        transaction.commit()
+        await transaction.commit()
 
         await broker.publish(
             {

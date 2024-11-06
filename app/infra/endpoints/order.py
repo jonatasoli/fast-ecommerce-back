@@ -18,7 +18,6 @@ from app.entities.order import (
     OrderSchema,
     TrackingFullResponse,
     OrderUserListResponse,
-    OrderFullResponse,
     OrderInDB,
 )
 from fastapi.security import OAuth2PasswordBearer

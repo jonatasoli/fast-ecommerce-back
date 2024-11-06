@@ -16,6 +16,7 @@ class CouponBase(BaseModel):
     product_id: int | None = None
     discount_price: Decimal | None = None
     limit_price: Decimal | None = None
+    commission_percentage: Decimal | None = None
     model_config = ConfigDict(from_attributes=True)
 
 

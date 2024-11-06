@@ -1,5 +1,4 @@
 from datetime import UTC, datetime
-import json
 import math
 from typing import Any
 
@@ -16,9 +15,7 @@ from faststream.rabbit import RabbitQueue
 from app.entities.order import CancelOrder, OrderInDB, OrderNotFoundError, OrderResponse
 from app.entities.product import (
     ProductCategoryInDB,
-    ProductCreate,
     ProductInDB,
-    ProductInDBResponse,
     ProductPatchRequest,
     ProductsResponse,
 )
@@ -33,7 +30,6 @@ from app.infra.models import (
     OrderItemsDB,
     UserDB,
 )
-from app.user.services import verify_admin
 from app.entities.order import (
     CategoryInDB,
     ImageGalleryResponse,
@@ -102,27 +98,6 @@ def get_product(db: Session, uri: str) -> ProductInDB | None:
     if not productdb:
         return None
     return ProductInDB.model_validate(productdb.first())
-
-
-def create_product(
-    product_data: ProductCreate,
-    *,
-    token,
-    verify_admin = verify_admin,
-    db: Session,
-) -> ProductInDBResponse:
-    """Create new product."""
-    verify_admin(token, db=db)
-    db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
-    db_product.description = json.dumps(product_data.description)
-    try:
-        with db:
-            db.add(db_product)
-            db.commit()
-            return ProductInDBResponse.model_validate(db_product)
-    except Exception as e:
-        logger.error(e)
-        raise
 
 
 def update_product(product: ProductDB, product_data: dict) -> ProductDB:

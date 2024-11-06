@@ -5,7 +5,7 @@ from sqlalchemy import asc, func, select, update
 
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import desc
-from app.entities.user import UserFilters, UserInDB, UsersDBResponse
+from app.entities.user import Roles, UserFilters, UserInDB, UsersDBResponse
 from app.infra import models
 from app.infra.constants import Direction
 
@@ -102,6 +102,32 @@ async def get_users(
         page=filters.page,
         limit=filters.limit,
         total_pages=math.ceil(total_records / filters.limit) if total_records else 1,
+        total_records=total_records if total_records else 0,
+    )
+
+
+async def get_affiliate_users(
+    *,
+    transaction,
+):
+    """Select all users."""
+    query_users = select(models.UserDB).options(
+        selectinload(models.UserDB.addresses),
+    ).where(models.UserDB.role_id == Roles.PARTNER.value)
+
+
+    total_records = await transaction.session.scalar(
+        select(func.count(models.UserDB.user_id)),
+    )
+
+    users_db = await transaction.session.scalars(query_users)
+    adapter = TypeAdapter(list[UserInDB])
+
+    return UsersDBResponse(
+        users=adapter.validate_python(users_db),
+        page=1,
+        limit=total_records,
+        total_pages=1,
         total_records=total_records if total_records else 0,
     )
 
