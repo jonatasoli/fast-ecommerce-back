@@ -1,8 +1,6 @@
 from datetime import timedelta
-import sys
-from os.path import abspath
-from os.path import dirname as d
 from collections.abc import Generator
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 import pytest
@@ -19,10 +17,6 @@ from sqlalchemy.schema import (
 )
 
 from tests.factories_db import RoleDBFactory
-
-root_dir = d(abspath(__file__))
-print(f'ROOT {root_dir}')
-sys.path.append(root_dir)
 
 from app.infra.constants import DocumentType, Roles
 from app.user.services import create_access_token, gen_hash
@@ -220,12 +214,41 @@ async def asyncdb():
 
     # --- Alterações aqui ---
     async with _engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-    return sessionmaker(
+    yield async_sessionmaker(
         autoflush=True,
         expire_on_commit=False,
         bind=_engine,
         class_=AsyncSession,
     )
+
+    async with _engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest.fixture
+async def async_admin_user(asyncdb):
+    """Generate admin user in asyncdb."""
+    new_role = RoleDBFactory(role_id=Roles.ADMIN.value)
+    async with asyncdb as db:
+        db.add(new_role)
+
+        user = UserDB(
+            name='Teste',
+            username='Teste',
+            email='teste@test.com',
+            password=gen_hash('testtest'),
+            document_type=DocumentType.CPF.value,
+            document='12345678901',
+            phone='11123456789',
+            role_id=Roles.ADMIN.value,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        db.commit()
+
+        user.clean_password = 'testtest'
+
+        return user

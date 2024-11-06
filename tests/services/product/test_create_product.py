@@ -1,19 +1,19 @@
 from app.entities.product import ProductCreate, ProductInDBResponse
 
-from app.order.services import create_product
+from app.product.services import create_product
 from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory
 from tests.fake_functions import fake, fake_decimal, fake_url, fake_url_path
 
 
-def test_give_valid_product_payload_should_create_product(
-    db,
-    admin_token,
+async def test_give_valid_product_payload_should_create_product(
+    asyncdb,
 ) -> None:
     """Must create valid product."""
-    category = CategoryFactory()
-    config_fee = CreditCardFeeConfigFactory()
-    db.add_all([category, config_fee])
-    db.commit()
+    async with asyncdb() as db:
+        category = CategoryFactory()
+        config_fee = CreditCardFeeConfigFactory()
+        db.add_all([category, config_fee])
+        await  db.commit()
     description = {'content': 'test', 'description': 'test'}
 
     product_data = ProductCreate(
@@ -27,7 +27,7 @@ def test_give_valid_product_payload_should_create_product(
     )
 
     # Act
-    product_response = create_product(product_data, token=admin_token, db=db)
+    product_response = await create_product(product_data, db=asyncdb)
 
     # Assert
     assert product_response

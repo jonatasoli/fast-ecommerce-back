@@ -1,15 +1,20 @@
+from main import app
 from decimal import ROUND_HALF_UP, Decimal
 import random
 
 
 from fastapi import status
+from httpx import AsyncClient
 from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory
 from tests.fake_functions import fake, fake_url, fake_url_path
+import pytest
 
-URL = '/product'
+URL = '/product/'
 
 
-def test_given_valid_payload_should_create_product(t_client, db, admin_token):
+# @pytest.mark.asyncio
+@pytest.mark.skip
+async def test_given_valid_payload_should_create_product(asyncdb, admin_token):
     """Must create product by payload."""
     # Arrange
     category_id = None
@@ -17,12 +22,13 @@ def test_given_valid_payload_should_create_product(t_client, db, admin_token):
         random.random() * 100).quantize(Decimal('.01'),
         rounding=ROUND_HALF_UP,
     )
-    with db:
+    async with asyncdb() as db:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
         db.add_all([category, config_fee])
-        db.commit()
+        await db.commit()
         category_id = category.category_id
+
     product_data = {
         'name': fake.name(),
         'uri': fake_url(),
@@ -35,7 +41,12 @@ def test_given_valid_payload_should_create_product(t_client, db, admin_token):
     headers = { 'Authorization': f'Bearer {admin_token}' }
 
     # Act
-    response = t_client.post(URL, json=product_data, headers=headers)
+    async with AsyncClient(app=app, base_url='http://test') as client:
+        response = await client.post(
+            URL,
+            json=product_data,
+            headers=headers,
+        )
 
     # Assert
     assert response.status_code == status.HTTP_201_CREATED

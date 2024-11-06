@@ -234,3 +234,22 @@ async def get_users(
             filters=filters,
             transaction=transaction,
         )
+
+
+@users.get(
+    '/affiliate',
+    status_code=status.HTTP_200_OK,
+    response_model= UsersDBResponse,
+)
+async def get_affiliate_users(
+    token: str = Depends(oauth2_scheme),
+    db: sessionmaker = Depends(get_async_session),
+) -> UsersDBResponse:
+    """Get user."""
+    await services.verify_admin(
+        token=token, db=db,
+    )
+    async with db().begin() as transaction:
+        return await repository.get_affiliate_users(
+            transaction=transaction,
+        )

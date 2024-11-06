@@ -1,6 +1,7 @@
 # ruff: noqa: ANN401 TRY301 TRY300
 from typing import Any
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from app.user.services import verify_admin
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
 from sqlalchemy.orm import Session
@@ -52,9 +53,9 @@ async def upload_image(
     tags=['admin'],
 )
 async def get_product_inventory(
-    token: str = Depends(oauth2_scheme),
     page: int = 1,
     offset: int = 10,
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_async_session),
 ):
     """Get products inventory."""
@@ -136,7 +137,8 @@ async def create_product(
     product_data: ProductCreate,
 ) -> ProductInDBResponse:
     """Create product."""
-    product = await product_services.create_product(product_data, token=token, db=db)
+    await verify_admin(token, db=db)
+    product = await product_services.create_product(product_data, db=db)
     if not product:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

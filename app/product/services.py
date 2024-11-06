@@ -35,7 +35,7 @@ async def upload_image(
 
 async def get_inventory(token, *, page, offset, db, verify_admin=verify_admin):
     """Get products inventory."""
-    # verify_admin(token, db=db)
+    await verify_admin(token, db=db)
     async with db().begin() as transaction:
         return await repository.get_inventory(transaction, page=page, offset=offset)
 
@@ -52,12 +52,9 @@ async def inventory_transaction(product_id: int, *, inventory, token, db):
 async def create_product(
     product_data: ProductCreate,
     *,
-    token,
-    verify_admin = verify_admin,
     db,
 ) -> ProductInDBResponse:
     """Create new product."""
-    await verify_admin(token, db=db)
     async with db() as transaction:
         db_product = await repository.create_product(product_data, transaction)
         return ProductInDBResponse.model_validate(db_product)

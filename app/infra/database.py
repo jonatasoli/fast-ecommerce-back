@@ -1,7 +1,7 @@
 from typing import Any
 
 from sqlalchemy import AsyncAdaptedQueuePool, Engine, create_engine, QueuePool
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import sessionmaker
@@ -22,6 +22,7 @@ def get_engine(): # noqa: ANN201
 
     return create_engine(
         sqlalchemy_database_url,
+        echo=False,
         pool_size=10,
         max_overflow=5,
     )
@@ -62,12 +63,12 @@ def get_async_engine() -> AsyncEngine:
         settings.DATABASE_URI,
         pool_size=10,
         max_overflow=5,
-        echo=True,
+        echo=False,
         poolclass=AsyncAdaptedQueuePool,
     )
 
 
-def get_async_session() -> sessionmaker:
+def get_async_session():
     """Return a SQLAlchemy async session factory with a configured engine.
 
     Return:
@@ -82,7 +83,7 @@ def get_async_session() -> sessionmaker:
         settings.
 
     """
-    return sessionmaker(
+    return async_sessionmaker(
         bind=get_async_engine(),
         autocommit=False,
         expire_on_commit=False,
