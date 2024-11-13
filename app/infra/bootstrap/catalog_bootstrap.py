@@ -10,7 +10,7 @@ from app.catalog import uow as catalog_uow
 class Command(BaseModel):
     """Command to use in the application."""
 
-    db: sessionmaker
+    db: Any
     catalog_uow: Any
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
