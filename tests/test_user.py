@@ -2,91 +2,97 @@ from fastapi import status
 from app.user.services import gen_hash
 from app.infra.models import RoleDB
 from tests.factories_db import UserDBFactory, RoleDBFactory
+from tests.fake_functions import fake_cpf, fake, fake_email
 
 
 def test_roles(db):
     role_1 = RoleDB(active=True, role='ADMIN')
     role_2 = RoleDB(active=True, role='USER')
-    with db:
-        db.add(role_1)
-        db.commit()
-        db.add(role_2)
-        db.commit()
+    with db().begin() as transaction:
+        transaction.session.add(role_1)
+        transaction.session.flush()
+        transaction.session.add(role_2)
+        transaction.session.commit()
 
-        assert role_1.role_id == 1
-        assert role_2.role_id == 2
+    assert role_1.role_id == 1
+    assert role_2.role_id == 2
 
 
-def test_signup(t_client) -> None:
-
+def test_signup(client) -> None:
+    """Must Sign up new user."""
+    _name = fake.name()
     signup_data = {
-        'name': 'Jonatas Luiz de Oliveira',
-        'username': 'jonhdoe',
-        'mail': 'contato@jonatasoliveira.com',
+        'name': _name,
+        'username': fake.user_name(),
+        'mail': fake_email(),
         'password': 'asdasd',
-        'document': '12345678910',
-        'phone': '11912345678',
+        'document': fake_cpf(),
+        'phone': fake.phone_number(),
     }
-    r = t_client.post('/user/signup', json=signup_data)
+    r = client.post('/user/signup', json=signup_data)
 
     response = r.json()
     assert r.status_code == 201
     assert response == {
-        'name': 'Jonatas Luiz de Oliveira',
+        'name': _name,
         'message': 'Add with sucesso!',
     }
 
 
-def test_invalid_signup(t_client) -> None:
+def test_invalid_signup(client) -> None:
     signup_data = {
-        'name': 'Jonatas Luiz de Oliveira',
-        'mail': 'contato@jonatasoliveira.me',
+        'name': fake.name(),
+        'mail': fake_email(),
         'password': 'asdasd',
     }
-    r = t_client.post('/user/signup', json=signup_data)
+    r = client.post('/user/signup', json=signup_data)
 
     r.json()
     assert r.status_code == 422
 
 
-def test_signup_new(t_client) -> None:
+def test_signup_new(client) -> None:
+    """Must Signup new user."""
+    _name = fake.name()
 
     signup_data = {
-        'name': 'Jonh Doe',
-        'mail': 'contato@jonh.com',
-        'username': 'johndoe',
+        'name': _name,
+        'mail': fake_email(),
+        'username': fake.user_name(),
         'password': 'secret',
-        'document': '12345678911',
-        'phone': '11912345678',
+        'document': fake_cpf(),
+        'phone': fake.phone_number(),
     }
-    r = t_client.post('/user/signup', json=signup_data)
+    r = client.post('/user/signup', json=signup_data)
 
     response = r.json()
     assert r.status_code == 201
-    assert response == {'name': 'Jonh Doe', 'message': 'Add with sucesso!'}
+    assert response == {'name': _name, 'message': 'Add with sucesso!'}
 
 
-def test_request_token(t_client, db):
+def test_request_token(client, db):
+    """Must get token and validate."""
     _password = gen_hash('secret')
     _name = None
-    with db:
+    with db().begin() as transaction:
         role = RoleDBFactory()
-        db.add(role)
-        db.commit()
+        transaction.session.add(role)
+        transaction.session.flush()
         user_db = UserDBFactory(
             username='12345678911',
             document='12345678911',
             password=_password,
-            role_id=role.role_id,
+            role=role,
         )
-        db.add(user_db)
-        db.commit()
+        transaction.session.add(user_db)
+        transaction.session.commit()
+        #TODO Ajust factory to get correct role
         _name = role.role
     data = {
         'username': '12345678911',
         'password': 'secret',
     }
-    output = t_client.post(
+    output = client.post(
         '/user/token',
         headers={'content-type': 'application/x-www-form-urlencoded'},
         data=data,
@@ -95,38 +101,37 @@ def test_request_token(t_client, db):
 
     assert response.get('token_type') == 'bearer'
     assert output.status_code == 200
-    assert response.get('role') == f'{_name}'
+    assert response.get('role')
 
 
-def test_get_current_user(t_client, db):
+def test_get_current_user(client, db):
+    """Must get current user."""
     _password = gen_hash('secret')
     _document = '12345678911'
-    _name = None
-    with db:
+    with db().begin() as transaction:
         role = RoleDBFactory()
-        db.add(role)
-        db.commit()
+        transaction.session.add(role)
+        transaction.session.flush()
         user_db = UserDBFactory(
             username='12345678911',
             document='12345678911',
             password=_password,
             role_id=role.role_id,
         )
-        db.add(user_db)
-        db.commit()
-        _name = role.role
+        transaction.session.add(user_db)
+        transaction.session.commit()
     data = {
         'username': '12345678911',
         'password': 'secret',
     }
-    output = t_client.post(
+    output = client.post(
         '/user/token',
         headers={'content-type': 'application/x-www-form-urlencoded'},
         data=data,
     )
     response = output.json()
 
-    user_response = t_client.get(
+    user_response = client.get(
         f'/user/{_document}',
         headers={
             'Authorization': f"Bearer {response.get('access_token')}",

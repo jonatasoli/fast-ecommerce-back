@@ -1,8 +1,8 @@
 from fastapi import status
 from httpx import AsyncClient
+from app.infra.database import get_session
 from main import app
 import pytest
-from pytest_mock import MockerFixture
 
 from tests.factories_db import OrderFactory, OrderStatusStepsFactory, UserDBFactory
 
@@ -25,22 +25,23 @@ async def test_give_no_orders_should_return_empty_list() -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_all_orders(mocker: MockerFixture, db) -> None:
+async def test_get_all_orders(db) -> None:
     """Should Return Orders."""
     # Arrange
-    with db:
+    with db().begin() as transaction:
         user = UserDBFactory()
-        db.add(user)
-        db.flush()
+        transaction.session.add(user)
+        transaction.session.flush()
         order = OrderFactory(user=user)
-        db.add(order)
-        db.flush()
+        transaction.session.add(order)
+        transaction.session.flush()
         new_order_status_steps = OrderStatusStepsFactory(order=order)
-        db.add(new_order_status_steps)
-        db.commit()
+        transaction.session.add(new_order_status_steps)
+        transaction.session.commit()
 
     # Act
     async with AsyncClient(app=app, base_url='http://test') as client:
+        app.dependency_overrides[get_session] = lambda: db
         response = await client.get(
             f'{URL}/orders',
         )

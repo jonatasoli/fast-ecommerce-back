@@ -55,7 +55,7 @@ async def create_product(
     db,
 ) -> ProductInDBResponse:
     """Create new product."""
-    async with db() as transaction:
+    async with db().begin() as transaction:
         db_product = await repository.create_product(product_data, transaction)
         return ProductInDBResponse.model_validate(db_product)
 

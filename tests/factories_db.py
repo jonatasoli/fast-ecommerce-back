@@ -122,7 +122,7 @@ class OrderFactory(factory.Factory):
     order_status = OrderStatus.PAYMENT_PENDING.value
     last_updated = fake.date_time()
     checked = fake.pybool()
-    customer_id = SelfAttribute('user.user_id')
+    customer_id = str(SelfAttribute('user.user_id'))
     discount = fake.pyint()
 
 

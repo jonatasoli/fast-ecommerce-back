@@ -1,3 +1,4 @@
+from app.infra.database import get_async_session
 from main import app
 from httpx import AsyncClient
 import pytest
@@ -21,14 +22,14 @@ URL = '/cart'
 
 
 @pytest.mark.asyncio
-async def test_estimate_products_in_cart(db) -> None:
+async def test_estimate_products_in_cart(asyncdb) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
-    with db:
+    async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
-        db.add_all([category, config_fee])
-        db.flush()
+        transaction.session.add_all([category, config_fee])
+        await transaction.session.flush()
         product_db_1 = ProductDBFactory(
             category=category,
             installment_config=config_fee,
@@ -50,10 +51,10 @@ async def test_estimate_products_in_cart(db) -> None:
             product_id=2,
             inventory_id=2,
         )
-        db.add_all([product_db_1, product_db_2])
-        db.flush()
-        db.add_all([inventory_db_1, inventory_db_2])
-        db.commit()
+        transaction.session.add_all([product_db_1, product_db_2])
+        await transaction.session.flush()
+        transaction.session.add_all([inventory_db_1, inventory_db_2])
+        await transaction.session.commit()
     cart_items = []
     first_product = ProductCart(
         name=fake.name(),
@@ -85,9 +86,11 @@ async def test_estimate_products_in_cart(db) -> None:
     cache.set(str(uuid), cart.model_dump_json())
 
     # Act
+    post_url = f'{URL}/{uuid!s}/estimate'
     async with AsyncClient(app=app, base_url='http://test') as client:
+        app.dependency_overrides[get_async_session] = lambda: asyncdb
         response = await client.post(
-            f'{URL}/{uuid!s}/estimate',
+            post_url,
             json=jsonable_encoder(cart.model_dump()),
         )
 

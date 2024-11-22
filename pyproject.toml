@@ -30,6 +30,7 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     "pillow>=10.4.0",
     "psycopg[binary,pool]>=3.2.1",
+    "pwdlib[argon2]>=0.2.1",
     "pyjwt>=2.9.0",
     "python-dotenv>=1.0.1",
     "python-multipart>=0.0.9",
@@ -129,14 +130,14 @@ max-nested-blocks = 5
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-addopts = ["--strict-markers"]
+addopts = ["--strict-markers", "-n0"]
 junit_family= "xunit1"
 markers = [
   "smoke: main tests to validate system",
   "integrate: integrate tests",
 ]
 pythonpath = "."
-
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 omit = [
@@ -151,3 +152,12 @@ members = ["test"]
 
 [virtualenvs]
 path = ".venv"
+
+[dependency-groups]
+dev = [
+    "pytest-xdist>=3.6.1",
+    "testcontainers>=4.8.2",
+]
+
+[pytest-watch]
+ignore = "./tests/endpoints/"

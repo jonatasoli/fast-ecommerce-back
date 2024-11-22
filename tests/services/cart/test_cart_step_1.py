@@ -8,7 +8,7 @@ from app.entities.cart import CartBase
 from app.entities.product import ProductCart
 from app.cart.services import add_product_to_cart, calculate_cart
 from app.infra.bootstrap.cart_bootstrap import Command
-from app.infra.database import get_async_session, get_session
+from app.infra.database import get_async_session
 from tests.factories_db import ProductDBFactory
 from tests.fake_functions import fake, fake_url_path
 
@@ -33,8 +33,8 @@ def create_product_cart(
 @pytest.mark.asyncio
 async def test_add_product_to_new_cart(
     memory_bootstrap: Command,
-    db,
     mocker: MockerFixture,
+    asyncdb,
 ) -> None:
     """Must add product to new cart and return cart_id."""
     # Arrange
@@ -48,10 +48,9 @@ async def test_add_product_to_new_cart(
         return_value=productdb,
     )
     bootstrap.cache = Mock()
-    bootstrap.db = get_async_session()
 
     # Act
-    cart_response = await add_product_to_cart(None, product, bootstrap)
+    cart_response = await add_product_to_cart(None, product, bootstrap, asyncdb)
 
     # Assert
     assert cart_response.uuid
@@ -65,6 +64,7 @@ async def test_add_product_to_new_cart(
 async def test_add_product_to_new_cart_should_set_in_cache(
     memory_bootstrap: Command,
     mocker: MockerFixture,
+    asyncdb,
 ) -> None:
     """Must add product to new cart and set cart in cache."""
     # Arrange
@@ -72,17 +72,16 @@ async def test_add_product_to_new_cart_should_set_in_cache(
     productdb = ProductDBFactory(product_id=1, discount=0)
     productdb.quantity = 10
     bootstrap = memory_bootstrap
-    mocker.patch.object(
-        bootstrap.cart_repository,
-        'get_product_by_id',
+    mocker.patch(
+        'app.cart.repository.get_product_by_id',
         return_value=productdb,
     )
     bootstrap.cache = Mock()
-    bootstrap.db = get_async_session()
+    bootstrap.db = asyncdb
     cache_spy = mocker.spy(bootstrap.cache, 'set')
 
     # Act
-    cart_response = await add_product_to_cart(None, product, bootstrap)
+    cart_response = await add_product_to_cart(None, product, bootstrap, asyncdb)
 
     # Assert
     cache_spy.assert_called_once_with(
@@ -96,6 +95,7 @@ async def test_add_product_to_new_cart_should_set_in_cache(
 async def test_add_product_to_current_cart_should_add_new_product_should_calculate_subtotal(
     memory_bootstrap: Command,
     mocker: MockerFixture,
+    asyncdb,
 ) -> None:
     """Must add product to current cart and calc subtotal."""
     # Arrange
@@ -140,6 +140,7 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
         str(uuid),
         new_product,
         bootstrap,
+        asyncdb,
     )
 
     # Assert
@@ -154,6 +155,7 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
 async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
     memory_bootstrap: Command,
     mocker: MockerFixture,
+    asyncdb,
 ) -> None:
     """Must add product to current cart and calc subtotal."""
     # Arrange
@@ -204,9 +206,8 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
             product_inventory_2,
         ]
 
-    mocker.patch.object(
-        bootstrap.cart_repository,
-        'get_products_quantity',
+    mocker.patch(
+        'app.cart.repository.get_products_quantity',
         side_effect=async_mock,
     )
 
@@ -221,14 +222,13 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
         'get',
         return_value=cart.model_dump_json(),
     )
-    session = get_session()
 
     # Act
     cart_response = await calculate_cart(
         uuid=str(uuid),
         cart=cart,
         bootstrap=bootstrap,
-        session=session,
+        session=asyncdb,
     )
 
     # Assert

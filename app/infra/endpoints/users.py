@@ -88,7 +88,7 @@ async def get_affiliate_user(
 )
 def signup(
     *,
-    db: sessionmaker = Depends(get_session),
+    db = Depends(get_session),
     user_in: SignUp,
 ) -> SignUpResponse:
     """Signup."""

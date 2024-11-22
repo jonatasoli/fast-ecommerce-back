@@ -6,7 +6,6 @@ from pytest_mock import MockerFixture
 from app.cart.services import calculate_cart
 from app.entities.cart import CartBase
 from app.infra.bootstrap.cart_bootstrap import Command
-from app.infra.database import get_async_session, get_session
 from tests.factories_db import CouponFactory, ProductDBFactory
 from tests.services.cart.test_cart_step_1 import create_product_cart
 
@@ -17,6 +16,7 @@ from tests.fake_functions import fake
 async def test_estimate_cart_with_product(
     memory_bootstrap: Command,
     mocker: MockerFixture,
+    asyncdb,
 ) -> None:
     """Should return valid cart."""
     # Arrange
@@ -35,7 +35,7 @@ async def test_estimate_cart_with_product(
         return_value=productdb_1,
     )
     bootstrap.cache = Mock()
-    bootstrap.db = get_async_session()
+    bootstrap.db = asyncdb
 
     uuid = fake.uuid4()
     cart = CartBase(
@@ -63,14 +63,13 @@ async def test_estimate_cart_with_product(
             product_quantity_2,
         ],
     )
-    session = get_session()
 
     # Act
     cart_response = await calculate_cart(
         uuid=cart.uuid,
         cart=cart,
         bootstrap=bootstrap,
-        session=session,
+        session=asyncdb,
     )
 
     # Assert
@@ -85,6 +84,7 @@ async def test_estimate_cart_with_product(
 async def test_estimate_cart_with_coupon_discount(
     memory_bootstrap: Command,
     mocker: MockerFixture,
+    asyncdb,
 ) -> None:
     """Should return valid cart."""
     # Arrange
@@ -104,7 +104,6 @@ async def test_estimate_cart_with_coupon_discount(
         return_value=productdb_1,
     )
     bootstrap.cache = Mock()
-    bootstrap.db = get_async_session()
 
     uuid = fake.uuid4()
     cart = CartBase(
@@ -119,9 +118,8 @@ async def test_estimate_cart_with_coupon_discount(
         return_value=cart.model_dump_json(),
     )
 
-    mocker.patch.object(
-        bootstrap.cart_repository,
-        'get_coupon_by_code',
+    mocker.patch(
+        'app.cart.repository.get_coupon_by_code',
         return_value=coupon,
     )
     product_quantity_1 = productdb_1
@@ -139,14 +137,13 @@ async def test_estimate_cart_with_coupon_discount(
             product_quantity_2,
         ],
     )
-    session = get_session()
 
     # Act
     cart_response = await calculate_cart(
         uuid=cart.uuid,
         cart=cart,
         bootstrap=bootstrap,
-        session=session,
+        session=asyncdb,
     )
 
     # Assert

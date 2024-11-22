@@ -108,9 +108,8 @@ async def create_product(
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
     db_product.description = json.dumps(product_data.description)
     try:
-        async with transaction:
-            transaction.add(db_product)
-            await transaction.commit()
+        transaction.session.add(db_product)
+        await transaction.session.commit()
         if not db_product:
             create_product_not_found_exception()
     except Exception as e:
