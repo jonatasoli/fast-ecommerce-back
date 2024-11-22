@@ -468,7 +468,12 @@ async def get_products_category(
     )
 
 
-async def get_product_all(offset: int, page: int, db) -> ProductsResponse:
+async def get_product_all(
+    offset: int,
+    page: int,
+    currency: str,
+    db,
+) -> ProductsResponse:
     """Get all products."""
     async with db().begin() as transaction:
         products = (
@@ -501,6 +506,7 @@ async def get_product_all(offset: int, page: int, db) -> ProductsResponse:
                 ProductDB.category_id == CategoryDB.category_id,
             )
             .where(ProductDB.active.is_(True))
+            .where(ProductDB.currency.like(currency))
             .group_by(ProductDB.product_id, CategoryDB.category_id)
             .order_by(asc(ProductDB.product_id))
         )

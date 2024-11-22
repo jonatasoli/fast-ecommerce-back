@@ -228,7 +228,7 @@ class OrderItemsDB(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
     order = relationship(
         'OrderDB',
-        backref=backref('order_items'),
+        backref=backref('order_items', overlaps="items"),
         cascade='all,delete',
         foreign_keys=[order_id],
         lazy='joined',

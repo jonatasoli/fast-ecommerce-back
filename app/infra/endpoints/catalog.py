@@ -50,10 +50,16 @@ def get_showcase(*, db: Session = Depends(get_db)) -> Any:
 async def get_products_all(
     offset: int = 10,
     page: int = 1,
+    currency: str = 'BRL',
     db = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get products all."""
-    return await services.get_product_all(page=page, offset=offset, db=db)
+    return await services.get_product_all(
+        page=page,
+        offset=offset,
+        currency=currency,
+        db=db,
+    )
 
 
 @catalog.get(

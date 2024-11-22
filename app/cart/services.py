@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from loguru import logger
 from faststream.rabbit import RabbitQueue
 from pydantic import ValidationError
+from app.cart import repository as cart_repository
 
 
 from app.entities.address import CreateAddress
@@ -78,13 +79,14 @@ async def add_product_to_cart(
     cart_uuid: str | None,
     product: ProductCart,
     bootstrap: Command,
+    db,
 ) -> CartBase:
     """Must add product to new cart and return cart."""
     cache = bootstrap.cache
-    async with bootstrap.db() as session:
-        product_db = await bootstrap.cart_repository.get_product_by_id(
+    async with db().begin() as transaction:
+        product_db = await cart_repository.get_product_by_id(
             product.product_id,
-            transaction=session,
+            transaction=transaction,
         )
     logger.info(f'product_db: {product_db}')
     cart = None
@@ -129,11 +131,11 @@ async def calculate_cart(
             detail='Cart uuid is not the same as the cache uuid',
         )
     product_ids: list[int] = [item.product_id for item in cart.cart_items]
-    async with bootstrap.db() as db:
+    async with session().begin() as transaction:
         products_inventory = (
-            await bootstrap.cart_repository.get_products_quantity(
+            await cart_repository.get_products_quantity(
                 product_ids,
-                transaction=db.begin(),
+                transaction=transaction,
             )
         )
     cart = consistency_inventory(
@@ -149,17 +151,17 @@ async def calculate_cart(
 
     cart.get_products_price_and_discounts(products_inventory)
     if cart.coupon:
-        async with bootstrap.db() as transaction:
-            coupon = await bootstrap.cart_repository.get_coupon_by_code(
+        async with session().begin() as transaction:
+            coupon = await cart_repository.get_coupon_by_code(
                 cart.coupon,
-                transaction=transaction.begin(),
+                transaction=transaction,
             )
     if cart.coupon and not coupon:
         raise HTTPException(
             status_code=400,
             detail='Coupon not found',
         )
-    cart = calculate_freight(
+    cart = await calculate_freight(
         cart=cart,
         products_db=products_inventory,
         bootstrap=bootstrap,
@@ -177,14 +179,14 @@ async def calculate_cart(
     return cart
 
 
-def calculate_freight(
+async def calculate_freight(
     cart: CartBase,
     products_db: ProductCart,
     bootstrap: Command,
     session,
 ) -> CartBase:
     """Calculate Freight."""
-    with session.begin() as transaction:
+    async with session().begin() as transaction:
         logger.debug("Search campaign")
         campaign = campaign_repository.get_campaign(
             free_shipping=True,

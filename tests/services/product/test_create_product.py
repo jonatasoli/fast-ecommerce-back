@@ -1,3 +1,4 @@
+import pytest
 from app.entities.product import ProductCreate, ProductInDBResponse
 
 from app.product.services import create_product
@@ -5,15 +6,16 @@ from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory
 from tests.fake_functions import fake, fake_decimal, fake_url, fake_url_path
 
 
+@pytest.mark.asyncio
 async def test_give_valid_product_payload_should_create_product(
     asyncdb,
 ) -> None:
     """Must create valid product."""
+    category = CategoryFactory()
+    config_fee = CreditCardFeeConfigFactory()
     async with asyncdb() as db:
-        category = CategoryFactory()
-        config_fee = CreditCardFeeConfigFactory()
         db.add_all([category, config_fee])
-        await  db.commit()
+        await db.commit()
     description = {'content': 'test', 'description': 'test'}
 
     product_data = ProductCreate(

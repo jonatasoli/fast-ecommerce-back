@@ -93,6 +93,7 @@ async def add_product_to_cart(  # noqa: ANN201
     *,
     product: ProductCart,
     bootstrap: Command = Depends(get_bootstrap),
+    db = Depends(get_async_session),
 ):
     """Add product to cart."""
     # TODO: Implementar o retorno 404 caso o estoque tenha acabado
@@ -100,16 +101,21 @@ async def add_product_to_cart(  # noqa: ANN201
         cart_uuid=uuid,
         product=product,
         bootstrap=bootstrap,
+        db=db,
     )
 
 
-@cart.post('/{uuid}/estimate', status_code=201, response_model=CartBase)
+@cart.post(
+    '/{uuid}/estimate',
+    status_code=status.HTTP_201_CREATED,
+    response_model=CartBase,
+)
 async def estimate(
     uuid: str,
     *,
     cart: CartBase,
     bootstrap: Command = Depends(get_bootstrap),
-    session = Depends(get_session),
+    session = Depends(get_async_session),
 ) -> CartBase:
     """Add product to cart."""
     return await services.calculate_cart(

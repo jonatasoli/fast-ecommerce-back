@@ -4,7 +4,7 @@ from app.infra.models import CampaignDB
 from loguru import logger
 
 
-def get_campaign(
+async def get_campaign(
     *,
     transaction,
     free_shipping: bool = False,
@@ -20,4 +20,4 @@ def get_campaign(
      )
     if free_shipping:
         query = query.where(CampaignDB.free_shipping.is_(True))
-    return transaction.scalar(query)
+    return await transaction.session.scalar(query)

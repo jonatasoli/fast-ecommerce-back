@@ -10,12 +10,14 @@ from tests.factories_db import RoleDBFactory, UserDBFactory
 async def test_get_users_with_name_filter(mocker, db):
     """Test query when filtering by name."""
     # Arrange
-    role = RoleDBFactory()
-    db.add(role)
-    db.flush()
-    user_response = UserDBFactory(role_id=role.role_id)
-    db.add(user_response)
-    db.flush()
+    with db().begin() as transaction:
+        role = RoleDBFactory()
+        transaction.session.add(role)
+        transaction.session.flush()
+        user_response = UserDBFactory(role_id=role.role_id)
+        transaction.session.add(user_response)
+        transaction.session.flush()
+        user_response.addresses = []
     transaction = mocker.MagicMock()
     transaction.session.scalars = mocker.AsyncMock(return_value=[user_response])
     transaction.session.scalar = mocker.AsyncMock(return_value=10)
@@ -47,12 +49,14 @@ async def test_get_users_with_name_filter(mocker, db):
 async def test_get_users_with_document_filter(mocker,db):
     """Test query when filtering by document."""
     # Arrange
-    role = RoleDBFactory()
-    db.add(role)
-    db.flush()
-    user_response = UserDBFactory(role_id=role.role_id)
-    db.add(user_response)
-    db.flush()
+    with db().begin() as transaction:
+        role = RoleDBFactory()
+        transaction.session.add(role)
+        transaction.session.flush()
+        user_response = UserDBFactory(role_id=role.role_id)
+        transaction.session.add(user_response)
+        transaction.session.flush()
+        user_response.addresses = []
     transaction = mocker.MagicMock()
     transaction.session.scalars = mocker.AsyncMock(return_value=[user_response])
     transaction.session.scalar = mocker.AsyncMock(return_value=5)
@@ -80,12 +84,15 @@ async def test_get_users_with_document_filter(mocker,db):
 async def test_get_users_with_ordering_and_pagination(mocker, db):
     """Test query with ordering and pagination."""
     # Arrange
-    role = RoleDBFactory()
-    db.add(role)
-    db.flush()
-    users = UserDBFactory.create_batch(size=3, role_id=role.role_id)
-    db.add_all(users)
-    db.flush()
+    with db().begin() as transaction:
+        role = RoleDBFactory()
+        transaction.session.add(role)
+        transaction.session.flush()
+        users = UserDBFactory.create_batch(size=3, role_id=role.role_id)
+        transaction.session.add_all(users)
+        transaction.session.flush()
+        for index in range(3):
+            users[index].addresses = []
     transaction = mocker.MagicMock()
     transaction.session.scalars = mocker.AsyncMock(return_value=users)
     transaction.session.scalar = mocker.AsyncMock(return_value=15)
@@ -115,12 +122,15 @@ async def test_get_users_with_ordering_and_pagination(mocker, db):
 async def test_get_users_no_filters(mocker, db):
     """Test query with no filters."""
     # Arrange
-    role = RoleDBFactory()
-    db.add(role)
-    db.flush()
-    users = UserDBFactory.create_batch(size=3, role_id=role.role_id)
-    db.add_all(users)
-    db.flush()
+    with db().begin() as transaction:
+        role = RoleDBFactory()
+        transaction.session.add(role)
+        transaction.session.flush()
+        users = UserDBFactory.create_batch(size=3, role_id=role.role_id)
+        transaction.session.add_all(users)
+        transaction.session.flush()
+        for index in range(3):
+            users[index].addresses = []
     transaction = mocker.MagicMock()
     transaction.session.scalars = mocker.AsyncMock(return_value=users)
     transaction.session.scalar = mocker.AsyncMock(return_value=15)

@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from httpx import AsyncClient
+from app.infra.database import get_async_session
 from main import app
 import pytest
 import redis
@@ -19,21 +20,21 @@ URL = '/cart'
 
 
 @pytest.mark.asyncio
-async def test_add_product_in_new_cart(db) -> None:
+async def test_add_product_in_new_cart(asyncdb) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
-    with db:
+    async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
-        db.add_all([category, config_fee])
-        db.flush()
+        transaction.session.add_all([category, config_fee])
+        await transaction.session.flush()
         product_db = ProductDBFactory(
             category=category,
             installment_config=config_fee,
             price=10000,
         )
-        db.add(product_db)
-        db.commit()
+        transaction.session.add(product_db)
+        await transaction.session.commit()
     uuid = fake.uuid4()
     cart = CartBase(
         uuid=uuid,
@@ -56,6 +57,7 @@ async def test_add_product_in_new_cart(db) -> None:
     )
     product.__delattr__('discount_price')
     async with AsyncClient(app=app, base_url='http://test') as client:
+        app.dependency_overrides[get_async_session] = lambda: asyncdb
         response = await client.post(
             f'{URL}/{uuid}/product',
             json=product.model_dump(),
