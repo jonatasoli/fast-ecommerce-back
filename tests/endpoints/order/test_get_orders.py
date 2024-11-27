@@ -10,10 +10,11 @@ URL = '/order'
 
 
 @pytest.mark.asyncio
-async def test_give_no_orders_should_return_empty_list() -> None:
+async def test_give_no_orders_should_return_empty_list(db) -> None:
     """Should return empty list."""
     # Act
     async with AsyncClient(app=app, base_url='http://test') as client:
+        app.dependency_overrides[get_session] = lambda: db
         response = await client.get(
             f'{URL}/orders',
         )
