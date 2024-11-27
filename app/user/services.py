@@ -45,7 +45,7 @@ def gen_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_user(db: sessionmaker, obj_in: SignUp) -> SignUpResponse:
+def create_user(db, obj_in: SignUp) -> SignUpResponse:
     """Create User."""
     try:
         logger.info(obj_in)

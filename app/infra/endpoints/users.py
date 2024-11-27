@@ -1,15 +1,12 @@
 from datetime import timedelta
 from typing import Any
 
-from sqlalchemy import select
-from app.infra.models import UserDB
 from app.infra.worker import task_message_bus
 
 from config import settings
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session, InstrumentedAttribute, sessionmaker
-from sqlalchemy.orm.base import _T_co
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.entities.user import (
     UserCouponResponse,
@@ -22,8 +19,6 @@ from app.infra.bootstrap.user_bootstrap import Command, bootstrap
 from loguru import logger
 from app.infra.database import get_async_session, get_session
 
-from app.infra.constants import Direction, UserOrderBy
-from legacy import domain_user
 from app.infra.deps import get_db
 from app.entities.user import (
     SignUp,

@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.infra.database import get_session
 from tests.factories_db import RoleDBFactory
 
 from app.infra.constants import DocumentType, Roles
@@ -79,7 +80,7 @@ def db(engine):
 @pytest.fixture
 def client(db):
     with TestClient(app) as client:
-        app.dependency_overrides[db] = lambda: db
+        app.dependency_overrides[get_session] = lambda: db
         yield client
 
     app.dependency_overrides.clear()
