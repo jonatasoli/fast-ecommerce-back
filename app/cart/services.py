@@ -181,14 +181,14 @@ async def calculate_cart(
 
 async def calculate_freight(
     cart: CartBase,
-    products_db: ProductCart,
+    products_db,
     bootstrap: Command,
     session,
 ) -> CartBase:
     """Calculate Freight."""
     async with session().begin() as transaction:
         logger.debug("Search campaign")
-        campaign = campaign_repository.get_campaign(
+        campaign = await campaign_repository.get_campaign(
             free_shipping=True,
             transaction=transaction,
         )
