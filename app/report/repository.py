@@ -11,7 +11,7 @@ from app.infra.models import CoProducerFeeDB, FeeDB, InformUserProductDB, SalesC
 from app.entities.report import CommissionInDB, InformUserProduct, UserSalesCommissions
 
 
-async def get_user_sales_comissions(
+async def get_user_sales_commissions(
     user,
     *,
     paid: bool,
@@ -30,6 +30,23 @@ async def get_user_sales_comissions(
     return UserSalesCommissions(
         commissions=adapter.validate_python(commissions.scalars().all()),
     )
+
+
+async def get_sales_commissions(
+    *,
+    paid: bool,
+    released: bool,
+    transaction: Session,
+):
+    """Get comission for user."""
+    query = (
+        select(SalesCommissionDB)
+    )
+    if paid:
+        query = query.where(SalesCommissionDB.paid.is_(True))
+    if released:
+        query = query.where(SalesCommissionDB.released.is_(True))
+    return await transaction.scalars(query)
 
 
 def update_commissions(date_threshold: datetime, db) -> None:

@@ -29,21 +29,44 @@ report = APIRouter(
     status_code=status.HTTP_200_OK,
     response_model=UserSalesCommissions,
 )
-async def get_user_sales_comissions(
+async def get_user_sales_commissions(
+    *,
+    paid: bool = False,
+    released: bool = False,
+    token: str = Depends(oauth2_scheme),
+    db = Depends(get_async_session),
+) -> list[CommissionInDB | None]:
+    """Get report sales comissions."""
+    async with db() as session:
+        user = await domain_user.get_affiliate_by_token(token, db=session)
+        return await services.get_user_sales_commissions(
+            user=user,
+            paid=paid,
+            released=released, db=session,
+        )
+
+
+@report.get(
+    '/commissions',
+    summary='Get all users sales commissions',
+    description='Commissions to all users with filter sales or not paid sales',
+    status_code=status.HTTP_200_OK,
+    response_model=UserSalesCommissions,
+)
+async def get_sales_commissions(
     *,
     paid: bool = False,
     released: bool = False,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_async_session),
-) -> list[CommissionInDB | None]:
+) -> UserSalesCommissions:
     """Get report sales comissions."""
-    async with db() as session:
-        user = await domain_user.get_affiliate_by_token(token, db=session)
-        return await services.get_user_sales_comissions(
-            user=user,
-            paid=paid,
-            released=released, db=session,
-        )
+    await domain_user.verify_admin(token, db=db)
+    return await services.get_sales_commissions(
+        paid=paid,
+        released=released,
+        db=db,
+    )
 
 
 @report.post(
