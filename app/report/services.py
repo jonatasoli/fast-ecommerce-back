@@ -6,7 +6,7 @@ from app.entities.product import ProductInDB
 from app.infra.constants import FeeType
 from sqlalchemy.orm import sessionmaker
 
-from app.infra.database import get_session
+from app.infra.database import get_async_session, get_session
 from app.entities.report import CommissionInDB, InformUserProduct
 from app.report import repository
 from app.product import repository as product_repository
@@ -32,15 +32,21 @@ async def get_user_sales_comissions(
         )
 
 
-def create_sales_commission( # noqa: PLR0913
+async def create_sales_commission( # noqa: PLR0913
     order_id: int,
     user_id: int,
     subtotal: Decimal,
     commission_percentage: Decimal | None,
     payment_id: int,
     db: sessionmaker = get_session(),
+    async_db = get_async_session(),
 ) -> SalesCommissionDB:
     """Get sales commit at all."""
+    campaign = None
+    async with async_db().begin() as transaction:
+        campaign = await campaign_repository.get_campaign(
+            transaction=transaction,
+        )
     with db.begin() as transaction:
         fees = repository.get_fees(transaction)
         total_with_fees = subtotal
@@ -58,9 +64,6 @@ def create_sales_commission( # noqa: PLR0913
         if not commission_percentage:
             raise ValueError('Error with percentage in report') #noqa: EM101 TRY003
 
-        campaign = campaign_repository.get_campaign(
-            transaction=transaction,
-        )
         if campaign and subtotal > campaign.min_purchase_value:
             total_with_fees = total_with_fees - campaign.commission_fee_value
         commission_value = total_with_fees * commission_percentage

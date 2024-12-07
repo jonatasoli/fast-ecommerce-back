@@ -284,7 +284,7 @@ async def get_coupon_by_code(
         code,
         transaction=transaction,
     )
-    return CouponResponse.model_validate(coupon_db)
+    return CouponInDB.model_validate(coupon_db)
 
 
 @database_uow()

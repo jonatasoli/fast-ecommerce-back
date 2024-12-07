@@ -323,7 +323,7 @@ async def add_address_to_cart(
     if not user_address_id:
         raise UserAddressNotFoundError
     cart = CartShipping(
-        **cart.model_dump(),
+        **cache_cart.model_dump(),
         shipping_is_payment=address.shipping_is_payment,
         user_address_id=user_address_id,
         shipping_address_id=shipping_address_id,

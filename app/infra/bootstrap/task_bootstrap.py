@@ -25,8 +25,8 @@ from app.cart import repository as cart_repository
 class Command(BaseModel):
     """Command to use in the application."""
 
-    db: sessionmaker
-    db_sync: sessionmaker
+    db: Any
+    db_sync: Any
     order_uow: Any
     cart_uow: Any
     user_uow: Any
@@ -43,8 +43,8 @@ class Command(BaseModel):
 
 
 async def bootstrap(  # noqa: PLR0913
-    db: sessionmaker = get_session(),
-    db_sync: sessionmaker = get_sync_session(),
+    db = get_session(),
+    db_sync = get_sync_session(),
     cart_uow: Any = cart_uow,
     order_uow: Any = order_uow,
     user_uow: Any = user_uow,
