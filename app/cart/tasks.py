@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Any, Self
 
 from fastapi import Depends
-from app.infra.database import get_session
+from app.infra.database import get_async_session, get_session
 from loguru import logger
 from faststream.rabbit import RabbitQueue
 from app.cart.services import calculate_freight, consistency_inventory
@@ -55,6 +55,7 @@ async def checkout(
     user: Any,
     bootstrap: Any = Depends(get_bootstrap),
     db = Depends(get_session),
+    async_db = Depends(get_async_session),
 ) -> dict:
     """Checkout cart with payment intent."""
     logger.info('Start checkout task')
@@ -90,11 +91,11 @@ async def checkout(
             products_inventory=products_db,
         )
         cart.get_products_price_and_discounts(products_db)
-        cart = calculate_freight(
+        cart = await calculate_freight(
             cart=cart,
             products_db=products_db,
             bootstrap=bootstrap,
-            session=db,
+            session=async_db,
         )
         cart.calculate_subtotal(
             coupon=coupon if cart.coupon else None,

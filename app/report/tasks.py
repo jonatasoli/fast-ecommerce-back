@@ -13,7 +13,7 @@ from app.report.services import create_sales_commission
 
 
 @task_message_bus.subscriber('sales_commission')
-def task_create_sales_commission(
+async def task_create_sales_commission(
     order_id: int,
     user_id: int,
     subtotal: Decimal,
@@ -30,7 +30,7 @@ def task_create_sales_commission(
             ''',
         )
         return
-    create_sales_commission(
+    await create_sales_commission(
         order_id=order_id,
         user_id=user_id,
         subtotal=subtotal,
