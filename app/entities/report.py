@@ -18,7 +18,7 @@ class CreateCommissionInDB(BaseModel):
 
 
 class CommissionInDB(CreateCommissionInDB):
-    commission_id: int
+    commissions_wallet_id: int
 
 
 class UserSalesCommissions(BaseModel):

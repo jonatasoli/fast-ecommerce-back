@@ -181,7 +181,7 @@ async def asyncdb(async_engine):
 async def async_admin_user(asyncdb):
     """Generate admin user in asyncdb."""
     new_role = RoleDBFactory(role_id=Roles.ADMIN.value)
-    async with asyncdb as db:
+    async with asyncdb.begin() as db:
         db.add(new_role)
 
         user = UserDB(
@@ -202,3 +202,17 @@ async def async_admin_user(asyncdb):
         user.clean_password = 'testtest'
 
         return user
+
+
+@pytest.fixture
+def async_admin_token(async_admin_user):
+    access_token_expires = timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+    )
+
+    access_token = create_access_token(
+        data={'sub': async_admin_user.document},
+        expires_delta=access_token_expires,
+    )
+
+    return access_token

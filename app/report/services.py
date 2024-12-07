@@ -2,12 +2,14 @@
 from datetime import datetime, timedelta, UTC
 from decimal import Decimal
 from typing import Any
+
+from pydantic import TypeAdapter
 from app.entities.product import ProductInDB
 from app.infra.constants import FeeType
 from sqlalchemy.orm import sessionmaker
 
 from app.infra.database import get_async_session, get_session
-from app.entities.report import CommissionInDB, InformUserProduct
+from app.entities.report import CommissionInDB, InformUserProduct, UserSalesCommissions
 from app.report import repository
 from app.product import repository as product_repository
 from app.infra.models import SalesCommissionDB
@@ -16,7 +18,7 @@ from app.infra.worker import task_message_bus
 from app.campaign import repository as campaign_repository
 
 
-async def get_user_sales_comissions(
+async def get_user_sales_commissions(
     user: Any,
     paid: bool,
     released: bool,
@@ -24,12 +26,31 @@ async def get_user_sales_comissions(
 ) -> list[CommissionInDB | None]:
     """Get user sales commissions."""
     async with db.begin() as transaction:
-        return await repository.get_user_sales_comissions(
+        return await repository.get_user_sales_commissions(
             user,
             paid=paid,
             released=released,
             transaction=transaction,
         )
+
+
+async def get_sales_commissions(
+    paid: bool,
+    released: bool,
+    db,
+):
+    """Get all commissions in db."""
+    async with db.begin() as transaction:
+        commissions = await repository.get_sales_commissions(
+            paid=paid,
+            released=released,
+            transaction=transaction,
+        )
+    adapter = TypeAdapter(list[CommissionInDB])
+    commissions = adapter.validate_python(commissions.all())
+    return UserSalesCommissions(
+        commissions=commissions,
+    )
 
 
 async def create_sales_commission( # noqa: PLR0913
