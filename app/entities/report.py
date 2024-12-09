@@ -3,6 +3,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
 
+from app.entities.user import UserInDB
+
 
 class CreateCommissionInDB(BaseModel):
     order_id: int
@@ -19,6 +21,7 @@ class CreateCommissionInDB(BaseModel):
 
 class CommissionInDB(CreateCommissionInDB):
     commissions_wallet_id: int
+    user: UserInDB
 
 
 class UserSalesCommissions(BaseModel):
