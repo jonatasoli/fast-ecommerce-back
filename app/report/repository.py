@@ -4,7 +4,7 @@ from app.entities.product import ProductInDB
 from app.entities.user import UserInDB
 from app.infra.constants import Roles
 from sqlalchemy import select, and_
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, selectinload, joinedload
 from pydantic import TypeAdapter
 
 from app.infra.models import CoProducerFeeDB, FeeDB, InformUserProductDB, SalesCommissionDB, UserDB
@@ -40,7 +40,9 @@ async def get_sales_commissions(
 ):
     """Get comission for user."""
     query = (
-        select(SalesCommissionDB)
+        select(SalesCommissionDB).options(
+            joinedload(SalesCommissionDB.user),
+        )
     )
     if paid:
         query = query.where(SalesCommissionDB.paid.is_(True))

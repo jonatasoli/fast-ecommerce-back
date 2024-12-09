@@ -17,7 +17,7 @@ from app.infra.payment_gateway import payment_gateway
 class Command(BaseModel):
     """Command to use in the application."""
 
-    db: sessionmaker
+    db: Any
     cache: redis.MemoryClient | cache_client.Redis
     message: RabbitRouter
     payment_repository: Any
@@ -28,7 +28,7 @@ class Command(BaseModel):
 
 
 async def bootstrap(
-    db: sessionmaker = get_session(),
+    db = get_session(),
     cache: redis.AbstractCache = redis.RedisCache(),
     message: RabbitRouter = task_message_bus,
     payment_repository: Any = payment_repository,  # noqa: ANN401
