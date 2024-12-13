@@ -1,6 +1,6 @@
 # ruff: noqa: ANN401 FBT002
 from typing import Any
-from app.infra.database import get_async_session
+from app.infra.database import get_async_session, get_session
 from fastapi import APIRouter, Depends, status
 from app.entities.catalog import Categories
 from app.catalog.services import get_categories_by_filter
@@ -28,10 +28,10 @@ async def get_bootstrap() -> Command:
 @catalog.get(
     '/showcase/all',
     summary='Get products in showcase',
-    description='Return all products in flag with shoucase in ProductDB',
+    description='Return all products in flag with showcase in ProductDB',
     status_code=status.HTTP_200_OK,
 )
-def get_showcase(*, db: Session = Depends(get_db)) -> Any:
+def get_showcase(*, db = Depends(get_session)) -> Any:
     """Get showcase."""
     try:
         return services.get_showcase(db)

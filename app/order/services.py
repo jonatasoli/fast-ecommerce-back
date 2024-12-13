@@ -191,15 +191,15 @@ def get_images_gallery(db: Session, uri: str) -> dict:
     return {'images': []}
 
 
-def get_showcase(db: Session) -> list:
+def get_showcase(db) -> list:
     """Get Products showcase."""
-    with db:
+    with db() as transaction:
         showcases_query = (
             select(ProductDB)
             .where(ProductDB.showcase.is_(True))
             .where(ProductDB.active.is_(True))
         )
-        showcases = db.execute(showcases_query).scalars().all()
+        showcases = transaction.execute(showcases_query).scalars().all()
         adapter = TypeAdapter(list[ProductCategoryInDB])
 
     return adapter.validate_python(showcases)

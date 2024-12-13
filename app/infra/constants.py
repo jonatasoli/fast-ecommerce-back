@@ -103,3 +103,9 @@ class DiscountType(enum.StrEnum):
     PERCENTAGE = 'PERCENTAGE'
     FIXED = 'FIXED'
     FREE_SHIPPING = 'FREE_SHIPPING'
+
+
+class CurrencyType(enum.StrEnum):
+    BRL = 'BRL'
+    USD = 'USD'
+    EUR = 'EUR'
