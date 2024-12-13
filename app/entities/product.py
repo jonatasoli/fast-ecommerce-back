@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from typing import Self
 from pydantic import BaseModel, ConfigDict, Json
-from app.infra.constants import InventoryOperation
+from app.infra.constants import CurrencyType, InventoryOperation
 
 
 class CategoryInDB(BaseModel):
@@ -215,6 +215,7 @@ class ProductPatchRequest(BaseModel):
     width: float | None = None
     weigth: float | None = None
     length: float | None = None
+    currency: CurrencyType | None = None
     model_config = ConfigDict(from_attributes=True)
 
 

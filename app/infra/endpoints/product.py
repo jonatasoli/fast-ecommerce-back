@@ -191,6 +191,8 @@ def delete_image(id: int, db: Session = Depends(get_db)) -> None:
 @product.patch(
     '/{product_id}',
     status_code=status.HTTP_204_NO_CONTENT,
+    summary='Update data in product',
+    description='Update product information',
     tags=['admin'],
 )
 async def patch_product(
@@ -200,7 +202,7 @@ async def patch_product(
     db: Session = Depends(get_async_session),
 ) -> None:
     """Patch product."""
-    _ = token
+    await verify_admin(token, db=db)
     await product_services.update_product(
         product_id,
         update_data=columns_update,
