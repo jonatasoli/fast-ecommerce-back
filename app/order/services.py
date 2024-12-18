@@ -3,7 +3,7 @@ import math
 from typing import Any
 
 from app.entities.user import UserAddressInDB
-from app.infra.constants import OrderStatus, PaymentStatus
+from app.infra.constants import CurrencyType, OrderStatus, PaymentStatus
 from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
@@ -191,12 +191,13 @@ def get_images_gallery(db: Session, uri: str) -> dict:
     return {'images': []}
 
 
-def get_showcase(db) -> list:
+def get_showcase(*, currency, db) -> list:
     """Get Products showcase."""
     with db() as transaction:
         showcases_query = (
             select(ProductDB)
             .where(ProductDB.showcase.is_(True))
+            .where(ProductDB.currency.like(currency))
             .where(ProductDB.active.is_(True))
         )
         showcases = transaction.execute(showcases_query).scalars().all()
@@ -391,6 +392,7 @@ def get_category(db: Session) -> dict:
 
 async def get_products_category(
     *,
+    currency: CurrencyType,
     offset: int,
     page: int,
     path: str,
@@ -436,6 +438,7 @@ async def get_products_category(
             )
             .where(ProductDB.category_id == category.category_id)
             .where(ProductDB.active.is_(True))
+            .where(ProductDB.currency.like(currency))
             .outerjoin(
                 InventoryDB,
                 InventoryDB.product_id == ProductDB.product_id,
@@ -529,6 +532,8 @@ async def get_product_all(
 
 
 async def get_latest_products(
+    *,
+    currency: CurrencyType,
     offset: int,
     page: int,
     db,
@@ -573,8 +578,11 @@ async def get_latest_products(
                 ProductDB.category_id == CategoryDB.category_id,
             )
             .where(ProductDB.active.is_(True))
+            .where(ProductDB.currency.like(currency))
             .group_by(ProductDB.product_id, CategoryDB.category_id)
+            .order_by(ProductDB.product_id.desc())
         )
+        #!TODO precisa criar um campo created_at
         total_records = await transaction.session.scalar(
             select(func.count(ProductDB.product_id)),
         )
@@ -595,6 +603,8 @@ async def get_latest_products(
 
 
 async def get_featured_products(
+    *,
+    currency: CurrencyType,
     offset: int,
     page: int,
     db,
@@ -635,6 +645,7 @@ async def get_featured_products(
                 ProductDB.feature.is_(True),
                 ProductDB.active.is_(True),
             )
+            .where(ProductDB.currency.like(currency))
             .group_by(ProductDB.product_id, CategoryDB.category_id)
         )
         total_records = await transaction.session.scalar(
@@ -657,6 +668,7 @@ async def get_featured_products(
 
 
 async def search_products(
+    currency: CurrencyType,
     search: str,
     offset: int,
     page: int,
@@ -705,6 +717,7 @@ async def search_products(
             .where(
                 ProductDB.name.ilike(f'%{search}%'),
             )
+            .where(ProductDB.currency.like(currency))
             .group_by(ProductDB.product_id, CategoryDB.category_id)
         )
         total_records = await transaction.session.scalar(

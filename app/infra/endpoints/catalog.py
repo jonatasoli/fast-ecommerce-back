@@ -1,5 +1,6 @@
 # ruff: noqa: ANN401 FBT002
 from typing import Any
+from app.infra.constants import CurrencyType
 from app.infra.database import get_async_session, get_session
 from fastapi import APIRouter, Depends, status
 from app.entities.catalog import Categories
@@ -31,10 +32,14 @@ async def get_bootstrap() -> Command:
     description='Return all products in flag with showcase in ProductDB',
     status_code=status.HTTP_200_OK,
 )
-def get_showcase(*, db = Depends(get_session)) -> Any:
+def get_showcase(
+    *,
+    currency: CurrencyType = CurrencyType.BRL,
+    db = Depends(get_session),
+) -> Any:
     """Get showcase."""
     try:
-        return services.get_showcase(db)
+        return services.get_showcase(currency=currency, db=db)
     except Exception as e:
         logger.error(f'Erro em obter os produtos - { e }')
         raise
@@ -48,9 +53,10 @@ def get_showcase(*, db = Depends(get_session)) -> Any:
     response_model=ProductsResponse,
 )
 async def get_products_all(
+    *,
     offset: int = 10,
     page: int = 1,
-    currency: str = 'BRL',
+    currency: CurrencyType = CurrencyType.BRL,
     db = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get products all."""
@@ -72,10 +78,16 @@ async def get_products_all(
 async def get_latest_products(
     offset: int = 10,
     page: int = 1,
+    currency: CurrencyType = CurrencyType.BRL,
     db: Session = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get latest products."""
-    return await services.get_latest_products(page=page, offset=offset, db=db)
+    return await services.get_latest_products(
+        currency=currency,
+        page=page,
+        offset=offset,
+        db=db,
+    )
 
 
 @catalog.get(
@@ -88,10 +100,16 @@ async def get_latest_products(
 async def get_products_featured(
     offset: int = 2,
     page: int = 1,
+    currency: CurrencyType = CurrencyType.BRL,
     db: Session = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get products all."""
-    return await services.get_featured_products(page=page, offset=offset, db=db)
+    return await services.get_featured_products(
+        currency=currency,
+        page=page,
+        offset=offset,
+        db=db,
+    )
 
 
 @catalog.get(
@@ -105,10 +123,12 @@ async def search_products(
     search: str,
     offset: int = 2,
     page: int = 1,
+    currency: CurrencyType = CurrencyType.BRL,
     db: Session = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get search term products."""
     return await services.search_products(
+        currency=currency,
         search=search,
         offset=offset,
         page=page,
@@ -143,11 +163,13 @@ async def get_product_category(
     path: str,
     offset: int = 2,
     page: int = 1,
+    currency: CurrencyType = CurrencyType.BRL,
     db = Depends(get_async_session),
 ) -> ProductsResponse:
     """Get product category."""
     try:
         return await services.get_products_category(
+            currency=currency,
             offset=offset,
             page=page,
             path=path,
