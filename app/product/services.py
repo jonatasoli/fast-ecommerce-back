@@ -39,6 +39,17 @@ async def get_inventory(token, *, page, offset, db, verify_admin=verify_admin):
     async with db().begin() as transaction:
         return await repository.get_inventory(transaction, page=page, offset=offset)
 
+async def get_inventory_name(path, *, currency, page, offset, db):
+    """Get products inventory."""
+    async with db().begin() as transaction:
+        return await repository.get_inventory(
+            transaction,
+            currency=currency,
+            name=path,
+            page=page,
+            offset=offset,
+    )
+
 async def inventory_transaction(product_id: int, *, inventory, token, db):
     """Add product transaction."""
     async with db().begin() as transaction:

@@ -21,7 +21,7 @@ async def get_product_by_id(product_id: int, *, transaction):
     )
 
 
-async def get_inventory(transaction, *, page, offset):
+async def get_inventory(transaction, *, page, offset, currency=None, name=None):
     """Get inventory products."""
     quantity_query = (
         select(
@@ -66,8 +66,17 @@ async def get_inventory(transaction, *, page, offset):
         )
         .order_by(ProductDB.product_id.desc())
     )
+    if not name:
+        total_records_query = select(
+            func.count(ProductDB.product_id),
+        )
+    else:
+        total_records_query = select(
+            func.count(ProductDB.product_id),
+        ).where(ProductDB.name.ilike(f"%{name}%"))
+        quantity_query = quantity_query.where(ProductDB.name.ilike(f"%{name}%"))
     total_records = await transaction.session.scalar(
-        select(func.count(ProductDB.product_id)),
+        total_records_query,
     )
     if page > 1:
         quantity_query = quantity_query.offset((page - 1) * offset)

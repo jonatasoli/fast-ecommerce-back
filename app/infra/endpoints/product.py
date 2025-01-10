@@ -1,6 +1,7 @@
 # ruff: noqa: ANN401 TRY301 TRY300
 from typing import Any
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from app.infra.constants import CurrencyType
 from app.user.services import verify_admin
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
@@ -102,6 +103,22 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
     except Exception as e: # noqa: BLE001
         logger.error(f'Erro em obter os produto - { e }')
         raise e from Exception
+
+
+@product.get('/products/{query_name}', status_code=status.HTTP_200_OK)
+async def get_product_by_name( # noqa: PLR0913
+    query_name: str,
+    offset: int = 2,
+    page: int = 1,
+    currency: CurrencyType = CurrencyType.BRL,
+    token: str = Depends(oauth2_scheme),
+    db = Depends(get_async_session),
+):
+    """Get products inventory by name."""
+    await verify_admin(token, db=db)
+    return await product_services.get_inventory_name(
+        query_name, currency=currency, page=page, offset=offset, db=db,
+    )
 
 
 @product.post(
