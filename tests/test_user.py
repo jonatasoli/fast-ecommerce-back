@@ -140,3 +140,6 @@ def test_get_current_user(client, db):
     )
 
     assert user_response.status_code == status.HTTP_200_OK
+
+
+
