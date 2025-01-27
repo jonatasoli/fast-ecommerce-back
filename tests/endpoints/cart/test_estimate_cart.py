@@ -1,6 +1,6 @@
 from app.infra.database import get_async_session
 from main import app
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 import pytest
 from decimal import Decimal
 from mail_service.sendmail import settings
@@ -87,7 +87,10 @@ async def test_estimate_products_in_cart(asyncdb) -> None:
 
     # Act
     post_url = f'{URL}/{uuid!s}/estimate'
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url='http://test',
+    ) as client:
         app.dependency_overrides[get_async_session] = lambda: asyncdb
         response = await client.post(
             post_url,

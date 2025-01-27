@@ -144,14 +144,14 @@ async def search_products(
 async def get_categories(
     menu: bool = False,
     showcase: bool = False,
-    bootstrap: Command = Depends(get_bootstrap),
+    db = Depends(get_async_session),
 ) -> Categories:
     """GET categories."""
     try:
         return await get_categories_by_filter(
             menu=menu,
             showcase=showcase,
-            bootstrap=bootstrap,
+            db=db,
         )
     except Exception as e:
         logger.error(f'Erro em obter as categorias - { e }')

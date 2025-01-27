@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from app.infra.database import get_async_session
 from main import app
 import pytest
@@ -56,7 +56,10 @@ async def test_add_product_in_new_cart(asyncdb) -> None:
         quantity=1,
     )
     product.__delattr__('discount_price')
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url='http://test',
+    ) as client:
         app.dependency_overrides[get_async_session] = lambda: asyncdb
         response = await client.post(
             f'{URL}/{uuid}/product',
