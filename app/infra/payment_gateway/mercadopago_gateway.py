@@ -230,5 +230,6 @@ def get_payment_status(
     )
     if payment.status_code not in [200, 201]:
         msg = 'payment not found'
+        logger.error(f'{payment}, {payment.content}, {payment.status_code}')
         raise PaymentStatusError(msg)
     return payment.json()

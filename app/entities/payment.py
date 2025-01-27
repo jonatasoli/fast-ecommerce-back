@@ -42,12 +42,12 @@ class PaymentNotificationData(BaseModel):
 class PaymentNotification(BaseModel):
     """Payment notification."""
 
-    id: int | None
+    id: int | str | None
     live_mode: bool
-    type: str
-    user_id: str
-    api_version: str
-    action: str
+    user_id: str | int | None
+    api_version: str | None
+    action: str | None
+    type: str | None
     data: PaymentNotificationData
 
 
