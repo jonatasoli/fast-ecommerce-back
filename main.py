@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 import sentry_sdk
 from app.entities.cart import CheckoutProcessingError, CouponLimitPriceError, ProductNotFoundError
 from app.entities.coupon import CouponDontMatchWithUserError, CouponNotFoundError
+from app.entities.payment import PaymentNotFoundError
 from app.entities.user import CredentialError, UserDuplicateError
 from app.infra.freight.correios_br import CorreiosInvalidReturnError
 from app.infra.payment_gateway.mercadopago_gateway import CardAlreadyUseError
@@ -215,6 +216,20 @@ async def checkout_processor_error(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content={
             'detail': 'Error with checkout service.',
+        },
+    )
+
+
+@app.exception_handler(PaymentNotFoundError)
+async def payment_not_found_error(
+    _: Request,
+    exc: PaymentNotFoundError,
+) -> JSONResponse:
+    """Problem with checkout service."""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            'detail': 'Payment not found in gateway system.',
         },
     )
 

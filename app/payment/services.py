@@ -20,10 +20,13 @@ async def update_payment(
     order_id, user = None, None
     logger.debug(f'Data Payment {payment_data}')
     logger.debug(f'Data Payment ID {payment_data.data.id}')
-    payment = bootstrap.payment.get_payment_status(
-        payment_id=payment_data.data.id,
-        payment_gateway='MERCADOPAGO',
-    )
+    try:
+        payment = bootstrap.payment.get_payment_status(
+            payment_id=payment_data.data.id,
+            payment_gateway='MERCADOPAGO',
+        )
+    except Exception as err:
+        raise PaymentNotFoundError from err
     logger.info(f'Gateway {payment}')
     logger.info(f'Status {payment["status"]}')
     payment_db = None
