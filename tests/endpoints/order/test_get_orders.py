@@ -1,5 +1,5 @@
 from fastapi import status
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from app.infra.database import get_session
 from main import app
 import pytest
@@ -13,7 +13,10 @@ URL = '/order'
 async def test_give_no_orders_should_return_empty_list(db) -> None:
     """Should return empty list."""
     # Act
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url='http://test',
+    ) as client:
         app.dependency_overrides[get_session] = lambda: db
         response = await client.get(
             f'{URL}/orders',
@@ -41,7 +44,10 @@ async def test_get_all_orders(db) -> None:
         transaction.session.commit()
 
     # Act
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url='http://test',
+    ) as client:
         app.dependency_overrides[get_session] = lambda: db
         response = await client.get(
             f'{URL}/orders',

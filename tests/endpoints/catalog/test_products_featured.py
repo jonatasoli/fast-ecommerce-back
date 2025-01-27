@@ -1,7 +1,7 @@
 from fastapi import status
 from app.infra.database import get_async_session
 from main import app
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 import pytest
 
 from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, InventoryDBFactory, ProductDBFactory
@@ -14,7 +14,10 @@ URL = '/catalog/featured'
 async def test_empty_data_should_return_200(asyncdb):
     """Must return empty list."""
     # Act
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url='http://test',
+    ) as client:
         app.dependency_overrides[get_async_session] = lambda: asyncdb
         response = await client.get(
             URL,
@@ -63,7 +66,10 @@ async def test_with_product_list_only_featured(asyncdb):
         await transaction.session.commit()
 
     # Act
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url='http://test',
+    ) as client:
         app.dependency_overrides[get_async_session] = lambda: asyncdb
         response = await client.get(
             URL,
