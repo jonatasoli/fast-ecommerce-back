@@ -66,6 +66,7 @@ def create_user(db, obj_in: SignUp) -> SignUpResponse:
                 role_id=Roles.USER.value,
                 update_email_on_next_login=False,
                 update_password_on_next_login=False,
+                terms=obj_in.terms,
             )
             session.add(db_user)
             logger.info(db_user)

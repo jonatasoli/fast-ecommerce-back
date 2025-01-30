@@ -366,6 +366,10 @@ class UserDB(Base):
         default=False,
         server_default='0',
     )
+    terms: Mapped[bool] = mapped_column(
+        default=False,
+        server_default='0',
+    )
 
     addresses: Mapped[list['AddressDB'] | None] = relationship(
         'AddressDB',
