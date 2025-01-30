@@ -80,6 +80,7 @@ class SignUp(BaseModel):
     password: SecretStr
     document: str
     phone: str
+    terms: bool = False
 
 
 class Roles(enum.Enum):
