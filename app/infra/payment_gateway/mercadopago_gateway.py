@@ -8,6 +8,7 @@ from mercadopago import SDK
 from pydantic import BaseModel
 from config import settings
 from httpx import Client
+from http import HTTPStatus
 
 
 class PaymentStatusError(Exception):
@@ -124,7 +125,7 @@ def attach_customer_in_payment_method(
 
     if card_response.get('error'):
         raise CardAlreadyUseError(card_response.get('message'))
-    if card_response['status'] != 201:
+    if card_response['status'] != HTTPStatus.CREATED:
         raise Exception(card_response)
 
     return card_response['response']['id']
