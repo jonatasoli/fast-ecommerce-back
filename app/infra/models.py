@@ -431,6 +431,7 @@ class SalesCommissionDB(Base):
         foreign_keys=[user_id],
         backref='sales_commission',
         uselist=False,
+        lazy='joined',
     )
 
 

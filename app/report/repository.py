@@ -26,9 +26,11 @@ async def get_user_sales_commissions(
         )
     )
     commissions = await transaction.session.execute(query)
-    adapter = TypeAdapter(list[CommissionInDB])
+    adapter = TypeAdapter(list[CommissionInDB] | None)
     return UserSalesCommissions(
-        commissions=adapter.validate_python(commissions.scalars().all()),
+        commissions=adapter.validate_python(
+            commissions.scalars().unique().all()
+        ),
     )
 
 
