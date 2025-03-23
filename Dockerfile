@@ -1,8 +1,7 @@
 FROM python:3.12-slim-bookworm
 
-RUN apt-get update && apt install build-essential -y &&\
-    apt install libpq5 -y && \
-    curl --no-install-recommends -y
+RUN apt-get update && apt install build-essential libpq5 curl \
+    -y --no-install-recommends
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
