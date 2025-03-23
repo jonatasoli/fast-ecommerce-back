@@ -1,6 +1,6 @@
 FROM python:3.12-slim-bookworm
 
-RUN apt-get update -y && apt install build-essential &&\
+RUN apt-get update&& apt install build-essential -y &&\
     apt install libpq5 -y && \
     curl --no-install-recommends -y
 
