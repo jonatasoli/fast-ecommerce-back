@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bookworm
+FROM python:3.13-bookworm
 
 RUN apt-get update && apt install build-essential libpq5 curl \
     -y --no-install-recommends

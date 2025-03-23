@@ -58,7 +58,7 @@ async def get_sales_commissions(
     paid: bool = False,
     released: bool = False,
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_async_session),
+    db = Depends(get_async_session),
 ) -> UserSalesCommissions:
     """Get report sales comissions."""
     await domain_user.verify_admin(token, db=db)
