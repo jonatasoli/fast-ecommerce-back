@@ -37,7 +37,7 @@ def event_loop():
 @pytest.fixture(scope='session')
 def engine():
     """Create test engine."""
-    with PostgresContainer('postgres:16', driver='psycopg') as postgres:
+    with PostgresContainer('postgres:17', driver='psycopg') as postgres:
 
         engine = create_engine(
             postgres.get_connection_url(),
