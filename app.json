@@ -19,6 +19,8 @@
     }
   },
   "scripts": {
-    "predeploy": "uv run alembic upgrade head"
+    "dokku": {
+        "predeploy": "uv run alembic upgrade head"
     }
+  }
 }
