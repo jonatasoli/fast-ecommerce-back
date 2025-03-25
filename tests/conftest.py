@@ -51,7 +51,7 @@ def engine():
 @pytest.fixture(scope='session')
 async def async_engine():
     """Create test async engine."""
-    with PostgresContainer('postgres:16', driver='asyncpg') as postgres:
+    with PostgresContainer('postgres:17', driver='asyncpg') as postgres:
 
         engine = create_async_engine(
             postgres.get_connection_url(),

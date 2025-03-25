@@ -38,7 +38,7 @@ from app.cart.tasks import task_message_bus # noqa: F811
 from app.report.tasks import task_message_bus # noqa: F811
 from app.entities.product import ProductSoldOutError
 
-app = FastAPI(lifespan=task_message_bus.lifespan_context)
+app = FastAPI()
 
 
 class InterceptHandler(logging.Handler):
@@ -49,6 +49,7 @@ class InterceptHandler(logging.Handler):
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
+#! TODO - Remover localhost
 origins = [
     'http://localhost:5173',
     'http://localhost:3000',
