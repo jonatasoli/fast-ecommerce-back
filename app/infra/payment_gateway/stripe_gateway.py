@@ -140,3 +140,8 @@ def retrieve_card(
         customer,
         card_id,
     )
+
+
+def accept_payment(payment_id):
+    """Confirm payment."""
+    return payment_id

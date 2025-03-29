@@ -6,7 +6,13 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import lazyload
 from sqlalchemy import func
 
-from app.entities.product import InventoryResponse, InventoryTransaction, ProductCreate, ProductInDB, ProductNotCreatedError
+from app.entities.product import (
+    InventoryResponse,
+    InventoryTransaction,
+    ProductCreate,
+    ProductInDB,
+    ProductNotCreatedError,
+)
 from app.infra.models import CategoryDB, InventoryDB, ProductDB
 
 def create_product_not_found_exception() -> ProductNotCreatedError:
@@ -23,6 +29,7 @@ async def get_product_by_id(product_id: int, *, transaction):
 
 async def get_inventory(transaction, *, page, offset, currency=None, name=None):
     """Get inventory products."""
+    _ = currency
     quantity_query = (
         select(
             ProductDB.product_id,

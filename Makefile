@@ -11,20 +11,31 @@ shell:
 	@uv shell
 
 format:
-	# @blue app/ 
-	# @blue tests/ 
 	@ruff check . --fix
 
 lint:
-	# @blue app/ tests/ --check
 	@ruff check app/entities
 	@ruff check app/cart/services.py
-	@ruff check app/catalog/services.py
+	@ruff check app/catalog
+	@ruff check app/coupons
+	@ruff check app/payment/tasks.py
 	@ruff check app/payment/services.py
-	@ruff check app/report/services.py
+	@ruff check app/payment/repository.py
+	@ruff check app/freight
+	@ruff check app/report
+	@ruff check app/user/tasks.py
 	@ruff check app/user/services.py
+	@ruff check app/user/repository.py
+	@ruff check app/inventory/tasks.py
+	@ruff check app/inventory/repository.py
+	@ruff check app/mail
+	@ruff check app/order/tasks.py
+	@ruff check app/order/services.py
+	@ruff check app/order/repository.py
+	@ruff check app/product
+	@ruff check app/settings
 	@ruff check app/infra/endpoints
-	# @ruff check tests/ --ignore S101
+	@ruff check tests/ --ignore S101
 
 test:
 	@uv run FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/ -x --cov=fast_ecommerce -vv

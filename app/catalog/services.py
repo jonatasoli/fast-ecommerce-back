@@ -6,6 +6,7 @@ from app.catalog import repository as catalog_repository
 
 
 async def get_categories_by_filter(
+    *,
     menu: bool,
     showcase: bool,
     db: Any,

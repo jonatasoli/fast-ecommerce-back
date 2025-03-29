@@ -4,6 +4,7 @@ from app.catalog import repository as catalog_repository
 
 
 async def get_categories(
+    *,
     menu: bool,
     showcase: bool,
     db: Any,

@@ -11,7 +11,7 @@ fake = Faker(['pt_BR'])
 
 
 def country_code() -> str:
-    return cast(str, fake.unique.country_code())
+    return cast('str', fake.unique.country_code())
 
 
 def fake_decimal(
@@ -21,7 +21,7 @@ def fake_decimal(
     max_value: int = 10000,
 ) -> Decimal:
     return cast(
-        Decimal,
+        'Decimal',
         fake.pydecimal(
             left_digits=left_digits,
             right_digits=right_digits,
@@ -33,20 +33,20 @@ def fake_decimal(
 
 def fake_cpf(*, with_separators: bool = False) -> str:
     if with_separators:
-        return cast(str, fake.cpf())
-    return cast(str, fake.ssn())
+        return cast('str', fake.cpf())
+    return cast('str', fake.ssn())
 
 
 def fake_email() -> str:
-    return cast(str, fake.email())
+    return cast('str', fake.email())
 
 
 def fake_date_time() -> dt.datetime:
-    return cast(dt.datetime, fake.date_time(tzinfo=dt.UTC))
+    return cast('dt.datetime', fake.date_time(tzinfo=dt.UTC))
 
 
 def fake_dict() -> dict[str, Any]:
-    return cast(dict[str, Any], fake.pydict())
+    return cast('dict[str, Any]', fake.pydict())
 
 
 def fake_json() -> list[Any]:
@@ -54,11 +54,11 @@ def fake_json() -> list[Any]:
 
 
 def fake_url() -> str:
-    return cast(str, fake.uri())
+    return cast('str', fake.uri())
 
 
 def fake_url_path() -> str:
-    return cast(str, fake.uri_path())
+    return cast('str', fake.uri_path())
 
 
 def fake_file() -> UploadFile:

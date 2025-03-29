@@ -49,7 +49,7 @@ class InterceptHandler(logging.Handler):
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
-#! TODO - Remover localhost
+#! TODO - Remove localhost origins
 origins = [
     'http://localhost:5173',
     'http://localhost:3000',

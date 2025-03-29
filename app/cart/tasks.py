@@ -102,6 +102,7 @@ async def checkout(
         )
         match cart.payment_method:
             case (PaymentMethod.CREDIT_CARD.value):
+
                 payment_response = (
                     bootstrap.payment.create_credit_card_payment(
                         payment_gateway=cart.gateway_provider,
@@ -114,6 +115,11 @@ async def checkout(
                         payment_method=cart.payment_method_id,
                     )
                 )
+                authorization_code = None
+                if not (authorization_code := payment_response.get('authorization_code')):
+                    # Stripe - payment code / authorization code
+                    authorization_code = payment_response.get('payment_method')
+
                 payment_id, order_id = await create_pending_payment_and_order(
                     cart=cart,
                     affiliate_id=affiliate_id,
@@ -121,15 +127,15 @@ async def checkout(
                     user=user,
                     payment_gateway=cart.gateway_provider,
                     gateway_payment_id=payment_response.id,
-                    authorization=payment_response.authorization_code,
+                    authorization=authorization_code,
                     bootstrap=bootstrap,
                 )
                 _payment_id = payment_id
-                gateway_payment_id = payment_response.authorization_code
+                gateway_payment_id = authorization_code
                 logger.debug(f'PAyment Response {payment_response}')
                 cart.payment_intent = payment_response.id
                 logger.debug(f'Payment Intent {cart.payment_intent}')
-                authorization = payment_response.authorization_code
+                authorization = authorization_code
                 payment_accept = None
                 if payment_response.status not in ['in_process', 'rejected']:
                     payment_accept = bootstrap.payment.accept_payment(
@@ -267,7 +273,7 @@ async def create_pending_payment_and_order(
     coupon: CouponInDB | None,
     user: Any,
     payment_gateway: str,
-    gateway_payment_id: int,
+    gateway_payment_id: int | str,
     bootstrap: Any,
     authorization: str = 'PENDING',
     pix: bool = False,

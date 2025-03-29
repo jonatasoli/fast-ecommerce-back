@@ -24,7 +24,7 @@ def task_mail_order_cancelled(
     mail_to: str,
     order_id: int | str,
     reason: str,
-    db: sessionmaker = Depends(get_session),  # noqa: B008
+    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Send cancelled email."""
     logger.info('Start task to send mail order cancelled.')
@@ -40,7 +40,7 @@ def task_mail_order_cancelled(
 def task_mail_order_processed(
     mail_to: str,
     order_id: int,
-    db: sessionmaker = Depends(get_session),  # noqa: B008
+    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Send cancelled email."""
     logger.info('Start task to send mail order processed.')
@@ -55,7 +55,7 @@ def task_mail_order_processed(
 def task_mail_order_paid(
     mail_to: str,
     order_id: int,
-    db: sessionmaker = Depends(get_session),  # noqa: B008
+    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Send cancelled email."""
     logger.info('Start task to send mail order paid.')
@@ -73,7 +73,7 @@ def task_mail_order_track_number(
     mail_to: str,
     order_id: int,
     tracking_number: str,
-    db: sessionmaker = Depends(get_session),  # noqa: B008
+    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Send cancelled email."""
     mail_data = MailTrackingNumber(
@@ -88,7 +88,7 @@ def task_mail_order_track_number(
 def task_mail_reset_user_email(
     mail_to: str,
     token: str,
-    db: sessionmaker = Depends(get_session),  # noqa: B008
+    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Send cancelled email."""
     mail_data = MailResetPassword(

@@ -1,13 +1,5 @@
 import pytest
 
-from app.infra.bootstrap.task_bootstrap import Command
-
-
-@pytest.fixture
-def mock_bootstrap():
-    # Crie um objeto de mock para Command (ou bootstrap) para passar como argumento
-    return Command()  # Você pode personalizar o mock conforme necessário
-
 
 @pytest.fixture
 def mock_session(mocker):
@@ -17,83 +9,11 @@ def mock_session(mocker):
 
 @pytest.fixture
 def mock_order_repository(mocker):
-    # Crie um mock para o repositório de pedidos (ou outro repositório que você está usando)
+    # Crie um mock para o repositório de pedidos
     return mocker.patch('your_module.order_task.bootstrap.order_repository')
 
 
 @pytest.fixture
 def mock_user_repository(mocker):
-    # Crie um mock para o repositório de usuários (ou outro repositório que você está usando)
+    # Crie um mock para o repositório de usuários
     return mocker.patch('your_module.order_task.bootstrap.user_repository')
-
-
-# @pytest.mark.skip()
-# def test_create_order(
-#     mocker,
-#     mock_bootstrap,
-#     mock_session,
-#     mock_order_repository,
-#     mock_user_repository,
-# ):
-#     # Configure o comportamento esperado dos mocks
-#     mock_session_instance = mock_session.return_value.__enter__.return_value
-#     mock_order_repository.get_order_by_cart_uuid.return_value = None
-#     mock_user_repository.get_user_by_username.return_value = MagicMock()
-#     mock_session_instance.commit.return_value = None
-
-#     # Chame a função que você está testando
-#     result = create_order(
-#         CartPayment(),
-#         'affiliate',
-#         Decimal('10.0'),
-#         mock_bootstrap,
-#     )
-
-#     # Verifique o resultado esperado
-#     assert result is not None  # Substitua isso pelo que você espera da função
-
-
-# @pytest.mark.skip()
-# def test_update_order(
-#     mocker,
-#     mock_bootstrap,
-#     mock_session,
-#     mock_order_repository,
-# ):
-#     # Configure o comportamento esperado dos mocks
-#     mock_session_instance = mock_session.return_value.__enter__.return_value
-#     mock_order_repository.update_order.return_value = MagicMock()
-#     mock_session_instance.commit.return_value = None
-
-#     # Chame a função que você está testando
-#     result = update_order(
-#         OrderDBUpdate(),
-#         mock_bootstrap,
-#     )
-
-#     # Verifique o resultado esperado
-#     assert result is not None  # Substitua isso pelo que você espera da função
-
-
-# @pytest.mark.skip()
-# async def test_create_order_status_step(
-#     mocker,
-#     mock_bootstrap,
-#     mock_session,
-#     mock_order_repository,
-# ):
-#     # Configure o comportamento esperado dos mocks
-#     mock_session_instance = mock_session.return_value.__enter__.return_value
-#     mock_order_repository.create_order_status_step.return_value = MagicMock()
-#     mock_session_instance.commit.return_value = None
-
-#     # Chame a função que você está testando
-#     result = await create_order_status_step(
-#         order_id=1,
-#         status='status',
-#         send_mail=False,
-#         bootstrap=mock_bootstrap,
-#     )
-
-#     # Verifique o resultado esperado
-#     assert result is not None  # Substitua isso pelo que você espera da função

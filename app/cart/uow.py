@@ -115,7 +115,7 @@ class AbstractUnitOfWork(abc.ABC):
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     def __init__(
         self: Self,
-        session_factory: sessionmaker = get_async_session(),  # noqa: B008
+        session_factory: sessionmaker = get_async_session(),
     ) -> None:
         self.session = session_factory
         self.cart = repository.SqlAlchemyRepository(session_factory)

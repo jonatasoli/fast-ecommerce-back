@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, UTC
+from decimal import Decimal
 from sqlalchemy import update
 
 from sqlalchemy.orm import SessionTransaction
@@ -8,12 +9,13 @@ from loguru import logger
 from sqlalchemy.sql import select
 
 from app.entities.cart import CartPayment
-from app.entities.payment import PaymentDBUpdate
+from app.entities.payment import ConfigCreditCardResponse, PaymentDBUpdate
 from app.infra.constants import PaymentMethod, PaymentStatus
-from app.infra.models import CustomerDB, PaymentDB
+from app.infra.database import get_session
+from app.infra.models import CreditCardFeeConfigDB, CustomerDB, PaymentDB
 
 
-async def create_payment(
+async def create_payment( # Noqa: PLR0913
     cart: CartPayment,
     *,
     user_id: int,
@@ -89,7 +91,7 @@ async def get_payment_by_order_id(
     return await transaction.session.scalar(payment_query)
 
 
-async def create_customer(
+async def create_customer( # Noqa: PLR0913
     *,
     user_id: int,
     customer_uuid: str,
@@ -109,7 +111,7 @@ async def create_customer(
         payment_method=payment_method,
         token=token,
         issuer_id=issuer_id,
-        created_at=datetime.now(),
+        created_at=datetime.now(tz=UTC),
     )
 
     transaction.session.add(customer)
@@ -137,7 +139,7 @@ async def get_customer(
 
 
 async def update_payment_status(
-    gateway_payment_id: int,
+    gateway_payment_id: int | str,
     *,
     payment_status: str,
     transaction: SessionTransaction,
@@ -151,7 +153,7 @@ async def update_payment_status(
         )
         .values(
             status=payment_status,
-            processed_at=datetime.now(),
+            processed_at=datetime.now(tz=UTC),
             processed=processed,
         )
         .returning(PaymentDB)
@@ -163,7 +165,7 @@ async def update_payment_status(
 
 
 async def get_payment(
-    gateway_payment_id: int,
+    gateway_payment_id: int | str,
     *,
     transaction: SessionTransaction,
 ) -> PaymentDB:
@@ -189,11 +191,11 @@ class CreateCreditConfig:
         self.config_data = config_data
 
     def create_credit(self):
-        db = get_db()
+        db = get_session()
         _config = None
-        with db:
-            db_config = CreditCardFeeConfig(
-                active_date=datetime.now(),
+        with db().begin() as db:
+            db_config = CreditCardFeeConfigDB(
+                active_date=datetime.now(tz=UTC),
                 fee=Decimal(self.config_data.fee),
                 min_installment_with_fee=self.config_data.min_installment,
                 max_installments=self.config_data.max_installment,

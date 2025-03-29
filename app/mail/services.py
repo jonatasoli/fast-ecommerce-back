@@ -18,7 +18,7 @@ from app.entities.mail import (
 )
 
 file_loader = FileSystemLoader('email-templates')
-env = Environment(loader=file_loader)
+env = Environment(loader=file_loader, autoescape=True)
 
 
 class SendMailError(Exception):
@@ -46,7 +46,7 @@ def send_mail_error() -> SendMailError:
     raise SendMailError
 
 
-def send_order_cancelled(db, mail_data: MailOrderCancelled) -> None:
+def send_order_cancelled(mail_data: MailOrderCancelled) -> None:
     """Task send mail with Order cancelled."""
     template = env.get_template('mail_order_cancelled.html').render(
         order_id=mail_data.order_id,
@@ -92,7 +92,7 @@ def send_order_processed(db: Session, mail_data: MailOrderProcessed) -> None:
     send_email(message)
 
 
-def send_order_paid(db, mail_data: MailOrderPaied) -> None:
+def send_order_paid(mail_data: MailOrderPaied) -> None:
     """Send order paid."""
     template = env.get_template('mail_order_paid.html').render(
         mail_template='mail_order_paid',
@@ -112,7 +112,7 @@ def send_order_paid(db, mail_data: MailOrderPaied) -> None:
     send_email(message)
 
 
-def send_mail_tracking_number(db, mail_data: MailTrackingNumber) -> None:
+def send_mail_tracking_number(mail_data: MailTrackingNumber) -> None:
     """Task send mail."""
     template = env.get_template('mail_tracking_number.html').render(
         mail_template='mail_tracking_number',
@@ -131,7 +131,7 @@ def send_mail_tracking_number(db, mail_data: MailTrackingNumber) -> None:
     send_email(message)
 
 
-def send_mail_reset_password(db, mail_data: MailResetPassword) -> None:
+def send_mail_reset_password(mail_data: MailResetPassword) -> None:
     """Send reset email."""
     _link = f'{settings.FRONTEND_URLS}/reset-password?token={mail_data.token}'
     template = env.get_template('mail_reset_password.html').render(
@@ -150,7 +150,7 @@ def send_mail_reset_password(db, mail_data: MailResetPassword) -> None:
     send_email(message)
 
 
-def send_mail_form_courses(db, mail_data: MailFormCourses):
+def send_mail_form_courses(mail_data: MailFormCourses):
     """Email from courses."""
     template = env.get_template('mail_form_courses.html').render(
         name=mail_data.name,
@@ -170,7 +170,6 @@ def send_mail_form_courses(db, mail_data: MailFormCourses):
     send_email(course)
 
 def send_mail_from_inform_ask_product_by_user(
-    db,
     mail_data: MailInformUserProduct,
 ):
     """Email inform ask product by user."""
@@ -187,3 +186,4 @@ def send_mail_from_inform_ask_product_by_user(
         plain_text_content=str(template),
         html_content=template,
     )
+    logger.info(inform)

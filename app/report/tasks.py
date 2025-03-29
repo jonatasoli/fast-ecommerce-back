@@ -13,7 +13,7 @@ from app.report.services import create_sales_commission
 
 
 @task_message_bus.subscriber('sales_commission')
-async def task_create_sales_commission(
+async def task_create_sales_commission( # Noqa: PLR0913
     order_id: int,
     user_id: int,
     subtotal: Decimal,

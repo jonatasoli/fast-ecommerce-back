@@ -7,7 +7,13 @@ from sqlalchemy import select, and_
 from sqlalchemy.orm import Session, selectinload, joinedload
 from pydantic import TypeAdapter
 
-from app.infra.models import CoProducerFeeDB, FeeDB, InformUserProductDB, SalesCommissionDB, UserDB
+from app.infra.models import (
+    CoProducerFeeDB,
+    FeeDB,
+    InformUserProductDB,
+    SalesCommissionDB,
+    UserDB,
+)
 from app.entities.report import CommissionInDB, InformUserProduct, UserSalesCommissions
 
 
@@ -19,6 +25,7 @@ async def get_user_sales_commissions(
     transaction: Session,
 ):
     """Get comission for user."""
+    _ = released, paid
     query = (
         select(SalesCommissionDB)
         .where(
@@ -29,7 +36,7 @@ async def get_user_sales_commissions(
     adapter = TypeAdapter(list[CommissionInDB] | None)
     return UserSalesCommissions(
         commissions=adapter.validate_python(
-            commissions.scalars().unique().all()
+            commissions.scalars().unique().all(),
         ),
     )
 
