@@ -137,7 +137,7 @@ class PaymentInDB(BaseModel):
     order_id: int
     amount: int | Decimal
     token: str | None
-    gateway_payment_id: int
+    gateway_payment_id: int | str
     status: str
     authorization: str | None
     payment_method: str | None

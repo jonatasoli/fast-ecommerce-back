@@ -158,10 +158,10 @@ def delete_product(db: Session, product_id: int) -> None:
 def upload_image_gallery(
     product_id: int,
     db: Session,
-    imageGallery: Any,
+    image_gallery: Any,
 ) -> str:
     """Upload Image Galery."""
-    image_path = optimize_image.optimize_image(imageGallery)
+    image_path = optimize_image.optimize_image(image_gallery)
     with db:
         db_image_gallery = ImageGalleryDB(
             url=image_path,
@@ -218,7 +218,7 @@ async def get_product_by_id(product_id: int, db) -> ProductInDB:
 
 def get_orders(page, offset, *, db):
     """Get Orders Paid."""
-    with db().begin() as db:
+    with db().begin() as db: # Noqa: PLR1704
         orders_query = (
             select(OrderDB).options(
                 joinedload(OrderDB.user),
@@ -341,8 +341,8 @@ def delete_order(order_id: int, *, cancel: CancelOrder, db) -> None:
         db.commit()
 
 
-def put_order(db: Session, order_data: OrderFullResponse, id):
-    ...
+def put_order(db: Session, order_data: OrderFullResponse, order_id):
+    raise NotImplementedError
 
 
 async def put_tracking_number(
@@ -368,7 +368,7 @@ async def put_tracking_number(
     )
 
 
-def checked_order(db: Session, id, check):
+def checked_order(db: Session, order_id, check):
     ...
 
 

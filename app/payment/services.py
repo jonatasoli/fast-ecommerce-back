@@ -76,7 +76,7 @@ async def update_payment(
 
 
 async def get_payment_status(
-    gateway_payment_id: int,
+    gateway_payment_id: int | str,
     bootstrap: Any,
 ) -> PaymentStatusResponse:
     """Get payment status."""
@@ -91,7 +91,7 @@ async def get_payment_status(
 
 
 async def get_payment(
-    gateway_payment_id: int,
+    gateway_payment_id: int | str,
     db,
 ) -> PaymentInDB:
     """Get payment status."""

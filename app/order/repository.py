@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from decimal import Decimal
 
 from sqlalchemy import update
@@ -32,8 +32,8 @@ async def create_order(
         customer_id=cart.customer_id,
         discount=coupon.discount if coupon else Decimal(0),
         coupon_id=coupon.coupon_id if coupon else None,
-        last_updated=datetime.now(),
-        order_date=datetime.now(),
+        last_updated=datetime.now(tz=UTC),
+        order_date=datetime.now(tz=UTC),
         order_status=OrderStatus.PAYMENT_PENDING.value,
         user_id=user_id,
         freight=cart.freight_product_code,
@@ -68,7 +68,7 @@ async def update_order(
                 exclude_unset=True,
                 exclude={'order_id'},
             ),
-            last_updated=datetime.now(),
+            last_updated=datetime.now(tz=UTC),
         )
         .returning(OrderDB)
     )
@@ -83,7 +83,7 @@ async def get_order_by_cart_uuid(
     """Get an order by its cart uuid."""
     order_query = select(OrderDB).where(OrderDB.cart_uuid == str(cart_uuid))
     order_db = await transaction.session.execute(order_query)
-    return order_db.scalar_one_or_none()
+    return order_db.unique().scalar_one_or_none()
 
 
 async def create_order_status_step(
@@ -99,14 +99,14 @@ async def create_order_status_step(
         status=status,
         sending=sending,
         active=True,
-        last_updated=datetime.now(),
+        last_updated=datetime.now(tz=UTC),
     )
     transaction.session.add(order_status_step)
     await transaction.session.flush()
     return order_status_step.order_status_steps_id
 
 
-async def create_order_item(
+async def create_order_item( # Noqa:  PLR0913
     order_id: int,
     *,
     product_id: int,

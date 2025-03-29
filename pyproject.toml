@@ -72,10 +72,10 @@ opentelemetry-distro = "^0.45b0"
 opentelemetry-exporter-otlp = "^1.24.0"
 
 [tool.ruff]
-lint.select = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "C4", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "FBT", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
-lint.fixable = ["A", "B", "C", "D", "E", "F", "G", "N", "S", "T", "W", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "FBT", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
+lint.select = ["A", "B", "C", "E", "F", "G", "N", "S", "T", "W", "C4", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
+lint.fixable = ["A", "B", "C", "E", "F", "G", "N", "S", "T", "W", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
 lint.unfixable = []
-lint.ignore = ["D100", "D101", "D102", "D107", "D203", "D213"]
+lint.ignore = ["B008"]
 src = ["app", "tests"]
 # Exclude a variety of commonly ignored directories.
 exclude = [ ".bzr",
@@ -106,7 +106,7 @@ mypy-init-return = true
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "N999"]
-"/**/tests/*.py" = ["S101","PLR2004", "B008", 'N806', 'D103', 'F821', 'N999']
+"/**/tests/*.py" = ["S101","PLR2004", "B008", 'N806', 'F821', 'N999', 'E501', 'PT011', 'ARG001', 'EM101', 'TRY003']
 "app/infra/*" = ["B008", "A002","A001", "A003", "RUF100","FBT001", "F811","F401","TRY302"]
 
 [tool.ruff.lint.isort]

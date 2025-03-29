@@ -3,12 +3,13 @@ import enum
 from typing import Any
 from app.entities.cart import CreateCreditCardPaymentMethod
 from app.infra.constants import PaymentGatewayAvailable, PaymentMethod
-from app.infra.payment_gateway import stripe_gateway, mercadopago_gateway
+from app.infra.payment_gateway import cielo, stripe_gateway, mercadopago_gateway
 
 
 class PaymentGatewayCommmand(enum.Enum):
-    STRIPE: Any = stripe_gateway
-    MERCADOPAGO: Any = mercadopago_gateway
+    STRIPE = stripe_gateway
+    MERCADOPAGO = mercadopago_gateway
+    CIELO = cielo
 
 
 def create_customer_in_gateway(
@@ -33,7 +34,7 @@ def create_method_credit_card(
     amount: Decimal | float = 0,
     instalments: int = 1,
 ) -> dict:
-    """Create a credit card payment in stripe and mercado pago."""
+    """Create a credit card payment in specific gateway."""
     gateway = PaymentGatewayCommmand[payment_gateway].value
     return gateway.create_credit_card_payment(
         payment_intent_id=payment_intent_id,
@@ -54,7 +55,7 @@ def attach_customer_in_payment_method(
     email: str | None = None,
     payment_method_id: str | None = None,
 ) -> str:
-    """Attach a customer in payment method in stripe and mercado pago."""
+    """Attach a customer in payment method in gateway."""
     _ = email
     gateway = PaymentGatewayCommmand[payment_gateway].value
     return gateway.attach_customer_in_payment_method(
@@ -76,7 +77,7 @@ def create_credit_card_payment(
     payment_method: str,
     customer_email: str,
 ) -> dict:
-    """Create a credit card payment in stripe and mercado pago."""
+    """Create a credit card payment intent in gateway."""
     gateway = PaymentGatewayCommmand[payment_gateway].value
     return gateway.create_credit_card_payment(
         payment_intent_id=payment_intent_id,
@@ -93,7 +94,7 @@ def accept_payment(
     payment_gateway: str,
     payment_id: str,
 ) -> dict:
-    """Accept a payment in stripe and mercado pago."""
+    """Accept a payment in gateway."""
     gateway = PaymentGatewayCommmand[payment_gateway].value
     payment = gateway.accept_payment(
         payment_id=payment_id,
@@ -115,7 +116,7 @@ def get_payment_status(
     )
 
 
-
+#!TODO - Refactor payment gateway and isolate gateway functions
 def create_payment_method(
     payment: CreateCreditCardPaymentMethod,
 ):
@@ -143,3 +144,10 @@ def create_payment_intent(
         installments=installments,
 
         )
+
+
+def cancel_payment(
+    payment_id,
+):
+    """Cancel payment in gateway."""
+    raise NotImplementedError

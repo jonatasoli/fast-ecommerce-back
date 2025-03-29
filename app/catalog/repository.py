@@ -4,6 +4,7 @@ from sqlalchemy import select
 
 
 async def get_categories(
+    *,
     menu: bool,
     showcase: bool,
     transaction: SessionTransaction,

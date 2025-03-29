@@ -157,7 +157,7 @@ class PaymentDB(Base):
     amount: Mapped[Decimal]
     amount_with_fee: Mapped[Decimal] = mapped_column(server_default='0')
     token: Mapped[str]
-    gateway_payment_id: Mapped[int] = mapped_column(BIGINT, server_default='0')
+    gateway_payment_id: Mapped[str]
     status: Mapped[str]
     authorization: Mapped[str]
     payment_method: Mapped[str]
@@ -218,6 +218,7 @@ class OrderDB(Base):
         foreign_keys=[PaymentDB.order_id],
         back_populates="order",
         uselist=False,
+        lazy='joined',
     )
 
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy import func, select
 from sqlalchemy.orm import SessionTransaction
 from app.infra.constants import InventoryOperation
@@ -48,7 +48,7 @@ async def decrease_inventory(
         quantity=-quantity,
         operation=InventoryOperation.DECREASE.value,
         order_id=order_id,
-        created_at=datetime.now(),
+        created_at=datetime.now(tz=UTC),
     )
     transaction.session.add(inventory)
     await transaction.session.flush()

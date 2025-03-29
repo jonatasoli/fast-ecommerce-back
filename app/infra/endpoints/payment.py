@@ -71,7 +71,7 @@ async def payment_status(
     response_model=PaymentInDB,
 )
 async def payment_status(
-    gateway_payment_id: int,
+    gateway_payment_id: int | str,
     db = Depends(get_async_session),
 ) -> PaymentInDB:
     """Payment status."""

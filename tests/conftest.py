@@ -105,7 +105,7 @@ def user(db):
     db.commit()
     db.refresh(user)
 
-    user.clean_password = 'testtest'
+    user.clean_password = 'testtest' # Noqa: S105
 
     return user
 
@@ -115,12 +115,11 @@ def token(user):
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
 
-    access_token = create_access_token(
+    return create_access_token(
         data={'sub': user.document},
         expires_delta=access_token_expires,
     )
 
-    return access_token
 
 @pytest.fixture
 def admin_user(db):
@@ -142,7 +141,7 @@ def admin_user(db):
     db.refresh(user)
     db.commit()
 
-    user.clean_password = 'testtest'
+    user.clean_password = 'testtest' # Noqa: S105
 
     return user
 
@@ -152,12 +151,10 @@ def admin_token(admin_user):
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
 
-    access_token = create_access_token(
+    return create_access_token(
         data={'sub': admin_user.document},
         expires_delta=access_token_expires,
     )
-
-    return access_token
 
 
 @pytest.fixture
@@ -199,7 +196,7 @@ async def async_admin_user(asyncdb):
         db.refresh(user)
         db.commit()
 
-        user.clean_password = 'testtest'
+        user.clean_password = 'testtest' # Noqa: S105
 
         return user
 
@@ -210,9 +207,7 @@ def async_admin_token(async_admin_user):
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
 
-    access_token = create_access_token(
+    return create_access_token(
         data={'sub': async_admin_user.document},
         expires_delta=access_token_expires,
     )
-
-    return access_token

@@ -13,7 +13,7 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
-async def create_pending_payment(
+async def create_pending_payment( #Noqa: PLR0913
     order_id: int,
     *,
     cart: CartPayment,
@@ -37,7 +37,7 @@ async def create_pending_payment(
     )
 
 
-async def update_payment(
+async def update_payment( #Noqa: PLR0913
     payment_id: int,
     payment_status: str,
     authorization: str,
@@ -62,18 +62,18 @@ async def create_customer(
     user_email: str,
     bootstrap: Any = Depends(get_bootstrap),
 ) -> None:
-    """Create a customer in stripe and mercado pago."""
+    """Create a customer in gateway."""
     customers = bootstrap.payment.create_customer_in_gateway(
         user_email=user_email,
     )
     customers_ids = []
     for payment_gateway in PaymentGatewayAvailable:
-        id = await bootstrap.payment_uow.uow_create_customer(
+        payment_id = await bootstrap.payment_uow.uow_create_customer(
             user_id,
             customer_id=customers[payment_gateway.value]['id'],
             payment_gateway=payment_gateway.value,
             bootstrap=bootstrap,
         )
-        customers_ids.append(id)
+        customers_ids.append(payment_id)
     for customer in customers_ids:
         logger.info(f'Customer {customer} from {user_id} created with success')

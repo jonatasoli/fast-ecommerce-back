@@ -19,15 +19,13 @@ def temporary_async_sessionmaker():
         'sqlite+aiosqlite:///mydatabase.db',
         echo=True,
     )
-    SessionLocal = sessionmaker(
+    return sessionmaker(
         bind=engine,
         class_=AsyncSession,
         expire_on_commit=False,
     )
-    return SessionLocal
 
 
-# @pytest.mark.asyncio()
 @pytest.mark.skip
 async def test_database_uow_success_should_call_begin(
     temporary_async_sessionmaker,

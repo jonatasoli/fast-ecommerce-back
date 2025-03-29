@@ -169,12 +169,12 @@ def upload_image_gallery(
     product_id: int,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
-    imagegallery: UploadFile = File(...),
+    image_gallery: UploadFile = File(...),
 ) -> None:
     """Upload image gallery."""
     try:
         _ = token
-        return product_services.upload_image_gallery(product_id, db, imagegallery)
+        return product_services.upload_image_gallery(product_id, db, image_gallery)
     except Exception:
         raise
 
