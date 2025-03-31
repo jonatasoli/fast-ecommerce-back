@@ -223,9 +223,9 @@ def create_access_token(
     """Create temporary access token."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(UTC) + expires_delta
+        expire = datetime.now(tz=UTC) + expires_delta
     else:
-        expire = datetime.now(UTC) + timedelta(minutes=15)
+        expire = datetime.now(tz=UTC) + timedelta(minutes=15)
     to_encode.update({'exp': expire})
     return encode(
         to_encode,

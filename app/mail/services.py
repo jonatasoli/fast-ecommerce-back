@@ -1,5 +1,4 @@
 from fastapi import status
-from sqlalchemy.orm import Session
 from config import settings
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
@@ -64,7 +63,7 @@ def send_order_cancelled(mail_data: MailOrderCancelled) -> None:
     send_email(message)
 
 
-def send_order_processed(db: Session, mail_data: MailOrderProcessed) -> None:
+def send_order_processed(db, mail_data: MailOrderProcessed) -> None:
     """Task to send mail order processed."""
     order_items = None
     template = None

@@ -32,8 +32,8 @@ async def create_order(
         customer_id=cart.customer_id,
         discount=coupon.discount if coupon else Decimal(0),
         coupon_id=coupon.coupon_id if coupon else None,
-        last_updated=datetime.now(tz=UTC),
-        order_date=datetime.now(tz=UTC),
+        last_updated=datetime.now(tz=UTC).replace(tzinfo=None),
+        order_date=datetime.now(tz=UTC).replace(tzinfo=None),
         order_status=OrderStatus.PAYMENT_PENDING.value,
         user_id=user_id,
         freight=cart.freight_product_code,
@@ -68,7 +68,7 @@ async def update_order(
                 exclude_unset=True,
                 exclude={'order_id'},
             ),
-            last_updated=datetime.now(tz=UTC),
+            last_updated=datetime.now(tz=UTC).replace(tzinfo=None),
         )
         .returning(OrderDB)
     )
@@ -99,7 +99,7 @@ async def create_order_status_step(
         status=status,
         sending=sending,
         active=True,
-        last_updated=datetime.now(tz=UTC),
+        last_updated=datetime.now(tz=UTC).replace(tzinfo=None),
     )
     transaction.session.add(order_status_step)
     await transaction.session.flush()

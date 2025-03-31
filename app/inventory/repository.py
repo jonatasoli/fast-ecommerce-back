@@ -48,7 +48,7 @@ async def decrease_inventory(
         quantity=-quantity,
         operation=InventoryOperation.DECREASE.value,
         order_id=order_id,
-        created_at=datetime.now(tz=UTC),
+        created_at=datetime.now(tz=UTC).replace(tzinfo=None),
     )
     transaction.session.add(inventory)
     await transaction.session.flush()
