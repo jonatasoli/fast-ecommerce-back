@@ -111,7 +111,7 @@ async def create_customer( # Noqa: PLR0913
         payment_method=payment_method,
         token=token,
         issuer_id=issuer_id,
-        created_at=datetime.now(tz=UTC),
+        created_at=datetime.now(tz=UTC).replace(tzinfo=None),
     )
 
     transaction.session.add(customer)
@@ -153,7 +153,7 @@ async def update_payment_status(
         )
         .values(
             status=payment_status,
-            processed_at=datetime.now(tz=UTC),
+            processed_at=datetime.now(tz=UTC).replace(tzinfo=None),
             processed=processed,
         )
         .returning(PaymentDB)
@@ -195,7 +195,7 @@ class CreateCreditConfig:
         _config = None
         with db().begin() as db:
             db_config = CreditCardFeeConfigDB(
-                active_date=datetime.now(tz=UTC),
+                active_date=datetime.now(tz=UTC).replace(tzinfo=None),
                 fee=Decimal(self.config_data.fee),
                 min_installment_with_fee=self.config_data.min_installment,
                 max_installments=self.config_data.max_installment,

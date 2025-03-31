@@ -263,8 +263,11 @@ async def add_user_to_cart(
             queue=RabbitQueue('create_customer'),
         )
     user_data = UserData.model_validate(user)
+    logger.debug(user_data)
     cart_user = CartUser(**cart.model_dump(), user_data=user_data)
     if cart_user.coupon:
+        logger.debug("Coupon")
+        logger.debug(cart_user.coupon)
         async with bootstrap.db() as session:
             coupon = await bootstrap.cart_repository.get_coupon_by_code(
                 cart_user.coupon,
@@ -276,12 +279,15 @@ async def add_user_to_cart(
             case _ if coupon.user_id and coupon.user_id != user_data.user_id:
                 raise CouponDontMatchWithUserError
     cache = bootstrap.cache
+    logger.debug("Antes do get UUID")
     cache.get(uuid)
+    logger.debug(cache)
     cache.set(
         str(cart.uuid),
         cart_user.model_dump_json(),
         ex=DEFAULT_CART_EXPIRE,
     )
+    logger.debug("set cache")
     return cart_user
 
 

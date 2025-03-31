@@ -24,7 +24,6 @@ def task_mail_order_cancelled(
     mail_to: str,
     order_id: int | str,
     reason: str,
-    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Send cancelled email."""
     logger.info('Start task to send mail order cancelled.')
@@ -33,7 +32,7 @@ def task_mail_order_cancelled(
         order_id=order_id,
         reason=reason,
     )
-    send_order_cancelled(db=db, mail_data=mail_data)
+    send_order_cancelled(mail_data=mail_data)
 
 
 @task_message_bus.subscriber('notification_order_processed')
@@ -55,7 +54,6 @@ def task_mail_order_processed(
 def task_mail_order_paid(
     mail_to: str,
     order_id: int,
-    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Send cancelled email."""
     logger.info('Start task to send mail order paid.')
@@ -65,7 +63,7 @@ def task_mail_order_paid(
         mail_to=mail_to,
         order_id=order_id,
     )
-    send_order_paid(db=db, mail_data=mail_data)
+    send_order_paid(mail_data=mail_data)
 
 
 @task_message_bus.subscriber('notification_tracking_number')
@@ -73,7 +71,6 @@ def task_mail_order_track_number(
     mail_to: str,
     order_id: int,
     tracking_number: str,
-    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Send cancelled email."""
     mail_data = MailTrackingNumber(
@@ -81,18 +78,17 @@ def task_mail_order_track_number(
         order_id=order_id,
         tracking_number=tracking_number,
     )
-    send_mail_tracking_number(db=db, mail_data=mail_data)
+    send_mail_tracking_number(mail_data=mail_data)
 
 
 @task_message_bus.subscriber('reset_password_request')
 def task_mail_reset_user_email(
     mail_to: str,
     token: str,
-    db: sessionmaker = Depends(get_session),
 ) -> None:
     """Send cancelled email."""
     mail_data = MailResetPassword(
         mail_to=mail_to,
         token=token,
     )
-    send_mail_reset_password(db=db, mail_data=mail_data)
+    send_mail_reset_password(mail_data=mail_data)
