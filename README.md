@@ -115,6 +115,8 @@ suggest test product
 ## Integrations
 * Sendgrid
 * Pagarme
+* Mercado Pago
+* Stripe
 * Correios
 * Tallos
 
