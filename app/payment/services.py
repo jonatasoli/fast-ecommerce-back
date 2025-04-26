@@ -9,8 +9,11 @@ from app.entities.payment import (
 from faststream.rabbit import RabbitQueue
 from typing import Any
 from loguru import logger
+from app.infra.constants import PaymentGatewayAvailable
+from app.infra.database import get_async_session
 from app.payment import repository
 from app.report import repository as report_repository
+from app.infra.payment_gateway import payment_gateway
 
 async def update_payment(
     payment_data: PaymentNotification,
@@ -73,6 +76,38 @@ async def update_payment(
             },
             queue=RabbitQueue('notification_order_paid'),
         )
+
+
+async def update_pending_payments(db=get_async_session):
+    """Get all peding payments and update."""
+    async with db().begin() as session:
+        payments = await repository.get_pending_payments(
+            PaymentGatewayAvailable.MERCADOPAGO.value,
+            transaction=session,
+        )
+        for payment in payments.all():
+            payment_in_gateway = await get_payment_gateway_status(
+                gateway_payment_id=payment.gateway_payment_id,
+            )
+            if status := payment_in_gateway.get('status'):
+                payment.status = status
+                session.add(payment)
+            await session.flush()
+        await session.commit()
+
+
+async def get_payment_gateway_status(
+    gateway_payment_id: int | str,
+):
+    """Get payment status."""
+    payment = payment_gateway.get_payment_status(
+        payment_id=gateway_payment_id,
+        payment_gateway=PaymentGatewayAvailable.MERCADOPAGO.value,
+
+    )
+    if not payment:
+        raise PaymentNotFoundError
+    return payment
 
 
 async def get_payment_status(

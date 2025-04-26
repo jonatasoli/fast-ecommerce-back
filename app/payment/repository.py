@@ -175,6 +175,18 @@ async def get_payment(
     )
     return await transaction.session.scalar(payment_query)
 
+async def get_pending_payments(
+    payment_gateway: str,
+    *,
+    transaction: SessionTransaction,
+) -> list[PaymentDB]:
+    """Get payments with specific gateway."""
+    payment_query = select(PaymentDB).where(
+        PaymentDB.payment_gateway == payment_gateway,
+        PaymentDB.status == PaymentStatus.PENDING,
+    )
+    return await transaction.scalars(payment_query)
+
 
 class CreditCardConfig:
     def __init__(self, config_data) -> None:
