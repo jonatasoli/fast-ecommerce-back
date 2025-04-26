@@ -18,16 +18,18 @@ from app.report import repository as report_repository
 from app.infra.payment_gateway import payment_gateway
 
 async def update_payment(
-    payment_data: PaymentNotification,
-    bootstrap: Any,
+    payment_data,
+    bootstrap,
 ) -> None:
     """Update payment."""
     order_id, user = None, None
     logger.debug(f'Data Payment {payment_data}')
-    logger.debug(f'Data Payment ID {payment_data.data.id}')
+    payment_data = await payment_data.json()
+    logger.debug(f'Data Payment ID {payment_data.get('data')}')
+    logger.debug(f'Data Payment ID {payment_data.get('data').get('id')}')
     try:
         payment = bootstrap.payment.get_payment_status(
-            payment_id=payment_data.data.id,
+            payment_id=payment_data.get('data').get('id'),
             payment_gateway='MERCADOPAGO',
         )
     except Exception as err:
@@ -37,7 +39,7 @@ async def update_payment(
     payment_db = None
     async with bootstrap.db().begin() as session:
         payment_db = await bootstrap.payment_repository.update_payment_status(
-            payment_data.data.id,
+            payment_data.get('data').get('id'),
             payment_status=payment['status'],
             transaction=session,
         )
