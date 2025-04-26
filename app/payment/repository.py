@@ -183,7 +183,7 @@ async def get_pending_payments(
     """Get payments with specific gateway."""
     payment_query = select(PaymentDB).where(
         PaymentDB.payment_gateway == payment_gateway,
-        PaymentDB.status == PaymentStatus.PENDING,
+        PaymentDB.status == PaymentStatus.PENDING.value,
     )
     return await transaction.scalars(payment_query)
 

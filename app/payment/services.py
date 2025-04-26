@@ -1,4 +1,5 @@
 # ruff: noqa: ANN401
+from contextlib import suppress
 from app.entities.payment import (
     PaymentInDB,
     PaymentNotFoundError,
@@ -11,6 +12,7 @@ from typing import Any
 from loguru import logger
 from app.infra.constants import PaymentGatewayAvailable
 from app.infra.database import get_async_session
+from app.infra.payment_gateway.mercadopago_gateway import PaymentStatusError
 from app.payment import repository
 from app.report import repository as report_repository
 from app.infra.payment_gateway import payment_gateway
@@ -86,13 +88,18 @@ async def update_pending_payments(db=get_async_session):
             transaction=session,
         )
         for payment in payments.all():
-            payment_in_gateway = await get_payment_gateway_status(
-                gateway_payment_id=payment.gateway_payment_id,
-            )
-            if status := payment_in_gateway.get('status'):
-                payment.status = status
-                session.add(payment)
-            await session.flush()
+            logger.debug('Payment search start')
+            with suppress(PaymentNotFoundError, PaymentStatusError):
+                logger.debug(payment.gateway_payment_id)
+                payment_in_gateway = await get_payment_gateway_status(
+                    gateway_payment_id=payment.gateway_payment_id,
+                )
+                if status := payment_in_gateway.get('status'):
+                    payment.status = status
+                    logger.debug('Add Payment with new status')
+                    session.add(payment)
+                await session.flush()
+        logger.debug('commit all transactions')
         await session.commit()
 
 
