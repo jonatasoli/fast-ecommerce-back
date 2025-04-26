@@ -8,7 +8,7 @@ from app.entities.user import UserNotAdminError
 from app.infra.worker import task_message_bus
 
 from app.infra.database import get_async_session, get_session
-from app.user.services import get_admin, verify_admin
+from app.user.services import verify_admin_sync, verify_admin
 from app.infra.constants import OrderStatus
 from app.order import services
 from app.infra.deps import get_db
@@ -138,16 +138,13 @@ async def tracking_number(
 
 
 @order.post('/check_order/{id}', status_code=200)
+@verify_admin_sync()
 async def post_trancking_number(
     id: int,
     check: bool,
-    token: str = Depends(oauth2_scheme),
     db = Depends(get_db),
 ) -> int:
     """Post trancking number."""
-    with db() as session:
-        if not (_ := get_admin(token, db=session)):
-            raise UserNotAdminError
     try:
         return services.checked_order(db, id, check)
     except Exception:

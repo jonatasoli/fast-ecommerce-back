@@ -2,7 +2,7 @@
 from typing import Any
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from app.infra.constants import CurrencyType
-from app.user.services import verify_admin
+from app.user.services import verify_admin, verify_admin_sync
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
 from sqlalchemy.orm import Session
@@ -13,7 +13,7 @@ from app.entities.product import (
     ProductInDBResponse,
     ProductPatchRequest,
 )
-from app.infra.database import get_async_session
+from app.infra.database import get_async_session, get_session
 
 from app.order import services
 from app.product import services as product_services
@@ -164,17 +164,29 @@ async def create_product(
     return product
 
 
-@product.post('/upload-image-gallery/', status_code=200)
+@verify_admin_sync()
+@product.post(
+    '/upload-image-gallery/',
+    status_code=status.HTTP_201_CREATED,
+)
 def upload_image_gallery(
+    *,
     product_id: int,
+    media_type: str,
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
-    image_gallery: UploadFile = File(...),
+    db: Session = Depends(get_session),
+    new_media: UploadFile = File(...),
 ) -> None:
     """Upload image gallery."""
+    # !TODO -> criar um tipo de input de media com alt, caption e thumb e com o validador pelo tipo. # noqa: E501
+    _ = token
     try:
-        _ = token
-        return product_services.upload_image_gallery(product_id, db, image_gallery)
+        return product_services.upload_image_gallery(
+            product_id,
+            media_type=media_type,
+            db=db,
+            media=new_media,
+        )
     except Exception:
         raise
 

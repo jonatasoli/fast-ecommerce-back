@@ -108,11 +108,12 @@ async def delete_product(product_id: int, db) -> None:
 
 def upload_image_gallery(
     product_id: int,
+    *,
     db: Session,
-    image_gallery: Any,
+    media: Any,
 ) -> str:
     """Upload Image Galery."""
-    image_path = file_upload.optimize_image(image_gallery)
+    image_path = file_upload.optimize_image(media)
     with db:
         db_image_gallery = ImageGalleryDB(
             url=image_path,
