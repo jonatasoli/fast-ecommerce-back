@@ -16,7 +16,7 @@ taskiq_broker = BrokerWrapper(broker)
 taskiq_broker.task(
     queue="in-queue",
     schedule=[{
-        "cron": "* * * * *",
+        "cron": "* */1 * * *",
     }],
     )
 
