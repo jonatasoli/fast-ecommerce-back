@@ -1,7 +1,7 @@
 from app.infra.database import get_async_session
 from loguru import logger
 from app.entities.payment import PaymentInDB, PaymentNotification, PaymentStatusResponse
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from app.payment import repository
 from app.payment import services
 from app.entities.payment import (
@@ -41,12 +41,12 @@ def create_config(
     status_code=status.HTTP_201_CREATED,
 )
 async def payment_callback(
-    payment_data: PaymentNotification,
+    request: Request,
     bootstrap: Command = Depends(get_bootstrap),
 ) -> None:
     """Payment notifications callback."""
-    logger.info(payment_data)
-    return await services.update_payment(payment_data, bootstrap=bootstrap)
+    logger.info(request)
+    return await services.update_payment(request, bootstrap=bootstrap)
 
 
 @payment.post(

@@ -26,10 +26,10 @@ async def update_payment(
     logger.debug(f'Data Payment {payment_data}')
     payment_data = await payment_data.json()
     logger.debug(f'Data Payment ID {payment_data.get('data')}')
-    logger.debug(f'Data Payment ID {payment_data.get('data').get('id')}')
+    logger.debug(f'Data Payment ID {payment_data.get('id')}')
     try:
         payment = bootstrap.payment.get_payment_status(
-            payment_id=payment_data.get('data').get('id'),
+            payment_id=payment_data.get('id'),
             payment_gateway='MERCADOPAGO',
         )
     except Exception as err:
@@ -39,8 +39,9 @@ async def update_payment(
     payment_db = None
     async with bootstrap.db().begin() as session:
         payment_db = await bootstrap.payment_repository.update_payment_status(
-            payment_data.get('data').get('id'),
+            payment_data.get('id'),
             payment_status=payment['status'],
+            authorization_status=payment['authorization_code'],
             transaction=session,
         )
         logger.info(f'Pagamento {payment_db}')
@@ -97,7 +98,9 @@ async def update_pending_payments(db=get_async_session):
                     gateway_payment_id=payment.gateway_payment_id,
                 )
                 if status := payment_in_gateway.get('status'):
+                    authorization_status = payment_in_gateway.get('authorization_code')
                     payment.status = status
+                    payment.authorization = authorization_status if authorization_status else 'not computed' 
                     logger.debug('Add Payment with new status')
                     session.add(payment)
                 await session.flush()

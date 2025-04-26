@@ -143,6 +143,7 @@ async def update_payment_status(
     *,
     payment_status: str,
     transaction: SessionTransaction,
+    authorization_status: str = 'not computed',
     processed: bool = False,
 ) -> PaymentDB:
     """Update payment to callback."""
@@ -153,6 +154,7 @@ async def update_payment_status(
         )
         .values(
             status=payment_status,
+            authorization=authorization_status,
             processed_at=datetime.now(tz=UTC).replace(tzinfo=None),
             processed=processed,
         )
