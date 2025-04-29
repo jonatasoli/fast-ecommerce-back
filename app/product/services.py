@@ -12,7 +12,7 @@ from app.entities.product import (
     ProductPatchRequest,
 )
 from app.infra import file_upload
-from app.infra.models import ImageGalleryDB, ProductDB
+from app.infra.models import MediaGalleryDB, ProductDB
 from app.product import repository
 from app.user.services import verify_admin
 
@@ -115,7 +115,7 @@ def upload_image_gallery(
     """Upload Image Galery."""
     image_path = file_upload.optimize_image(media)
     with db:
-        db_image_gallery = ImageGalleryDB(
+        db_image_gallery = MediaGalleryDB(
             url=image_path,
             product_id=product_id,
         )
@@ -128,7 +128,7 @@ async def delete_image_gallery(product_id: int, db) -> None:
     """Delete image galery."""
     with db:
         db.execute(
-            select(ImageGalleryDB).where(ImageGalleryDB.id == product_id),
+            select(MediaGalleryDB).where(MediaGalleryDB.id == product_id),
         ).delete()
         db.commit()
 
@@ -138,8 +138,8 @@ def get_images_gallery(db: Session, uri: str) -> dict:
     with db:
         product_id_query = select(ProductDB).where(ProductDB.uri == uri)
         product_id = db.execute(product_id_query).scalars().first()
-        images_query = select(ImageGalleryDB).where(
-            ImageGalleryDB.product_id == product_id.product_id,
+        images_query = select(MediaGalleryDB).where(
+            MediaGalleryDB.product_id == product_id.product_id,
         )
         images = db.execute(images_query).scalars().all()
         images_list = []
