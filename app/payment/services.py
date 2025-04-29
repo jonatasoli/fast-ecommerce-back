@@ -3,7 +3,6 @@ from contextlib import suppress
 from app.entities.payment import (
     PaymentInDB,
     PaymentNotFoundError,
-    PaymentNotification,
     PaymentStatusResponse,
 )
 
@@ -100,7 +99,7 @@ async def update_pending_payments(db=get_async_session):
                 if status := payment_in_gateway.get('status'):
                     authorization_status = payment_in_gateway.get('authorization_code')
                     payment.status = status
-                    payment.authorization = authorization_status if authorization_status else 'not computed' 
+                    payment.authorization = authorization_status if authorization_status else 'not computed'
                     logger.debug('Add Payment with new status')
                     session.add(payment)
                 await session.flush()

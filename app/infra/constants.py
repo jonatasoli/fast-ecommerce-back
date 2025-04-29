@@ -90,3 +90,8 @@ class CurrencyType(enum.StrEnum):
     BRL = 'BRL'
     USD = 'USD'
     EUR = 'EUR'
+
+
+class MediaType(enum.StrEnum):
+    video = 'VIDEO'
+    photo = 'PHOTO'

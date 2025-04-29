@@ -9,11 +9,11 @@ from app.infra.models import (
     InformUserProductDB,
     InventoryDB,
     PaymentDB,
+    UploadedMediaDB,
 )
 from factory.alchemy import SQLAlchemyModelFactory
 
 
-from app.infra.models import UploadedImageDB
 from app.infra.models import UserDB
 from app.infra.models import RoleDB
 from app.infra.models import CategoryDB, OrderDB, OrderStatusStepsDB, ProductDB
@@ -159,15 +159,13 @@ class OrderStatusStepsFactory(factory.Factory):
     active = fake.pybool()
 
 
-class UploadedImageFactory(factory.Factory):
+class UploadedMediaFactory(factory.Factory):
     class Meta:
-        model = UploadedImageDB
+        model = UploadedMediaDB
 
-    original = fake_url()
-    small = fake_url()
-    thumb = fake_url()
-    icon = fake_url()
-    uploaded = fake.pybool()
+    type = fake.pystr()
+    uri = fake_url()
+    order = fake.random_int()
 
 
 class InventoryDBFactory(factory.Factory):

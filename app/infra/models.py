@@ -260,11 +260,11 @@ class OrderStatusStepsDB(Base):
     description: Mapped[str | None]
 
 
-class ImageGalleryDB(Base):
+class MediaGalleryDB(Base):
     __tablename__ = 'image_gallery'
 
-    category_id: Mapped[int] = mapped_column(primary_key=True)
-    url: Mapped[str]
+    media_gallery_id: Mapped[int] = mapped_column(primary_key=True)
+    media_id: Mapped[int] = mapped_column(ForeignKey('uploaded_media.media_id'))
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
 
 
@@ -320,19 +320,21 @@ class CreditCardFeeConfigDB(Base):
     active_date: Mapped[datetime] = mapped_column(default=func.now())
 
 
-class UploadedImageDB(Base):
-    __tablename__ = 'uploaded_image'
+class UploadedMediaDB(Base):
+    __tablename__ = 'uploaded_media'
 
-    uploaded_image_id: Mapped[int] = mapped_column(primary_key=True)
-    original: Mapped[str]
-    small: Mapped[str]
-    thumb: Mapped[str]
-    icon: Mapped[str]
-    uploaded: Mapped[bool] = mapped_column(default=False)
-    mimetype: Mapped[str] = mapped_column(nullable=True)
-    name: Mapped[str] = mapped_column(nullable=True)
-    size: Mapped[int] = mapped_column(nullable=True)
+    media_id: Mapped[int] = mapped_column(primary_key=True)
+    type: Mapped[str]
+    uri: Mapped[str]
+    small: Mapped[str] = mapped_column(nullable=True)
+    thumb: Mapped[str] = mapped_column(nullable=True)
+    alt: Mapped[str] = mapped_column(nullable=True)
+    caption: Mapped[str] = mapped_column(nullable=True)
+    order: Mapped[int]
+    active: Mapped[bool] = mapped_column(default=True)
     image_bucket: Mapped[str] = mapped_column(nullable=True)
+    create_at: Mapped[datetime] = mapped_column(default=func.now())
+    update_at: Mapped[datetime] = mapped_column(default=func.now())
 
 
 class UserDB(Base):
