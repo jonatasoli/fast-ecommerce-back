@@ -37,7 +37,7 @@ async def create_payment( # Noqa: PLR0913
         authorization=authorization,
         payment_method=cart.payment_method,
         payment_gateway=payment_gateway,
-        gateway_payment_id=gateway_payment_id,
+        gateway_payment_id=f'{gateway_payment_id}',
         installments=cart.installments,
         freight_amount=_freight_amount,
     )

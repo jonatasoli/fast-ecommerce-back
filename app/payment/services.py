@@ -98,8 +98,11 @@ async def update_pending_payments(db=get_async_session):
                 )
                 if status := payment_in_gateway.get('status'):
                     authorization_status = payment_in_gateway.get('authorization_code')
+                    message = 'Not computed'
+                    if authorization_status:
+                        message = authorization_status
                     payment.status = status
-                    payment.authorization = authorization_status if authorization_status else 'not computed'
+                    payment.authorization = message
                     logger.debug('Add Payment with new status')
                     session.add(payment)
                 await session.flush()

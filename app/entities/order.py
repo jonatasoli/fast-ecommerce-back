@@ -299,12 +299,6 @@ class CategoryInDB(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ImageGalleryResponse(BaseModel):
-    image_gallery_id: int
-    url: str
-    model_config = ConfigDict(from_attributes=True)
-
-
 class ListCategory(BaseModel):
     category: list[CategoryInDB]
     model_config = ConfigDict(from_attributes=True)

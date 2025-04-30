@@ -1,9 +1,8 @@
 from datetime import UTC, datetime
 import math
-from typing import Any
 
 from app.entities.user import UserAddressInDB
-from app.infra.constants import CurrencyType, MediaType, OrderStatus, PaymentStatus
+from app.infra.constants import CurrencyType, OrderStatus, PaymentStatus
 from fastapi import HTTPException, status
 from loguru import logger
 from pydantic import TypeAdapter
@@ -19,21 +18,17 @@ from app.entities.product import (
     ProductPatchRequest,
     ProductsResponse,
 )
-from app.infra.file_upload import optimize_image
 from app.infra.models import (
     AddressDB,
     CategoryDB,
-    MediaGalleryDB,
     InventoryDB,
     ProductDB,
     OrderDB,
     OrderItemsDB,
-    UploadedMediaDB,
     UserDB,
 )
 from app.entities.order import (
     CategoryInDB,
-    ImageGalleryResponse,
     OrderFullResponse,
     OrderSchema,
     TrackingFullResponse,
@@ -154,52 +149,6 @@ def delete_product(db: Session, product_id: int) -> None:
             select(ProductDB).where(ProductDB.product_id == product_id),
         ).delete()
         db.commit()
-
-
-def upload_media_gallery(
-    product_id: int,
-    *,
-    media,
-    media_type,
-    order,
-    db,
-) -> str:
-    """Upload Image Galery."""
-
-    if media_type == MediaType.photo:
-        media_path = optimize_image.optimize_image(image_gallery)
-    elif media_type == MediaType.video:
-        media_path = 'TODO'
-    with db:
-        db_media = UploadedMediaDB(
-            uri=media_path,
-            product_id=product_id,
-            type=media_type,
-            order=order,
-
-        )
-        db.add(db_image_gallery)
-        db.commit()
-    return image_path
-
-
-def get_images_gallery(db: Session, uri: str) -> dict:
-    """Get image gallery."""
-    images_list = []
-    with db:
-        product_id_query = select(ProductDB).where(ProductDB.uri == uri)
-        product_id = db.execute(product_id_query).scalars().first()
-        images_query = select.query(MediaGalleryDB).where(
-            MediaGalleryDB.product_id == product_id.product_id if product_id else None,
-        )
-        images = db.execute(images_query).scalars().all()
-
-        for image in images:
-            images_list.append(ImageGalleryResponse.model_validate(image))
-
-    if images:
-        return {'images': images_list}
-    return {'images': []}
 
 
 def get_showcase(*, currency, db) -> list:
