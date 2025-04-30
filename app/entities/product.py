@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Self
 from fastapi import UploadFile
 from pydantic import BaseModel, ConfigDict, Json
-from app.infra.constants import CurrencyType, InventoryOperation
+from app.infra.constants import CurrencyType, InventoryOperation, MediaType
 
 
 class CategoryInDB(BaseModel):
@@ -242,7 +242,7 @@ class ProductInDBResponse(BaseModel):
 
 
 class UploadedMedia(BaseModel):
-    type: str
+    type: MediaType
     order: int
 
 
