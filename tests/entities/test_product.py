@@ -1,4 +1,6 @@
-
+from io import BytesIO
+from pydantic import ValidationError
+import pytest
 from faker import Faker
 from fastapi import UploadFile
 from app.entities.product import UploadedMediaCreate
@@ -37,7 +39,16 @@ def test_uploaded_create_model_should_valid_data():
 def test_uploaded_create_model_with_invalid_type_should_exception():
     """Must create model with invalid type return exception."""
     # Setup
+    invalid_type = "error"  # valor inválido
+    dummy_file = BytesIO(b"dummy image content")
+    upload_file = UploadFile(file=dummy_file, filename="image.png")
 
-    # Act
+    # Act / Assert
+    with pytest.raises(ValidationError) as exc_info:
+        UploadedMediaCreate(
+            media=upload_file,
+            type=invalid_type,
+            order=1,
+        )
 
-    #Arrange
+    assert "type" in str(exc_info.value)
