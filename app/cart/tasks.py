@@ -116,9 +116,9 @@ async def checkout(
                     )
                 )
                 authorization_code = None
-                if not (authorization_code := payment_response.get('authorization_code')):
+                if not (authorization_code := payment_response.authorization_code):
                     # Stripe - payment code / authorization code
-                    authorization_code = payment_response.get('payment_method')
+                    authorization_code = payment_response.payment_method
 
                 payment_id, order_id = await create_pending_payment_and_order(
                     cart=cart,

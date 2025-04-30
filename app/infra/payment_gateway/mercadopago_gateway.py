@@ -164,6 +164,7 @@ def create_credit_card_payment(
         'in_process',
     ]:
         logger.info(payment_response)
+        logger.debug(payment_response["response"].get('status'))
         raise_payment_not_found()
     return MercadoPagoPaymentResponse.model_validate(
         payment_response['response'],

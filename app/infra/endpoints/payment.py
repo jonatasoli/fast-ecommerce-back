@@ -55,7 +55,7 @@ async def payment_callback(
     response_model=PaymentStatusResponse,
 )
 async def payment_status(
-    gateway_payment_id: int,
+    gateway_payment_id: int | str,
     bootstrap: Command = Depends(get_bootstrap),
 ) -> PaymentStatusResponse:
     """Payment status."""
