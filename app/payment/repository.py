@@ -150,7 +150,7 @@ async def update_payment_status(
     update_query = (
         update(PaymentDB)
         .where(
-            PaymentDB.gateway_payment_id == int(gateway_payment_id),
+            PaymentDB.gateway_payment_id == f'{gateway_payment_id}',
         )
         .values(
             status=payment_status,
@@ -173,7 +173,7 @@ async def get_payment(
 ) -> PaymentDB:
     """Get payment with specific payment id."""
     payment_query = select(PaymentDB).where(
-        PaymentDB.gateway_payment_id == gateway_payment_id,
+        PaymentDB.gateway_payment_id == f'{gateway_payment_id}',
     )
     return await transaction.session.scalar(payment_query)
 
