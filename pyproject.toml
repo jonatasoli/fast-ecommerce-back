@@ -155,6 +155,7 @@ path = ".venv"
 
 [dependency-groups]
 dev = [
+    "faker-file[images,s3]>=0.18.1",
     "pytest-xdist>=3.6.1",
     "testcontainers>=4.8.2",
     "towncrier>=24.8.0",

@@ -4,7 +4,6 @@ from fastapi import UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.entities.order import ImageGalleryResponse
 from app.entities.product import (
     ProductCreate,
     ProductInDBResponse,
@@ -28,7 +27,7 @@ async def upload_image(
     image: UploadFile,
     image_client: Callable = file_upload,
 ) -> str:
-    """Upload image."""
+    """Upload single image for product."""
     image_path = image_client.optimize_image(image)
     async with db().begin() as transaction:
         db_product = await repository.get_product_by_id(
@@ -145,7 +144,7 @@ def get_images_gallery(db: Session, uri: str) -> dict:
         images_list = []
 
         for image in images:
-            images_list.append(ImageGalleryResponse.from_orm(image))
+            images_list.append(MediaGalleryDB.from_orm(image))
 
         if images:
             return {'images': images_list}

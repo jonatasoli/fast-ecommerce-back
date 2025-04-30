@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from typing import Self
+from fastapi import UploadFile
 from pydantic import BaseModel, ConfigDict, Json
 from app.infra.constants import CurrencyType, InventoryOperation
 
@@ -237,4 +238,21 @@ class ProductInDBResponse(BaseModel):
     width: float | None = None
     weigth: float | None = None
     length: float | None = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UploadedMedia(BaseModel):
+    type: str
+    order: int
+
+
+class UploadedMediaCreate(UploadedMedia):
+    media: UploadFile
+
+
+class UploadedMediaUpdate(UploadedMedia):
+    ...
+
+
+class UploadedMediaInDBResponse(UploadedMedia):
     model_config = ConfigDict(from_attributes=True)
