@@ -91,18 +91,14 @@ async def get_product_by_id(
 )
 def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
     """GET product uri."""
-    try:
-        product = services.get_product(db, uri)
-        if not product:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail='Product not found',
-            )
+    product = services.get_product(db, uri)
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Product not found',
+        )
 
-        return product
-    except Exception as e: # noqa: BLE001
-        logger.error(f'Erro em obter os produto - { e }')
-        raise e from Exception
+    return product
 
 
 @product.get('/products/{query_name}', status_code=status.HTTP_200_OK)

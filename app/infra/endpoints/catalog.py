@@ -41,7 +41,7 @@ def get_showcase(
     try:
         return services.get_showcase(currency=currency, db=db)
     except Exception as e:
-        logger.error(f'Erro em obter os produtos - { e }')
+        logger.error(f'Erro em obter os produtos dentro do showcase - { e }')
         raise
 
 
