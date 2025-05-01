@@ -13,7 +13,7 @@ from app.entities.product import (
     ProductInDB,
     ProductNotCreatedError,
 )
-from app.infra.models import CategoryDB, InventoryDB, ProductDB
+from app.infra.models import CategoryDB, InventoryDB, MediaGalleryDB, ProductDB, UploadedMediaDB
 
 def create_product_not_found_exception() -> ProductNotCreatedError:
     """Shoud raise exception if product is not created."""
@@ -25,6 +25,26 @@ async def get_product_by_id(product_id: int, *, transaction):
     return await transaction.session.scalar(
         select(ProductDB).where(ProductDB.product_id == product_id),
     )
+
+async def get_product_by_uri(uri: str, *, transaction):
+    """Get product by uri."""
+    return await transaction.session.scalar(
+        select(ProductDB).where(ProductDB.uri == uri),
+    )
+
+async def get_media_by_product_id(
+        product_id: int,
+        *,
+        transaction,
+) -> list[UploadedMediaDB]:
+    """Get all products in Media Gallery."""
+    query = select(UploadedMediaDB).join(
+        MediaGalleryDB,
+        MediaGalleryDB.media_id == UploadedMediaDB.media_id,
+    ).where(
+        MediaGalleryDB.product_id == product_id,
+    )
+    return await transaction.session.scalars(query)
 
 
 async def get_inventory(transaction, *, page, offset, currency=None, name=None):

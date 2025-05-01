@@ -1,6 +1,7 @@
 from typing import Any
 from collections.abc import Callable
 from fastapi import UploadFile
+from pydantic import TypeAdapter
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -9,9 +10,11 @@ from app.entities.product import (
     ProductInDBResponse,
     ProductNotFoundError,
     ProductPatchRequest,
+    UploadedMediaInDBResponse,
 )
 from app.infra import file_upload
-from app.infra.models import MediaGalleryDB, ProductDB
+from app.infra.constants import MediaType
+from app.infra.models import MediaGalleryDB, ProductDB, UploadedMediaDB
 from app.product import repository
 from app.user.services import verify_admin
 
@@ -105,21 +108,30 @@ async def delete_product(product_id: int, db) -> None:
         transaction.commit()
 
 
-def upload_image_gallery(
+async def upload_media_gallery(
     product_id: int,
     *,
-    db: Session,
-    media: Any,
+    media_type: MediaType,
+    media: UploadFile,
+    order: int,
+    db,
 ) -> str:
-    """Upload Image Galery."""
+    """Upload media Galery."""
     image_path = file_upload.optimize_image(media)
-    with db:
-        db_image_gallery = MediaGalleryDB(
-            url=image_path,
+    async with db().begin() as transaction:
+        db_media_upload = UploadedMediaDB(
+            type=media_type,
+            uri=image_path,
+            order= order,
+        )
+        transaction.session.add(db_media_upload)
+        await transaction.session.flush()
+        db_media_gallery = MediaGalleryDB(
+            media_id=db_media_upload.media_id,
             product_id=product_id,
         )
-        db.add(db_image_gallery)
-        db.commit()
+        transaction.session.add(db_media_gallery)
+        await transaction.session.commit()
     return image_path
 
 
@@ -132,22 +144,15 @@ async def delete_image_gallery(product_id: int, db) -> None:
         db.commit()
 
 
-def get_images_gallery(db: Session, uri: str) -> dict:
-    """Get image gallery."""
-    with db:
-        product_id_query = select(ProductDB).where(ProductDB.uri == uri)
-        product_id = db.execute(product_id_query).scalars().first()
-        images_query = select(MediaGalleryDB).where(
-            MediaGalleryDB.product_id == product_id.product_id,
+async def get_media_gallery(uri: str, db) -> list[UploadedMediaInDBResponse]:
+    """Get media gallery."""
+    async with db().begin() as transaction:
+        product_db = repository.get_product_by_uri(uri, transaction=transaction)
+        media_db = repository.get_media_by_product_id(
+            product_db.product_id,
+            transaction=transaction,
         )
-        images = db.execute(images_query).scalars().all()
-        images_list = []
-
-        for image in images:
-            images_list.append(MediaGalleryDB.from_orm(image))
-
-        if images:
-            return {'images': images_list}
-        return {'images': []}
+        adapter = TypeAdapter(list[UploadedMediaInDBResponse])
+        return adapter.validate_python(media_db.all())
 
 
