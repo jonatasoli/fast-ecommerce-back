@@ -1,7 +1,7 @@
 # ruff: noqa: ANN401 TRY301 TRY300
 from typing import Any
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from app.infra.constants import CurrencyType
+from app.infra.constants import CurrencyType, MediaType
 from app.user.services import verify_admin, verify_admin_sync
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
@@ -162,29 +162,25 @@ async def create_product(
 
 @verify_admin_sync()
 @product.post(
-    '/upload-image-gallery/',
+    '/upload-media/{product_id}',
     status_code=status.HTTP_201_CREATED,
 )
-def upload_image_gallery(
-    *,
+async def upload_image_gallery(
     product_id: int,
-    media_type: str,
+    *,
+    media_type: MediaType,
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_session),
+    db: Session = Depends(get_async_session),
     new_media: UploadFile = File(...),
-) -> None:
-    """Upload image gallery."""
-    # !TODO -> criar um tipo de input de media com alt, caption e thumb e com o validador pelo tipo. # noqa: E501
+):
+    """Upload media in gallery."""
     _ = token
-    try:
-        return product_services.upload_image_gallery(
-            product_id,
-            media_type=media_type,
-            db=db,
-            media=new_media,
-        )
-    except Exception:
-        raise
+    return await product_services.upload_image_gallery(
+        product_id,
+        media_type=media_type,
+        db=db,
+        media=new_media,
+    )
 
 
 @product.get(
