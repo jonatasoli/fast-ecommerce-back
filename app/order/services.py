@@ -15,6 +15,7 @@ from app.entities.order import CancelOrder, OrderInDB, OrderNotFoundError, Order
 from app.entities.product import (
     ProductCategoryInDB,
     ProductInDB,
+    ProductNotFoundError,
     ProductPatchRequest,
     ProductsResponse,
 )
@@ -92,7 +93,7 @@ def get_product(db: Session, uri: str) -> ProductInDB | None:
 
         productdb = db.execute(query_product)
     if not productdb:
-        return None
+        raise ProductNotFoundError
     return ProductInDB.model_validate(productdb.first())
 
 
