@@ -24,6 +24,7 @@ async def update_payment(
     order_id, user = None, None
     logger.debug(f'Data Payment {payment_data}')
     payment_data = await payment_data.json()
+    logger.debug(f'Data Payment ID {payment_data}')
     logger.debug(f'Data Payment ID {payment_data.get('data')}')
     logger.debug(f'Data Payment ID {payment_data.get('id')}')
     try:
