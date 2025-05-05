@@ -1,9 +1,6 @@
-from typing import Any
 from collections.abc import Callable
 from fastapi import UploadFile
 from pydantic import TypeAdapter
-from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 from app.entities.product import (
     ProductCreate,
@@ -14,7 +11,7 @@ from app.entities.product import (
 )
 from app.infra import file_upload
 from app.infra.constants import MediaType
-from app.infra.models import MediaGalleryDB, ProductDB, UploadedMediaDB
+from app.infra.models import MediaGalleryDB, UploadedMediaDB
 from app.product import repository
 from app.user.services import verify_admin
 
@@ -135,20 +132,34 @@ async def upload_media_gallery(
     return image_path
 
 
-async def delete_image_gallery(product_id: int, db) -> None:
+async def delete_media_gallery(
+        product_id: int,
+        *,
+        media_id: int,
+        db,
+) -> None:
     """Delete image galery."""
-    with db:
-        db.execute(
-            select(MediaGalleryDB).where(MediaGalleryDB.id == product_id),
-        ).delete()
-        db.commit()
+    async with db().begin() as transaction:
+        gallery_db = await repository.get_gallery_by_media_id(
+            media_id,
+            product_id=product_id,
+            transaction=transaction,
+        )
+        upload_media_db = await repository.get_media_by_media_id(
+            media_id,
+            product_id=product_id,
+            transaction=transaction,
+        )
+        await transaction.session.delete(gallery_db)
+        await transaction.session.delete(upload_media_db)
+        await transaction.session.commit()
 
 
-async def get_media_gallery(uri: str, db) -> list[UploadedMediaInDBResponse]:
+async def get_media_gallery(uri: str, *, db) -> list[UploadedMediaInDBResponse]:
     """Get media gallery."""
     async with db().begin() as transaction:
-        product_db = repository.get_product_by_uri(uri, transaction=transaction)
-        media_db = repository.get_media_by_product_id(
+        product_db = await repository.get_product_by_uri(uri, transaction=transaction)
+        media_db = await repository.get_media_by_product_id(
             product_db.product_id,
             transaction=transaction,
         )

@@ -255,4 +255,6 @@ class UploadedMediaUpdate(UploadedMedia):
 
 
 class UploadedMediaInDBResponse(UploadedMedia):
+    media_id: int
+    uri: str
     model_config = ConfigDict(from_attributes=True)

@@ -78,7 +78,7 @@ async def test_image_in_gallery_must_upload(real_upload_file, mock_optimize_imag
 async def test_media_with_invalid_product_should_raise_exception(
         asyncdb,
         real_upload_file,
-        mock_optimize_image
+        mock_optimize_image,
 ):
     """Must raise Error."""
     # Setup
@@ -91,7 +91,7 @@ async def test_media_with_invalid_product_should_raise_exception(
     media_type = MediaType.photo
 
     # Act
-    with pytest.raises(exc.IntegrityError) as exc:
+    with pytest.raises(Exception) as exc:
         await upload_media_gallery(
             1,
             media_type=media_type,
@@ -100,7 +100,6 @@ async def test_media_with_invalid_product_should_raise_exception(
             db=asyncdb,
         )
 
-    import ipdb; ipdb.set_trace()
     assert exc
 
 

@@ -2,26 +2,6 @@
 from decimal import Decimal
 
 
-def create_customer_in_gateway(
-    user_email: str,
-) -> dict:
-    """Must create customer in Cielo."""
-    raise NotImplementedError
-
-
-def attach_customer_in_payment_method(
-    payment_gateway: str,
-    customer_uuid: str,
-    card_token: str | None = None,
-    card_issuer: str | None = None,
-    card_brand: str | None = None,
-    email: str | None = None,
-    payment_method_id: str | None = None,
-) -> str:
-    """Attach a customer in payment method."""
-    raise NotImplementedError
-
-
 def create_credit_card_payment(
     *,
     payment_gateway: str,
@@ -42,6 +22,18 @@ def accept_payment(
     payment_id: str,
 ) -> dict:
     """Accept a payment in gateway."""
+    raise NotImplementedError
+
+
+def create_pix(
+        customer_id,
+        *,
+        customer_email: str,
+        amount: Decimal | float,
+        description: str,
+        client,
+):
+    """Create a pix payment."""
     raise NotImplementedError
 
 

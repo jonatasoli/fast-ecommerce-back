@@ -225,7 +225,7 @@ class OrderDB(Base):
 class OrderItemsDB(Base):
     __tablename__ = 'order_items'
 
-    order_items_id: Mapped[int] = mapped_column(primary_key=True)
+    order_items_id: Mapped[int] = mapped_column(primary_key=True, autoincrement="SERIAL")
     order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
     order = relationship(
         'OrderDB',

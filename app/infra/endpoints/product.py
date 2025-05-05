@@ -162,21 +162,23 @@ async def create_product(
 
 @verify_admin_sync()
 @product.post(
-    '/upload-media/{product_id}',
+    '/media/{product_id}',
     status_code=status.HTTP_201_CREATED,
 )
-async def upload_image_gallery(
+async def upload_media_gallery( #noqa: PLR0913
     product_id: int,
     *,
     media_type: MediaType,
+    order: int,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_async_session),
     new_media: UploadFile = File(...),
 ):
     """Upload media in gallery."""
     _ = token
-    return await product_services.upload_image_gallery(
+    return await product_services.upload_media_gallery(
         product_id,
+        order=order,
         media_type=media_type,
         db=db,
         media=new_media,
@@ -184,27 +186,41 @@ async def upload_image_gallery(
 
 
 @product.get(
-    '/images/gallery/{uri}',
+    '/media/{uri}',
     status_code=status.HTTP_200_OK,
     tags=['admin'],
  )
-def get_images_gallery(uri: str, db: Session = Depends(get_db)) -> None:
-    """Get images gallery."""
+async def get_media_gallery(
+        uri: str,
+        db: Session = Depends(get_async_session),
+):
+    """Get media gallery."""
     try:
-        return product_services.get_images_gallery(db, uri)
+        return await product_services.get_media_gallery(
+            uri,
+            db=db,
+        )
     except Exception:
         raise
 
 
 @product.delete(
-    '/delete/image-gallery/{id}',
+    '/media/{product_id}',
      status_code=status.HTTP_204_NO_CONTENT,
      tags=['admin'],
  )
-def delete_image(id: int, db: Session = Depends(get_db)) -> None:
+async def delete_image(
+        product_id: int,
+        media_id: int,
+        db: Session = Depends(get_async_session),
+):
     """Delete image."""
     try:
-        return product_services.delete_image_gallery(id, db)
+        return await product_services.delete_media_gallery(
+            product_id,
+            media_id=media_id,
+            db=db,
+        )
     except Exception:
         raise
 

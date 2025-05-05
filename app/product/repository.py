@@ -13,7 +13,13 @@ from app.entities.product import (
     ProductInDB,
     ProductNotCreatedError,
 )
-from app.infra.models import CategoryDB, InventoryDB, MediaGalleryDB, ProductDB, UploadedMediaDB
+from app.infra.models import (
+    CategoryDB,
+    InventoryDB,
+    MediaGalleryDB,
+    ProductDB,
+    UploadedMediaDB,
+)
 
 def create_product_not_found_exception() -> ProductNotCreatedError:
     """Shoud raise exception if product is not created."""
@@ -43,9 +49,39 @@ async def get_media_by_product_id(
         MediaGalleryDB.media_id == UploadedMediaDB.media_id,
     ).where(
         MediaGalleryDB.product_id == product_id,
+        UploadedMediaDB.active.is_(True),
     )
     return await transaction.session.scalars(query)
 
+
+async def get_media_by_media_id(
+    media_id: int,
+    *,
+    product_id,
+    transaction,
+) -> MediaGalleryDB:
+    """Get all products in Media Gallery."""
+    query = select(UploadedMediaDB).join(
+        MediaGalleryDB,
+        MediaGalleryDB.media_id == UploadedMediaDB.media_id,
+    ).where(
+        UploadedMediaDB.media_id == media_id,
+        MediaGalleryDB.product_id == product_id,
+    )
+    return await transaction.session.scalar(query)
+
+async def get_gallery_by_media_id(
+    media_id: int,
+    *,
+    product_id,
+    transaction,
+) -> list[UploadedMediaDB]:
+    """Get all products in Media Gallery."""
+    query = select(MediaGalleryDB).where(
+        MediaGalleryDB.media_id == media_id,
+        MediaGalleryDB.product_id == product_id,
+    )
+    return await transaction.session.scalar(query)
 
 async def get_inventory(transaction, *, page, offset, currency=None, name=None):
     """Get inventory products."""
