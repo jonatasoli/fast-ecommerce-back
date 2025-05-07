@@ -23,7 +23,15 @@ async def get_settings(
     ).where(
         SettingsDB.field.like(field),
     )
-    return await transaction.scalar(query)
+    field = await transaction.scalar(query)
+    if not field:
+        query = select(SettingsDB).where(
+            SettingsDB.field.like(field)
+        ).where(
+            SettingsDB.is_default.is_(True)
+        )
+        field = await transaction.scalar(query)
+    return field
 
 def serialize_data(data: dict) -> dict:
     """Convert fields like 'Url' to strings for JSON serialization."""

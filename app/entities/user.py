@@ -36,7 +36,7 @@ class UserAddress(BaseModel):
     user_id: int | None
     address: str
     address_number: str
-    address_complement: str
+    address_complement: str | None
     neighborhood: str
     city: str
     state: str
