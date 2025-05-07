@@ -1,6 +1,7 @@
 # ruff: noqa: PLR1714
 from contextlib import suppress
 from decimal import Decimal
+import enum
 import re
 from app.campaign import repository as campaign_repository
 
@@ -9,7 +10,6 @@ from loguru import logger
 from faststream.rabbit import RabbitQueue
 from pydantic import ValidationError
 from app.cart import repository as cart_repository
-
 
 from app.entities.address import CreateAddress
 from app.entities.cart import (
@@ -22,6 +22,7 @@ from app.entities.cart import (
     CreateCreditCardPaymentMethod,
     CreateCreditCardTokenPaymentMethod,
     CreatePixPaymentMethod,
+    InvalidCartUUIDError,
     generate_empty_cart,
     generate_new_cart,
     validate_cache_cart,
@@ -31,17 +32,28 @@ from app.entities.coupon import (
     CouponNotFoundError,
     CouponInDB,
 )
-from app.entities.payment import CustomerNotFoundError
+from app.entities.payment import CustomerNotFoundError, PaymentNotFoundError
 from app.entities.product import ProductCart, ProductSoldOutError
 from app.entities.user import UserDBGet, UserData
 from app.infra.bootstrap.cart_bootstrap import Command
 from app.infra.constants import PaymentGatewayAvailable, PaymentMethod
 from app.infra.crm.rd_station import send_abandonated_cart_to_crm
 from app.infra.redis import RedisCache
+from app.payment import (
+    payment_process_cielo,
+    payment_process_mercado_pago,
+    payment_process_stripe,
+)
 
 
 class UserAddressNotFoundError(Exception):
     """User address not found."""
+
+
+class PaymentGatewayProcess(enum.Enum):
+    MERCADOPAGO = payment_process_mercado_pago
+    STRIPE = payment_process_stripe
+    CIELO = payment_process_cielo
 
 
 DEFAULT_CART_EXPIRE = 432_000
@@ -265,7 +277,7 @@ async def add_user_to_cart(
     user_data = UserData.model_validate(user)
     logger.debug(user_data)
     cart_user = CartUser(**cart.model_dump(), user_data=user_data)
-    if cart_user.coupon:
+    if cart_user.coupon and cart_user.coupon != 'null':
         logger.debug("Coupon")
         logger.debug(cart_user.coupon)
         async with bootstrap.db() as session:
@@ -357,115 +369,22 @@ async def add_payment_information(  # noqa: PLR0913
     cache_cart = bootstrap.cache.get(uuid)
     cache_cart = CartShipping.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
-        raise HTTPException(
-            status_code=400,
-            detail='Cart uuid is not the same as the cache uuid',
-        )
+        raise InvalidCartUUIDError
     if not payment.payment_gateway:
-        raise HTTPException(
-            status_code=400,
-            detail='Payment not defined',
-        )
-    customer = await bootstrap.cart_uow.get_customer(
-        user.user_id,
-        payment_gateway=payment.payment_gateway,
+        raise PaymentNotFoundError
+
+    _payment = PaymentGatewayProcess[payment.payment_gateway].value
+    cart = await _payment.payment_process(
+        payment_method,
+        user=user,
+        cache_cart=cache_cart,
+        payment=payment,
         bootstrap=bootstrap,
     )
-    if payment_method == PaymentMethod.PIX.value and isinstance(
-        payment,
-        CreatePixPaymentMethod,
-    ):
-        description = " ".join(
-            item.name for item in cache_cart.cart_items if item.name
-        )
-
-        payment_gateway = 'mercadopago_gateway'
-        _payment = getattr(bootstrap.payment, payment_gateway).create_pix(
-            customer.customer_uuid,
-            customer_email=user.email,
-            description=description,
-            amount=int(cache_cart.total),
-        )
-        qr_code = _payment.point_of_interaction.transaction_data.qr_code
-        qr_code_base64 = (
-            _payment.point_of_interaction.transaction_data.qr_code_base64
-        )
-        payment_id = _payment.id
-        cart = CartPayment(
-            **cache_cart.model_dump(),
-            payment_method=payment_method,
-            gateway_provider=payment.payment_gateway,
-            customer_id=customer.customer_uuid,
-            pix_qr_code=qr_code,
-            pix_qr_code_base64=qr_code_base64,
-            pix_payment_id=payment_id,
-            payment_method_id=str(payment_id),
-        )
-        bootstrap.cache.set(
-            str(cart.uuid),
-            cart.model_dump_json(),
-            ex=DEFAULT_CART_EXPIRE,
-        )
-        return cart
-    payment_method_id = None
-    match payment:
-        case CreateCreditCardPaymentMethod():
-            payment_method_id= bootstrap.payment.create_payment_method(
-                payment=payment,
-            )
-            payment_method_id = bootstrap.payment.attach_customer_in_payment_method(
-                payment_gateway=payment.payment_gateway,
-                payment_method_id=payment_method_id.get('id'),
-                customer_uuid=customer.customer_uuid,
-            )
-            payment_method_id = payment_method_id.get('id')
-        case CreateCreditCardTokenPaymentMethod():
-            payment_method_id = bootstrap.payment.attach_customer_in_payment_method(
-                payment_gateway=payment.payment_gateway,
-                card_token=payment.card_token,
-                card_issuer=payment.card_issuer,
-                card_brand=payment.card_brand,
-                customer_uuid=customer.customer_uuid,
-                email=user.email,
-            )
-        case _:
-            raise HTTPException(
-                status_code=400,
-                detail='Payment method not found',
-            )
-
-    installments = payment.installments
-    if not payment_method_id:
-        raise HTTPException(
-            status_code=400,
-            detail='Payment method id not found',
-        )
-    # TODO: FIX CART
-    token = payment.card_token if getattr(
-        payment, 'card_token', None,
-    ) else payment_method_id
-    cart = CartPayment(
-        **cache_cart.model_dump(),
-        payment_method=PaymentMethod.CREDIT_CARD.value,
-        payment_method_id=payment_method_id,
-        gateway_provider=payment.payment_gateway,
-        card_token=token,
-        customer_id=customer.customer_uuid,
-        installments=installments,
-    )
-    _payment_installment_fee = await bootstrap.cart_uow.get_installment_fee(
-        bootstrap=bootstrap,
-    )
-    if cart.installments >= _payment_installment_fee.min_installment_with_fee:
-        cart.calculate_fee(_payment_installment_fee.fee)
     bootstrap.cache.set(
         str(cart.uuid),
         cart.model_dump_json(),
         ex=DEFAULT_CART_EXPIRE,
-    )
-    await bootstrap.uow.update_payment_method_to_user(
-        user.user_id,
-        payment_method_id,
     )
     return cart
 

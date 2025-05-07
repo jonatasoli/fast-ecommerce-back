@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from decimal import Decimal
 import factory
 from factory.declarations import SelfAttribute, SubFactory
@@ -6,6 +7,7 @@ from app.infra.constants import InventoryOperation, OrderStatus, StepsOrder
 from app.infra.models import (
     CouponsDB,
     CreditCardFeeConfigDB,
+    CustomerDB,
     InformUserProductDB,
     InventoryDB,
     PaymentDB,
@@ -124,6 +126,22 @@ class OrderFactory(factory.Factory):
     checked = fake.pybool()
     customer_id = str(SelfAttribute('user.user_id'))
     discount = fake.pyint()
+
+class CustomerDBFactory(factory.Factory):
+    class Meta:
+        model = CustomerDB
+
+    class Params:
+        user = SubFactory(UserDBFactory)
+
+    user_id = SelfAttribute('user.user_id')
+    customer_uuid = fake.uuid4()
+    payment_gateway = fake.random_choices(elements=['mercadopago', 'stripe', 'cielo'])
+    payment_method = fake.random_choices(elements=['credit-card', 'pix', 'boleto'])
+    token = fake.uuid4()
+    issuer_id = fake.random_int()
+    status = fake.boolean()
+    created_at = fake.date()
 
 
 class PaymentFactory(factory.Factory):

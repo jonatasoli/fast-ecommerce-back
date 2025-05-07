@@ -23,7 +23,7 @@ class PaymentGatewayDB(enum.Enum):
 
 
 class PaymentMethod(enum.Enum):
-    CREDIT_CARD = 'credit_card'
+    CREDIT_CARD = 'credit-card'
     BOLETO = 'boleto'
     PIX = 'pix'
     DEBIT_CARD = 'debit_card'

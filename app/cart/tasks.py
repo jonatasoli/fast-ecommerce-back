@@ -10,7 +10,7 @@ from app.cart.services import calculate_freight, consistency_inventory
 from app.entities.cart import CartPayment
 from app.entities.coupon import CouponInDB
 from app.infra.bootstrap.task_bootstrap import bootstrap, Command
-from app.infra.constants import OrderStatus, PaymentMethod
+from app.infra.constants import OrderStatus, PaymentGatewayAvailable, PaymentMethod
 from app.infra.payment_gateway.stripe_gateway import (
     PaymentGatewayRequestError,
 )
@@ -75,12 +75,15 @@ async def checkout(
         cart.discount = Decimal(0)
         affiliate_id = None
         coupon = cart.coupon if cart.coupon else None
-        if coupon:
+        if coupon != 'null' and coupon:
             coupon = await bootstrap.cart_uow.get_coupon_by_code(
                 coupon,
                 bootstrap=bootstrap,
             )
             affiliate_id = coupon.affiliate_id
+        else:
+            coupon = None
+            cart.coupon = None
         product_ids: list[int] = [item.product_id for item in cart.cart_items]
         products_db = await bootstrap.cart_repository.get_products_quantity(
             products=product_ids,
@@ -116,9 +119,12 @@ async def checkout(
                     )
                 )
                 authorization_code = None
-                if not (authorization_code := payment_response.authorization_code):
-                    # Stripe - payment code / authorization code
+                if payment_method == PaymentGatewayAvailable.STRIPE.value:
                     authorization_code = payment_response.payment_method
+                elif payment_method == PaymentGatewayAvailable.MERCADOPAGO.value:
+                    authorization_code = payment_response.get('id')
+                else:
+                    authorization_code = 'invalid'
 
                 payment_id, order_id = await create_pending_payment_and_order(
                     cart=cart,

@@ -27,7 +27,7 @@ async def create_payment( # Noqa: PLR0913
 ) -> PaymentDB:
     """Create a new order."""
     _freight_amount = cart.total - cart.subtotal
-    order = PaymentDB(
+    payment = PaymentDB(
         user_id=user_id,
         order_id=order_id,
         amount=cart.total,
@@ -41,10 +41,9 @@ async def create_payment( # Noqa: PLR0913
         installments=cart.installments,
         freight_amount=_freight_amount,
     )
-
-    transaction.session.add(order)
+    transaction.session.add(payment)
     await transaction.session.flush()
-    return order
+    return payment
 
 
 async def get_payment_by_id(

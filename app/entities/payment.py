@@ -25,6 +25,10 @@ class PaymentNotFoundError(Exception):
     ...
 
 
+class PaymentDataInvalidError(Exception):
+    ...
+
+
 class CreditCardInformation(BaseModel):
     credit_card_name: str | None = None
     credit_card_number: str | None = None
