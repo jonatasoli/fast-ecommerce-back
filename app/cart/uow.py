@@ -304,7 +304,7 @@ async def get_customer(
         payment_gateway=payment_gateway,
         transaction=transaction,
     )
-    if not customer:
+    if not customer and not payment_gateway == PaymentGatewayAvailable.CIELO.value:
         customer_not_found_exception()
     return CustomerInDB.model_validate(customer)
 
