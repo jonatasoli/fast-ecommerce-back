@@ -137,3 +137,27 @@ def get_order_items(order_id: int, transaction) -> list:
     )
     order_db = transaction.execute(order_query).unique()
     return order_db.scalars().all()
+
+
+async def get_order_by_payment_id(
+    payment_id: int,
+    *,
+    transaction: SessionTransaction,
+) -> OrderDB:
+    """Get an order by its id."""
+    order_query = select(OrderDB).where(
+        OrderDB.payment_id == payment_id,
+    )
+    return await transaction.session.scalar(order_query)
+
+
+async def get_order_by_status(
+    status: str,
+    *,
+    transaction: SessionTransaction,
+) -> OrderDB:
+    """Get an order by its id."""
+    order_query = select(OrderDB).where(
+        OrderDB.order_status.ilike(f'%{status}%'),
+    )
+    return await transaction.scalars(order_query)
