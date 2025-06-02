@@ -263,7 +263,7 @@ class OrderStatusStepsDB(Base):
 class MediaGalleryDB(Base):
     __tablename__ = 'image_gallery'
 
-    media_gallery_id: Mapped[int] = mapped_column(primary_key=True)
+    media_gallery_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     media_id: Mapped[int] = mapped_column(ForeignKey('uploaded_media.media_id'))
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
 

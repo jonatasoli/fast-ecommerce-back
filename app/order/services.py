@@ -2,13 +2,16 @@ from datetime import UTC, datetime
 import math
 
 from app.entities.user import UserAddressInDB
-from app.infra.constants import CurrencyType, OrderStatus, PaymentStatus
+from app.infra.constants import CurrencyType, OrderStatus, PaymentGatewayAvailable, PaymentStatus
 from fastapi import HTTPException, status
+from app.infra.database import get_async_session
 from loguru import logger
 from pydantic import TypeAdapter
 from sqlalchemy import asc, func, select
 from sqlalchemy.orm import Session, joinedload, lazyload, selectinload
 from app.product import repository
+from app.payment import repository as repository_payment
+from app.order import repository as  repository_order
 from faststream.rabbit import RabbitQueue
 
 from app.entities.order import CancelOrder, OrderInDB, OrderNotFoundError, OrderResponse
@@ -699,3 +702,35 @@ async def search_products(
         offset=offset,
         products=adapter.validate_python(products.all()),
     )
+
+
+async def update_pending_orders(db=get_async_session):
+    """Get all peding order and update."""
+    async with db().begin() as session:
+        orders = await repository_order.get_order_by_status(
+            OrderStatus.PAYMENT_PENDING.value,
+            transaction=session,
+        )
+        for order in orders.unique().all():
+            logger.debug('Order search start')
+            logger.debug(order.order_id)
+
+            payment = await repository_payment.get_payment_by_order_id(
+                order.order_id,
+                transaction=session,
+            )
+
+            logger.debug(f'{order.order_id} - {payment.status}')
+            if payment.status not in ('approved', 'authorized', 'cancelled'):
+                continue
+            logger.debug('update order status')
+            logger.debug(f'Add old status in Order {order.order_status}')
+            order.order_status = OrderStatus.PAYMENT_PAID
+            if payment.status == 'cancelled':
+                order.order_status = OrderStatus.PAYMENT_CANCELLED
+            logger.debug(f'Add new status in Order {order.order_status}')
+            session.add(order)
+
+            await session.flush()
+        logger.debug('commit all transactions')
+        await session.commit()
