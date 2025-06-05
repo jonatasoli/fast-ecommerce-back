@@ -284,6 +284,7 @@ class CreateCreditCardTokenPaymentMethod(BaseModel):
     card_issuer: str
     card_brand: str
     installments: int = 1
+    brand: str = ''
 
 
 class CreatePixPaymentMethod(BaseModel):
