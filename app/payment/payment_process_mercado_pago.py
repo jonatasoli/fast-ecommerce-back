@@ -1,3 +1,4 @@
+from app.cart import repository
 from app.entities.cart import (
     CartPayment,
     CreateCreditCardPaymentMethod,
@@ -6,6 +7,7 @@ from app.entities.cart import (
 )
 from app.entities.payment import PaymentDataInvalidError, PaymentNotFoundError
 from app.infra.constants import PaymentMethod
+from app.infra.payment_gateway import mercadopago_gateway
 
 
 async def payment_process(
@@ -31,7 +33,6 @@ async def payment_process(
             user=user,
             customer=customer,
             cache_cart=cache_cart,
-            bootstrap=bootstrap,
         )
     elif payment_method  == PaymentMethod.CREDIT_CARD.value:
         cart = await create_payment_credit_card(
@@ -39,7 +40,7 @@ async def payment_process(
             user=user,
             customer=customer,
             cache_cart=cache_cart,
-            bootstrap=bootstrap,
+            db=bootstrap.db,
         )
     else:
         raise PaymentNotFoundError
@@ -55,7 +56,7 @@ async def create_payment_pix(
     user,
     customer,
     cache_cart,
-    bootstrap,
+    client = mercadopago_gateway,
 ):
     if not isinstance(
         payment,
@@ -67,8 +68,7 @@ async def create_payment_pix(
         item.name for item in cache_cart.cart_items if item.name
     )
 
-    payment_gateway = 'mercadopago_gateway'
-    _payment = getattr(bootstrap.payment, payment_gateway).create_pix(
+    _payment = client.create_pix(
         customer.customer_uuid,
         customer_email=user.email,
         description=description,
@@ -97,30 +97,18 @@ async def create_payment_credit_card(
     user,
     customer,
     cache_cart,
-    bootstrap,
-
+    db,
+    client = mercadopago_gateway,
 ):
 
     payment_method_id = None
     match payment:
-        case CreateCreditCardPaymentMethod():
-            payment_method_id= bootstrap.payment.create_payment_method(
-                payment=payment,
-            )
-            payment_method_id = bootstrap.payment.attach_customer_in_payment_method(
-                payment_gateway=payment.payment_gateway,
-                payment_method_id=payment_method_id.get('id'),
-                customer_uuid=customer.customer_uuid,
-            )
-            payment_method_id = payment_method_id.get('id')
         case CreateCreditCardTokenPaymentMethod():
-            payment_method_id = bootstrap.payment.attach_customer_in_payment_method(
-                payment_gateway=payment.payment_gateway,
+            payment_method_id = client.attach_customer_in_payment_method(
+                payment_method_id=payment.card_brand,
                 card_token=payment.card_token,
                 card_issuer=payment.card_issuer,
-                card_brand=payment.card_brand,
                 customer_uuid=customer.customer_uuid,
-                email=user.email,
             )
         case _:
             raise PaymentNotFoundError
@@ -138,13 +126,16 @@ async def create_payment_credit_card(
         customer_id=customer.customer_uuid,
         installments=installments,
     )
-    _payment_installment_fee = await bootstrap.cart_uow.get_installment_fee(
-        bootstrap=bootstrap,
-    )
-    if cart.installments >= _payment_installment_fee.min_installment_with_fee:
-        cart.calculate_fee(_payment_installment_fee.fee)
-    await bootstrap.uow.update_payment_method_to_user(
-        user.user_id,
-        payment_method_id,
-    )
+    async with db().begin() as transaction:
+        _payment_installment_fee = await repository.get_installment_fee(
+            transaction=transaction
+        )
+
+        if cart.installments >= _payment_installment_fee.min_installment_with_fee:
+            cart.calculate_fee(_payment_installment_fee.fee)
+        await repository.update_payment_method_to_user(
+            user.user_id,
+            payment_method_id,
+            transaction=transaction,
+        )
     return cart

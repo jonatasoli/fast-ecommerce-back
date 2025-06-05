@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from fastapi.encoders import jsonable_encoder
 import httpx
@@ -96,7 +96,7 @@ def get_token(redis_client: redis.AbstractCache = redis.RedisCache()) -> str:
         }
         client = get_client()
         if not (response := client.post(url, json=data, headers=headers)):
-            msg = 'Erro to connect with corrios api'
+            msg = 'Erro to connect with correios api'
             raise TimeoutException(msg)
         token = response.json()['token']
         _redis.set('correiosbr_token', token, ex=43200)
@@ -111,47 +111,53 @@ def calculate_delivery_time(
     product_code: str = PAC_AG,
 ) -> DeliveryParamsResponse:
     """Calculate delivery time."""
-    product_code = SEDEX_AG if product_code == 'SEDEX' else PAC_AG
-    zip_code_origin = str(settings.CORREIOSBR_CEP_ORIGIN)
-    url = base_url + '/prazo/v1/nacional'
-    delivery_params = DeliveryParams(
-        coProduto=product_code,
-        cepOrigem=zip_code_origin,
-        cepDestino=zip_code_destiny,
-    )
-    delivery_time = DeliveryTime(
-        idLote=generate_bacth_id(),
-        parametrosPrazo=[delivery_params],
-    )
-    client = get_client()
-    token = get_token()
-    headers = {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {token}',
-    }
-    data = jsonable_encoder(delivery_time)
-    if not (response := client.post(url, json=data, headers=headers)):
-        msg = 'Erro to connect with corrios api'
-        raise TimeoutException(msg)
-    _response = response.json()
-    logger.info(_response)
-    if isinstance(_response, list) and (
-        api_error := _response[0].get('txErro')
-    ):
-        raise CorreiosInvalidReturnError(api_error.split(':')[0])
+    try:
+        product_code = SEDEX_AG if product_code == 'SEDEX' else PAC_AG
+        zip_code_origin = str(settings.CORREIOSBR_CEP_ORIGIN)
+        url = base_url + '/prazo/v1/nacional'
+        delivery_params = DeliveryParams(
+            coProduto=product_code,
+            cepOrigem=zip_code_origin,
+            cepDestino=zip_code_destiny,
+        )
+        delivery_time = DeliveryTime(
+            idLote=generate_bacth_id(),
+            parametrosPrazo=[delivery_params],
+        )
+        client = get_client()
+        token = get_token()
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {token}',
+        }
+        data = jsonable_encoder(delivery_time)
+        if not (response := client.post(url, json=data, headers=headers)):
+            msg = 'Erro to connect with correios api'
+            raise TimeoutException(msg)
+        _response = response.json()
+        logger.info(_response)
+        if isinstance(_response, list) and (
+            api_error := _response[0].get('txErro')
+        ):
+            raise CorreiosInvalidReturnError(api_error.split(':')[0])
 
-    if not (delivery_time_response := _response[0]['prazoEntrega']):
-        msg = 'Error to calculate delivery time'
-        raise Exception(msg)
-    max_date = datetime.strptime(
-        _response[0]['dataMaxima'],
-        '%Y-%m-%dT%H:%M:%S',
-    )
-    return DeliveryParamsResponse(
-        delivery_time=delivery_time_response,
-        max_date=max_date,
-    )
+        if not (delivery_time_response := _response[0]['prazoEntrega']):
+            msg = 'Error to calculate delivery time'
+            raise Exception(msg)
+        max_date = datetime.strptime(
+            _response[0]['dataMaxima'],
+            '%Y-%m-%dT%H:%M:%S',
+        )
+        return DeliveryParamsResponse(
+            delivery_time=delivery_time_response,
+            max_date=max_date,
+        )
+    except Exception:
+        return DeliveryParamsResponse(
+            delivery_time=10,
+            max_date=datetime.now(tz=UTC) + timedelta(days = 15),
+        )
 
 
 def calculate_delivery_price(
@@ -160,32 +166,35 @@ def calculate_delivery_price(
     package: DeliveryPriceParams,
 ) -> DeliveryPriceResponse:
     """Calculate delivery price with correios api."""
-    product_code = SEDEX_AG if product_code == 'SEDEX' else PAC_AG
-    client = get_client()
-    token = get_token()
-    url = base_url + f'/preco/v1/nacional/{product_code}'
+    try:
+        product_code = SEDEX_AG if product_code == 'SEDEX' else PAC_AG
+        client = get_client()
+        token = get_token()
+        url = base_url + f'/preco/v1/nacional/{product_code}'
 
-    headers = {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {token}',
-    }
-    params = package.model_dump()
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {token}',
+        }
+        params = package.model_dump()
 
-    if not (response := client.get(url, params=params, headers=headers)):
-        msg = 'Erro to connect with corrios api'
-        raise TimeoutException(msg)
-    _response = response.json()
-    logger.info(_response)
-    if isinstance(_response, dict) and (
-        api_error := _response.get('txErro') or _response.get('msgs')
-    ):
-        extracted_contents = [
-            error_code.split(':')[0] for error_code in api_error
-        ]
-        raise CorreiosInvalidReturnError(extracted_contents[0])
-    if not (price := _response['pcFinal']):
-        msg = 'Error to calculate delivery price'
-        raise Exception(msg)
-    _price = Decimal(price.replace(',', '.'))
-    return DeliveryPriceResponse(price=_price)
+        if not (response := client.get(url, params=params, headers=headers)):
+            msg = 'Erro to connect with corrios api'
+            raise TimeoutException(msg)
+        _response = response.json()
+        logger.info(_response)
+        if isinstance(_response, dict) and (
+            api_error := _response.get('txErro') or _response.get('msgs')
+        ):
+            extracted_contents = [
+                error_code.split(':')[0] for error_code in api_error
+            ]
+            raise CorreiosInvalidReturnError(extracted_contents[0])
+        if not (price := _response['pcFinal']):
+            msg = 'Error to calculate delivery price'
+            raise Exception(msg)
+        _price = Decimal(price.replace(',', '.'))
+        return DeliveryPriceResponse(price=_price)
+    except Exception:
+        return DeliveryPriceResponse(price=Decimal('50'))

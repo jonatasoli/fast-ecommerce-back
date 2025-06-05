@@ -225,7 +225,7 @@ class OrderDB(Base):
 class OrderItemsDB(Base):
     __tablename__ = 'order_items'
 
-    order_items_id: Mapped[int] = mapped_column(primary_key=True, autoincrement="SERIAL")
+    order_items_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
     order = relationship(
         'OrderDB',
@@ -263,7 +263,7 @@ class OrderStatusStepsDB(Base):
 class MediaGalleryDB(Base):
     __tablename__ = 'image_gallery'
 
-    media_gallery_id: Mapped[int] = mapped_column(primary_key=True)
+    media_gallery_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     media_id: Mapped[int] = mapped_column(ForeignKey('uploaded_media.media_id'))
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
 

@@ -3,7 +3,7 @@ import sys
 from fastapi.responses import JSONResponse
 
 import sentry_sdk
-from app.entities.cart import CheckoutProcessingError, CouponLimitPriceError, ProductNotFoundError
+from app.entities.cart import CheckoutProcessingError, CouponLimitPriceError, InvalidCartUUIDError, ProductNotFoundError
 from app.entities.coupon import CouponDontMatchWithUserError, CouponNotFoundError
 from app.entities.payment import PaymentNotFoundError
 from app.entities.user import CredentialError, UserDuplicateError
@@ -231,6 +231,20 @@ async def payment_not_found_error(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
             'detail': 'Payment not found in gateway system.',
+        },
+    )
+
+
+@app.exception_handler(InvalidCartUUIDError)
+async def cart_uuid_invalid(
+    _: Request,
+    exc: InvalidCartUUIDError,
+) -> JSONResponse:
+    """Problem with invalid UUID in cart."""
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={
+            'detail': 'Cart UUID invalid or with conflict.',
         },
     )
 
