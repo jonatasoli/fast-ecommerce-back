@@ -18,10 +18,10 @@ def mock_client(mocker):
         point_of_interaction=MagicMock(
             transaction_data=MagicMock(
                 qr_code='fake_qr',
-                qr_code_base64='fake_qr_base64'
-            )
+                qr_code_base64='fake_qr_base64',
+            ),
         ),
-        id='fake_payment_id'
+        id='fake_payment_id',
     )
     client.create_payment_method.return_value = {'id': 'method_id'}
     client.attach_customer_in_payment_method.return_value = {'id': 'attached_method_id'}
@@ -33,7 +33,7 @@ def mock_db(mocker):
     session.begin.return_value.__aenter__.return_value = session
     return session
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_create_payment_pix_success(mock_client):
     payment = CreatePixPaymentMethodFactory(payment_gateway='mercadopago')
     user = UserDBFactory()
@@ -55,7 +55,7 @@ async def test_create_payment_pix_success(mock_client):
     assert cart.pix_payment_id == 'fake_payment_id'
     mock_client.create_pix.assert_called_once()
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_create_payment_pix_invalid_type(mock_client):
     invalid_payment = MagicMock()
     user = UserDBFactory()
@@ -72,7 +72,7 @@ async def test_create_payment_pix_invalid_type(mock_client):
             client=mock_client,
         )
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_create_payment_credit_card_success_method(mock_client, mock_db):
     payment = CreateCreditCardTokenPaymentMethodFactory(payment_gateway='mercadopago')
     user = UserDBFactory()
@@ -82,7 +82,7 @@ async def test_create_payment_credit_card_success_method(mock_client, mock_db):
     mock_repo = AsyncMock()
     mock_repo.get_installment_fee.return_value = MagicMock(
         min_installment_with_fee=2,
-        fee=0.05
+        fee=0.05,
     )
 
     cart = await create_payment_credit_card(
@@ -99,7 +99,7 @@ async def test_create_payment_credit_card_success_method(mock_client, mock_db):
     mock_client.create_payment_method.assert_called_once()
     mock_client.attach_customer_in_payment_method.assert_called_once()
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_create_payment_credit_card_token_success(mock_client, mock_db):
     payment = CreateCreditCardTokenPaymentMethodFactory(
         payment_gateway='mercadopago',
@@ -125,7 +125,7 @@ async def test_create_payment_credit_card_token_success(mock_client, mock_db):
     assert cart.payment_method == PaymentMethod.CREDIT_CARD.value
     mock_client.attach_customer_in_payment_method.assert_called_once()
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_create_payment_credit_card_invalid_type(mock_client, mock_db):
     invalid_payment = MagicMock()
     user = UserDBFactory()
@@ -142,7 +142,7 @@ async def test_create_payment_credit_card_invalid_type(mock_client, mock_db):
             client=mock_client,
         )
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_create_payment_credit_card_missing_method_id(mock_client, mock_db):
     payment = CreateCreditCardTokenPaymentMethodFactory(payment_gateway='mercadopago')
     mock_client.attach_customer_in_payment_method.return_value = {'id': None}

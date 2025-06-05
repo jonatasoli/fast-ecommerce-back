@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 import math
 
 from app.entities.user import UserAddressInDB
-from app.infra.constants import CurrencyType, OrderStatus, PaymentGatewayAvailable, PaymentStatus
+from app.infra.constants import CurrencyType, OrderStatus, PaymentStatus
 from fastapi import HTTPException, status
 from app.infra.database import get_async_session
 from loguru import logger

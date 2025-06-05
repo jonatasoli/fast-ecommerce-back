@@ -26,9 +26,9 @@ async def get_settings(
     field = await transaction.scalar(query)
     if not field:
         query = select(SettingsDB).where(
-            SettingsDB.field.like(field)
+            SettingsDB.field.like(field),
         ).where(
-            SettingsDB.is_default.is_(True)
+            SettingsDB.is_default.is_(True),
         )
         field = await transaction.scalar(query)
     return field
