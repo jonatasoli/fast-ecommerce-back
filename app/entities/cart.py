@@ -50,6 +50,13 @@ class InvalidCartFormatError(Exception):
         super().__init__('Invalid cart format')
 
 
+class InvalidCartUUIDError(Exception):
+    """Raise when cart uuid is invalid or empty."""
+
+    def __init__(self: Self) -> None:
+        super().__init__('Cart uuid is not the same as the cache uuid')
+
+
 class CheckoutProcessingError(Exception):
     """Raise when cart is invalid."""
 
@@ -266,6 +273,7 @@ class CreateCreditCardPaymentMethod(BaseModel):
     cvc: str
     name: str
     installments: int = 1
+    brand: str = ''
 
 
 class CreateCreditCardTokenPaymentMethod(BaseModel):

@@ -26,25 +26,6 @@ scheduler = StreamScheduler(
     sources=[LabelScheduleSource(taskiq_broker)],
 )
 
-# @broker.subscriber("in-queue")
-# @broker.publisher("out-queue")
-# async def get_abandoned_carts() -> str:
-#     """Task to get all carts abandoned in redis."""
-#     logger.info("Start cart task")
-#     await cart.get_cart_and_send_to_crm()
-#     logger.info("Finish cart task")
-#     return "Task: registered"
-
-
-@broker.subscriber("in-queue")
-@broker.publisher("out-queue")
-async def update_pending_payments() -> str:
-    """Task to get all pending payments and update."""
-    logger.info("Start payment task")
-    await payment.update_pending_payments()
-    logger.info("Finish payment task")
-    return "Task: registered"
-
 @broker.subscriber("in-queue")
 @broker.publisher("out-queue")
 async def update_pending_orders() -> str:

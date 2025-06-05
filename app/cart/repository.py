@@ -196,6 +196,7 @@ class SqlAlchemyRepository(AbstractRepository):
                 )
                 if not coupon:
                     msg = f'No coupon with code {code}'
+                    # !TODO Mudar a exception
                     raise ProductNotFoundError(msg)
 
                 return coupon.scalar_one()
@@ -463,4 +464,20 @@ async def get_product_by_id(
     if not product:
         raise ProductNotFoundError
     return product
+
+
+async def update_payment_method_to_user(
+    user_id: int,
+    payment_method: str,
+    transaction,
+):
+        user = await transaction.session.scalar(
+            select(models.UserDB).where(models.UserDB.user_id == user_id),
+        )
+        if not user:
+            msg = f'No user with id {user_id}'
+            raise UserNotFoundError(msg)
+
+        user.payment_method = payment_method
+        return user
 

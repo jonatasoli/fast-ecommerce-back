@@ -11,7 +11,6 @@ from faststream.rabbit import RabbitQueue
 from pydantic import ValidationError
 from app.cart import repository as cart_repository
 
-
 from app.entities.address import CreateAddress
 from app.entities.cart import (
     CartBase,
@@ -23,6 +22,7 @@ from app.entities.cart import (
     CreateCreditCardPaymentMethod,
     CreateCreditCardTokenPaymentMethod,
     CreatePixPaymentMethod,
+    InvalidCartUUIDError,
     generate_empty_cart,
     generate_new_cart,
     validate_cache_cart,
@@ -369,10 +369,7 @@ async def add_payment_information(  # noqa: PLR0913
     cache_cart = bootstrap.cache.get(uuid)
     cache_cart = CartShipping.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
-        raise HTTPException(
-            status_code=400,
-            detail='Cart uuid is not the same as the cache uuid',
-        )
+        raise InvalidCartUUIDError
     if not payment.payment_gateway:
         raise PaymentNotFoundError
 

@@ -19,6 +19,9 @@
     },
     "task": {
       "quantity": 1
+    },
+    "order_task": {
+      "quantity": 1
     }
   },
   "scripts": {
