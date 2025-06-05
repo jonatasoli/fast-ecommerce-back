@@ -1,7 +1,6 @@
 from app.cart import repository
 from app.entities.cart import (
     CartPayment,
-    CreateCreditCardPaymentMethod,
     CreateCreditCardTokenPaymentMethod,
     CreatePixPaymentMethod,
 )
@@ -128,7 +127,7 @@ async def create_payment_credit_card(
     )
     async with db().begin() as transaction:
         _payment_installment_fee = await repository.get_installment_fee(
-            transaction=transaction
+            transaction=transaction,
         )
 
         if cart.installments >= _payment_installment_fee.min_installment_with_fee:

@@ -9,12 +9,11 @@ from app.entities.payment import (
 from faststream.rabbit import RabbitQueue
 from typing import Any
 from loguru import logger
-from app.infra.constants import OrderStatus, PaymentGatewayAvailable
+from app.infra.constants import PaymentGatewayAvailable
 from app.infra.database import get_async_session
 from app.infra.payment_gateway.mercadopago_gateway import PaymentStatusError
 from app.payment import repository
 from app.report import repository as report_repository
-from app.order import repository as order_repository
 from app.infra.payment_gateway import payment_gateway
 
 async def update_payment(
