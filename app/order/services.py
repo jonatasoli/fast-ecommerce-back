@@ -719,6 +719,10 @@ async def update_pending_orders(db=get_async_session):
                 order.order_id,
                 transaction=session,
             )
+            if not payment:
+                order.order_status = OrderStatus.PAYMENT_CANCELLED
+                session.add(order)
+                continue
 
             logger.debug(f'{order.order_id} - {payment.status}')
             if payment.status not in ('approved', 'authorized', 'cancelled'):

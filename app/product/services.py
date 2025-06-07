@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from fastapi import UploadFile
+from loguru import logger
 from pydantic import TypeAdapter
 
 from app.entities.product import (
@@ -123,11 +124,15 @@ async def upload_media_gallery(
         )
         transaction.session.add(db_media_upload)
         await transaction.session.flush()
+        logger.debug(f'Media id {db_media_upload.media_id}')
         db_media_gallery = MediaGalleryDB(
             media_id=db_media_upload.media_id,
             product_id=product_id,
         )
         transaction.session.add(db_media_gallery)
+        await transaction.session.flush()
+        logger.debug(f'Media Gallery id {db_media_gallery.media_gallery_id}')
+        logger.debug(f'Media id {db_media_gallery.media_id}')
         await transaction.session.commit()
     return image_path
 
