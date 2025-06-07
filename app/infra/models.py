@@ -323,7 +323,7 @@ class CreditCardFeeConfigDB(Base):
 class UploadedMediaDB(Base):
     __tablename__ = 'uploaded_media'
 
-    media_id: Mapped[int] = mapped_column(primary_key=True)
+    media_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     type: Mapped[str]
     uri: Mapped[str]
     small: Mapped[str] = mapped_column(nullable=True)
