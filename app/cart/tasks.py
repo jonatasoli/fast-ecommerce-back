@@ -254,7 +254,8 @@ async def checkout(
                     )
                 bootstrap.cache.delete(cart_uuid)
             case (_):
-                raise Exception('Payment method not found')
+                msg = 'Payment method not found'
+                raise Exception(msg)
 
 
     except PaymentAcceptError:

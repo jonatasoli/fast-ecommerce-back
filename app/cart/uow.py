@@ -304,7 +304,7 @@ async def get_customer(
         payment_gateway=payment_gateway,
         transaction=transaction,
     )
-    if not customer and not payment_gateway == PaymentGatewayAvailable.CIELO.value:
+    if not customer and payment_gateway != PaymentGatewayAvailable.CIELO.value:
         customer_not_found_exception()
     return CustomerInDB.model_validate(customer)
 
@@ -392,11 +392,10 @@ async def get_products_quantity(
         msg = 'Transaction must be provided'
         raise ValueError(msg)
     product_ids: list[int] = [item.product_id for item in products]
-    products_db = await repository.get_products_quantity(
+    return await repository.get_products_quantity(
         products=product_ids,
         transaction=transaction,
     )
-    return products_db
 
 
 @database_uow()
@@ -410,11 +409,10 @@ def sync_get_products_quantity(
         msg = 'Transaction must be provided'
         raise ValueError(msg)
     product_ids: list[int] = [item.product_id for item in products]
-    products_db = repository.get_products_quantity(
+    return repository.get_products_quantity(
         products=product_ids,
         transaction=transaction,
     )
-    return products_db
 
 
 @database_uow()

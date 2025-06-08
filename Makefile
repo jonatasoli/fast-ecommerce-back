@@ -38,7 +38,7 @@ lint:
 	@ruff check tests/ --ignore S101
 
 test:
-	@uv run FORCE_ENV_FOR_DYNACONF=testing pytest -s tests/ -x --cov=fast_ecommerce -vv
+	@uv run pytest -s tests/ -x --cov=app -vv
 
 post_test:
 	@coverage html
@@ -57,3 +57,6 @@ migrate:
 
 task:
 	@uv run taskiq scheduler app.infra.scheduler:scheduler
+
+safety:
+	@uv run safety scan
