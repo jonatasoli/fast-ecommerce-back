@@ -41,8 +41,8 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
                 db.commit()
                 _address = db_payment_address
         return _address
-    except Exception as e:
-        raise e
+    except Exception:
+        raise
 
 
 def register_shipping_address(
@@ -118,8 +118,8 @@ def register_shipping_address(
             logger.debug('INFO')
             logger.error(f'{_address}')
         return _address
-    except Exception as e:
-        raise e
+    except Exception:
+        raise
 
 
 def address_by_postal_code(zipcode_data):
@@ -159,5 +159,5 @@ def address_by_postal_code(zipcode_data):
             'zip_code': postal_code,
         }
 
-    except Exception as e:
-        raise e
+    except Exception:
+        raise

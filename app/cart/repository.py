@@ -387,13 +387,12 @@ async def get_installment_fee(
 ) -> models.CreditCardFeeConfigDB:
     """Must return config fee."""
     try:
-        config = await transaction.session.scalar(
+        return await transaction.session.scalar(
             select(models.CreditCardFeeConfigDB).where(
                 models.CreditCardFeeConfigDB.credit_card_fee_config_id
                 == fee_config,
             ),
         )
-        return config
     except Exception as e:
         logger.error(f'{e}')
         raise

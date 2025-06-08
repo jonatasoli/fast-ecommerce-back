@@ -78,7 +78,7 @@ async def create_payment_pix(
         _payment.point_of_interaction.transaction_data.qr_code_base64
     )
     payment_id = _payment.id
-    cart = CartPayment(
+    return CartPayment(
         **cache_cart.model_dump(),
         payment_method=payment_method,
         gateway_provider=payment.payment_gateway,
@@ -88,7 +88,6 @@ async def create_payment_pix(
         pix_payment_id=payment_id,
         payment_method_id=str(payment_id),
     )
-    return cart
 
 async def create_payment_credit_card(
     payment,

@@ -108,6 +108,7 @@ mypy-init-return = true
 "__init__.py" = ["D104", "N999"]
 "/**/tests/*.py" = ["S101", "S106", "RUF012", "PLR2004", "B008", 'N806', 'F821', 'N999', 'E501', 'PT011', 'ARG001', 'EM101', 'TRY003', "F823", "F811", "F401"]
 "app/infra/*" = ["B008", "A002","A001", "A003", "RUF100","FBT001", "F811","F401","TRY302"]
+"main.py" =  ["ARG001"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
@@ -143,6 +144,8 @@ asyncio_default_fixture_loop_scope = "function"
 omit = [
     "backend/tests/*"
 ]
+concurrency = ["thread", "greenlet"]
+
 [tool.coverage.report]
 skip_empty = true
 
@@ -157,6 +160,7 @@ path = ".venv"
 dev = [
     "faker-file[images,s3]>=0.18.1",
     "pytest-xdist>=3.6.1",
+    "safety>=3.5.2",
     "testcontainers>=4.8.2",
     "towncrier>=24.8.0",
 ]
