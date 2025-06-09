@@ -29,7 +29,7 @@ def _set_test_settings() -> None:
 @pytest.fixture(scope="session")
 def event_loop():
     """Create a single event loop for the test session."""
-    loop = asyncio.new_event_loop()
+    loop = asyncio.get_event_loop_policy().new_event_loop()
     asyncio.set_event_loop(loop)
     yield loop
     loop.close()
@@ -192,9 +192,9 @@ async def async_admin_user(asyncdb):
             role_id=Roles.ADMIN.value,
         )
         db.add(user)
-        db.commit()
-        db.refresh(user)
-        db.commit()
+        await db.flush()
+        await db.refresh(user)
+        await db.commit()
 
         user.clean_password = 'testtest' # Noqa: S105
 

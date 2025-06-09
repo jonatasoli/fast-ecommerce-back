@@ -3,7 +3,12 @@ import sys
 from fastapi.responses import JSONResponse
 
 import sentry_sdk
-from app.entities.cart import CheckoutProcessingError, CouponLimitPriceError, InvalidCartUUIDError, ProductNotFoundError
+from app.entities.cart import (
+    CheckoutProcessingError,
+    CouponLimitPriceError,
+    InvalidCartUUIDError,
+    ProductNotFoundError,
+)
 from app.entities.coupon import CouponDontMatchWithUserError, CouponNotFoundError
 from app.entities.payment import PaymentNotFoundError
 from app.entities.user import CredentialError, UserDuplicateError
