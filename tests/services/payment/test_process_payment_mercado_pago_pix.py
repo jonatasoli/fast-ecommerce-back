@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from faker import Faker
+import random
 
 from app.entities.cart import CartPayment
 from app.entities.payment import PaymentDataInvalidError, PaymentNotFoundError
@@ -10,6 +11,8 @@ from tests.factories_db import CustomerDBFactory, UserDBFactory
 from app.payment.payment_process_mercado_pago import create_payment_pix, create_payment_credit_card
 
 fake = Faker()
+
+pix_id = fake.random_int()
 
 @pytest.fixture
 def mock_client(mocker):
@@ -21,7 +24,7 @@ def mock_client(mocker):
                 qr_code_base64='fake_qr_base64',
             ),
         ),
-        id='fake_payment_id',
+        id=pix_id,
     )
     client.create_payment_method.return_value = {'id': 'method_id'}
     client.attach_customer_in_payment_method.return_value = {'id': 'attached_method_id'}
@@ -35,11 +38,11 @@ def mock_db(mocker):
 
 
 
-@pytest.mark.skip
+@pytest.mark.asyncio
 async def test_create_payment_pix_success(mock_client):
     payment = CreatePixPaymentMethodFactory(payment_gateway='mercadopago')
     user = UserDBFactory()
-    cache_cart = AddressCreateFactory()
+    cache_cart = CartShippingFactory()
     customer = CustomerDBFactory()
 
     cart = await create_payment_pix(
@@ -54,15 +57,15 @@ async def test_create_payment_pix_success(mock_client):
     assert isinstance(cart, CartPayment)
     assert cart.pix_qr_code == 'fake_qr'
     assert cart.pix_qr_code_base64 == 'fake_qr_base64'
-    assert cart.pix_payment_id == 'fake_payment_id'
+    assert cart.pix_payment_id == pix_id
     mock_client.create_pix.assert_called_once()
 
-@pytest.mark.skip
+@pytest.mark.asyncio
 async def test_create_payment_pix_invalid_type(mock_client):
     invalid_payment = MagicMock()
     user = UserDBFactory()
     customer = CustomerDBFactory()
-    cache_cart = CartPaymentFactory()
+    cache_cart = CartShippingFactory()
 
     with pytest.raises(PaymentDataInvalidError):
         await create_payment_pix(
