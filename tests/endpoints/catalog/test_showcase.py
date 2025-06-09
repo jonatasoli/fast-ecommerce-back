@@ -8,7 +8,6 @@ from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, Inve
 URL = '/catalog'
 
 
-@pytest.mark.asyncio
 def test_empty_data_should_return_200(client):
     """Must return empty list."""
     # Act
@@ -17,7 +16,6 @@ def test_empty_data_should_return_200(client):
     # Assert
     assert response.status_code == status.HTTP_200_OK
 
-@pytest.mark.asyncio
 def test_with_product_showcase_option_should_list(client, db):
     """Must return product with showcase option."""
     # Arrange

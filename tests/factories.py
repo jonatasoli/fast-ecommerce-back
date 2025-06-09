@@ -2,6 +2,7 @@ import factory
 from faker import Faker
 from decimal import Decimal
 from uuid import uuid4
+import random
 
 from app.entities.coupon import CouponInDB
 from app.entities.freight import ShippingAddress, Freight
@@ -17,6 +18,7 @@ from app.entities.cart import (
     CreatePixPaymentMethod,
     AddressCreate,
 )
+from factory.declarations import SelfAttribute, SubFactory, LazyAttribute, RelatedFactoryList
 from tests.fake_functions import fake_cpf, fake_decimal, fake_email, fake_url
 
 fake = Faker()
@@ -96,11 +98,11 @@ class CartBaseFactory(factory.Factory):
 
     uuid = fake.uuid4()
     affiliate = None
-    cart_items = [factory.SubFactory(ProductCartFactory) for _ in range(2)]
+    cart_items = RelatedFactoryList(ProductCartFactory, size=lambda: random.randint(1, 5))
     coupon = None
     discount = Decimal('0')
     zipcode = fake.postcode()
-    freight_product_code = fake.random_int()
+    freight_product_code = f'{fake.random_int()}'
     freight = factory.SubFactory(FreightFactory)
     subtotal = fake_decimal()
     total = fake_decimal()
@@ -124,10 +126,13 @@ class CartShippingFactory(CartUserFactory):
     class Meta:
         model = CartShipping
 
+    class Params:
+        user_address = SubFactory(UserAddressFactory)
+
     shipping_is_payment = fake.pybool()
     user_address_id = fake.pyint()
-    shipping_address_id = factory.SubFactory(UserAddressFactory)
-    user_address = factory.SubFactory(UserAddressFactory)
+    shipping_address_id = SelfAttribute('user_address.user_id')
+    user_address = SelfAttribute('user_address.user_id')
 
 
 class CartPaymentFactory(CartShippingFactory):

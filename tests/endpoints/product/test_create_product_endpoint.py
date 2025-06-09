@@ -19,7 +19,7 @@ async def test_given_valid_payload_should_create_product(asyncdb, admin_token):
     # Arrange
     category_id = None
     price = Decimal(
-        random.random() * 100).quantize(Decimal('.01'), # Noqa: S311
+        random.random() * 100).quantize(Decimal('.01'),
         rounding=ROUND_HALF_UP,
     )
     async with asyncdb() as db:
