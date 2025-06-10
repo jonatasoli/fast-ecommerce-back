@@ -2,6 +2,8 @@
 import json
 from pydantic import AnyUrl
 from sqlalchemy import select
+from app.infra.cryptography import decrypt, encrypt
+from config import settings
 
 from app.entities.settings import MainSettings
 from app.infra.models import SettingsDB
@@ -31,6 +33,9 @@ async def get_settings(
             SettingsDB.is_default.is_(True),
         )
         field = await transaction.scalar(query)
+    message = field.credentials
+    field_decript = decrypt(message, settings.SECRET_KEY).decode()
+    field.credentials = json.loads(field_decript)
     return field
 
 def serialize_data(data: dict) -> dict:
@@ -61,6 +66,8 @@ async def update_or_create_setting(
     field_value = serialize_data(field_value)
     setting_db = await get_settings(
         locale=locale, field=field_value.get('field'), transaction=transaction)
+    key = settings.SECRET_KEY
+    credentials = encrypt(json.dumps(field_value), key)
     if not setting_db:
         setting_db = SettingsDB(
             locale=locale,
@@ -68,6 +75,7 @@ async def update_or_create_setting(
             provider=field_value.get("provider"),
             field=field_value.get('field'),
             value=json.dumps(field_value),
+            credentials=credentials,
         )
         return transaction.add(setting)
     setting_db.field = field_value.get('field')

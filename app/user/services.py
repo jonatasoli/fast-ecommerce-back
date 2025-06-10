@@ -314,6 +314,44 @@ def verify_admin_sync():
         return wrapper
     return decorator
 
+
+async def verify_admin_async():
+    """Get admin user."""
+    async def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs): # noqa: ARG001
+            credentials_exception = HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Could not validate credentials',
+                headers={'WWW-Authenticate': 'Bearer'},
+            )
+            try:
+                payload = decode(
+                    kwargs['token'],
+                    settings.SECRET_KEY,
+                    algorithms=[settings.ALGORITHM],
+                )
+                document: str = payload.get('sub')
+                if not document:
+                    raise credentials_exception
+            except DecodeError:
+                raise_credential_error()
+
+            async with kwargs['db']() as session:
+                user_query = select(UserDB).options(
+                    selectinload(UserDB.addresses),
+                ).where(UserDB.document == document)
+                user_db = await session.scalar(user_query)
+                if not user_db:
+                    raise CredentialError
+                user = UserSchema.model_validate(user_db)
+            if user is None or user.role_id != Roles.ADMIN.value:
+                raise credentials_exception
+            return user
+        return wrapper
+    return decorator
+
+
 async def verify_admin(token: str, *, db):
     """Get admin user."""
     credentials_exception = HTTPException(

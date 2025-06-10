@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 from app.infra.database import get_async_session
 from app.settings import repository
 from app.user import services as domain_user
+from app.user.services import verify_admin_async
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 
@@ -17,12 +18,12 @@ settings = APIRouter(
 )
 
 
+@verify_admin_async
 @settings.get(
     '/',
     summary='Get settings',
     description='get a settings for field and locale',
     status_code=status.HTTP_200_OK,
-    # response_model=,
 )
 async def get_settings(
     *,
@@ -32,17 +33,17 @@ async def get_settings(
     db = Depends(get_async_session),
 ):
     """Get Setting."""
-    if _ := await domain_user.verify_admin(token, db=db):
-        async with db.begin() as transaction:
-            return await repository.get_settings(
-                locale=locale,
-                field=field,
-                transaction=transaction,
-            )
-    raise UserNotFoundError
+    _ = token
+    async with db.begin() as transaction:
+        return await repository.get_settings(
+            locale=locale,
+            field=field,
+            transaction=transaction,
+        )
 
 
 
+@verify_admin_async
 @settings.patch(
     '/',
     summary='Update specific setting',
@@ -57,8 +58,7 @@ async def inform_product_user(
     db = Depends(get_async_session),
 ):
     """Update Settings."""
-    if not (_ := await domain_user.verify_admin(token, db=db)):
-        raise UserNotAdminError
+    _ = token
     async with db.begin() as transaction:
         setting = await repository.update_or_create_setting(
             locale=locale,
