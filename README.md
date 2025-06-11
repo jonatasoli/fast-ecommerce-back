@@ -1,4 +1,6 @@
-# Fast Ecommerce
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jonatasoli_fast-ecommerce-back&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jonatasoli_fast-ecommerce-back)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jonatasoli_fast-ecommerce-back&metric=coverage)](https://sonarcloud.io/summary/new_code?id=jonatasoli_fast-ecommerce-back)
+# Capicart Backend
 ## ApiRest in development
 
  [Pre-requirements](#pre-requirements)
@@ -7,11 +9,9 @@
 
 ## Pre-requirements
 + Dcoker and docker-compose
-+ Install [pyenv](https://github.com/pyenv/pyenv)
++ Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
 ```bash
-curl https://pyenv.run | bash
-pyenv install 3.12.4
-pyenv global 3.12.4
+icurl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 + Repository clone
 ```bash
@@ -21,22 +21,18 @@ git clone https://github.com/jonatasoli/fast-ecommerce-back.git
 cd fast-ecommerce-back
 cd app
 ```
-+ Start docker-compose file
++ Start docker-compose file in [main project](https://github.com/jonatasoli/capi-cart)
 ```bash
 docker-compose up -d
 ```
 
-+ Virtualenv with poetry
++ Virtualenv with uv
 ```bash
-curl -sSL https://install.python-poetry.org | python3 -
+uv python install
 ```
 Create Virtualenv and install requirements
 ````bash
-poetry install
-````
-Enter Linux ou Mac
-````bash
-poetry shell
+uv sync
 ````
 
 ## Install
@@ -58,7 +54,7 @@ make run
 * Enter in app directory
 * Run tests
 ````
-python -m pytest
+make test
 ````
 
 
