@@ -319,7 +319,7 @@ def verify_admin_async():
     """Get admin user."""
     def decorator(func):
         @wraps(func)
-        async def wrapper(*args, **kwargs): # noqa: ARG001
+        async def wrapper(*args, **kwargs):
             credentials_exception = HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail='Could not validate credentials',

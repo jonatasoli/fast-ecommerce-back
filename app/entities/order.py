@@ -143,59 +143,6 @@ class TrackingFullResponse(BaseModel):
     tracking_number: str
 
 
-class OrderCl:
-    def __init__( #noqa: PLR0913
-        self,
-        payment_id: int,
-        id_pagarme: str,
-        status: str,
-        order_id: int,
-        tracking_number: str,
-        order_date: str,
-        user_name: str,
-        email: str,
-        phone: str,
-        document: int,
-        type_address: str,
-        category: str,
-        country: str,
-        city: str,
-        state: str,
-        neighborhood: str,
-        street: str,
-        street_number: int,
-        address_complement: str,
-        zipcode: int,
-        user_affiliate: str,
-        amount: int,
-        products: list,
-    ):
-        self.payment_id = payment_id
-        self.id_pagarme = id_pagarme
-        self.status = status
-        self.order_id = order_id
-        self.tracking_number = tracking_number
-        self.order_date = order_date
-        self.user_name = user_name
-        self.email = email
-        self.phone = phone
-        self.document = document
-        self.type_address = type_address
-        self.category = category
-        self.country = country
-        self.city = city
-        self.state = state
-        self.neighborhood = neighborhood
-        self.street = street
-        self.street_number = street_number
-        self.address_complement = address_complement
-        self.zipcode = zipcode
-        self.user_affiliate = user_affiliate
-        self.amount = amount
-        self.checked = False
-        self.products = products
-
-
 class ProductsResponseOrder(BaseModel):
     product_name: str
     image_path: str | None = None
