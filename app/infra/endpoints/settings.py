@@ -18,7 +18,7 @@ settings = APIRouter(
 )
 
 
-@verify_admin_async
+@verify_admin_async()
 @settings.get(
     '/',
     summary='Get settings',
@@ -42,14 +42,14 @@ async def get_settings(
         )
 
 
-
-@verify_admin_async
+@verify_admin_async()
 @settings.patch(
     '/',
     summary='Update specific setting',
     description='Create or update setting',
     status_code=status.HTTP_200_OK,
 )
+@verify_admin_async()
 async def inform_product_user(
     *,
     locale: str,
