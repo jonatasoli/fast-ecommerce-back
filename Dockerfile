@@ -1,10 +1,10 @@
-FROM python:3.13-slim-bookworm as builder
+FROM python:3.13-slim-bookworm AS builder
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
-    libpq5 \
     curl && \
+    libpq5 \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

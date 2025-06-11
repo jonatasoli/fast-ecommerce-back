@@ -104,7 +104,7 @@ async def add_product_to_cart(
     cart = None
     if cart_uuid:
         cart = cache.get(cart_uuid)
-    if None or not cart:
+    if not cart:
         cart = generate_new_cart(
             product=product_db,
             price=product_db.price,
