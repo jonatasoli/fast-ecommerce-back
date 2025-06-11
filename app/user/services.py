@@ -315,9 +315,9 @@ def verify_admin_sync():
     return decorator
 
 
-async def verify_admin_async():
+def verify_admin_async():
     """Get admin user."""
-    async def decorator(func):
+    def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs): # noqa: ARG001
             credentials_exception = HTTPException(
@@ -347,7 +347,7 @@ async def verify_admin_async():
                 user = UserSchema.model_validate(user_db)
             if user is None or user.role_id != Roles.ADMIN.value:
                 raise credentials_exception
-            return user
+            return await func(*args, **kwargs)
         return wrapper
     return decorator
 
