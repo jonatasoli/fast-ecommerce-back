@@ -30,6 +30,7 @@ MERCADO_PAGO_PUBLIC_KEY = "TEST-0f0f0f0f-0f0f-0f0f-0f0f-0f0f0f0f0f0f"
 FREIGHT_GATEWAY = "CORREIOS"
 CORREIOSBR_API_URL = "https://api.correios.com.br"
 CLIENT_API_TIMEOUT = 10
+CAPI_SECRET = "RVd9r6ly08gbPMGi1EWbB_BWPKzd2n_uriOIipxDN70="
 
 
 [testing]

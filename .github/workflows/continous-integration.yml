@@ -74,6 +74,7 @@ jobs:
           DYNACONF_STRIPE_API_KEY: "API"
           DYNACONF_BROKER_URL: "amqp://guest:guest@localhost:5672//"
           DYNACONF_RESULT_BACKEND: "rpc://"
+          DYNACONF_CAPI_SECRET: "RVd9r6ly08gbPMGi1EWbB_BWPKzd2n_uriOIipxDN70="
         run: |
           uv run pytest --cov=app --cov-report=xml
 

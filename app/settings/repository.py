@@ -1,5 +1,7 @@
 
+from contextlib import suppress
 import json
+from cryptography.fernet import InvalidToken
 from pydantic import AnyUrl
 from sqlalchemy import select
 from app.infra.crypto_tools import decrypt, encrypt
@@ -34,8 +36,9 @@ async def get_settings(
         )
         field = await transaction.scalar(query)
     message = field.credentials
-    field_decript = decrypt(message, settings.SECRET_KEY).decode()
-    field.credentials = json.loads(field_decript)
+    with suppress(ValueError, InvalidToken):
+        field_decript = decrypt(message, settings.CAPI_SECRET).decode()
+        field.credentials = json.loads(field_decript)
     return field
 
 def serialize_data(data: dict) -> dict:
@@ -66,8 +69,8 @@ async def update_or_create_setting(
     field_value = serialize_data(field_value)
     setting_db = await get_settings(
         locale=locale, field=field_value.get('field'), transaction=transaction)
-    key = settings.SECRET_KEY
-    credentials = encrypt(json.dumps(field_value), key)
+    key = settings.CAPI_SECRET
+    credentials = encrypt(json.dumps(field_value).encode(), key.encode())
     if not setting_db:
         setting_db = SettingsDB(
             locale=locale,
@@ -82,6 +85,7 @@ async def update_or_create_setting(
     setting_db.provider = field_value.get("provider")
     setting_db.value = json.dumps(field_value)
     setting_db.locale = locale
+    setting_db.credentials=credentials
 
     transaction.add(setting_db)
     return setting_db

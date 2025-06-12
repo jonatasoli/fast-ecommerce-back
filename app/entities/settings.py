@@ -1,18 +1,18 @@
 from pydantic import BaseModel, AnyUrl
 
-class PaymentConfig(BaseModel):
+class ConfigDefault(BaseModel):
     provider: str
-    field: str = "PAYMENT"
     description: str
+
+class PaymentConfig(ConfigDefault):
+    field: str = "PAYMENT"
     gateway_name: str
     gateway_url: AnyUrl
     gateway_key: str
     gateway_secret_key: str
 
-class LogisticsConfig(BaseModel):
-    provider: str
+class LogisticsConfig(ConfigDefault):
     field: str = "LOGISTIC"
-    description: str
     name: str
     logistics_user: str
     logistics_pass: str
@@ -20,40 +20,36 @@ class LogisticsConfig(BaseModel):
     logistics_postal_card: str
     zip_origin: str
 
-class NotificationConfig(BaseModel):
-    provider: str
+class NotificationConfig(ConfigDefault):
     field: str = "NOTIFICATION"
-    description: str
     type: str
     contact: str
     api_key: str
     secret_key: str
 
-class CDNConfig(BaseModel):
-    provider: str
+class CDNConfig(ConfigDefault):
     field: str = "CDN"
-    description: str
-    provider: str
     url: AnyUrl
     region: str
     bucket_name: str
     api_key: str
     secret_key: str
 
-class CompanyConfig(BaseModel):
-    provider: str
+class CompanyConfig(ConfigDefault):
     field: str = "COMPANY"
-    description: str
     name: str
 
-class CRMConfig(BaseModel):
-    provider: str
+class CRMConfig(ConfigDefault):
     field: str = "CRM"
-    description: str
     access_key: str
     url: AnyUrl
     deal_stage_id: str
     deal_stage_name: str
+
+class MailGateway(ConfigDefault):
+    field: str = 'MAIL'
+    key: str | None
+    secret: str
 
 class MainSettings(BaseModel):
     locale: str
@@ -64,3 +60,5 @@ class MainSettings(BaseModel):
     cdn: CDNConfig | None
     company: CompanyConfig | None
     crm: CRMConfig | None
+    mail: MailGateway | None
+

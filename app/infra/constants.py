@@ -95,3 +95,9 @@ class CurrencyType(enum.StrEnum):
 class MediaType(enum.StrEnum):
     video = 'VIDEO'
     photo = 'PHOTO'
+
+
+class MailGateway(enum.StrEnum):
+    sendgrid = 'SENDGRID'
+    mailjet = 'MAILJET'
+    sendgrid_legacy = 'LEGACY'
