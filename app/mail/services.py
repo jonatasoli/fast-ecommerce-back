@@ -1,10 +1,15 @@
 from fastapi import status
+from sqlalchemy import select
+from app.infra.constants import MailGateway
+from app.infra.database import get_session
+from app.infra.models import SettingsDB
 from config import settings
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from app.order import repository as order_repository
+from mailjet_rest import Client
 
 from app.entities.mail import (
     MailFormCourses,
@@ -24,17 +29,33 @@ class SendMailError(Exception):
     ...
 
 
-def send_email(message: Mail) -> None:
+def send_mail(message: Mail, db=get_session) -> None:
     """Send email using Sendgrid."""
     try:
-        sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-        response = sg.send(message)
-        logger.info(response.status_code)
-        logger.info(response.body)
-        logger.info(response.headers)
-        if response.status_code == status.HTTP_202_ACCEPTED:
-            return
-        send_mail_error()
+        with db().begin() as session:
+            query = select(SettingsDB).where(
+                SettingsDB.field.like('MAIL_GATEWAY'),
+            )
+            mail_settings = session.scalar(query)
+
+            provider = mail_settings.provider
+            credentials = mail_settings.credentials
+
+            if provider == MailGateway.sendgrid:
+                send_mail_provider(
+                    message,
+                    credentials,
+                    client_type=provider,
+                )
+            elif provider == MailGateway.mailjet:
+                send_mail_provider(
+                    message=message,
+                    credentials=credentials,
+                    client_type=provider)
+            else:
+                send_mail_sendgrid_legacy(
+                    message,
+                )
     except Exception:
         logger.exception('Error in sended email')
         raise
@@ -60,7 +81,7 @@ def send_order_cancelled(mail_data: MailOrderCancelled) -> None:
         html_content=template,
     )
     logger.debug(template)
-    send_email(message)
+    send_mail(message)
 
 
 def send_order_processed(db, mail_data: MailOrderProcessed) -> None:
@@ -88,7 +109,7 @@ def send_order_processed(db, mail_data: MailOrderProcessed) -> None:
     logger.info('Message in Task')
     logger.info(f'{message}')
     logger.debug(template)
-    send_email(message)
+    send_mail(message)
 
 
 def send_order_paid(mail_data: MailOrderPaied) -> None:
@@ -108,7 +129,7 @@ def send_order_paid(mail_data: MailOrderPaied) -> None:
     logger.info('Message in Task')
     logger.info(f'{message}')
     logger.debug(template)
-    send_email(message)
+    send_mail(message)
 
 
 def send_mail_tracking_number(mail_data: MailTrackingNumber) -> None:
@@ -127,7 +148,7 @@ def send_mail_tracking_number(mail_data: MailTrackingNumber) -> None:
         html_content=template,
     )
     logger.debug(template)
-    send_email(message)
+    send_mail(message)
 
 
 def send_mail_reset_password(mail_data: MailResetPassword) -> None:
@@ -146,7 +167,7 @@ def send_mail_reset_password(mail_data: MailResetPassword) -> None:
         html_content=template,
     )
     logger.debug(template)
-    send_email(message)
+    send_mail(message)
 
 
 def send_mail_form_courses(mail_data: MailFormCourses):
@@ -166,7 +187,7 @@ def send_mail_form_courses(mail_data: MailFormCourses):
         html_content=template,
     )
     logger.debug(template)
-    send_email(course)
+    send_mail(course)
 
 def send_mail_from_inform_ask_product_by_user(
     mail_data: MailInformUserProduct,
@@ -186,3 +207,44 @@ def send_mail_from_inform_ask_product_by_user(
         html_content=template,
     )
     logger.info(inform)
+
+
+def send_mail_provider(message, credentials, client_type):
+    """Send e-mail with provider client."""
+    response = None
+    if client_type == MailGateway.sendgrid:
+        client = SendGridAPIClient(credentials.get('secret'))
+        response = client.send(message)
+        logger.info(response.status_code)
+        logger.info(response.body)
+        logger.info(response.headers)
+    elif client_type == MailGateway.mailjet:
+        api_key = credentials.get('key')
+        api_secret = credentials.get('secret')
+        mailjet = Client(auth=(api_key, api_secret))
+        data = {
+            "FromEmail": message.from_email,
+            "FromName": message.from_email,
+            "Subject": message.subject,
+            "Text-part": message.plain_text_content,
+            "Html-part": message.html_content,
+            "Recipients": [{"Email": message.to_emails[0]}],
+        }
+        result = mailjet.send.create(data=data)
+        logger.info(result.status_code)
+        logger.info(result.json())
+    if response.status_code == status.HTTP_202_ACCEPTED:
+        return
+    send_mail_error()
+
+
+def send_mail_sendgrid_legacy(message):
+    """Send e-mail with sendgrid client."""
+    sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+    response = sg.send(message)
+    logger.info(response.status_code)
+    logger.info(response.body)
+    logger.info(response.headers)
+    if response.status_code == status.HTTP_202_ACCEPTED:
+        return
+    send_mail_error()
