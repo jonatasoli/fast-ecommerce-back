@@ -87,7 +87,7 @@ async def get_payment_by_order_id(
     payment_query = select(PaymentDB).where(
         PaymentDB.order_id == order_id,
     )
-    return await transaction.scalar(payment_query)
+    return await transaction.session.scalar(payment_query)
 
 
 async def create_customer( # Noqa: PLR0913
