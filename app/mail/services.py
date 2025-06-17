@@ -38,8 +38,8 @@ def send_mail(message: Mail, db=get_session) -> None:
             )
             mail_settings = session.scalar(query)
 
-            provider = mail_settings.provider
-            credentials = mail_settings.credentials
+            provider = getattr(mail_settings, 'provider', None)
+            credentials = getattr(mail_settings, 'credentials', None)
 
             if provider == MailGateway.sendgrid:
                 send_mail_provider(
