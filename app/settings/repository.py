@@ -2,7 +2,6 @@
 from contextlib import suppress
 import json
 from cryptography.fernet import InvalidToken
-from loguru import logger
 from pydantic import AnyUrl
 from sqlalchemy import select
 from app.infra.crypto_tools import decrypt, encrypt
