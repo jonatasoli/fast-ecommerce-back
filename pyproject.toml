@@ -36,6 +36,7 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "python-multipart>=0.0.9",
     "redis>=5.0.8",
+    "resend>=2.10.0",
     "sendgrid>=6.11.0",
     "sentry-sdk[fastapi]>=2.14.0",
     "sqlalchemy[asyncio]>=2.0.34",
