@@ -717,7 +717,7 @@ async def update_pending_orders(db=get_async_session):
 
             payment = await repository_payment.get_payment_by_order_id(
                 order.order_id,
-                transaction=session,
+                transaction=session.begin(),
             )
             if not payment:
                 order.order_status = OrderStatus.PAYMENT_CANCELLED

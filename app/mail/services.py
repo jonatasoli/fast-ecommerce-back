@@ -48,12 +48,10 @@ def send_mail(message: Mail, db=get_session) -> None:
                     credentials,
                     client_type=provider,
                 )
-            elif provider == MailGateway.mailjet:
-                send_mail_provider(
-                    message=message,
-                    credentials=credentials,
-                    client_type=provider)
-            elif provider == MailGateway.resend:
+            elif provider in (
+                    MailGateway.mailjet,
+                    MailGateway.resend,
+                ):
                 send_mail_provider(
                     message=message,
                     credentials=credentials,
