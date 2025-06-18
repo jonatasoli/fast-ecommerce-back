@@ -10,6 +10,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from app.order import repository as order_repository
 from mailjet_rest import Client
+import resend
 
 from app.entities.mail import (
     MailFormCourses,
@@ -48,6 +49,11 @@ def send_mail(message: Mail, db=get_session) -> None:
                     client_type=provider,
                 )
             elif provider == MailGateway.mailjet:
+                send_mail_provider(
+                    message=message,
+                    credentials=credentials,
+                    client_type=provider)
+            elif provider == MailGateway.resend:
                 send_mail_provider(
                     message=message,
                     credentials=credentials,
@@ -218,6 +224,15 @@ def send_mail_provider(message, credentials, client_type):
         logger.info(response.status_code)
         logger.info(response.body)
         logger.info(response.headers)
+    elif client_type == MailGateway.resend:
+        api_secret = credentials.get('secret')
+        data: resend.Emails.SendParams = {
+            "from": message.from_email,
+            "to": [message.to_email[0]],
+            "subject": message.subject,
+            "html": message.html_content,
+        }
+        response = resend.Emails.send(data)
     elif client_type == MailGateway.mailjet:
         api_key = credentials.get('key')
         api_secret = credentials.get('secret')
