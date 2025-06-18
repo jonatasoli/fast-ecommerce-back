@@ -99,6 +99,6 @@ class MediaType(enum.StrEnum):
 
 class MailGateway(enum.StrEnum):
     sendgrid = 'SENDGRID'
-    mailjet = 'MAILJET'
-    resend = 'RESEND'
+    mailjet = 'mailjet'
+    resend = 'resend'
     sendgrid_legacy = 'LEGACY'
