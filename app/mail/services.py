@@ -35,12 +35,13 @@ def send_mail(message: Mail, db=get_session) -> None:
     try:
         with db().begin() as session:
             query = select(SettingsDB).where(
-                SettingsDB.field.like('MAIL_GATEWAY'),
+                SettingsDB.field.like('MAIL'),
             )
             mail_settings = session.scalar(query)
 
             provider = getattr(mail_settings, 'provider', None)
             credentials = getattr(mail_settings, 'credentials', None)
+            logger.debug(provider)
 
             if provider == MailGateway.sendgrid:
                 send_mail_provider(
@@ -52,6 +53,7 @@ def send_mail(message: Mail, db=get_session) -> None:
                     MailGateway.mailjet,
                     MailGateway.resend,
                 ):
+                logger.debug("RESEND")
                 send_mail_provider(
                     message=message,
                     credentials=credentials,
