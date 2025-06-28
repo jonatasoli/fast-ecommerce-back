@@ -1,6 +1,9 @@
+from contextlib import suppress
+from cryptography.fernet import InvalidToken
 from fastapi import status
 from sqlalchemy import select
-from app.infra.constants import MailGateway
+from app.infra.constants import Locale, MailGateway
+from app.infra.crypto_tools import decrypt
 from app.infra.database import get_session
 from app.infra.models import SettingsDB
 from config import settings
@@ -9,7 +12,9 @@ from loguru import logger
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from app.order import repository as order_repository
+from app.settings import repository as settings_repository
 from mailjet_rest import Client
+import json
 import resend
 
 from app.entities.mail import (
@@ -31,18 +36,37 @@ class SendMailError(Exception):
 
 
 def send_mail(message: Mail, db=get_session) -> None:
-    """Send email using Sendgrid."""
+    """Send email using mail gateway."""
     try:
         with db().begin() as session:
+
             query = select(SettingsDB).where(
+                SettingsDB.locale.like(Locale.pt_br.value),
+            ).where(
                 SettingsDB.field.like('MAIL'),
             )
-            mail_settings = session.scalar(query)
+            field = session.scalar(query)
+            if not field:
+                query = select(SettingsDB).where(
+                    SettingsDB.field.like('MAIL'),
+                ).where(
+                    SettingsDB.is_default.is_(True),
+                )
+                field = session.scalar(query)
+            mail_settings = field.credentials.encode('utf-8')
+            logger.debug(f'PRE CONFIG {mail_settings}')
+            field_decript = decrypt(mail_settings, settings.CAPI_SECRET.encode())
+            logger.debug(f'FIELD DECRIPT {field_decript}')
+            logger.debug(f'DECRIPT {mail_settings} e {settings.CAPI_SECRET}')
+            mail_settings = json.loads(field_decript.decode())
 
+            logger.debug(f' CONFIG {mail_settings}')
             provider = getattr(mail_settings, 'provider', None)
             credentials = getattr(mail_settings, 'credentials', None)
             logger.debug(provider)
 
+            logger.debug(credentials)
+            logger.debug(provider)
             if provider == MailGateway.sendgrid:
                 send_mail_provider(
                     message,
@@ -225,7 +249,8 @@ def send_mail_provider(message, credentials, client_type):
         logger.info(response.body)
         logger.info(response.headers)
     elif client_type == MailGateway.resend:
-        api_secret = credentials.get('secret')
+        logger.debug(credentials)
+        resend.api_key = credentials.get('secret')
         data: resend.Emails.SendParams = {
             "from": message.from_email,
             "to": [message.to_email[0]],
