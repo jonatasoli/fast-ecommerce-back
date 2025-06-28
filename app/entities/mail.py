@@ -1,3 +1,4 @@
+from typing import Any
 from pydantic import BaseModel
 
 
@@ -41,3 +42,11 @@ class MailInformUserProduct(BaseModel):
     mail_to: str
     user_mail: str
     user_phone: str
+
+
+class MailMessage(BaseModel):
+    from_email: str
+    to_emails: str
+    subject: str
+    plain_text_content: str | None
+    html_content: Any

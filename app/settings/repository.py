@@ -40,13 +40,12 @@ async def get_settings(
     message = field.credentials.encode('utf-8')
     logger.debug(f' depois do encode {message}')
     logger.debug(f' depois do encode {message.decode('utf-8')}')
-    # with suppress(ValueError, InvalidToken):
-    logger.debug(f'step 1 {message}')
-    field_decript = decrypt(message.decode('utf-8'), settings.CAPI_SECRET.encode()).decode()
-    logger.debug('step 2')
-    field.credentials = json.loads(field_decript)
-    logger.debug('step 3')
-    field.value = field.credentials
+    with suppress(ValueError, InvalidToken):
+        logger.debug(f'step 1 {message}')
+        field_decript = decrypt( # noqa: F841
+            message,
+            settings.CAPI_SECRET.encode(),
+        ).decode()
 
     return field
 
@@ -96,11 +95,11 @@ async def update_or_create_setting(
     setting_db.provider = field_value.get('provider')
     setting_db.value = json.dumps(field_value)
     setting_db.locale = locale
-    setting_db.credentials=credentials
+    setting_db.credentials=credentials.decode('utf-8')
 
     transaction.add(setting_db)
     logger.debug(
-        f'DECRIPT DB {decrypt(setting_db.credentials.decode("utf-8"), key.encode())}',
+        f'DECRIPT DB {decrypt(setting_db.credentials, key.encode())}',
     )
     return setting_db
 
