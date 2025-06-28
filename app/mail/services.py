@@ -1,8 +1,7 @@
-from contextlib import suppress
-from cryptography.fernet import InvalidToken
 from fastapi import status
 from sqlalchemy import select
 from app.infra.constants import Locale, MailGateway
+from sendgrid.helpers.mail import Mail as SendgridMail
 from app.infra.crypto_tools import decrypt
 from app.infra.database import get_session
 from app.infra.models import SettingsDB
@@ -10,9 +9,7 @@ from config import settings
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 from app.order import repository as order_repository
-from app.settings import repository as settings_repository
 from mailjet_rest import Client
 import json
 import resend
@@ -25,6 +22,7 @@ from app.entities.mail import (
     MailOrderProcessed,
     MailResetPassword,
     MailTrackingNumber,
+    MailMessage,
 )
 
 file_loader = FileSystemLoader('email-templates')
@@ -35,7 +33,7 @@ class SendMailError(Exception):
     ...
 
 
-def send_mail(message: Mail, db=get_session) -> None:
+def send_mail(message: MailMessage, db=get_session) -> None:
     """Send email using mail gateway."""
     try:
         with db().begin() as session:
@@ -55,14 +53,17 @@ def send_mail(message: Mail, db=get_session) -> None:
                 field = session.scalar(query)
             mail_settings = field.credentials.encode('utf-8')
             logger.debug(f'PRE CONFIG {mail_settings}')
-            field_decript = decrypt(mail_settings, settings.CAPI_SECRET.encode())
+            field_decript = decrypt(
+                mail_settings,
+                settings.CAPI_SECRET.encode(),
+            ).decode()
             logger.debug(f'FIELD DECRIPT {field_decript}')
             logger.debug(f'DECRIPT {mail_settings} e {settings.CAPI_SECRET}')
-            mail_settings = json.loads(field_decript.decode())
+            mail_settings = json.loads(field_decript)
 
             logger.debug(f' CONFIG {mail_settings}')
-            provider = getattr(mail_settings, 'provider', None)
-            credentials = getattr(mail_settings, 'credentials', None)
+            provider = mail_settings.get('provider')
+            credentials = mail_settings.get('credentials')
             logger.debug(provider)
 
             logger.debug(credentials)
@@ -80,7 +81,7 @@ def send_mail(message: Mail, db=get_session) -> None:
                 logger.debug("RESEND")
                 send_mail_provider(
                     message=message,
-                    credentials=credentials,
+                    credentials=mail_settings,
                     client_type=provider)
             else:
                 send_mail_sendgrid_legacy(
@@ -103,7 +104,7 @@ def send_order_cancelled(mail_data: MailOrderCancelled) -> None:
         reason=mail_data.reason,
         company=settings.COMPANY,
     )
-    message = Mail(
+    message = MailMessage(
         from_email=settings.EMAIL_FROM,
         to_emails=mail_data.mail_to,
         subject='Seu pedido foi cancelado!',
@@ -129,7 +130,7 @@ def send_order_processed(db, mail_data: MailOrderProcessed) -> None:
             order_items=order_items,
             company=settings.COMPANY,
         )
-    message = Mail(
+    message = MailMessage(
         from_email=settings.EMAIL_FROM,
         to_emails=mail_data.mail_to,
         subject='Seu pedido foi recebido!',
@@ -149,7 +150,7 @@ def send_order_paid(mail_data: MailOrderPaied) -> None:
         order_id=mail_data.order_id,
         company=settings.COMPANY,
     )
-    message = Mail(
+    message = MailMessage(
         from_email=settings.EMAIL_FROM,
         to_emails=mail_data.mail_to,
         subject='Seu pedido teve o pagamento confirmado!',
@@ -170,7 +171,7 @@ def send_mail_tracking_number(mail_data: MailTrackingNumber) -> None:
         tracking_number=mail_data.tracking_number,
         company=settings.COMPANY,
     )
-    message = Mail(
+    message = MailMessage(
         from_email=settings.EMAIL_FROM,
         to_emails=mail_data.mail_to,
         subject='Seu pedido está a caminho!',
@@ -189,7 +190,7 @@ def send_mail_reset_password(mail_data: MailResetPassword) -> None:
         link_reset_password=_link,
         company=settings.COMPANY,
     )
-    message = Mail(
+    message = MailMessage(
         from_email=settings.EMAIL_FROM,
         to_emails=mail_data.mail_to,
         subject='Sua solicitação de mudança de senha!',
@@ -209,7 +210,7 @@ def send_mail_form_courses(mail_data: MailFormCourses):
         course=mail_data.course,
         option=mail_data.option,
     )
-    course = Mail(
+    course = MailMessage(
         from_email=settings.EMAIL_FROM,
         to_emails=mail_data.email,
         subject='Contato!',
@@ -229,7 +230,7 @@ def send_mail_from_inform_ask_product_by_user(
        user_phone=mail_data.user_phone,
     )
 
-    inform = Mail(
+    inform = MailMessage(
         from_email=settings.EMAIL_FROM,
         to_emails=mail_data.mail_to,
         subject=f'Pedido de aviso de retorno do produto {mail_data.product_name}!',
@@ -251,9 +252,10 @@ def send_mail_provider(message, credentials, client_type):
     elif client_type == MailGateway.resend:
         logger.debug(credentials)
         resend.api_key = credentials.get('secret')
+        logger.debug(credentials.get('secret'))
         data: resend.Emails.SendParams = {
             "from": message.from_email,
-            "to": [message.to_email[0]],
+            "to": [message.to_emails],
             "subject": message.subject,
             "html": message.html_content,
         }
@@ -268,7 +270,7 @@ def send_mail_provider(message, credentials, client_type):
             "Subject": message.subject,
             "Text-part": message.plain_text_content,
             "Html-part": message.html_content,
-            "Recipients": [{"Email": message.to_emails[0]}],
+            "Recipients": [{"Email": message.to_emails}],
         }
         result = mailjet.send.create(data=data)
         logger.info(result.status_code)
@@ -281,6 +283,14 @@ def send_mail_provider(message, credentials, client_type):
 def send_mail_sendgrid_legacy(message):
     """Send e-mail with sendgrid client."""
     sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+
+    message = SendgridMail(
+        from_email=message.from_email,
+        to_emails=message.to_emails,
+        subject=message.subject,
+        plain_text_content=message.subject,
+        html_content=message.html_content,
+    )
     response = sg.send(message)
     logger.info(response.status_code)
     logger.info(response.body)

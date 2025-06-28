@@ -50,7 +50,7 @@ async def get_settings(
     status_code=status.HTTP_200_OK,
 )
 @verify_admin_async()
-async def inform_product_user(
+async def update_settings(
     *,
     locale: str,
     setting: MainSettings,

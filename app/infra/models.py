@@ -446,7 +446,7 @@ class SettingsDB(Base):
     provider: Mapped[str]
     field: Mapped[str]
     value: Mapped[Json] = mapped_column(JSON)
-    credentials: Mapped[bytes]
+    credentials: Mapped[str | None]
     description: Mapped[str | None]
     is_active: Mapped[bool] =  mapped_column(default=True)
     is_default: Mapped[bool] = mapped_column(default=False)
