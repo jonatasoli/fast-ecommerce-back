@@ -102,3 +102,7 @@ class MailGateway(enum.StrEnum):
     mailjet = 'mailjet'
     resend = 'resend'
     sendgrid_legacy = 'LEGACY'
+
+
+class Locale(enum.StrEnum):
+    pt_br = 'pt-br'

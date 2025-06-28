@@ -2,6 +2,7 @@
 from contextlib import suppress
 import json
 from cryptography.fernet import InvalidToken
+from loguru import logger
 from pydantic import AnyUrl
 from sqlalchemy import select
 from app.infra.crypto_tools import decrypt, encrypt
@@ -35,10 +36,18 @@ async def get_settings(
             SettingsDB.is_default.is_(True),
         )
         field = await transaction.scalar(query)
+    logger.debug(f' antes do encode {field.credentials}')
     message = field.credentials.encode('utf-8')
-    with suppress(ValueError, InvalidToken):
-        field_decript = decrypt(message, settings.CAPI_SECRET).decode()
-        field.credentials = json.loads(field_decript)
+    logger.debug(f' depois do encode {message}')
+    logger.debug(f' depois do encode {message.decode('utf-8')}')
+    # with suppress(ValueError, InvalidToken):
+    logger.debug(f'step 1 {message}')
+    field_decript = decrypt(message.decode('utf-8'), settings.CAPI_SECRET.encode()).decode()
+    logger.debug('step 2')
+    field.credentials = json.loads(field_decript)
+    logger.debug('step 3')
+    field.value = field.credentials
+
     return field
 
 def serialize_data(data: dict) -> dict:
@@ -70,23 +79,28 @@ async def update_or_create_setting(
     setting_db = await get_settings(
         locale=locale, field=field_value.get('field'), transaction=transaction)
     key = settings.CAPI_SECRET
+    logger.debug(field_value)
     credentials = encrypt(json.dumps(field_value).encode(), key.encode())
+    logger.debug(f'CREDENTIAL - {credentials}')
     if not setting_db:
         setting_db = SettingsDB(
             locale=locale,
             is_default=setting.is_default,
             provider=field_value.get("provider"),
-            field=field_value.get('field'),
+            field=credentials,
             value=json.dumps(field_value),
             credentials=credentials.decode('utf-8'),
         )
         return transaction.add(setting)
     setting_db.field = field_value.get('field')
-    setting_db.provider = field_value.get("provider")
+    setting_db.provider = field_value.get('provider')
     setting_db.value = json.dumps(field_value)
     setting_db.locale = locale
     setting_db.credentials=credentials
 
     transaction.add(setting_db)
+    logger.debug(
+        f'DECRIPT DB {decrypt(setting_db.credentials.decode("utf-8"), key.encode())}',
+    )
     return setting_db
 
