@@ -42,10 +42,11 @@ async def get_settings(
     logger.debug(f' depois do encode {message.decode('utf-8')}')
     with suppress(ValueError, InvalidToken):
         logger.debug(f'step 1 {message}')
-        field_decript = decrypt( # noqa: F841
+        field_decript = decrypt(
             message,
             settings.CAPI_SECRET.encode(),
         ).decode()
+        field.value = field_decript
 
     return field
 
