@@ -111,6 +111,7 @@ mypy-init-return = true
 "/**/tests/*.py" = ["S101", "S106", "S311", "RUF012", "PLR2004", "B008", 'N806', 'F821', 'N999', 'E501', 'PT011', 'ARG001', 'EM101', 'TRY003', "F823", "F811", "F401"]
 "app/infra/*" = ["B008", "A002","A001", "A003", "RUF100","FBT001", "F811","F401","TRY302"]
 "main.py" =  ["ARG001"]
+"app/entities/*" = ["F821"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
