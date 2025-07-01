@@ -12,6 +12,7 @@ from app.entities.product import (
     ProductCreate,
     ProductInDB,
     ProductNotCreatedError,
+    ProductNotFoundError,
 )
 from app.infra.models import (
     CategoryDB,
@@ -34,9 +35,12 @@ async def get_product_by_id(product_id: int, *, transaction):
 
 async def get_product_by_uri(uri: str, *, transaction):
     """Get product by uri."""
-    return await transaction.session.scalar(
+    product_db = await transaction.session.scalar(
         select(ProductDB).where(ProductDB.uri == uri),
     )
+    if not product_db:
+        raise ProductNotFoundError
+    return product_db
 
 async def get_media_by_product_id(
         product_id: int,

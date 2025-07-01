@@ -7,7 +7,6 @@ from app.entities.cart import (
     CheckoutProcessingError,
     CouponLimitPriceError,
     InvalidCartUUIDError,
-    ProductNotFoundError,
 )
 from app.entities.coupon import CouponDontMatchWithUserError, CouponNotFoundError
 from app.entities.payment import PaymentNotFoundError
@@ -41,7 +40,7 @@ from app.infra.endpoints.settings import settings as settingsconfig
 from app.mail.tasks import task_message_bus
 from app.cart.tasks import task_message_bus # noqa: F811
 from app.report.tasks import task_message_bus # noqa: F811
-from app.entities.product import ProductSoldOutError
+from app.entities.product import ProductNotFoundError, ProductSoldOutError
 
 app = FastAPI()
 

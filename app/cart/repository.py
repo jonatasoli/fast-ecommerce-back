@@ -6,7 +6,7 @@ from pydantic import TypeAdapter
 from sqlalchemy import func, select
 from sqlalchemy.orm import SessionTransaction, lazyload
 from app.entities.address import AddressBase
-from app.entities.cart import ProductNotFoundError
+from app.entities.product import ProductNotFoundError
 from sqlalchemy.exc import NoResultFound
 from app.entities.coupon import CouponNotFoundError
 from app.entities.product import ProductInDB
