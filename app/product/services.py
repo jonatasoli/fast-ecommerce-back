@@ -115,11 +115,15 @@ async def upload_media_gallery(
     db,
 ) -> str:
     """Upload media Galery."""
-    image_path = file_upload.optimize_image(media)
+    media_path = None
+    if media_type == MediaType.photo.value:
+        media_path = file_upload.optimize_image(media)
+    elif media_type == MediaType.video.value:
+        media_path = await file_upload.upload_video(media)
     async with db().begin() as transaction:
         db_media_upload = UploadedMediaDB(
             type=media_type,
-            uri=image_path,
+            uri=media_path,
             order= order,
         )
         transaction.session.add(db_media_upload)
@@ -134,7 +138,7 @@ async def upload_media_gallery(
         logger.debug(f'Media Gallery id {db_media_gallery.media_gallery_id}')
         logger.debug(f'Media id {db_media_gallery.media_id}')
         await transaction.session.commit()
-    return image_path
+    return media_path
 
 
 async def delete_media_gallery(
