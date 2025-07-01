@@ -1,4 +1,4 @@
-import enum
+import enum, shutil
 from fastapi import UploadFile
 from config import settings
 from PIL import Image, UnidentifiedImageError
@@ -31,17 +31,16 @@ def optimize_image(image: UploadFile) -> str:
         )
 
 
-def upload_video(video: UploadFile) -> str:
+async def upload_video(video: UploadFile) -> str:
     """Upload video."""
-    vdo = Image.open(video.file)
-    if settings.ENVIRONMENT == 'development':
-        vdo.save(f'./static/videos/{video.filename}')
-        return f'{settings.FILE_UPLOAD_PATH}{video.filename}'
-    vdo.save(f'{video.filename}')
-    _upload_file(video)
-    return (
-        f'{settings.FILE_UPLOAD_PATH}{settings.ENVIRONMENT}/{video.filename}'
-    )
+    with open(f'./static/videos/{video.filename}', "wb") as vdo:
+        if settings.ENVIRONMENT == 'development':
+            vdo.write(await video.read())
+            return f'{settings.FILE_UPLOAD_PATH}{video.filename}'
+        _upload_file(video)
+        return (
+            f'{settings.FILE_UPLOAD_PATH}{settings.ENVIRONMENT}/{video.filename}'
+        )
 
 
 def _upload_file(image: UploadFile) -> None:
