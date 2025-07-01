@@ -22,13 +22,6 @@ class CartNotFoundPriceError(Exception):
         super().__init__('Price or quantity not found in cart item')
 
 
-class ProductNotFoundError(Exception):
-    """Raise when gived product not exists in database."""
-
-    def __init__(self: Self) -> None:
-        super().__init__('Product not found in database')
-
-
 class CartInconsistencyError(Exception):
     """Raise when cart is diferent to product list to check."""
 
