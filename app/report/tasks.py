@@ -1,4 +1,4 @@
-# ruff: noqa: DTZ005 B008 D103 ANN201 E501 D103 FBT001 ANN001 TID252 B008
+# ruff: noqa: DTZ005
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any

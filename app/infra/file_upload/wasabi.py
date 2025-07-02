@@ -5,7 +5,7 @@ from boto3.exceptions import S3UploadFailedError
 from loguru import logger
 
 
-def upload_image(image: UploadFile) -> None:
+def upload_image(image: UploadFile, file_path) -> None:
     """Send image to wasabi."""
     # Create connection to Wasabi / S3
     try:
@@ -17,8 +17,10 @@ def upload_image(image: UploadFile) -> None:
         )
 
         # Upload bucket file
+        if not file_path:
+            file_path = image.filename
         s3.upload_file(
-            f'{image.filename}',
+            f'{file_path}',
             f'{settings.BUCKET_NAME}',
             f'{settings.ENVIRONMENT}/{image.filename}',
             ExtraArgs={'ACL': 'public-read'},
