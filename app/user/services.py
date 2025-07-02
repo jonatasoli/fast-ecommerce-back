@@ -1,4 +1,3 @@
-# ruff: noqa: ANN401
 import re
 from datetime import UTC, datetime, timedelta
 import enum

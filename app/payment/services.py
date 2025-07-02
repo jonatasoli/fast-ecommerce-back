@@ -1,4 +1,3 @@
-# ruff: noqa: ANN401
 from contextlib import suppress
 from app.entities.payment import (
     PaymentInDB,

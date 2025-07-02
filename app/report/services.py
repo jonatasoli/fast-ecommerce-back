@@ -1,4 +1,3 @@
-# ruff: noqa: ANN401 FBT001 B008
 from datetime import datetime, timedelta, UTC
 from decimal import Decimal
 from typing import Any

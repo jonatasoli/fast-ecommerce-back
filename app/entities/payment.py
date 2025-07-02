@@ -1,4 +1,3 @@
-# ruff: noqa: ANN401 A003
 import enum
 from typing import Any, Self
 from pydantic import BaseModel, ConfigDict

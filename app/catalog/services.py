@@ -1,4 +1,3 @@
-# ruff: noqa: ANN401 FBT001
 from typing import Any
 
 from app.entities.catalog import Categories, Category
