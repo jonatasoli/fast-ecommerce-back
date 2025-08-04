@@ -211,8 +211,7 @@ def create_pix(
     request_options.custom_headers = {
         'x-idempotency-key': f'{idenpotency_key}',
     }
-
-
+    logger.debug(f"Data -> {payment_data}")
     payment_response = client.payment().create(payment_data, request_options)
     if payment_response.get('status') not in [200, 201]:
         logger.info(payment_response)
