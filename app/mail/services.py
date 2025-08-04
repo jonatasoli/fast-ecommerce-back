@@ -275,7 +275,12 @@ def send_mail_provider(message, credentials, client_type):
         result = mailjet.send.create(data=data)
         logger.info(result.status_code)
         logger.info(result.json())
-    if response.status_code == status.HTTP_202_ACCEPTED:
+    logger.info(f"Mail Response {dir(response)}")
+    status_code = getattr(response, 'status_code', None)
+    if not status_code and response:
+        return
+
+    if status_code == status.HTTP_202_ACCEPTED:
         return
     send_mail_error()
 
