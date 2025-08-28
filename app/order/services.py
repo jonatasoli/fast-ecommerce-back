@@ -158,6 +158,7 @@ def delete_product(db: Session, product_id: int) -> None:
 def get_showcase(*, currency, db) -> list:
     """Get Products showcase."""
     with db() as transaction:
+        logger.debug(f"Currency {currency}")
         showcases_query = (
             select(ProductDB)
             .where(ProductDB.showcase.is_(True))
