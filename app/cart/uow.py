@@ -7,6 +7,7 @@ from app.entities.coupon import CouponBase, CouponInDB
 
 from app.entities.product import ProductCart, ProductInDB
 from app.cart import repository
+from app.infra.constants import PaymentGatewayAvailable
 from app.infra.custom_decorators import database_uow
 from app.infra.database import get_async_session
 from app.entities.payment import ConfigFee, CustomerInDB, CustomerNotFoundError

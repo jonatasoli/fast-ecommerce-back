@@ -14,6 +14,7 @@ class Roles(enum.Enum):
 class PaymentGatewayAvailable(enum.Enum):
     MERCADOPAGO = 'MERCADOPAGO'
     STRIPE = 'STRIPE'
+    CIELO = 'CIELO'
 
 
 class PaymentGatewayDB(enum.Enum):
