@@ -300,11 +300,13 @@ async def get_customer(
     if not transaction:
         msg = 'Transaction must be provided'
         raise ValueError(msg)
-    customer = await payment_repository.get_customer(
-        user_id,
-        payment_gateway=payment_gateway,
-        transaction=transaction,
-    )
+    customer = None
+    if not PaymentGatewayAvailable.CIELO.value:
+        customer = await payment_repository.get_customer(
+            user_id,
+            payment_gateway=payment_gateway,
+            transaction=transaction,
+        )
     if not customer and payment_gateway != PaymentGatewayAvailable.CIELO.value:
         customer_not_found_exception()
     return CustomerInDB.model_validate(customer)

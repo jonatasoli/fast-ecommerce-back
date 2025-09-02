@@ -59,3 +59,7 @@ def create_credit_card_token():
 def zero_auth_credit_card():
     """Check if credit card is valid."""
     raise NotImplementedError
+
+def create_customer(email):
+    """Create customer - in cielo is dummy function."""
+    return { 'id': 'notimplemented' }
