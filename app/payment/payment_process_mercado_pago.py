@@ -1,3 +1,4 @@
+from loguru import logger
 from app.cart import repository
 from app.entities.cart import (
     CartPayment,
@@ -19,6 +20,7 @@ async def payment_process(
 
 ):
     """Payment Process Mercado pago."""
+    logger.debug(payment.payment_gateway)
     customer = await bootstrap.cart_uow.get_customer(
         user.user_id,
         payment_gateway=payment.payment_gateway,
