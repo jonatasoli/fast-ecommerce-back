@@ -21,6 +21,8 @@ async def payment_process(
 ):
     """Payment Process Mercado pago."""
     logger.debug(payment.payment_gateway)
+    logger.debug(user.user_id)
+    logger.debug(payment.payment_gateway)
     customer = await bootstrap.cart_uow.get_customer(
         user.user_id,
         payment_gateway=payment.payment_gateway,

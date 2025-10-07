@@ -3,6 +3,7 @@ from __future__ import annotations
 import abc
 from decimal import Decimal
 from typing import Any, Self, TYPE_CHECKING
+from loguru  import logger
 from app.entities.coupon import CouponBase, CouponInDB
 
 from app.entities.product import ProductCart, ProductInDB
@@ -301,12 +302,16 @@ async def get_customer(
         msg = 'Transaction must be provided'
         raise ValueError(msg)
     customer = None
-    if not PaymentGatewayAvailable.CIELO.value:
+    if payment_gateway != PaymentGatewayAvailable.CIELO.value:
         customer = await payment_repository.get_customer(
             user_id,
             payment_gateway=payment_gateway,
             transaction=transaction,
         )
+        logger.debug("Customer in")
+        logger.debug(customer)
+    logger.debug("Customer out")
+    logger.debug(customer)
     if not customer and payment_gateway != PaymentGatewayAvailable.CIELO.value:
         customer_not_found_exception()
     return CustomerInDB.model_validate(customer)
