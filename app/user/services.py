@@ -5,7 +5,6 @@ from functools import wraps
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
-from passlib.context import CryptContext
 from faststream.rabbit import RabbitQueue
 
 from sqlalchemy import select, exc

@@ -467,10 +467,10 @@ async def checkout(
     if not isinstance(checkout_task, dict):
         checkout_task = {}
     else:
-        _order_id = checkout_task.get('order_id', None)
-        _gateway_payment_id = checkout_task.get('gateway_payment_id', None)
-        _qr_code = checkout_task.get('qr_code', None)
-        _qr_code_base64 = checkout_task.get('qr_code_base64', None)
+        _order_id = checkout_task.get('order_id')
+        _gateway_payment_id = checkout_task.get('gateway_payment_id')
+        _qr_code = checkout_task.get('qr_code')
+        _qr_code_base64 = checkout_task.get('qr_code_base64')
         if isinstance(_order_id, list):
             order_id = str(_order_id.pop())
         if isinstance(_gateway_payment_id, list):
