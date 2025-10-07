@@ -29,9 +29,10 @@ from jwt import DecodeError, encode, decode
 from app.user import repository
 from config import settings
 from sqlalchemy.orm import Session, selectinload, sessionmaker
+from pwdlib import PasswordHash
 
 
-pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+password_hash = PasswordHash.recommended()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 
 
@@ -41,7 +42,7 @@ class CountryCode(enum.StrEnum):
 
 def gen_hash(password: str) -> str:
     """Gen pwd hash."""
-    return pwd_context.hash(password)
+    return password_hash.hash(password)
 
 
 def create_user(db, obj_in: SignUp) -> SignUpResponse:
@@ -271,7 +272,6 @@ def reset_password(
     data: UserResponseResetPassword,
 ) -> None:
     """Reset password with token created."""
-    pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
     with db() as session:
         user_query = select(UserDB).options(
             selectinload(UserDB.addresses),
@@ -285,7 +285,7 @@ def reset_password(
         _used_token = session.scalar(used_token_query)
 
         _used_token.used_token = True
-        _user.password = pwd_context.hash(data.password)
+        _user.password = password_hash.hash(data.password)
         session.commit()
 
 
@@ -464,7 +464,7 @@ def authenticate_user(
 
 def verify_password(password: str, check_password: str) -> bool:
     """Verify pasword if match with passed password."""
-    _password_match = pwd_context.verify(check_password, password)
+    _password_match = password_hash.verify(check_password, password)
     if not _password_match:
         raise CredentialError
     return _password_match
