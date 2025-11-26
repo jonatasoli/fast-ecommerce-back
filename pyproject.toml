@@ -3,7 +3,7 @@ name = "fast-ecommerce"
 version = "0.2.1"
 description = "Ecommerce API"
 authors = [
-    {author = "Jônatas Oliveira", email = "contact@jonatasoliveira.dev"},
+    {name = "Jônatas Oliveira", email = "contact@jonatasoliveira.dev"},
 ]
 license = "AGPL-3.0-or-later"
 readme = "README.md"
@@ -68,6 +68,10 @@ dev-dependencies = [
     "pytest-timeout>=2.3.1",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["tests*", "migrations*", "static*", "legacy*", "contrib*", "hurl_tests*"]
 
 [tool.poetry.group.otel.dependencies]
 opentelemetry-distro = "^0.45b0"
@@ -108,7 +112,7 @@ mypy-init-return = true
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "N999"]
-"/**/tests/*.py" = ["S101", "S106", "S311", "RUF012", "PLR2004", "B008", 'N806', 'F821', 'N999', 'E501', 'PT011', 'ARG001', 'EM101', 'TRY003', "F823", "F811", "F401"]
+"/**/tests/*.py" = ["S101", "S106", "S311", "RUF012", "PLR2004", "B008", 'N806', 'F821', 'N999', 'E501', 'PT011', 'ARG001', 'EM101', 'TRY003', "F823", "F811", "F401", "PLC0415", "ARG002"]
 "app/infra/*" = ["B008", "A002","A001", "A003", "RUF100","FBT001", "F811","F401","TRY302"]
 "main.py" =  ["ARG001"]
 "app/entities/*" = ["F821"]
@@ -162,6 +166,7 @@ path = ".venv"
 [dependency-groups]
 dev = [
     "faker-file[images,s3]>=0.18.1",
+    "fakeredis>=2.32.1",
     "pytest-xdist>=3.6.1",
     "safety>=3.5.2",
     "testcontainers>=4.8.2",
@@ -218,3 +223,7 @@ showcontent = true
 directory = "build"
 name = "Build"
 showcontent = true
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

@@ -1,24 +1,74 @@
 from datetime import timedelta
 import asyncio
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from sqlalchemy.ext.asyncio.session import AsyncSession, close_all_sessions
+import redis
+import sys
+import types
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio.session import AsyncSession, close_all_sessions
 from sqlalchemy.orm import sessionmaker
+from testcontainers.postgres import PostgresContainer
+from testcontainers.redis import RedisContainer
+from faststream.rabbit.fastapi import RabbitRouter
 
 from app.infra.database import get_session
 from tests.factories_db import RoleDBFactory
-
 from app.infra.constants import DocumentType, Roles
 from app.user.services import create_access_token, gen_hash
 from config import settings
-
 from app.infra.models import Base, UserDB
-from main import app
-from testcontainers.postgres import PostgresContainer
 
+
+class MockRabbitRouter:
+    """Mock RabbitRouter to avoid actual broker connections during tests."""
+
+    def __init__(self, *args, **kwargs):
+        self._broker = MagicMock()
+        self._broker.start = AsyncMock()
+        self._broker.close = AsyncMock()
+        self._broker.connect = AsyncMock()
+        self.routes = []
+        self.prefix = ''
+        self.tags = []
+        self.dependencies = []
+        self.on_startup = []
+        self.on_shutdown = []
+        self.lifespan_context = self._mock_lifespan_context
+        self.deprecated = None
+        self.include_in_schema = True
+        self.default_response_class = None
+        self.responses = {}
+        self.callbacks = []
+        self.redirect_slashes = True
+        self.default = None
+
+    @property
+    def broker(self):
+        return self._broker
+
+    @asynccontextmanager
+    async def _mock_lifespan_context(self, app):
+        yield {}
+
+    def subscriber(self, queue_name):
+        """Mock subscriber decorator."""
+        def decorator(func):
+            return func
+        return decorator
+
+    def __call__(self, *args, **kwargs):
+        return self
+
+def pytest_configure(config):
+    """Configure pytest - mock RabbitRouter before any app modules are imported."""
+    mock_faststream_module = types.ModuleType('faststream.rabbit.fastapi')
+    mock_faststream_module.RabbitRouter = MockRabbitRouter
+    sys.modules['faststream.rabbit.fastapi'] = mock_faststream_module
 
 @pytest.fixture(scope='session', autouse=True)
 def _set_test_settings() -> None:
@@ -26,33 +76,46 @@ def _set_test_settings() -> None:
     settings.configure(FORCE_ENV_FOR_DYNACONF='testing')
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create a single event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    asyncio.set_event_loop(loop)
-    yield loop
-    loop.close()
-
 @pytest.fixture(scope='session')
 def engine():
     """Create test engine."""
     with PostgresContainer('postgres:17', driver='psycopg') as postgres:
-
         engine = create_engine(
             postgres.get_connection_url(),
             poolclass=StaticPool,
         )
-
         yield engine
         engine.dispose()
 
 
 @pytest.fixture(scope='session')
+def redis_container():
+    """Create test Redis container."""
+    with RedisContainer('redis:7-alpine') as redis:
+        # Override settings for tests
+        host = redis.get_container_host_ip()
+        port = redis.get_exposed_port(6379)
+        settings.REDIS_URL = f"redis://{host}:{port}"
+        settings.REDIS_DB = 0
+        yield redis
+
+
+@pytest.fixture(scope='session')
+def redis_client(redis_container):
+    """Get Redis client for tests."""
+    pool = redis.ConnectionPool.from_url(
+        url=settings.REDIS_URL,
+        db=settings.REDIS_DB,
+    )
+    client = redis.Redis(connection_pool=pool)
+    yield client
+    client.close()
+    pool.disconnect()
+
+@pytest.fixture
 async def async_engine():
     """Create test async engine."""
     with PostgresContainer('postgres:17', driver='asyncpg') as postgres:
-
         engine = create_async_engine(
             postgres.get_connection_url(),
             poolclass=StaticPool,
@@ -61,9 +124,9 @@ async def async_engine():
         await engine.dispose()
 
 @pytest.fixture
-def db(engine):
+def db(engine, redis_container):
     """Generate db session."""
-        # Reflect all tables from metadata
+    # Reflect all tables from metadata
     metadata = Base.metadata
     metadata.create_all(engine)
 
@@ -78,12 +141,29 @@ def db(engine):
 
 
 @pytest.fixture
-def client(db):
-    with TestClient(app) as client:
-        app.dependency_overrides[get_session] = lambda: db
-        yield client
+def client(db, monkeypatch):
+    from contextlib import asynccontextmanager
+    import app.infra.worker
+    import app.mail.tasks
+    import app.cart.tasks
+    import app.report.tasks
+    from main import app as fastapi_app
 
-    app.dependency_overrides.clear()
+    @asynccontextmanager
+    async def mock_lifespan(app_instance):
+        yield {}
+
+    monkeypatch.setattr(app.infra.worker.task_message_bus, 'lifespan_context', mock_lifespan)
+    monkeypatch.setattr(app.mail.tasks.task_message_bus, 'lifespan_context', mock_lifespan)
+    monkeypatch.setattr(app.cart.tasks.task_message_bus, 'lifespan_context', mock_lifespan)
+    monkeypatch.setattr(app.report.tasks.task_message_bus, 'lifespan_context', mock_lifespan)
+
+    try:
+        with TestClient(fastapi_app) as test_client:
+            fastapi_app.dependency_overrides[get_session] = lambda: db
+            yield test_client
+    finally:
+        fastapi_app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -158,7 +238,7 @@ def admin_token(admin_user):
 
 
 @pytest.fixture
-async def asyncdb(async_engine):
+async def asyncdb(async_engine, redis_container):
     """Generate asyncdb session."""
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
