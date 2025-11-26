@@ -8,7 +8,10 @@ from app.entities.payment import PaymentAcceptError
 from config import settings
 
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+def _init_stripe():
+    """Initialize stripe API key if not already set."""
+    if not stripe.api_key:
+        stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class PaymentGatewayRequestError(Exception):
@@ -20,6 +23,7 @@ class PaymentGatewayRequestError(Exception):
 
 def create_customer(email: str) -> stripe.Customer:
     """Must create a customer."""
+    _init_stripe()
     return stripe.Customer.create(
         email=email,
     )
@@ -27,6 +31,7 @@ def create_customer(email: str) -> stripe.Customer:
 
 def update_customer(customer_id: str, payment_method) -> stripe.Customer:
     """Must update a customer."""
+    _init_stripe()
     return stripe.Customer.modify(
         customer_id,
         invoice_settings={
@@ -44,6 +49,7 @@ def create_payment_intent(
 ) -> stripe.PaymentIntent:
     """Must create a payment intent."""
     _ = installments
+    _init_stripe()
     return stripe.PaymentIntent.create(
         amount=int(amount*100),
         currency=currency,
@@ -64,6 +70,7 @@ def create_credit_card_payment(
 ) -> stripe.PaymentIntent:
     """Must confirm a payment intent in Stripe case."""
     try:
+        _init_stripe()
         payment_accept = stripe.PaymentIntent.confirm(
             payment_intent_id,
             payment_method=payment_method,
@@ -86,6 +93,7 @@ def attach_customer_in_payment_method(
 ) -> stripe.PaymentMethod:
     """Must attach a customer in payment method."""
     _ = card_token, card_issuer
+    _init_stripe()
     return stripe.PaymentMethod.attach(
         payment_method_id,
         customer=customer_uuid,
@@ -102,6 +110,7 @@ def create_credit_card(  # noqa: PLR0913
     customer: str,
 ) -> stripe.PaymentMethod:
     """Must create a credit card."""
+    _init_stripe()
     return stripe.Customer.create_source(
         customer,
         source={
@@ -120,6 +129,7 @@ def create_payment_method(
     payment: CreateCreditCardPaymentMethod,
 ) -> stripe.PaymentMethod:
     """Must create a payment method."""
+    _init_stripe()
     return stripe.PaymentMethod.create(
         type='card',
         card={
@@ -136,6 +146,7 @@ def retrieve_card(
     card_id: str,
 ) -> stripe.PaymentMethod:
     """Must retrieve a card."""
+    _init_stripe()
     return stripe.Customer.retrieve_source(
         customer,
         card_id,

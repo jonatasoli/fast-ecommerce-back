@@ -18,17 +18,25 @@ class AbstractCache(abc.ABC):
 
 class RedisCache(AbstractCache):
     def __init__(self: Self) -> None:
-        self.pool = redis.ConnectionPool.from_url(
-            url=settings.REDIS_URL,
-            db=settings.REDIS_DB,
-        )
-        self.redis = redis.Redis(connection_pool=self.pool)
+        self.pool = None
+        self.redis = None
+
+    def _ensure_connection(self: Self) -> None:
+        """Lazy initialization of Redis connection."""
+        if self.redis is None:
+            self.pool = redis.ConnectionPool.from_url(
+                url=settings.REDIS_URL,
+                db=settings.REDIS_DB,
+            )
+            self.redis = redis.Redis(connection_pool=self.pool)
 
     def _client(self: Self) -> redis.Redis:
+        self._ensure_connection()
         return self.redis
 
     def get_all_keys_with_lower_ttl(self: Self, ttl_target: int) -> list[str]:
         """Get all keys with ttl lower to target ttl and return."""
+        self._ensure_connection()
         return [key.decode('utf-8') for key in self.redis.keys('*') if self.redis.ttl(key) < ttl_target]
 
 class MemoryClient:

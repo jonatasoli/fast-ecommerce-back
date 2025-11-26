@@ -22,7 +22,7 @@ URL = '/cart'
 
 
 @pytest.mark.asyncio
-async def test_estimate_products_in_cart(asyncdb) -> None:
+async def test_estimate_products_in_cart(asyncdb, redis_client) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
     async with asyncdb().begin() as transaction:
@@ -78,12 +78,7 @@ async def test_estimate_products_in_cart(asyncdb) -> None:
         cart_items=cart_items,
         subtotal=Decimal('300.00'),
     )
-    pool = redis.ConnectionPool.from_url(
-        url=settings.REDIS_URL,
-        db=settings.REDIS_DB,
-    )
-    cache = redis.Redis(connection_pool=pool)
-    cache.set(str(uuid), cart.model_dump_json())
+    redis_client.set(str(uuid), cart.model_dump_json())
 
     # Act
     post_url = f'{URL}/{uuid!s}/estimate'
