@@ -42,6 +42,15 @@ from app.cart.tasks import task_message_bus # noqa: F811
 from app.report.tasks import task_message_bus # noqa: F811
 from app.entities.product import ProductNotFoundError, ProductSoldOutError
 
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.zipkin.json import ZipkinExporter
+from opentelemetry.sdk.resources import Resource
+
 app = FastAPI()
 
 
@@ -49,7 +58,21 @@ class InterceptHandler(logging.Handler):
     def emit(self, record):
         logger_opt = logger.opt(depth=6, exception=record.exc_info)
         logger_opt.log(record.levelno, record.getMessage())
+logging.getLogger('opentelemetry').setLevel(logging.DEBUG)
+resource = Resource.create({
+    "service.name": "api-gattorosa"
+})
 
+trace.set_tracer_provider(TracerProvider(resource=resource))
+jaeger_exporter = None
+if settings.ENVIRONMENT == 'production':
+    jaeger_exporter = JaegerExporter(
+        collector_endpoint=f"http://{settings.SENTRY_DSN}:14268/api/traces",
+    )
+    logger.info('✅ Jaeger HTTP exporter configured')
+    trace.get_tracer_provider().add_span_processor(
+        BatchSpanProcessor(jaeger_exporter)
+    )
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
@@ -63,13 +86,13 @@ origins = [
 ]
 
 logger.info(f'Environment: {settings.ENVIRONMENT}')
-if settings.ENVIRONMENT == 'production':
-    sentry_sdk.init(
-        dsn=settings.SENTRY_DSN,
-        traces_sample_rate=1.0,
-    )
-
-app.add_middleware(SentryAsgiMiddleware)
+# if settings.ENVIRONMENT == 'production':
+#     sentry_sdk.init(
+#         dsn=settings.SENTRY_DSN,
+#         traces_sample_rate=1.0,
+#     )
+#
+# app.add_middleware(SentryAsgiMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -304,4 +327,7 @@ def create_app():
     )
     # app.include_router(
     #     payment,
+    FastAPIInstrumentor.instrument_app(app)
     return app
+
+FastAPIInstrumentor.instrument_app(app)
