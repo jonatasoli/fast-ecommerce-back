@@ -329,6 +329,7 @@ def generate_new_cart(
     if not product:
         logger.error('Product not found in database')
         raise ProductNotFoundError
+    logger.debug(f'Product values {product}')
     _product = ProductCart(
         product_id=product.product_id,
         name=product.name,
@@ -336,7 +337,7 @@ def generate_new_cart(
         quantity=quantity,
         available_quantity=available_quantity,
         price=product.price,
-        discount_price=product.discount,
+        discount_price=product.discount if product.discount else Decimal('0'),
     )
     return CartBase(
         uuid=generate_cart_uuid(),

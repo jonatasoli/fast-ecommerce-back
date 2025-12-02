@@ -145,10 +145,12 @@ def create_credit_card_payment(
         'transaction_amount': float(amount),
         'token': card_token,
         'installments': installments,
-        'payer': {'type': 'customer', 'id': customer_id},
+        'payer': {'type': 'customer', 'id': customer_id, 'email': customer_email},
         'capture': False,
     }
     payment_response = client.payment().create(payment_data)
+    logger.debug(f'Payment data {payment_data}')
+    logger.debug(f'Payment response {payment_response}')
     if payment_response.get('error'):
         raise Exception(payment_response)
     if payment_response['status'] == 400:

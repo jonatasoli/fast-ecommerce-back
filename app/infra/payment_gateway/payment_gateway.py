@@ -4,6 +4,7 @@ from typing import Any
 from app.entities.cart import CreateCreditCardPaymentMethod
 from app.infra.constants import PaymentGatewayAvailable, PaymentMethod
 from app.infra.payment_gateway import cielo, stripe_gateway, mercadopago_gateway
+from loguru import logger
 
 
 class PaymentGatewayCommmand(enum.Enum):
@@ -79,6 +80,7 @@ def create_credit_card_payment(
 ) -> dict:
     """Create a credit card payment intent in gateway."""
     gateway = PaymentGatewayCommmand[payment_gateway].value
+    logger.debug(f'{payment_gateway}, {customer_id}, {card_token}, {installments}, {payment_intent_id}, {payment_method}')
     return gateway.create_credit_card_payment(
         payment_intent_id=payment_intent_id,
         customer_id=customer_id,
