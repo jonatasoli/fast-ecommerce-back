@@ -252,7 +252,7 @@ async def patch_product(
     status_code=status.HTTP_204_NO_CONTENT,
     tags=['admin'],
 )
-def delete_product(
+async def delete_product(
     id: int,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
@@ -260,7 +260,7 @@ def delete_product(
     """Delete product."""
     try:
         _ = token
-        return product_services.delete_product(db, id)
+        return await product_services.delete_product(db, id)
     except Exception:
         raise
 

@@ -459,7 +459,6 @@ async def checkout(
             'user': user,
         },
         queue=RabbitQueue('checkout'),
-        rpc=True,
     )
     logger.info('Finish Checkout task')
     order_id = None
@@ -496,6 +495,7 @@ async def get_coupon(code: str, bootstrap: Command) -> CouponInDB:
             code,
             transaction=transaction,
         )
+        logger.debug(f'Coupon CODE {coupon}')
         if not coupon:
             raise HTTPException(
                 status_code=400,
