@@ -75,17 +75,23 @@ def _set_test_settings() -> None:
     """Force testing env."""
     settings.configure(FORCE_ENV_FOR_DYNACONF='testing')
 
+@pytest.fixture(scope='session')
+def postgres_container():
+    """Create single PostgreSQL container for all tests."""
+    with PostgresContainer('postgres:17', driver='psycopg') as postgres:
+        yield postgres
 
 @pytest.fixture(scope='session')
-def engine():
+def engine(postgres_container):
     """Create test engine."""
-    with PostgresContainer('postgres:17', driver='psycopg') as postgres:
-        engine = create_engine(
-            postgres.get_connection_url(),
-            poolclass=StaticPool,
-        )
-        yield engine
-        engine.dispose()
+    engine = create_engine(
+        postgres_container.get_connection_url(),
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(engine)
+    yield engine
+    Base.metadata.drop_all(engine)
+    engine.dispose()
 
 
 @pytest.fixture(scope='session')
@@ -113,31 +119,48 @@ def redis_client(redis_container):
     pool.disconnect()
 
 @pytest.fixture
-async def async_engine():
-    """Create test async engine."""
-    with PostgresContainer('postgres:17', driver='asyncpg') as postgres:
-        engine = create_async_engine(
-            postgres.get_connection_url(),
-            poolclass=StaticPool,
-        )
-        yield engine
-        await engine.dispose()
+async def async_engine(postgres_container, engine):
+    """Create test async engine using same PostgreSQL container."""
+    connection_url = postgres_container.get_connection_url()
+    async_url = connection_url.replace('postgresql+psycopg://', 'postgresql+asyncpg://')
+
+    async_engine_instance = create_async_engine(
+        async_url,
+        poolclass=StaticPool,
+    )
+    # Don't create all tables here - they're already created by the sync engine fixture
+    yield async_engine_instance
+
+    # Don't drop tables on teardown - sync tests may still need them
+    await async_engine_instance.dispose()
+
+
+def _truncate_tables(connection):
+    """Truncate all tables to clean data between tests."""
+    for table in reversed(Base.metadata.sorted_tables):
+        connection.execute(table.delete())
+    connection.commit()
+
+async def _async_truncate_tables(connection):
+    """Async version to truncate all tables between tests."""
+    def truncate(conn):
+        for table in reversed(Base.metadata.sorted_tables):
+            conn.execute(table.delete())
+        conn.commit()
+
+    await connection.run_sync(truncate)
 
 @pytest.fixture
 def db(engine, redis_container):
     """Generate db session."""
-    # Reflect all tables from metadata
-    metadata = Base.metadata
-    metadata.create_all(engine)
-
     session = sessionmaker(
         autoflush=True,
         expire_on_commit=False,
         bind=engine,
     )
     yield session
-    session().rollback()
-    metadata.drop_all(engine)
+    with engine.begin() as conn:
+        _truncate_tables(conn)
 
 
 @pytest.fixture
@@ -168,8 +191,9 @@ def client(db, monkeypatch):
 
 @pytest.fixture
 def user(db):
+    session = db()
     new_role = RoleDBFactory(role_id=Roles.USER.value)
-    db.add(new_role)
+    session.add(new_role)
 
     user = UserDB(
         name='Teste',
@@ -181,12 +205,13 @@ def user(db):
         phone='11123456789',
         role_id=Roles.USER.value,
     )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    session.add(user)
+    session.commit()
+    session.refresh(user)
 
     user.clean_password = 'testtest' # Noqa: S105
 
+    session.close()
     return user
 
 @pytest.fixture
@@ -203,8 +228,9 @@ def token(user):
 
 @pytest.fixture
 def admin_user(db):
+    session = db()
     new_role = RoleDBFactory(role_id=Roles.ADMIN.value)
-    db.add(new_role)
+    session.add(new_role)
 
     user = UserDB(
         name='Teste',
@@ -216,13 +242,14 @@ def admin_user(db):
         phone='11123456789',
         role_id=Roles.ADMIN.value,
     )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    db.commit()
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    session.commit()
 
     user.clean_password = 'testtest' # Noqa: S105
 
+    session.close()
     return user
 
 @pytest.fixture
@@ -239,19 +266,17 @@ def admin_token(admin_user):
 
 @pytest.fixture
 async def asyncdb(async_engine, redis_container):
-    """Generate asyncdb session."""
+    """Generate asyncdb session with data cleanup between tests."""
+    async_session = async_sessionmaker(
+        autoflush=True,
+        expire_on_commit=False,
+        bind=async_engine,
+        class_=AsyncSession,
+    )
+    yield async_session
+    await close_all_sessions()
     async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        async_session = async_sessionmaker(
-            autoflush=True,
-            expire_on_commit=False,
-            bind=async_engine,
-            class_=AsyncSession,
-        )
-        yield async_session
-        await close_all_sessions()
-        await conn.run_sync(Base.metadata.drop_all)
-    await async_engine.dispose()
+        await _async_truncate_tables(conn)
 
 
 @pytest.fixture
@@ -291,3 +316,22 @@ def async_admin_token(async_admin_user):
         data={'sub': async_admin_user.document},
         expires_delta=access_token_expires,
     )
+
+@pytest.fixture
+async def async_client(asyncdb):
+    """Generate async HTTP client for testing."""
+    from httpx import ASGITransport, AsyncClient
+    from app.infra.database import get_async_session
+    from main import app as fastapi_app
+
+    # Override returns the sessionmaker directly
+    fastapi_app.dependency_overrides[get_async_session] = lambda: asyncdb
+
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=fastapi_app),
+            base_url="http://testserver",
+        ) as client:
+            yield client
+    finally:
+        fastapi_app.dependency_overrides.clear()

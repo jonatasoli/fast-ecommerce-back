@@ -14,8 +14,8 @@ def test_roles(db):
         transaction.session.add(role_2)
         transaction.session.commit()
 
-    assert role_1.role_id == 1
-    assert role_2.role_id == 2
+    assert role_1.role_id is not None
+    assert role_2.role_id == role_1.role_id + 1
 
 
 def test_signup(client) -> None:

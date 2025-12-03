@@ -41,32 +41,31 @@ async def test_estimate_products_in_cart(asyncdb, redis_client) -> None:
             price=200,
         )
 
+        transaction.session.add_all([product_db_1, product_db_2])
+        await transaction.session.flush()
+
         inventory_db_1 = InventoryDBFactory(
             product=product_db_1,
-            product_id=1,
             inventory_id=1,
         )
         inventory_db_2 = InventoryDBFactory(
             product=product_db_2,
-            product_id=2,
             inventory_id=2,
         )
-        transaction.session.add_all([product_db_1, product_db_2])
-        await transaction.session.flush()
         transaction.session.add_all([inventory_db_1, inventory_db_2])
         await transaction.session.commit()
     cart_items = []
     first_product = ProductCart(
         name=fake.name(),
         image_path=fake_url_path(),
-        product_id=2,
+        product_id=product_db_2.product_id,
         quantity=1,
         price=Decimal('100.00'),
     )
     second_product = ProductCart(
         name=fake.name(),
         image_path=fake_url_path(),
-        product_id=1,
+        product_id=product_db_1.product_id,
         quantity=1,
         price=Decimal('200.00'),
     )

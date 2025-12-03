@@ -38,18 +38,17 @@ def test_with_product_showcase_option_should_list(client, db):
             active=True,
         )
 
+        transaction.add_all([product_db_1, product_db_2])
+        transaction.flush()
+
         inventory_db_1 = InventoryDBFactory(
             product=product_db_1,
-            product_id=1,
-            inventory_id=1,
+            product_id=product_db_1.product_id,
         )
         inventory_db_2 = InventoryDBFactory(
             product=product_db_2,
-            product_id=2,
-            inventory_id=2,
+            product_id=product_db_2.product_id,
         )
-        transaction.add_all([product_db_1, product_db_2])
-        transaction.flush()
         transaction.add_all([inventory_db_1, inventory_db_2])
         transaction.commit()
 
