@@ -2,12 +2,12 @@ import logging
 import sys
 from fastapi.responses import JSONResponse
 
-import sentry_sdk
 from app.entities.cart import (
     CheckoutProcessingError,
     CouponLimitPriceError,
     InvalidCartUUIDError,
 )
+from app.entities.category import CategoryMediaNotFoundError, CategoryNotFoundError
 from app.entities.coupon import CouponDontMatchWithUserError, CouponNotFoundError
 from app.entities.payment import PaymentNotFoundError
 from app.entities.user import CredentialError, UserDuplicateError
@@ -18,7 +18,6 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
-from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
 from app.infra.endpoints.mail import mail
 from app.infra.endpoints.order import order
@@ -47,8 +46,6 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.zipkin.json import ZipkinExporter
 from opentelemetry.sdk.resources import Resource
 
 app = FastAPI()
@@ -60,7 +57,7 @@ class InterceptHandler(logging.Handler):
         logger_opt.log(record.levelno, record.getMessage())
 logging.getLogger('opentelemetry').setLevel(logging.DEBUG)
 resource = Resource.create({
-    "service.name": "api-gattorosa"
+    "service.name": "api-gattorosa",
 })
 
 trace.set_tracer_provider(TracerProvider(resource=resource))
@@ -71,7 +68,7 @@ if settings.ENVIRONMENT == 'production':
     )
     logger.info('✅ Jaeger HTTP exporter configured')
     trace.get_tracer_provider().add_span_processor(
-        BatchSpanProcessor(jaeger_exporter)
+        BatchSpanProcessor(jaeger_exporter),
     )
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
@@ -272,6 +269,34 @@ async def cart_uuid_invalid(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={
             'detail': 'Cart UUID invalid or with conflict.',
+        },
+    )
+
+
+@app.exception_handler(CategoryNotFoundError)
+async def category_not_found_handler(
+    _: Request,
+    exc: CategoryNotFoundError,
+) -> JSONResponse:
+    """Category not found error raise status code 404."""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            'detail': exc.message,
+        },
+    )
+
+
+@app.exception_handler(CategoryMediaNotFoundError)
+async def category_media_not_found_handler(
+    _: Request,
+    exc: CategoryMediaNotFoundError,
+) -> JSONResponse:
+    """Category media not found error raise status code 404."""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            'detail': exc.message,
         },
     )
 

@@ -50,18 +50,17 @@ async def test_with_product_list_only_featured(asyncdb):
             feature=False,
         )
 
+        transaction.session.add_all([product_db_1, product_db_2])
+        await transaction.session.flush()
+
         inventory_db_1 = InventoryDBFactory(
             product=product_db_1,
-            product_id=1,
             inventory_id=1,
         )
         inventory_db_2 = InventoryDBFactory(
             product=product_db_2,
-            product_id=2,
             inventory_id=2,
         )
-        transaction.session.add_all([product_db_1, product_db_2])
-        await transaction.session.flush()
         transaction.session.add_all([inventory_db_1, inventory_db_2])
         await transaction.session.commit()
 

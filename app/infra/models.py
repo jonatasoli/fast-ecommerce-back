@@ -493,3 +493,14 @@ class CampaignDB(Base):
     free_shipping: Mapped[bool]
     min_purchase_value: Mapped[Decimal | None]
     commission_fee_value: Mapped[Decimal | None]
+
+
+class CategoryMediaGalleryDB(Base):
+    __tablename__ = 'category_media_gallery'
+
+    category_media_gallery_id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
+    media_id: Mapped[int] = mapped_column(ForeignKey('uploaded_media.media_id'))
+    category_id: Mapped[int] = mapped_column(ForeignKey('category.category_id'))

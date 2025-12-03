@@ -67,7 +67,7 @@ async def test_input_to_user_admin(mocker, asyncdb):
     inform = InformUserProduct(
         email='email@email.com',
         phone='1234567890',
-        product_id=1,
+        product_id=product.product_id,
 
     )
 

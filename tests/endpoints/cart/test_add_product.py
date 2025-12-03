@@ -20,7 +20,7 @@ URL = '/cart'
 
 
 @pytest.mark.asyncio
-async def test_add_product_in_new_cart(asyncdb, redis_client) -> None:
+async def test_add_product_in_new_cart(asyncdb, redis_client, async_client) -> None:
     """Must add product in new cart and return cart."""
     # Arrange
     async with asyncdb().begin() as transaction:
@@ -51,15 +51,10 @@ async def test_add_product_in_new_cart(asyncdb, redis_client) -> None:
         quantity=1,
     )
     product.__delattr__('discount_price')
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url='http://test',
-    ) as client:
-        app.dependency_overrides[get_async_session] = lambda: asyncdb
-        response = await client.post(
-            f'{URL}/{uuid}/product',
-            json=product.model_dump(),
-        )
+    response = await async_client.post(
+        f'{URL}/{uuid}/product',
+        json=product.model_dump(),
+    )
 
     # Assert
     assert response.status_code == 201

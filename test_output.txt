@@ -1,0 +1,91 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.7, pytest-9.0.1, pluggy-1.6.0 -- /home/feanor/workspace/fast-ecommerce-back/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/feanor/workspace/fast-ecommerce-back
+configfile: pyproject.toml
+plugins: timeout-2.4.0, cov-7.0.0, env-1.2.0, xdist-3.8.0, mock-3.15.1, anyio-4.11.0, ordering-0.6, sugar-1.1.1, asyncio-1.3.0, Faker-38.2.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... 2025-12-05 13:32:54.153 | INFO     | app.infra.worker:<module>:5 - amqp://guest:guest@localhost:5672//
+2025-12-05 13:32:54.376 | INFO     | main:<module>:85 - Environment: development
+collected 1 item
+
+tests/endpoints/cart/test_add_product.py::test_add_product_in_new_cart Payload: {'product_id': 1, 'name': 'Manuela Pires', 'image_path': 'categories/category/tags', 'quantity': 1, 'available_quantity': 0, 'price': None, 'description': None}
+Response status: 422
+Response body: {"detail":[{"type":"missing","loc":["query","local_kw"],"msg":"Field required","input":null}]}
+FAILED
+
+=================================== FAILURES ===================================
+_________________________ test_add_product_in_new_cart _________________________
+
+asyncdb = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7f64d9317810>, autoflush=True, expire_on_commit=False)
+redis_client = <redis.client.Redis(<redis.connection.ConnectionPool(<redis.connection.Connection(db=0,host=localhost,port=32781)>)>)>
+async_client = <httpx.AsyncClient object at 0x7f64d93030e0>
+
+    @pytest.mark.asyncio
+    async def test_add_product_in_new_cart(asyncdb, redis_client, async_client) -> None:
+        """Must add product in new cart and return cart."""
+        # Arrange
+        async with asyncdb().begin() as transaction:
+            category = CategoryFactory()
+            config_fee = CreditCardFeeConfigFactory()
+            transaction.session.add_all([category, config_fee])
+            await transaction.session.flush()
+            product_db = ProductDBFactory(
+                category=category,
+                installment_config=config_fee,
+                price=10000,
+            )
+            transaction.session.add(product_db)
+            await transaction.session.commit()
+        uuid = fake.uuid4()
+        cart = CartBase(
+            uuid=uuid,
+            cart_items=[],
+            subtotal=Decimal('0.00'),
+        )
+        redis_client.set(str(uuid), cart.model_dump_json())
+    
+        # Act
+        product = ProductCart(
+            name=fake.name(),
+            image_path=fake_url_path(),
+            product_id=1,
+            quantity=1,
+        )
+        product.__delattr__('discount_price')
+        print(f"Payload: {product.model_dump()}")
+        response = await async_client.post(
+            f'{URL}/{uuid}/product',
+            json=product.model_dump(),
+        )
+    
+        # Assert
+        print(f"Response status: {response.status_code}")
+        print(f"Response body: {response.text}")
+>       assert response.status_code == 201
+E       assert 422 == 201
+E        +  where 422 = <Response [422 Unprocessable Entity]>.status_code
+
+tests/endpoints/cart/test_add_product.py:63: AssertionError
+=============================== warnings summary ===============================
+.venv/lib/python3.13/site-packages/testcontainers/core/waiting_utils.py:215
+  /home/feanor/workspace/fast-ecommerce-back/.venv/lib/python3.13/site-packages/testcontainers/core/waiting_utils.py:215: DeprecationWarning: The @wait_container_is_ready decorator is deprecated and will be removed in a future version. Use structured wait strategies instead: container.waiting_for(HttpWaitStrategy(8080).for_status_code(200)) or container.waiting_for(LogMessageWaitStrategy('ready'))
+    @wait_container_is_ready()
+
+.venv/lib/python3.13/site-packages/testcontainers/postgres/__init__.py:90
+  /home/feanor/workspace/fast-ecommerce-back/.venv/lib/python3.13/site-packages/testcontainers/postgres/__init__.py:90: DeprecationWarning: The @wait_container_is_ready decorator is deprecated and will be removed in a future version. Use structured wait strategies instead: container.waiting_for(HttpWaitStrategy(8080).for_status_code(200)) or container.waiting_for(LogMessageWaitStrategy('ready'))
+    @wait_container_is_ready()
+
+.venv/lib/python3.13/site-packages/testcontainers/redis/__init__.py:46
+  /home/feanor/workspace/fast-ecommerce-back/.venv/lib/python3.13/site-packages/testcontainers/redis/__init__.py:46: DeprecationWarning: The @wait_container_is_ready decorator is deprecated and will be removed in a future version. Use structured wait strategies instead: container.waiting_for(HttpWaitStrategy(8080).for_status_code(200)) or container.waiting_for(LogMessageWaitStrategy('ready'))
+    @wait_container_is_ready(redis.exceptions.ConnectionError)
+
+tests/endpoints/cart/test_add_product.py::test_add_product_in_new_cart
+  /home/feanor/workspace/fast-ecommerce-back/.venv/lib/python3.13/site-packages/factory/base.py:509: SAWarning: relationship 'OrderDB.order_items' will copy column order.order_id to column order_items.order_id, which conflicts with relationship(s): 'OrderItemsDB.orders' (copies order.order_id to order_items.order_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders"' to the 'OrderDB.order_items' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+    return model_class(*args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/endpoints/cart/test_add_product.py::test_add_product_in_new_cart - assert 422 == 201
+ +  where 422 = <Response [422 Unprocessable Entity]>.status_code
+======================== 1 failed, 4 warnings in 10.81s ========================
