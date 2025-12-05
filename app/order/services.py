@@ -95,9 +95,12 @@ def get_product(db: Session, uri: str) -> ProductInDB | None:
         )
 
         productdb = db.execute(query_product)
-    if not productdb:
+        product_row = productdb.first()
+
+    if not product_row:
         raise ProductNotFoundError
-    return ProductInDB.model_validate(productdb.first())
+
+    return ProductInDB.model_validate(product_row)
 
 
 def update_product(product: ProductDB, product_data: dict) -> ProductDB:
