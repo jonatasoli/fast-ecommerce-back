@@ -3,7 +3,12 @@ from pydantic import ValidationError
 import pytest
 from faker import Faker
 from fastapi import UploadFile
-from app.entities.product import UploadedMediaCreate
+from app.entities.product import (
+    UploadedMediaCreate,
+    ProductSoldOutError,
+    ProductNotCreatedError,
+    ProductNotFoundError,
+)
 from app.infra.constants import MediaType
 from faker_file.providers.png_file import GraphicPngFileProvider
 
@@ -52,3 +57,33 @@ def test_uploaded_create_model_with_invalid_type_should_exception():
         )
 
     assert "type" in str(exc_info.value)
+
+
+def test_product_sold_out_error_message():
+    """Must create ProductSoldOutError with correct message."""
+    # Act / Assert
+    with pytest.raises(ProductSoldOutError) as exc_info:
+        raise ProductSoldOutError
+
+    # Assert
+    assert str(exc_info.value) == 'There are products in not inventory.'
+
+
+def test_product_not_created_error_message():
+    """Must create ProductNotCreatedError with correct message."""
+    # Act / Assert
+    with pytest.raises(ProductNotCreatedError) as exc_info:
+        raise ProductNotCreatedError
+
+    # Assert
+    assert str(exc_info.value) == 'Product is not created'
+
+
+def test_product_not_found_error_message():
+    """Must create ProductNotFoundError with correct message."""
+    # Act / Assert
+    with pytest.raises(ProductNotFoundError) as exc_info:
+        raise ProductNotFoundError
+
+    # Assert
+    assert str(exc_info.value) == 'Product not found'
