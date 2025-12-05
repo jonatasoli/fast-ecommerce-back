@@ -8,7 +8,7 @@ from app.entities.coupon import CouponInDB
 
 
 from app.entities.freight import ShippingAddress
-from app.entities.product import ProductCart, ProductInDB
+from app.entities.product import ProductCart, ProductInDB, ProductNotFoundError
 from app.entities.user import UserAddress, UserData
 from pydantic import BaseModel
 

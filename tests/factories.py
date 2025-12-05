@@ -46,13 +46,42 @@ class FreightFactory(factory.Factory):
     max_date = fake.future_date()
 
 
+class ProductInDBFactory(factory.Factory):
+    class Meta:
+        model = ProductInDB
+
+    product_id = factory.LazyFunction(lambda: fake.pyint(min_value=1, max_value=1000))
+    name = factory.LazyFunction(lambda: fake.name())
+    uri = factory.LazyFunction(lambda: fake.slug())
+    price = factory.LazyFunction(lambda: fake_decimal(min_value=10, max_value=10000))
+    active = factory.LazyFunction(lambda: fake.pybool())
+    weight = factory.LazyFunction(lambda: fake.pyint(min_value=100, max_value=5000))
+    length = factory.LazyFunction(lambda: fake.pyint(min_value=10, max_value=200))
+    width = factory.LazyFunction(lambda: fake.pyint(min_value=10, max_value=200))
+    height = factory.LazyFunction(lambda: fake.pyint(min_value=5, max_value=200))
+    diameter = factory.LazyFunction(lambda: fake.pyint(min_value=0, max_value=50))
+    category_id = factory.LazyFunction(lambda: fake.pyint(min_value=1, max_value=100))
+    sku = factory.LazyFunction(lambda: fake.bothify(text='SKU-????-####'))
+    direct_sales = factory.LazyFunction(lambda: fake.pybool())
+    showcase = factory.LazyFunction(lambda: fake.pybool())
+    show_discount = factory.LazyFunction(lambda: fake.pybool())
+    installments_config = factory.LazyFunction(lambda: fake.pyint(min_value=1, max_value=5))
+    installments_list = None
+    discount = None
+    description = None
+    image_path = factory.LazyFunction(lambda: fake_url())
+
+
 class CouponInDBFactory(factory.Factory):
     class Meta:
         model = CouponInDB
 
-    discount = fake_decimal()
-    discount_price = fake_decimal()
-    limit_price = fake_decimal()
+    coupon_id = factory.LazyFunction(lambda: fake.pyint(min_value=1, max_value=1000))
+    code = factory.LazyFunction(lambda: fake.bothify(text='COUPON-????').upper())
+    discount = factory.LazyFunction(lambda: fake_decimal(min_value=0, max_value=1, right_digits=2))
+    discount_price = factory.LazyFunction(lambda: fake_decimal(min_value=0, max_value=100))
+    limit_price = factory.LazyFunction(lambda: fake_decimal(min_value=0, max_value=500))
+    active = True
 
 
 class UserDataFactory(factory.Factory):
