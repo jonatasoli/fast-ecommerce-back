@@ -132,6 +132,52 @@ async def test_upload_category_media_gallery_should_upload_photo(
 
 
 @pytest.mark.asyncio
+async def test_upload_category_media_gallery_should_upload_video(
+    real_upload_file,
+    mocker,
+    asyncdb,
+):
+    """Should upload video to category media gallery."""
+    # Arrange
+    async with asyncdb().begin() as transaction:
+        category = CategoryFactory()
+        config_fee = CreditCardFeeConfigFactory()
+        transaction.session.add_all([category, config_fee])
+        await transaction.session.commit()
+
+    order = 1
+    media_type = MediaType.video
+    mock_upload_video = mocker.patch(
+        "app.infra.file_upload.upload_video",
+        return_value="/media/category-video.mp4",
+    )
+
+    # Act
+    media_path = await upload_category_media_gallery(
+        category.category_id,
+        media_type=media_type,
+        media=real_upload_file,
+        order=order,
+        db=asyncdb,
+    )
+
+    # Assert
+    assert media_path == "/media/category-video.mp4"
+    mock_upload_video.assert_called_once_with(real_upload_file)
+
+    result = await asyncdb().execute(select(UploadedMediaDB))
+    uploaded = result.scalar_one()
+    assert uploaded.type == media_type
+    assert uploaded.uri == "/media/category-video.mp4"
+    assert uploaded.order == order
+
+    result = await asyncdb().execute(select(CategoryMediaGalleryDB))
+    gallery = result.scalar_one()
+    assert gallery.category_id == category.category_id
+    assert gallery.media_id == uploaded.media_id
+
+
+@pytest.mark.asyncio
 async def test_upload_category_media_gallery_category_not_found_should_raise(
     real_upload_file,
     mock_optimize_image,
