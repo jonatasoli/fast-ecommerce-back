@@ -152,6 +152,11 @@ markers = [
 ]
 pythonpath = "."
 asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore:.*@wait_container_is_ready.*:DeprecationWarning",
+    "ignore:.*testcontainers.*:DeprecationWarning",
+    "default::sqlalchemy.exc.SAWarning",
+]
 
 [tool.coverage.run]
 omit = [

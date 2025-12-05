@@ -252,24 +252,24 @@ async def test_add_user_to_cart_should_add_user_data(memory_bootstrap, mocker):
     uuid = str(fake.uuid4())
     cart = CartBase(uuid=uuid, cart_items=[], subtotal=Decimal("100"))
     token = fake.uuid4()
-    
+
     user = Mock()
     user.user_id = fake.random_int()
     user.email = fake.email()
     user.name = fake.name()
     user.document = fake.bothify(text="###########")
-    
+
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart.model_dump_json())
     bootstrap.cache.set = Mock()
-    
+
     # Mock customer queries
     mocker.patch.object(
         bootstrap.cart_uow,
         "get_customer",
         side_effect=CustomerNotFoundError,
     )
-    
+
     # Mock message broker
     bootstrap.message.broker.publish = AsyncMock()
 
@@ -290,20 +290,20 @@ async def test_add_user_to_cart_with_invalid_coupon_should_raise(memory_bootstra
     uuid = str(fake.uuid4())
     cart = CartBase(uuid=uuid, cart_items=[], subtotal=Decimal("100"), coupon="INVALID")
     token = fake.uuid4()
-    
+
     user = Mock()
     user.user_id = fake.random_int()
     user.email = fake.email()
     user.name = fake.name()
     user.document = fake.bothify(text="###########")
-    
+
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart.model_dump_json())
-    
+
     # Mock customer queries
     mocker.patch.object(bootstrap.cart_uow, "get_customer", side_effect=CustomerNotFoundError)
     bootstrap.message.broker.publish = AsyncMock()
-    
+
     # Mock coupon not found
     mocker.patch.object(
         bootstrap.cart_repository,
@@ -324,20 +324,20 @@ async def test_add_user_to_cart_with_coupon_user_mismatch_should_raise(memory_bo
     uuid = str(fake.uuid4())
     cart = CartBase(uuid=uuid, cart_items=[], subtotal=Decimal("100"), coupon="USER123")
     token = fake.uuid4()
-    
+
     user = Mock()
     user.user_id = fake.random_int()
     user.email = fake.email()
     user.name = fake.name()
     user.document = fake.bothify(text="###########")
-    
+
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart.model_dump_json())
-    
+
     # Mock customer queries
     mocker.patch.object(bootstrap.cart_uow, "get_customer", side_effect=CustomerNotFoundError)
     bootstrap.message.broker.publish = AsyncMock()
-    
+
     # Mock coupon with different user
     mock_coupon = Mock()
     mock_coupon.user_id = user.user_id + 999  # Different user
@@ -365,7 +365,7 @@ async def test_add_address_to_cart_should_create_addresses(memory_bootstrap, moc
         subtotal=Decimal("100"),
         user_data=user_data,
     )
-    
+
     address = CreateAddress(
         user_address=AddressBase(
             address_id=None,
@@ -395,15 +395,15 @@ async def test_add_address_to_cart_should_create_addresses(memory_bootstrap, moc
         ),
         shipping_is_payment=False,
     )
-    
+
     token = fake.uuid4()
     user = Mock()
     user.user_id = user_data.user_id
-    
+
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart_user.model_dump_json())
     bootstrap.cache.set = Mock()
-    
+
     # Mock address creation
     user_address_id = fake.random_int()
     shipping_address_id = fake.random_int()
@@ -417,7 +417,7 @@ async def test_add_address_to_cart_should_create_addresses(memory_bootstrap, moc
     assert isinstance(result, CartShipping)
     assert result.user_address_id == user_address_id
     assert result.shipping_address_id == shipping_address_id
-    assert result.shipping_is_payment == False
+    assert not result.shipping_is_payment
 
 
 @pytest.mark.asyncio
@@ -433,7 +433,7 @@ async def test_add_address_to_cart_with_existing_address_should_use_it(memory_bo
         subtotal=Decimal("100"),
         user_data=user_data,
     )
-    
+
     existing_address_id = fake.random_int()
     address = CreateAddress(
         user_address=AddressBase(
@@ -452,15 +452,15 @@ async def test_add_address_to_cart_with_existing_address_should_use_it(memory_bo
         shipping_address=None,
         shipping_is_payment=True,
     )
-    
+
     token = fake.uuid4()
     user = Mock()
     user.user_id = user_data.user_id
-    
+
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart_user.model_dump_json())
     bootstrap.cache.set = Mock()
-    
+
     # Mock existing address
     bootstrap.uow.get_address_by_id = AsyncMock(return_value=existing_address_id)
 
@@ -470,7 +470,7 @@ async def test_add_address_to_cart_with_existing_address_should_use_it(memory_bo
     # Assert
     assert isinstance(result, CartShipping)
     assert result.user_address_id == existing_address_id
-    assert result.shipping_is_payment == True
+    assert result.shipping_is_payment
 
 
 @pytest.mark.asyncio
@@ -489,19 +489,19 @@ async def test_add_payment_information_should_process_payment(memory_bootstrap, 
         shipping_address_id=fake.random_int(),
         shipping_is_payment=True,
     )
-    
+
     payment = CreateCreditCardPaymentMethodFactory()
     payment.payment_gateway = PaymentGatewayAvailable.STRIPE.name
     payment_method = PaymentMethod.CREDIT_CARD.value
     token = fake.uuid4()
-    
+
     user = Mock()
     user.user_id = user_data.user_id
-    
+
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart_shipping.model_dump_json())
     bootstrap.cache.set = Mock()
-    
+
     # Mock payment processing
     cart_payment = CartPayment(
         **cart_shipping.model_dump(),
@@ -509,7 +509,7 @@ async def test_add_payment_information_should_process_payment(memory_bootstrap, 
         gateway_provider=PaymentGatewayAvailable.STRIPE.name,
         payment_method=payment_method,
     )
-    
+
     mock_payment_process = AsyncMock(return_value=cart_payment)
     mocker.patch(
         "app.payment.payment_process_stripe.payment_process",
@@ -539,12 +539,12 @@ async def test_add_payment_information_without_gateway_should_raise(memory_boots
         shipping_address_id=fake.random_int(),
         shipping_is_payment=True,
     )
-    
+
     payment = CreatePixPaymentMethodFactory()
     payment.payment_gateway = None  # Missing gateway
     payment_method = PaymentMethod.PIX.value
     token = fake.uuid4()
-    
+
     user = Mock()
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart_shipping.model_dump_json())
@@ -573,15 +573,15 @@ async def test_preview_should_create_payment_intent_for_stripe(memory_bootstrap,
         gateway_provider=PaymentGatewayAvailable.STRIPE.name,
         payment_method=PaymentMethod.CREDIT_CARD.value,
     )
-    
+
     token = fake.uuid4()
     user = Mock()
     user.user_id = user_data.user_id
-    
+
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart_payment.model_dump_json())
     bootstrap.cache.set = Mock()
-    
+
     # Mock customer and payment intent
     mock_customer = Mock()
     mock_customer.customer_uuid = fake.uuid4()
@@ -590,10 +590,10 @@ async def test_preview_should_create_payment_intent_for_stripe(memory_bootstrap,
         "get_customer",
         return_value=mock_customer,
     )
-    
+
     payment_intent_id = fake.uuid4()
     bootstrap.payment.create_payment_intent = Mock(
-        return_value={"id": payment_intent_id}
+        return_value={"id": payment_intent_id},
     )
 
     # Act
@@ -623,17 +623,17 @@ async def test_checkout_should_process_order(memory_bootstrap, mocker):
         gateway_provider=PaymentGatewayAvailable.STRIPE.name,
         payment_method=PaymentMethod.CREDIT_CARD.value,
     )
-    
+
     token = fake.uuid4()
     user = Mock()
     user.user_id = user_data.user_id
     user.email = user_data.email
     user.name = user_data.name
     user.document = user_data.document
-    
+
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart_payment.model_dump_json())
-    
+
     # Mock checkout task
     order_id = fake.random_int()
     gateway_payment_id = fake.uuid4()
@@ -672,17 +672,17 @@ async def test_checkout_without_order_id_should_raise(memory_bootstrap, mocker):
         gateway_provider=PaymentGatewayAvailable.STRIPE.name,
         payment_method=PaymentMethod.CREDIT_CARD.value,
     )
-    
+
     token = fake.uuid4()
     user = Mock()
     user.user_id = user_data.user_id
     user.email = user_data.email
     user.name = user_data.name
     user.document = user_data.document
-    
+
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart_payment.model_dump_json())
-    
+
     # Mock checkout task without order_id
     checkout_result = {"message": "Error", "order_id": None}
     bootstrap.message.broker.publish = AsyncMock(return_value=checkout_result)
@@ -698,12 +698,12 @@ async def test_get_coupon_should_return_coupon(memory_bootstrap, mocker):
     # Arrange
     bootstrap = memory_bootstrap
     code = "DISCOUNT50"
-    
+
     mock_coupon = Mock()
     mock_coupon.coupon_id = fake.random_int()
     mock_coupon.code = code
     mock_coupon.discount = Decimal("0.50")
-    
+
     mocker.patch.object(
         bootstrap.cart_uow,
         "get_coupon_by_code",
@@ -723,7 +723,7 @@ async def test_get_coupon_not_found_should_raise(memory_bootstrap, mocker):
     # Arrange
     bootstrap = memory_bootstrap
     code = "INVALID"
-    
+
     mocker.patch.object(
         bootstrap.cart_uow,
         "get_coupon_by_code",
@@ -742,7 +742,7 @@ async def test_get_cart_and_send_to_crm_should_process_carts(mocker):
     # Arrange
     mock_cache = Mock()
     mock_redis = Mock()
-    
+
     user_data = UserDataFactory()
     cart_user = CartUser(
         uuid=fake.uuid4(),
@@ -750,18 +750,18 @@ async def test_get_cart_and_send_to_crm_should_process_carts(mocker):
         subtotal=Decimal("100"),
         user_data=user_data,
     )
-    
+
     keys = [f"cart:{fake.uuid4()}", f"cart:{fake.uuid4()}"]
     mock_cache.get_all_keys_with_lower_ttl = Mock(return_value=keys)
     mock_redis.get = Mock(return_value=cart_user.model_dump_json())
     mock_redis.delete = Mock()
     mock_cache.redis = mock_redis
-    
+
     mock_send_crm = mocker.patch(
         "app.cart.services.send_abandonated_cart_to_crm",
         new=AsyncMock(),
     )
-    
+
     mock_cache_class = Mock(return_value=mock_cache)
 
     # Act
@@ -778,13 +778,13 @@ async def test_get_cart_and_send_to_crm_should_delete_invalid_carts(mocker):
     # Arrange
     mock_cache = Mock()
     mock_redis = Mock()
-    
+
     keys = [f"cart:{fake.uuid4()}"]
     mock_cache.get_all_keys_with_lower_ttl = Mock(return_value=keys)
     mock_redis.get = Mock(return_value="invalid json")  # Invalid cart data
     mock_redis.delete = Mock()
     mock_cache.redis = mock_redis
-    
+
     mock_cache_class = Mock(return_value=mock_cache)
 
     # Act

@@ -24,7 +24,7 @@ async def test_get_user_sales_commissions_should_return_commissions(mocker, asyn
     user = {"user_id": fake.random_int()}
     paid = fake.pybool()
     released = fake.pybool()
-    
+
     expected_commissions = [
         CommissionInDB(
             commission_id=fake.random_int(),
@@ -35,17 +35,17 @@ async def test_get_user_sales_commissions_should_return_commissions(mocker, asyn
             release_date=datetime.now(UTC) + timedelta(days=30),
             paid=paid,
             payment_id=fake.random_int(),
-        )
+        ),
     ]
-    
+
     mock_repo = mocker.patch(
         "app.report.repository.get_user_sales_commissions",
         return_value=expected_commissions,
     )
-    
+
     # Act
     result = await get_user_sales_commissions(user, paid=paid, released=released, db=asyncdb)
-    
+
     # Assert
     mock_repo.assert_called_once()
     assert result == expected_commissions
@@ -57,7 +57,7 @@ async def test_get_sales_commissions_should_return_all_commissions(mocker, async
     # Arrange
     paid = fake.pybool()
     released = fake.pybool()
-    
+
     # Create mock result with unique() and all() methods
     mock_result = mocker.MagicMock()
     mock_result.unique.return_value.all.return_value = [
@@ -70,17 +70,17 @@ async def test_get_sales_commissions_should_return_all_commissions(mocker, async
             "release_date": datetime.now(UTC) + timedelta(days=30),
             "paid": paid,
             "payment_id": fake.random_int(),
-        }
+        },
     ]
-    
+
     mock_repo = mocker.patch(
         "app.report.repository.get_sales_commissions",
         return_value=mock_result,
     )
-    
+
     # Act
     result = await get_sales_commissions(paid=paid, released=released, db=asyncdb)
-    
+
     # Assert
     mock_repo.assert_called_once()
     assert isinstance(result, UserSalesCommissions)
@@ -96,30 +96,30 @@ async def test_create_sales_commission_with_percentage_fees(mocker, asyncdb):
     subtotal = Decimal("1000.00")
     commission_percentage = Decimal("0.10")
     payment_id = fake.random_int()
-    
+
     # Mock campaign
     mock_campaign = None
     mocker.patch(
         "app.campaign.repository.get_campaign",
         return_value=mock_campaign,
     )
-    
+
     # Mock fees with percentage type
     mock_fee = mocker.MagicMock()
     mock_fee.fee_type = FeeType.PERCENTAGE
     mock_fee.value = Decimal("0.05")  # 5%
-    
+
     mocker.patch(
         "app.report.repository.get_fees",
         return_value=[mock_fee],
     )
-    
+
     # Mock co-producers
     mocker.patch(
         "app.report.repository.get_coproducer",
         return_value=None,
     )
-    
+
     # Mock session
     mock_transaction = mocker.MagicMock()
     mock_transaction.add = mocker.MagicMock()
@@ -130,7 +130,7 @@ async def test_create_sales_commission_with_percentage_fees(mocker, asyncdb):
     mock_db_instance = mocker.MagicMock()
     mock_db_instance.begin = mocker.MagicMock(return_value=mock_context)
     mock_db = mocker.MagicMock(return_value=mock_db_instance)
-    
+
     # Act
     result = await create_sales_commission(
         order_id=order_id,
@@ -141,7 +141,7 @@ async def test_create_sales_commission_with_percentage_fees(mocker, asyncdb):
         db=mock_db,
         async_db=asyncdb,
     )
-    
+
     # Assert
     assert isinstance(result, SalesCommissionDB)
     assert result.order_id == order_id
@@ -159,30 +159,30 @@ async def test_create_sales_commission_with_fixed_fees(mocker, asyncdb):
     subtotal = Decimal("1000.00")
     commission_percentage = Decimal("0.10")
     payment_id = fake.random_int()
-    
+
     # Mock campaign
     mock_campaign = None
     mocker.patch(
         "app.campaign.repository.get_campaign",
         return_value=mock_campaign,
     )
-    
+
     # Mock fees with fixed type
     mock_fee = mocker.MagicMock()
     mock_fee.fee_type = FeeType.FIXED
     mock_fee.value = Decimal("50.00")
-    
+
     mocker.patch(
         "app.report.repository.get_fees",
         return_value=[mock_fee],
     )
-    
+
     # Mock co-producers
     mocker.patch(
         "app.report.repository.get_coproducer",
         return_value=None,
     )
-    
+
     # Mock session
     mock_transaction = mocker.MagicMock()
     mock_transaction.add = mocker.MagicMock()
@@ -193,7 +193,7 @@ async def test_create_sales_commission_with_fixed_fees(mocker, asyncdb):
     mock_db_instance = mocker.MagicMock()
     mock_db_instance.begin = mocker.MagicMock(return_value=mock_context)
     mock_db = mocker.MagicMock(return_value=mock_db_instance)
-    
+
     # Act
     result = await create_sales_commission(
         order_id=order_id,
@@ -204,7 +204,7 @@ async def test_create_sales_commission_with_fixed_fees(mocker, asyncdb):
         db=mock_db,
         async_db=asyncdb,
     )
-    
+
     # Assert
     assert isinstance(result, SalesCommissionDB)
     mock_transaction.add.assert_called_once()
@@ -219,29 +219,29 @@ async def test_create_sales_commission_with_coproducers(mocker, asyncdb):
     subtotal = Decimal("1000.00")
     commission_percentage = Decimal("0.10")
     payment_id = fake.random_int()
-    
+
     # Mock campaign
     mock_campaign = None
     mocker.patch(
         "app.campaign.repository.get_campaign",
         return_value=mock_campaign,
     )
-    
+
     # Mock fees
     mocker.patch(
         "app.report.repository.get_fees",
         return_value=[],
     )
-    
+
     # Mock co-producers with percentage
     mock_co_producer = mocker.MagicMock()
     mock_co_producer.percentage = Decimal("10")  # 10%
-    
+
     mocker.patch(
         "app.report.repository.get_coproducer",
         return_value=[mock_co_producer],
     )
-    
+
     # Mock session
     mock_transaction = mocker.MagicMock()
     mock_transaction.add = mocker.MagicMock()
@@ -252,7 +252,7 @@ async def test_create_sales_commission_with_coproducers(mocker, asyncdb):
     mock_db_instance = mocker.MagicMock()
     mock_db_instance.begin = mocker.MagicMock(return_value=mock_context)
     mock_db = mocker.MagicMock(return_value=mock_db_instance)
-    
+
     # Act
     result = await create_sales_commission(
         order_id=order_id,
@@ -263,7 +263,7 @@ async def test_create_sales_commission_with_coproducers(mocker, asyncdb):
         db=mock_db,
         async_db=asyncdb,
     )
-    
+
     # Assert
     assert isinstance(result, SalesCommissionDB)
     mock_transaction.add.assert_called_once()
@@ -278,25 +278,25 @@ async def test_create_sales_commission_without_percentage_should_raise(mocker, a
     subtotal = Decimal("1000.00")
     commission_percentage = None
     payment_id = fake.random_int()
-    
+
     # Mock campaign
     mocker.patch(
         "app.campaign.repository.get_campaign",
         return_value=None,
     )
-    
+
     # Mock fees
     mocker.patch(
         "app.report.repository.get_fees",
         return_value=[],
     )
-    
+
     # Mock co-producers
     mocker.patch(
         "app.report.repository.get_coproducer",
         return_value=None,
     )
-    
+
     # Mock session
     mock_transaction = mocker.MagicMock()
     mock_context = mocker.MagicMock()
@@ -305,7 +305,7 @@ async def test_create_sales_commission_without_percentage_should_raise(mocker, a
     mock_db_instance = mocker.MagicMock()
     mock_db_instance.begin = mocker.MagicMock(return_value=mock_context)
     mock_db = mocker.MagicMock(return_value=mock_db_instance)
-    
+
     # Act / Assert
     with pytest.raises(ValueError, match="Error with percentage in report"):
         await create_sales_commission(
@@ -328,29 +328,29 @@ async def test_create_sales_commission_with_campaign(mocker, asyncdb):
     subtotal = Decimal("1000.00")
     commission_percentage = Decimal("0.10")
     payment_id = fake.random_int()
-    
+
     # Mock campaign with min purchase value
     mock_campaign = mocker.MagicMock()
     mock_campaign.min_purchase_value = Decimal("500.00")
     mock_campaign.commission_fee_value = Decimal("20.00")
-    
+
     mocker.patch(
         "app.campaign.repository.get_campaign",
         return_value=mock_campaign,
     )
-    
+
     # Mock fees
     mocker.patch(
         "app.report.repository.get_fees",
         return_value=[],
     )
-    
+
     # Mock co-producers
     mocker.patch(
         "app.report.repository.get_coproducer",
         return_value=None,
     )
-    
+
     # Mock session
     mock_transaction = mocker.MagicMock()
     mock_transaction.add = mocker.MagicMock()
@@ -361,7 +361,7 @@ async def test_create_sales_commission_with_campaign(mocker, asyncdb):
     mock_db_instance = mocker.MagicMock()
     mock_db_instance.begin = mocker.MagicMock(return_value=mock_context)
     mock_db = mocker.MagicMock(return_value=mock_db_instance)
-    
+
     # Act
     result = await create_sales_commission(
         order_id=order_id,
@@ -372,7 +372,7 @@ async def test_create_sales_commission_with_campaign(mocker, asyncdb):
         db=mock_db,
         async_db=asyncdb,
     )
-    
+
     # Assert
     assert isinstance(result, SalesCommissionDB)
     mock_transaction.add.assert_called_once()

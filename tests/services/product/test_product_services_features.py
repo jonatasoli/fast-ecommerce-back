@@ -155,7 +155,7 @@ async def test_delete_product_should_delete(mocker, asyncdb):
     """Must delete product."""
     # Arrange
     product_id = fake.random_int()
-    
+
     # Mock the transaction and db context
     mock_transaction = mocker.MagicMock()
     mock_transaction.commit = mocker.MagicMock()
@@ -164,12 +164,12 @@ async def test_delete_product_should_delete(mocker, asyncdb):
     mock_context.__exit__ = mocker.MagicMock(return_value=None)
     mock_db_instance = mocker.MagicMock()
     mock_db_instance.begin = mocker.MagicMock(return_value=mock_context)
-    
+
     mock_repo = mocker.patch(
         "app.product.repository.delete_product",
         return_value=None,
     )
-    
+
     # Create a mock db callable
     mock_db = mocker.MagicMock(return_value=mock_db_instance)
 
