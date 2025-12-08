@@ -1,4 +1,4 @@
-
+# ruff: noqa: I001
 import pytest
 
 from app.entities.user import UserFilters, UsersDBResponse
@@ -6,10 +6,10 @@ from app.user.repository import get_users
 from app.infra.constants import Direction
 from tests.factories_db import RoleDBFactory, UserDBFactory
 
+
 @pytest.mark.asyncio
 async def test_get_users_with_name_filter(mocker, db):
-    """Test query when filtering by name."""
-    # Arrange
+    # Setup
     with db().begin() as transaction:
         role = RoleDBFactory()
         transaction.session.add(role)
@@ -35,7 +35,7 @@ async def test_get_users_with_name_filter(mocker, db):
 
     # Check the query string
     query_str = str(transaction.session.scalars.call_args[0][0])
-    assert "LIKE" in query_str
+    assert 'LIKE' in query_str
     assert 'ORDER BY' in query_str
 
     assert transaction.session.scalar.called
@@ -46,9 +46,8 @@ async def test_get_users_with_name_filter(mocker, db):
 
 
 @pytest.mark.asyncio
-async def test_get_users_with_document_filter(mocker,db):
-    """Test query when filtering by document."""
-    # Arrange
+async def test_get_users_with_document_filter(mocker, db):
+    # Setup
     with db().begin() as transaction:
         role = RoleDBFactory()
         transaction.session.add(role)
@@ -72,7 +71,7 @@ async def test_get_users_with_document_filter(mocker,db):
     # Assert
     transaction.session.scalars.assert_called_once()
     query_str = str(transaction.session.scalars.call_args[0][0])
-    assert "LIKE" in query_str
+    assert 'LIKE' in query_str
     assert 'ORDER BY' in query_str
 
     assert transaction.session.scalar.called
@@ -82,8 +81,7 @@ async def test_get_users_with_document_filter(mocker,db):
 
 @pytest.mark.asyncio
 async def test_get_users_with_ordering_and_pagination(mocker, db):
-    """Test query with ordering and pagination."""
-    # Arrange
+    # Setup
     with db().begin() as transaction:
         role = RoleDBFactory()
         transaction.session.add(role)
@@ -98,7 +96,7 @@ async def test_get_users_with_ordering_and_pagination(mocker, db):
     transaction.session.scalar = mocker.AsyncMock(return_value=15)
 
     filters = UserFilters(
-        order_by="username",
+        order_by='username',
         direction=Direction.desc,
         page=2,
         limit=5,
@@ -110,9 +108,9 @@ async def test_get_users_with_ordering_and_pagination(mocker, db):
     # Assert
     transaction.session.scalars.assert_called_once()
     query_str = str(transaction.session.scalars.call_args[0][0])
-    assert "DESC" in query_str
+    assert 'DESC' in query_str
     assert 'ORDER BY' in query_str
-    assert "OFFSET" in query_str
+    assert 'OFFSET' in query_str
     assert transaction.session.scalar.called
     assert isinstance(response, UsersDBResponse)
     assert response.total_pages == 3
@@ -120,8 +118,7 @@ async def test_get_users_with_ordering_and_pagination(mocker, db):
 
 @pytest.mark.asyncio
 async def test_get_users_no_filters(mocker, db):
-    """Test query with no filters."""
-    # Arrange
+    # Setup
     with db().begin() as transaction:
         role = RoleDBFactory()
         transaction.session.add(role)
@@ -138,7 +135,7 @@ async def test_get_users_no_filters(mocker, db):
     filters = UserFilters(
         search_name=None,
         search_document=None,
-        order_by="user_id",
+        order_by='user_id',
         direction=Direction.asc,
         page=1,
         limit=10,
@@ -150,7 +147,7 @@ async def test_get_users_no_filters(mocker, db):
     # Assert
     transaction.session.scalars.assert_called_once()
     query_str = str(transaction.session.scalars.call_args[0][0])
-    assert "ORDER BY" in query_str
+    assert 'ORDER BY' in query_str
     assert transaction.session.scalar.called
     assert isinstance(response, UsersDBResponse)
     assert response.total_records == 15

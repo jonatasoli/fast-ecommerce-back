@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from pytest_mock import MockerFixture
 from app.product import repository
 from app.product.services import upload_image
@@ -11,8 +12,7 @@ async def test_upload_image_should_change_image_path(
     mocker: MockerFixture,
     asyncdb,
 ) -> None:
-    """Should change image patch in specifict product_id."""
-    # Arrange
+    # Setup
     product_db = ProductDBFactory()
     product_id = product_db.product_id
     new_image_path = 'https://cdn.site.com/new_image_path'
@@ -33,5 +33,5 @@ async def test_upload_image_should_change_image_path(
         image_client=image_client_mock,
     )
 
-    # Arrange
+    # Setup
     assert response == new_image_path

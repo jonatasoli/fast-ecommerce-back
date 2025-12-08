@@ -1,10 +1,16 @@
+# ruff: noqa: I001
 from fastapi import status
 from app.infra.database import get_async_session
 from main import app
 from httpx import ASGITransport, AsyncClient
 import pytest
 
-from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, UserDBFactory, RoleDBFactory
+from tests.factories_db import (
+    CategoryFactory,
+    CreditCardFeeConfigFactory,
+    UserDBFactory,
+    RoleDBFactory,
+)
 
 
 URL_BASE = '/catalog/category'
@@ -12,8 +18,7 @@ URL_BASE = '/catalog/category'
 
 @pytest.mark.asyncio
 async def test_get_category_by_id_should_return_200(asyncdb, admin_token):
-    """Should return category by ID."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -39,7 +44,6 @@ async def test_get_category_by_id_should_return_200(asyncdb, admin_token):
 
 @pytest.mark.asyncio
 async def test_get_category_by_id_not_found_should_return_404(asyncdb):
-    """Should return 404 when category not found."""
     # Act
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -56,8 +60,7 @@ async def test_get_category_by_id_not_found_should_return_404(asyncdb):
 
 @pytest.mark.asyncio
 async def test_create_category_should_return_201(asyncdb, admin_token):
-    """Should create new category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         config_fee = CreditCardFeeConfigFactory()
         transaction.session.add(config_fee)
@@ -92,8 +95,7 @@ async def test_create_category_should_return_201(asyncdb, admin_token):
 
 @pytest.mark.asyncio
 async def test_create_category_without_auth_should_return_401(asyncdb):
-    """Should return 401 when creating category without authentication."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         config_fee = CreditCardFeeConfigFactory()
         transaction.session.add(config_fee)
@@ -121,8 +123,7 @@ async def test_create_category_without_auth_should_return_401(asyncdb):
 
 @pytest.mark.asyncio
 async def test_create_category_invalid_data_should_return_422(asyncdb, admin_token):
-    """Should return 422 when creating category with invalid data."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         config_fee = CreditCardFeeConfigFactory()
         transaction.session.add(config_fee)
@@ -151,8 +152,7 @@ async def test_create_category_invalid_data_should_return_422(asyncdb, admin_tok
 
 @pytest.mark.asyncio
 async def test_update_category_should_return_200(asyncdb, admin_token):
-    """Should update existing category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -184,8 +184,7 @@ async def test_update_category_should_return_200(asyncdb, admin_token):
 
 @pytest.mark.asyncio
 async def test_update_category_not_found_should_return_404(asyncdb, admin_token):
-    """Should return 404 when updating non-existent category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         config_fee = CreditCardFeeConfigFactory()
         transaction.session.add(config_fee)
@@ -213,8 +212,7 @@ async def test_update_category_not_found_should_return_404(asyncdb, admin_token)
 
 @pytest.mark.asyncio
 async def test_delete_category_should_return_204(asyncdb, admin_token):
-    """Should delete category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -238,8 +236,7 @@ async def test_delete_category_should_return_204(asyncdb, admin_token):
 
 @pytest.mark.asyncio
 async def test_delete_category_not_found_should_return_404(asyncdb, admin_token):
-    """Should return 404 when deleting non-existent category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         config_fee = CreditCardFeeConfigFactory()
         transaction.session.add(config_fee)

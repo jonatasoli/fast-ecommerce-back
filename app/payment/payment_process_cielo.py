@@ -5,6 +5,5 @@ async def process_payment(
     payment,
     cache_cart,
     bootstrap,
-
 ):
     raise NotImplementedError

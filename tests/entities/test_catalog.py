@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import pytest
 from pydantic import ValidationError
 
@@ -11,8 +12,7 @@ from app.entities.catalog import (
 
 
 def test_category_create_valid():
-    """Must create valid CategoryCreate schema."""
-    # Arrange & Act
+    # Setup & Act
     category = CategoryCreate(
         name='Test Category',
         path='test-category',
@@ -29,8 +29,7 @@ def test_category_create_valid():
 
 
 def test_category_create_with_defaults():
-    """Must create CategoryCreate with default values."""
-    # Arrange & Act
+    # Setup & Act
     category = CategoryCreate(
         name='Test Category',
         path='test-category',
@@ -43,7 +42,6 @@ def test_category_create_with_defaults():
 
 
 def test_category_create_missing_required_field():
-    """Must raise ValidationError when missing required fields."""
     # Act & Assert
     with pytest.raises(ValidationError) as exc_info:
         CategoryCreate(name='Test Category')
@@ -52,8 +50,7 @@ def test_category_create_missing_required_field():
 
 
 def test_category_update_partial():
-    """Must allow partial updates in CategoryUpdate."""
-    # Arrange & Act
+    # Setup & Act
     update = CategoryUpdate(name='Updated Name')
 
     # Assert
@@ -64,8 +61,7 @@ def test_category_update_partial():
 
 
 def test_category_update_all_fields():
-    """Must update all fields in CategoryUpdate."""
-    # Arrange & Act
+    # Setup & Act
     update = CategoryUpdate(
         name='Updated Category',
         path='updated-path',
@@ -83,8 +79,7 @@ def test_category_update_all_fields():
 
 
 def test_category_response_valid():
-    """Must create valid CategoryResponse schema."""
-    # Arrange & Act
+    # Setup & Act
     response = CategoryResponse(
         category_id=1,
         name='Test Category',
@@ -101,8 +96,7 @@ def test_category_response_valid():
 
 
 def test_category_model_validate():
-    """Must validate category from attributes."""
-    # Arrange
+    # Setup
     from app.infra.models import CategoryDB
 
     db_category = CategoryDB(
@@ -123,8 +117,7 @@ def test_category_model_validate():
 
 
 def test_categories_list():
-    """Must create Categories with list of Category."""
-    # Arrange
+    # Setup
     category_list = [
         Category(
             category_id=1,

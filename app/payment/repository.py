@@ -1,11 +1,10 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from decimal import Decimal
-from sqlalchemy import update
 
+from loguru import logger
+from sqlalchemy import update
 from sqlalchemy.orm import SessionTransaction
 from sqlalchemy.orm.exc import NoResultFound
-from loguru import logger
-
 from sqlalchemy.sql import select
 
 from app.entities.cart import CartPayment
@@ -15,7 +14,7 @@ from app.infra.database import get_session
 from app.infra.models import CreditCardFeeConfigDB, CustomerDB, PaymentDB
 
 
-async def create_payment( # Noqa: PLR0913
+async def create_payment(  # Noqa: PLR0913
     cart: CartPayment,
     *,
     user_id: int,
@@ -90,7 +89,7 @@ async def get_payment_by_order_id(
     return await transaction.session.scalar(payment_query)
 
 
-async def create_customer( # Noqa: PLR0913
+async def create_customer(  # Noqa: PLR0913
     *,
     user_id: int,
     customer_uuid: str,
@@ -175,6 +174,7 @@ async def get_payment(
         PaymentDB.gateway_payment_id == f'{gateway_payment_id}',
     )
     return await transaction.session.scalar(payment_query)
+
 
 async def get_pending_payments(
     payment_gateway: str,

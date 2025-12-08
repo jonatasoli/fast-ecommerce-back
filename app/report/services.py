@@ -1,20 +1,20 @@
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
+from faststream.rabbit import RabbitQueue
 from pydantic import TypeAdapter
-from app.entities.product import ProductInDB
-from app.infra.constants import FeeType
 from sqlalchemy.orm import sessionmaker
 
-from app.infra.database import get_async_session, get_session
-from app.entities.report import CommissionInDB, InformUserProduct, UserSalesCommissions
-from app.report import repository
-from app.product import repository as product_repository
-from app.infra.models import SalesCommissionDB
-from faststream.rabbit import RabbitQueue
-from app.infra.worker import task_message_bus
 from app.campaign import repository as campaign_repository
+from app.entities.product import ProductInDB
+from app.entities.report import CommissionInDB, InformUserProduct, UserSalesCommissions
+from app.infra.constants import FeeType
+from app.infra.database import get_async_session, get_session
+from app.infra.models import SalesCommissionDB
+from app.infra.worker import task_message_bus
+from app.product import repository as product_repository
+from app.report import repository
 
 
 async def get_user_sales_commissions(
@@ -52,14 +52,14 @@ async def get_sales_commissions(
     )
 
 
-async def create_sales_commission( # noqa: PLR0913
+async def create_sales_commission(  # noqa: PLR0913
     order_id: int,
     user_id: int,
     subtotal: Decimal,
     commission_percentage: Decimal | None,
     payment_id: int,
     db: sessionmaker = get_session(),
-    async_db = get_async_session(),
+    async_db=get_async_session(),
 ) -> SalesCommissionDB:
     """Get sales commit at all."""
     campaign = None
@@ -82,7 +82,7 @@ async def create_sales_commission( # noqa: PLR0913
                 total_with_fees -= total_with_fees * (co_producer_fee.percentage / 100)
 
         if not commission_percentage:
-            raise ValueError('Error with percentage in report') #noqa: EM101 TRY003
+            raise ValueError('Error with percentage in report')  # noqa: EM101 TRY003
 
         if campaign and subtotal > campaign.min_purchase_value:
             total_with_fees = total_with_fees - campaign.commission_fee_value
@@ -91,12 +91,12 @@ async def create_sales_commission( # noqa: PLR0913
         release_data = today + timedelta(days=30)
 
         commission_db = SalesCommissionDB(
-                order_id=order_id,
-                user_id=user_id,
-                commission=commission_value,
-                date_created=today,
-                release_date=release_data,
-                payment_id=payment_id,
+            order_id=order_id,
+            user_id=user_id,
+            commission=commission_value,
+            date_created=today,
+            release_date=release_data,
+            payment_id=payment_id,
         )
         transaction.add(commission_db)
         transaction.commit()
@@ -108,7 +108,6 @@ async def notify_product_to_admin(
     inform: InformUserProduct,
     db,
     broker: RabbitQueue = task_message_bus,
-
 ):
     """Get user, product info and send notification to admin."""
     async with db.begin() as transaction:
@@ -129,11 +128,11 @@ async def notify_product_to_admin(
 
         await broker.publish(
             {
-            'admin_email': admins,
-            'product_id': inform_db.product_id,
-            'product_name': inform_db.product_name,
-            'user_email': inform_db.user_mail,
-            'user_phone': inform_db.user_phone,
-        },
-        queue=RabbitQueue('inform_product_to_admin'),
+                'admin_email': admins,
+                'product_id': inform_db.product_id,
+                'product_name': inform_db.product_name,
+                'user_email': inform_db.user_mail,
+                'user_phone': inform_db.user_phone,
+            },
+            queue=RabbitQueue('inform_product_to_admin'),
         )

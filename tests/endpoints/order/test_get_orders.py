@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from fastapi import status
 from httpx import ASGITransport, AsyncClient
 from app.infra.database import get_session
@@ -11,7 +12,6 @@ URL = '/order'
 
 @pytest.mark.asyncio
 async def test_give_no_orders_should_return_empty_list(db) -> None:
-    """Should return empty list."""
     # Act
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -30,8 +30,7 @@ async def test_give_no_orders_should_return_empty_list(db) -> None:
 
 @pytest.mark.asyncio
 async def test_get_all_orders(db) -> None:
-    """Should Return Orders."""
-    # Arrange
+    # Setup
     with db().begin() as transaction:
         user = UserDBFactory()
         transaction.session.add(user)

@@ -6,8 +6,9 @@ from sqlalchemy.orm import SessionTransaction
 
 from app.infra import models
 
-class SettingNotFoundError(Exception):
-    ...
+
+class SettingNotFoundError(Exception): ...
+
 
 @lru_cache
 async def get_settings(

@@ -1,12 +1,13 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+
+from pydantic import TypeAdapter
+from sqlalchemy import and_, select
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.entities.product import ProductInDB
+from app.entities.report import CommissionInDB, InformUserProduct, UserSalesCommissions
 from app.entities.user import UserInDB
 from app.infra.constants import Roles
-from sqlalchemy import select, and_
-from sqlalchemy.orm import Session, selectinload, joinedload
-from pydantic import TypeAdapter
-
 from app.infra.models import (
     CoProducerFeeDB,
     FeeDB,
@@ -14,7 +15,6 @@ from app.infra.models import (
     SalesCommissionDB,
     UserDB,
 )
-from app.entities.report import CommissionInDB, InformUserProduct, UserSalesCommissions
 
 
 async def get_user_sales_commissions(
@@ -26,11 +26,8 @@ async def get_user_sales_commissions(
 ):
     """Get comission for user."""
     _ = released, paid
-    query = (
-        select(SalesCommissionDB)
-        .where(
-            SalesCommissionDB.user_id == user.user_id,
-        )
+    query = select(SalesCommissionDB).where(
+        SalesCommissionDB.user_id == user.user_id,
     )
     commissions = await transaction.session.execute(query)
     adapter = TypeAdapter(list[CommissionInDB] | None)
@@ -48,10 +45,8 @@ async def get_sales_commissions(
     transaction: Session,
 ):
     """Get comission for user."""
-    query = (
-        select(SalesCommissionDB).options(
-            joinedload(SalesCommissionDB.user),
-        )
+    query = select(SalesCommissionDB).options(
+        joinedload(SalesCommissionDB.user),
     )
     if paid:
         query = query.where(SalesCommissionDB.paid.is_(True))
@@ -77,7 +72,7 @@ def update_commissions(date_threshold: datetime, db) -> None:
 
 async def update_payment_commissions(
     *,
-    payment_id:int,
+    payment_id: int,
     paid_status: bool,
     db,
     cancelled_status: bool = False,
@@ -104,10 +99,14 @@ async def update_payment_commissions(
 async def get_admins(transaction):
     """Get list of admins."""
     async with transaction:
-        query = select(UserDB).options(
-            selectinload(UserDB.addresses),
-        ).where(
-            UserDB.role_id == Roles.ADMIN.value,
+        query = (
+            select(UserDB)
+            .options(
+                selectinload(UserDB.addresses),
+            )
+            .where(
+                UserDB.role_id == Roles.ADMIN.value,
+            )
         )
         admin_db = await transaction.scalars(query)
         adapter = TypeAdapter(list[UserInDB])
@@ -136,6 +135,7 @@ def get_fees(transaction):
     """Get active fees."""
     query = select(FeeDB).where(FeeDB.active.is_(True))
     return transaction.scalars(query).all()
+
 
 def get_coproducer(transaction):
     """Get co producers."""

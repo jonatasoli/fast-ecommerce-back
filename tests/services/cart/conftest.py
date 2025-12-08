@@ -1,14 +1,14 @@
+# ruff: noqa: I001
 from typing import Any
 from pydantic import BaseModel, ConfigDict
 import pytest
 from app.cart.uow import MemoryUnitOfWork
 from app.cart import repository as cart_repository
 
-from app.infra.redis import MemoryCache
+from app.infra.redis import MemoryClient
 
 
 class Command(BaseModel):
-    """Command to use in the application."""
 
     db: Any
     uow: Any
@@ -23,7 +23,6 @@ class Command(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-
 async def bootstrap(  # noqa: PLR0913
     db: Any,
     uow: Any = None,
@@ -35,7 +34,6 @@ async def bootstrap(  # noqa: PLR0913
     user: Any = None,
     payment: Any = None,
 ) -> Command:
-    """Create a command function to use in the application."""
     return Command(
         db=db,
         uow=uow,
@@ -57,7 +55,7 @@ async def memory_bootstrap(mocker) -> Command:
         uow=MemoryUnitOfWork(),
         cart_repository=cart_repository,
         cart_uow=mock,
-        cache=MemoryCache(),
+        cache=MemoryClient(),
         message=mock,
         freight=mock,
         user=mock,

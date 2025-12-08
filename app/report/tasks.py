@@ -13,7 +13,7 @@ from app.report.services import create_sales_commission
 
 
 @task_message_bus.subscriber('sales_commission')
-async def task_create_sales_commission( # Noqa: PLR0913
+async def task_create_sales_commission(  # Noqa: PLR0913
     order_id: int,
     user_id: int,
     subtotal: Decimal,
@@ -24,10 +24,10 @@ async def task_create_sales_commission( # Noqa: PLR0913
     logger.info(f'Creating sales commission for order {order_id}')
     if not commission_percentage:
         logger.error(
-            f'''
+            f"""
                 Commission percentage is zero or not set for
                 Coupon {coupon_id=} and order {order_id=}',
-            ''',
+            """,
         )
         return
     await create_sales_commission(
@@ -46,10 +46,9 @@ def update_sales_commission(db: sessionmaker = get_session()):
 
 @task_message_bus.subscriber('inform_product_to_admin')
 def inform_product_to_admin(
-        admins: list[Any],
-        user_mail: str,
-        user_phone: str,
-        product_id: int,
-        product_name: str,
-) -> None:
-    ...
+    admins: list[Any],
+    user_mail: str,
+    user_phone: str,
+    product_id: int,
+    product_name: str,
+) -> None: ...

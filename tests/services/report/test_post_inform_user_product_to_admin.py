@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
@@ -8,17 +9,16 @@ from app.entities.report import InformUserProduct
 from app.report.services import notify_product_to_admin
 from app.report import repository as report_repository
 from tests.factories_db import (
-        CategoryFactory,
-        CreditCardFeeConfigFactory,
-        InformUserProductDBFactory,
-        ProductDBFactory,
+    CategoryFactory,
+    CreditCardFeeConfigFactory,
+    InformUserProductDBFactory,
+    ProductDBFactory,
 )
 
 
 @pytest.mark.asyncio
 async def test_input_to_user_admin(mocker, asyncdb):
-    """Should save inform in database."""
-    # Arrange
+    # Setup
     admin_emails = ['admin1@example.com', 'admin2@example.com']
     mock_get_admins = mocker.patch(
         'app.report.repository.get_admins',
@@ -68,7 +68,6 @@ async def test_input_to_user_admin(mocker, asyncdb):
         email='email@email.com',
         phone='1234567890',
         product_id=product.product_id,
-
     )
 
     # Act

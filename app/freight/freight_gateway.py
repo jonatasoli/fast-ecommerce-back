@@ -1,12 +1,12 @@
-from pydantic import BaseModel
-from app.entities.product import ProductInDB
+from pydantic import BaseModel  # noqa: I001
 
 from app.entities.freight import Freight, FreightPackage, calculate_package
+from app.entities.product import ProductInDB
 from app.infra.freight.correios_br import (
     PACKAGE_TYPE,
     DeliveryPriceParams,
-    calculate_delivery_time,
     calculate_delivery_price,
+    calculate_delivery_time,
 )
 from config import settings
 

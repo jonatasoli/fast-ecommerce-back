@@ -14,7 +14,9 @@ def database_uow():
                         transaction=inner_session,
                         **kwargs,
                     )
-                    await inner_session.session.commit()  # Comita a transação explicitamente
+                    await (
+                        inner_session.session.commit()
+                    )  # Comita a transação explicitamente
                     logger.info('Transaction committed')
             except SQLAlchemyError as e:
                 logger.error(f'Error in transaction: {e}')

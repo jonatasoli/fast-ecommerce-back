@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 from decimal import Decimal
 from typing import Any, Self, TYPE_CHECKING
-from loguru  import logger
+from loguru import logger
 from app.entities.coupon import CouponBase, CouponInDB
 
 from app.entities.product import ProductCart, ProductInDB
@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 def customer_not_found_exception():
     """Raise customer not found Error."""
     raise CustomerNotFoundError
+
 
 class AbstractUnitOfWork(abc.ABC):
     cart = repository.AbstractRepository
@@ -256,22 +257,19 @@ class MemoryUnitOfWork(AbstractUnitOfWork):
             coupon_fee=Decimal('10.00'),
         )
 
-    async def _get_address_by_id(self: Self, address_id: int) -> None:
-        ...
+    async def _get_address_by_id(self: Self, address_id: int) -> None: ...
 
     async def _create_address(
         self: Self,
         address: AddressBase,
         user_id: int,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     async def _update_payment_method_to_user(
         self: Self,
         user_id: int,
         payment_method: str,
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 @database_uow()
@@ -308,9 +306,9 @@ async def get_customer(
             payment_gateway=payment_gateway,
             transaction=transaction,
         )
-        logger.debug("Customer in")
+        logger.debug('Customer in')
         logger.debug(customer)
-    logger.debug("Customer out")
+    logger.debug('Customer out')
     logger.debug(customer)
     if not customer and payment_gateway != PaymentGatewayAvailable.CIELO.value:
         customer_not_found_exception()

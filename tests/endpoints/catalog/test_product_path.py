@@ -1,10 +1,16 @@
+# ruff: noqa: I001
 from fastapi import status
 from app.infra.database import get_async_session
 from main import app
 from httpx import ASGITransport, AsyncClient
 import pytest
 
-from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, InventoryDBFactory, ProductDBFactory
+from tests.factories_db import (
+    CategoryFactory,
+    CreditCardFeeConfigFactory,
+    InventoryDBFactory,
+    ProductDBFactory,
+)
 
 
 URL = '/catalog/category/products'
@@ -12,8 +18,7 @@ URL = '/catalog/category/products'
 
 @pytest.mark.asyncio
 async def test_with_product_list_only_category_path(asyncdb):
-    """Must return with category path ok."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory(path='test')
         config_fee = CreditCardFeeConfigFactory()
@@ -53,12 +58,12 @@ async def test_with_product_list_only_category_path(asyncdb):
     ) as client:
         app.dependency_overrides[get_async_session] = lambda: asyncdb
         response = await client.get(
-            f"{URL}/{category.path}",
-            params={"offset": 1, "page": 1 },
+            f'{URL}/{category.path}',
+            params={'offset': 1, 'page': 1},
         )
 
     # Assert
     assert response.status_code == status.HTTP_200_OK
-    assert response.json().get('products')[0].get('product_id') == product_db_1.product_id
-
-
+    assert (
+        response.json().get('products')[0].get('product_id') == product_db_1.product_id
+    )

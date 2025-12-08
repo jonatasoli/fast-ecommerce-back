@@ -1,7 +1,8 @@
-from app.infra.models import CategoryDB, CategoryMediaGalleryDB
-from app.entities.category import CategoryNotFoundError
+from sqlalchemy import delete, select
 from sqlalchemy.orm import SessionTransaction
-from sqlalchemy import select, delete
+
+from app.entities.category import CategoryNotFoundError
+from app.infra.models import CategoryDB, CategoryMediaGalleryDB
 
 
 async def get_categories(
@@ -17,6 +18,7 @@ async def get_categories(
     if showcase:
         categorys_query = categorys_query.where(CategoryDB.showcase is True)
     return await transaction.session.scalars(categorys_query)
+
 
 async def get_category_by_id(
     category_id: int,

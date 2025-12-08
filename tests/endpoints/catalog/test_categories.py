@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from fastapi import status
 from app.infra.database import get_async_session
 from main import app
@@ -12,7 +13,6 @@ URL = '/catalog/categories'
 
 @pytest.mark.asyncio
 async def test_empty_data_should_return_200(asyncdb):
-    """Must return empty list."""
     # Act
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -26,10 +26,10 @@ async def test_empty_data_should_return_200(asyncdb):
     # Assert
     assert response.status_code == status.HTTP_200_OK
 
+
 @pytest.mark.asyncio
 async def test_with_categories_list(asyncdb):
-    """Must return with cateory is added."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -48,6 +48,6 @@ async def test_with_categories_list(asyncdb):
 
     # Assert
     assert response.status_code == status.HTTP_200_OK
-    assert response.json().get('categories')[0].get('category_id') == category.category_id
-
-
+    assert (
+        response.json().get('categories')[0].get('category_id') == category.category_id
+    )

@@ -9,6 +9,6 @@ CLS = TypeVar('CLS')
 class Base:
     # Generate __tablename__ automatically
     @declared_attr
-    def __tablename__(cls) -> str:   # noqa: N805
+    def __tablename__(cls) -> str:  # noqa: N805
         """Generate __tablename__ automatically."""
         return cls.__name__.lower()

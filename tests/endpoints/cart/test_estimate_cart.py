@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from app.infra.database import get_async_session
 from main import app
 from httpx import ASGITransport, AsyncClient
@@ -23,8 +24,7 @@ URL = '/cart'
 
 @pytest.mark.asyncio
 async def test_estimate_products_in_cart(asyncdb, redis_client) -> None:
-    """Must add product in new cart and return cart."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -97,7 +97,4 @@ async def test_estimate_products_in_cart(asyncdb, redis_client) -> None:
     return_cart_items = response.json()['cart_items']
     assert return_uuid == uuid
     assert len(return_cart_items) == 2
-    assert (
-        response.json()['subtotal'].split('.')[0]
-        == str(cart.subtotal).split('.')[0]
-    )
+    assert response.json()['subtotal'].split('.')[0] == str(cart.subtotal).split('.')[0]

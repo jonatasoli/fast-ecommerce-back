@@ -1,11 +1,11 @@
+# ruff: noqa: I001
 from sqlalchemy import select
 from app.infra.models import UploadedMediaDB
 from tests.factories_db import UploadedMediaFactory
 
 
 def test_create_media(session):
-    """Must create valid media."""
-    # Arrange
+    # Setup
     new_image = UploadedMediaFactory()
     session.add(new_image)
     session.commit()

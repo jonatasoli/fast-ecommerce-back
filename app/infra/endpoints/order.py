@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from fastapi import APIRouter, Depends, status
 from fastapi.routing import get_websocket_app
 from loguru import logger
@@ -21,6 +22,8 @@ from app.entities.order import (
     OrderInDB,
 )
 from fastapi.security import OAuth2PasswordBearer
+from typing import Annotated
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 order = APIRouter(
@@ -31,14 +34,15 @@ order = APIRouter(
 
 @order.get(
     '/orders',
-    summary="Get all orders",
+    summary='Get all orders',
     status_code=status.HTTP_200_OK,
-     tags=["admin"],
- )
+    tags=['admin'],
+)
 async def get_orders(
+    *,
     page: int = 1,
     offset: int = 10,
-    db: Session = Depends(get_session),
+    db: Annotated[Session, Depends(get_session)],
 ):
     """## [ADMIN] Get orders paid.
 
@@ -52,10 +56,11 @@ async def get_orders(
     except Exception:
         raise
 
+
 @order.get('/user/{user_id}', status_code=200)
 async def get_user_order(
     *,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
     user_id: int,
 ) -> list[OrderUserListResponse]:
     """Get order."""
@@ -65,10 +70,11 @@ async def get_user_order(
         logger.error(e)
         raise
 
+
 @order.get('/{order_id}', status_code=200)
 async def get_order(
     *,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
     order_id: int,
 ) -> OrderInDB:
     """Get order."""
@@ -83,7 +89,7 @@ async def get_order(
 async def patch_order(
     *,
     order_id: int,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> None:
     """Patch order."""
 
@@ -91,13 +97,13 @@ async def patch_order(
 @order.put('/{order_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def complete_order(
     order_id: int,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Session, Depends(get_async_session)],
 ) -> None:
     """Patch order."""
     await verify_admin(token, db=db)
     try:
-        return await services.complete_order(order_id,db=db)
+        return await services.complete_order(order_id, db=db)
     except Exception:
         raise
 
@@ -105,7 +111,7 @@ async def complete_order(
 @order.delete('/{order_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_order(
     *,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
     cancel_reason: CancelOrder,
     order_id: int,
 ) -> None:
@@ -120,8 +126,8 @@ async def delete_order(
 async def tracking_number(
     order_id: int,
     tracking: TrackingFullResponse,
-    token: str = Depends(oauth2_scheme),
-    db: async_sessionmaker = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[async_sessionmaker, Depends(get_async_session)],
 ) -> None:
     """Patch trancking number."""
     _ = token
@@ -142,7 +148,7 @@ async def tracking_number(
 async def post_trancking_number(
     id: int,
     check: bool,
-    db = Depends(get_db),
+    db=Depends(get_db),
 ) -> int:
     """Post trancking number."""
     try:
@@ -154,7 +160,7 @@ async def post_trancking_number(
 @order.post('/create_order', status_code=200)
 async def create_order(
     *,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
     order_data: OrderSchema,
 ) -> None:
     """Create order."""
@@ -162,7 +168,7 @@ async def create_order(
 
 
 @order.post('/update-payment-and-order-status', status_code=200)
-def order_status(db: sessionmaker = Depends(get_session)) -> dict:
+def order_status(db: Annotated[sessionmaker, Depends(get_session)]) -> dict:
     """Order status."""
     with db() as session:
         orders = session.scalars(
@@ -200,10 +206,7 @@ def status_paid() -> None:
     gateway = status_pending()
     data = order_status()
     logger.debug(gateway.get('status'))
-    if (
-        gateway.get('status') == 'paid'
-        and data.get('order_status') == 'pending'
-    ):
+    if gateway.get('status') == 'paid' and data.get('order_status') == 'pending':
         logger.debug(data)
         data['order_status'] = OrderStatus.PAYMENT_PAID.value
         logger.debug(data)

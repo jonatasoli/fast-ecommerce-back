@@ -1,5 +1,7 @@
 from fastapi import Depends
+from loguru import logger
 from sqlalchemy.orm import sessionmaker
+
 from app.entities.mail import (
     MailOrderCancelled,
     MailOrderPaied,
@@ -8,6 +10,7 @@ from app.entities.mail import (
     MailTrackingNumber,
 )
 from app.infra.database import get_session
+from app.infra.worker import task_message_bus
 from app.mail.services import (
     send_mail_reset_password,
     send_mail_tracking_number,
@@ -15,8 +18,6 @@ from app.mail.services import (
     send_order_paid,
     send_order_processed,
 )
-from app.infra.worker import task_message_bus
-from loguru import logger
 
 
 @task_message_bus.subscriber('notification_order_cancelled')

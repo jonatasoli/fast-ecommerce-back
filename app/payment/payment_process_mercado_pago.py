@@ -17,7 +17,6 @@ async def payment_process(
     payment,
     cache_cart,
     bootstrap,
-
 ):
     """Payment Process Mercado pago."""
     logger.debug(payment.payment_gateway)
@@ -37,7 +36,7 @@ async def payment_process(
             customer=customer,
             cache_cart=cache_cart,
         )
-    elif payment_method  == PaymentMethod.CREDIT_CARD.value:
+    elif payment_method == PaymentMethod.CREDIT_CARD.value:
         cart = await create_payment_credit_card(
             payment,
             user=user,
@@ -51,7 +50,6 @@ async def payment_process(
     return cart
 
 
-
 async def create_payment_pix(
     payment,
     *,
@@ -59,7 +57,7 @@ async def create_payment_pix(
     user,
     customer,
     cache_cart,
-    client = mercadopago_gateway,
+    client=mercadopago_gateway,
 ):
     if not isinstance(
         payment,
@@ -67,9 +65,7 @@ async def create_payment_pix(
     ):
         raise PaymentDataInvalidError
 
-    description = " ".join(
-        item.name for item in cache_cart.cart_items if item.name
-    )
+    description = ' '.join(item.name for item in cache_cart.cart_items if item.name)
 
     _payment = client.create_pix(
         customer.customer_uuid,
@@ -78,9 +74,7 @@ async def create_payment_pix(
         amount=int(cache_cart.total),
     )
     qr_code = _payment.point_of_interaction.transaction_data.qr_code
-    qr_code_base64 = (
-        _payment.point_of_interaction.transaction_data.qr_code_base64
-    )
+    qr_code_base64 = _payment.point_of_interaction.transaction_data.qr_code_base64
     payment_id = _payment.id
     return CartPayment(
         **cache_cart.model_dump(),
@@ -93,6 +87,7 @@ async def create_payment_pix(
         payment_method_id=str(payment_id),
     )
 
+
 async def create_payment_credit_card(
     payment,
     *,
@@ -100,7 +95,7 @@ async def create_payment_credit_card(
     customer,
     cache_cart,
     db,
-    client = mercadopago_gateway,
+    client=mercadopago_gateway,
 ):
 
     payment_method_id = None

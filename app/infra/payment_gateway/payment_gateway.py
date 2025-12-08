@@ -25,6 +25,7 @@ def create_customer_in_gateway(
         )
     return customers
 
+
 def create_method_credit_card(
     *,
     payment_intent_id: str,
@@ -80,7 +81,9 @@ def create_credit_card_payment(
 ) -> dict:
     """Create a credit card payment intent in gateway."""
     gateway = PaymentGatewayCommmand[payment_gateway].value
-    logger.debug(f'{payment_gateway}, {customer_id}, {card_token}, {installments}, {payment_intent_id}, {payment_method}')
+    logger.debug(
+        f'{payment_gateway}, {customer_id}, {card_token}, {installments}, {payment_intent_id}, {payment_method}',
+    )
     return gateway.create_credit_card_payment(
         payment_intent_id=payment_intent_id,
         customer_id=customer_id,
@@ -135,7 +138,7 @@ def create_payment_intent(
     customer_id: str,
     payment_method: str,
     installments: int,
-    ):
+):
     """Create payment intent for stripe."""
     gateway = PaymentGatewayCommmand['STRIPE'].value
     return gateway.create_payment_intent(
@@ -144,8 +147,7 @@ def create_payment_intent(
         customer_id=customer_id,
         payment_method=payment_method,
         installments=installments,
-
-        )
+    )
 
 
 def cancel_payment(

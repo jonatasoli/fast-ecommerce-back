@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import io
 import json
 import datetime as dt

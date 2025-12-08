@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from decimal import Decimal
 from unittest.mock import Mock
 from uuid import UUID
@@ -19,7 +20,6 @@ def create_product_cart(
     available_quantity: int = 10,
     discount_price: Decimal = Decimal(0),
 ) -> ProductCart:
-    """Must create product in db."""
     return ProductCart(
         name=fake.name(),
         image_path=fake_url_path(),
@@ -36,8 +36,7 @@ async def test_add_product_to_new_cart(
     mocker: MockerFixture,
     asyncdb,
 ) -> None:
-    """Must add product to new cart and return cart_id."""
-    # Arrange
+    # Setup
     product = create_product_cart()
     productdb = ProductDBFactory(product_id=1, discount=0)
     productdb.quantity = 10
@@ -66,8 +65,7 @@ async def test_add_product_to_new_cart_should_set_in_cache(
     mocker: MockerFixture,
     asyncdb,
 ) -> None:
-    """Must add product to new cart and set cart in cache."""
-    # Arrange
+    # Setup
     product = create_product_cart()
     productdb = ProductDBFactory(product_id=1, discount=0)
     productdb.quantity = 10
@@ -97,8 +95,7 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
     mocker: MockerFixture,
     asyncdb,
 ) -> None:
-    """Must add product to current cart and calc subtotal."""
-    # Arrange
+    # Setup
     current_product = create_product_cart(
         product_id=2,
         quantity=1,
@@ -157,8 +154,7 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
     mocker: MockerFixture,
     asyncdb,
 ) -> None:
-    """Must add product to current cart and calc subtotal."""
-    # Arrange
+    # Setup
     cart_items = []
     first_product = create_product_cart(
         product_id=2,
@@ -190,7 +186,7 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
         showcase=False,
         show_discount=False,
     )
-    productdb_2.quantity=10
+    productdb_2.quantity = 10
 
     bootstrap = memory_bootstrap
     bootstrap.db = get_async_session()

@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+
 from pydantic import BaseModel, ConfigDict, SecretStr
 
 from app.entities.payment import PaymentInDB
@@ -7,12 +8,10 @@ from app.entities.product import ProductInDB
 from app.entities.user import UserInDB
 
 
-class OrderNotFoundError(Exception):
-    ...
+class OrderNotFoundError(Exception): ...
 
 
-class CreateOrderStatusStepError(Exception):
-    ...
+class CreateOrderStatusStepError(Exception): ...
 
 
 class OrderDBUpdate(BaseModel):
@@ -69,7 +68,6 @@ class OrderResponse(BaseModel):
     offset: int
     total_pages: int
     total_records: int
-
 
 
 #!TODO - Legacy

@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from decimal import Decimal
 from unittest.mock import Mock
 from uuid import UUID
@@ -18,8 +19,7 @@ async def test_estimate_cart_with_product(
     mocker: MockerFixture,
     asyncdb,
 ) -> None:
-    """Should return valid cart."""
-    # Arrange
+    # Setup
     cart_items = []
     product_1 = create_product_cart()
     product_2 = create_product_cart(product_id=2)
@@ -86,8 +86,7 @@ async def test_estimate_cart_with_coupon_discount(
     mocker: MockerFixture,
     asyncdb,
 ) -> None:
-    """Should return valid cart."""
-    # Arrange
+    # Setup
     cart_items = []
     product_1 = create_product_cart()
     product_2 = create_product_cart(product_id=2)
@@ -97,7 +96,7 @@ async def test_estimate_cart_with_coupon_discount(
 
     productdb_1 = ProductDBFactory(product_id=1, discount=Decimal('0'))
     productdb_2 = ProductDBFactory(product_id=2, discount=Decimal('0'))
-    bootstrap =  memory_bootstrap
+    bootstrap = memory_bootstrap
     mocker.patch.object(
         bootstrap.uow,
         'get_product_by_id',

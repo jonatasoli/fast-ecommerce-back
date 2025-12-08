@@ -37,8 +37,8 @@ from app.infra.endpoints.report import report
 from app.infra.endpoints.coupon import coupon
 from app.infra.endpoints.settings import settings as settingsconfig
 from app.mail.tasks import task_message_bus
-from app.cart.tasks import task_message_bus # noqa: F811
-from app.report.tasks import task_message_bus # noqa: F811
+from app.cart.tasks import task_message_bus  # noqa: F811
+from app.report.tasks import task_message_bus  # noqa: F811
 from app.entities.product import ProductNotFoundError, ProductSoldOutError
 
 from opentelemetry import trace
@@ -55,16 +55,18 @@ class InterceptHandler(logging.Handler):
     def emit(self, record):
         logger_opt = logger.opt(depth=6, exception=record.exc_info)
         logger_opt.log(record.levelno, record.getMessage())
+
+
 logging.getLogger('opentelemetry').setLevel(logging.DEBUG)
 resource = Resource.create({
-    "service.name": "api-gattorosa",
+    'service.name': 'api-gattorosa',
 })
 
 trace.set_tracer_provider(TracerProvider(resource=resource))
 jaeger_exporter = None
 if settings.ENVIRONMENT == 'production':
     jaeger_exporter = JaegerExporter(
-        collector_endpoint=f"http://{settings.SENTRY_DSN}:14268/api/traces",
+        collector_endpoint=f'http://{settings.SENTRY_DSN}:14268/api/traces',
     )
     logger.info('✅ Jaeger HTTP exporter configured')
     trace.get_tracer_provider().add_span_processor(
@@ -216,6 +218,7 @@ async def user_dont_match_with_coupon(
         },
     )
 
+
 @app.exception_handler(CouponLimitPriceError)
 async def coupon_limit_error(
     _: Request,
@@ -354,5 +357,6 @@ def create_app():
     #     payment,
     FastAPIInstrumentor.instrument_app(app)
     return app
+
 
 FastAPIInstrumentor.instrument_app(app)

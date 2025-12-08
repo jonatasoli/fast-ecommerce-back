@@ -84,8 +84,8 @@ opentelemetry-distro = "^0.45b0"
 opentelemetry-exporter-otlp = "^1.24.0"
 
 [tool.ruff]
-lint.select = ["A", "B", "C", "E", "F", "G", "N", "S", "T", "W", "C4", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
-lint.fixable = ["A", "B", "C", "E", "F", "G", "N", "S", "T", "W", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP"]
+lint.select = ["A", "B", "C", "E", "F", "G", "I", "N", "S", "T", "W", "C4", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "FAST", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY"]
+lint.fixable = ["A", "B", "C", "E", "F", "G", "N", "S", "T", "W", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "FAST", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY"]
 lint.unfixable = []
 lint.ignore = ["B008"]
 src = ["app", "tests"]
@@ -155,7 +155,6 @@ asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "ignore:.*@wait_container_is_ready.*:DeprecationWarning",
     "ignore:.*testcontainers.*:DeprecationWarning",
-    "default::sqlalchemy.exc.SAWarning",
 ]
 
 [tool.coverage.run]

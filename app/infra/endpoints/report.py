@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from requests.models import HTTPError
 from app.entities.user import UserNotAdminError
 from fastapi import APIRouter, Depends, status
@@ -13,6 +14,7 @@ from app.entities.report import (
     UserSalesCommissions,
 )
 from app.user import services as domain_user
+from typing import Annotated, Any
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 
@@ -27,22 +29,22 @@ report = APIRouter(
     summary='Get user sales commissions',
     description='Return sales commissions to user is filter sales or not paid sales',
     status_code=status.HTTP_200_OK,
-    response_model=UserSalesCommissions,
 )
 async def get_user_sales_commissions(
     *,
     paid: bool = False,
     released: bool = False,
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
-) -> list[CommissionInDB | None]:
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Any, Depends(get_async_session)],
+) -> UserSalesCommissions:
     """Get report sales comissions."""
     async with db() as session:
         user = await domain_user.get_affiliate_by_token(token, db=session)
         return await services.get_user_sales_commissions(
             user=user,
             paid=paid,
-            released=released, db=session,
+            released=released,
+            db=session,
         )
 
 
@@ -51,14 +53,13 @@ async def get_user_sales_commissions(
     summary='Get all users sales commissions',
     description='Commissions to all users with filter sales or not paid sales',
     status_code=status.HTTP_200_OK,
-    response_model=UserSalesCommissions,
 )
 async def get_sales_commissions(
     *,
     paid: bool = False,
     released: bool = False,
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Any, Depends(get_async_session)],
 ) -> UserSalesCommissions:
     """Get report sales comissions."""
     await domain_user.verify_admin(token, db=db)
@@ -77,10 +78,10 @@ async def get_sales_commissions(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def inform_product_user(
-        *,
-        inform: InformUserProduct,
-        token: str = Depends(oauth2_scheme),
-        db = Depends(get_async_session),
+    *,
+    inform: InformUserProduct,
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Any, Depends(get_async_session)],
 ):
     """Get user and product and inform admins."""
     async with db() as session:

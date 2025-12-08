@@ -1,16 +1,15 @@
 import abc
 from typing import Any, Self
+
 from loguru import logger
 from pydantic import TypeAdapter
-
 from sqlalchemy import func, select
-from sqlalchemy.orm import SessionTransaction, lazyload
-from app.entities.address import AddressBase
-from app.entities.product import ProductNotFoundError
 from sqlalchemy.exc import NoResultFound
-from app.entities.coupon import CouponNotFoundError
-from app.entities.product import ProductInDB
+from sqlalchemy.orm import SessionTransaction, lazyload
 
+from app.entities.address import AddressBase
+from app.entities.coupon import CouponNotFoundError
+from app.entities.product import ProductInDB, ProductNotFoundError
 from app.infra import models
 
 
@@ -389,8 +388,7 @@ async def get_installment_fee(
     try:
         return await transaction.session.scalar(
             select(models.CreditCardFeeConfigDB).where(
-                models.CreditCardFeeConfigDB.credit_card_fee_config_id
-                == fee_config,
+                models.CreditCardFeeConfigDB.credit_card_fee_config_id == fee_config,
             ),
         )
     except Exception as e:
@@ -418,12 +416,14 @@ async def _get_coupon_by_code(
     except NoResultFound as nrf:
         raise CouponNotFoundError from nrf
 
+
 async def get_product_by_id(
     product_id: int,
     transaction,
 ):
     """Must return a product by id."""
-    product_query = select(
+    product_query = (
+        select(
             models.ProductDB.product_id,
             models.ProductDB.name,
             models.ProductDB.uri,
@@ -449,14 +449,19 @@ async def get_product_by_id(
             func.coalesce(func.sum(models.InventoryDB.quantity), 0).label(
                 'quantity',
             ),
-    ).options(lazyload('*')).outerjoin(
-        models.InventoryDB,
-        models.ProductDB.product_id == models.InventoryDB.product_id,
-        ).where(
-        models.ProductDB.product_id == product_id,
-        ).group_by(
-        models.ProductDB.product_id,
         )
+        .options(lazyload('*'))
+        .outerjoin(
+            models.InventoryDB,
+            models.ProductDB.product_id == models.InventoryDB.product_id,
+        )
+        .where(
+            models.ProductDB.product_id == product_id,
+        )
+        .group_by(
+            models.ProductDB.product_id,
+        )
+    )
     product = await transaction.session.execute(product_query)
     adapter = TypeAdapter(ProductInDB)
     product = adapter.validate_python(product.first())
@@ -470,13 +475,12 @@ async def update_payment_method_to_user(
     payment_method: str,
     transaction,
 ):
-        user = await transaction.session.scalar(
-            select(models.UserDB).where(models.UserDB.user_id == user_id),
-        )
-        if not user:
-            msg = f'No user with id {user_id}'
-            raise UserNotFoundError(msg)
+    user = await transaction.session.scalar(
+        select(models.UserDB).where(models.UserDB.user_id == user_id),
+    )
+    if not user:
+        msg = f'No user with id {user_id}'
+        raise UserNotFoundError(msg)
 
-        user.payment_method = payment_method
-        return user
-
+    user.payment_method = payment_method
+    return user

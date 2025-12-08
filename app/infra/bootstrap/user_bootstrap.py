@@ -19,7 +19,6 @@ class Command(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-
 async def bootstrap(
     db: sessionmaker = get_session(),
     user_uow: Any = user_uow,

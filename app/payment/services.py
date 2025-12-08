@@ -1,19 +1,21 @@
 from contextlib import suppress
+from typing import Any
+
+from faststream.rabbit import RabbitQueue
+from loguru import logger
+
 from app.entities.payment import (
     PaymentInDB,
     PaymentNotFoundError,
     PaymentStatusResponse,
 )
-
-from faststream.rabbit import RabbitQueue
-from typing import Any
-from loguru import logger
 from app.infra.constants import PaymentGatewayAvailable
 from app.infra.database import get_async_session
+from app.infra.payment_gateway import payment_gateway
 from app.infra.payment_gateway.mercadopago_gateway import PaymentStatusError
 from app.payment import repository
 from app.report import repository as report_repository
-from app.infra.payment_gateway import payment_gateway
+
 
 async def update_payment(
     payment_data,
@@ -24,8 +26,8 @@ async def update_payment(
     logger.debug(f'Data Payment {payment_data}')
     payment_data = await payment_data.json()
     logger.debug(f'Data Payment ID {payment_data}')
-    logger.debug(f'Data Payment ID {payment_data.get('data')}')
-    logger.debug(f'Data Payment ID {payment_data.get('id')}')
+    logger.debug(f'Data Payment ID {payment_data.get("data")}')
+    logger.debug(f'Data Payment ID {payment_data.get("id")}')
     try:
         payment = bootstrap.payment.get_payment_status(
             payment_id=payment_data.get('id'),
@@ -117,7 +119,6 @@ async def get_payment_gateway_status(
     payment = payment_gateway.get_payment_status(
         payment_id=gateway_payment_id,
         payment_gateway=PaymentGatewayAvailable.MERCADOPAGO.value,
-
     )
     if not payment:
         raise PaymentNotFoundError

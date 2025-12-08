@@ -1,5 +1,6 @@
+# ruff: noqa: I001
 from datetime import timedelta
-from typing import Any
+from typing import Any, Annotated
 
 from app.infra.worker import task_message_bus
 
@@ -11,7 +12,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.entities.user import (
     UserCouponResponse,
     UserFilters,
-    UserInDB, UserSchema,
+    UserInDB,
+    UserSchema,
     UserUpdate,
     UsersDBResponse,
 )
@@ -53,14 +55,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
     summary='Get user affiliate coupons',
     description='Return coupons to affiliated user',
     status_code=status.HTTP_200_OK,
-    response_model=UserCouponResponse,
 )
 async def get_affiliate_user(
     *,
     # TODO : uncomment when remove the mock
     request: Request,
-    token: str = Depends(oauth2_scheme),  # noqa: ERA001
-    db: Session = Depends(get_session),
+    token: Annotated[str, Depends(oauth2_scheme)],  # noqa: ERA001
+    db: Annotated[Session, Depends(get_session)],
 ) -> UserCouponResponse:
     """Get user."""
     user = services.get_affiliate(token, db=db)
@@ -76,21 +77,20 @@ async def get_affiliate_user(
 @user.post(
     '/signup',
     status_code=status.HTTP_201_CREATED,
-    response_model=SignUpResponse,
 )
 def signup(
     *,
-    db = Depends(get_session),
+    db=Depends(get_session),
     user_in: SignUp,
 ) -> SignUpResponse:
     """Signup."""
     return services.create_user(db, obj_in=user_in)
 
 
-@user.post('/token', response_model=Token)
+@user.post('/token')
 async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_session),
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Annotated[Session, Depends(get_session)],
 ) -> dict[str, str | Any]:
     """Login for access token."""
     user = services.authenticate_user(
@@ -123,11 +123,11 @@ async def login_for_access_token(
 async def verify_token_is_valid(
     *,
     req: Request,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> None:
     """Check for access token is valid."""
     _ = db
-    if token := req.headers.get('authorization'):   # noqa: SIM102
+    if token := req.headers.get('authorization'):  # noqa: SIM102
         if token.split()[1] != 'undefined':
             logger.info(token)
             return
@@ -137,12 +137,11 @@ async def verify_token_is_valid(
 @user.get(
     '/{document}',
     status_code=status.HTTP_200_OK,
-    response_model=UserSchema,
 )
 async def get_user(
     document: str,
-    token: str = Depends(oauth2_scheme),
-    db: sessionmaker = Depends(get_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[sessionmaker, Depends(get_session)],
 ) -> UserSchema:
     """Get user."""
     _document = document
@@ -152,7 +151,7 @@ async def get_user(
 @user.post('/request-reset-password', status_code=status.HTTP_204_NO_CONTENT)
 async def request_reset_password(
     document: str,
-    db: sessionmaker = Depends(get_session),
+    db: Annotated[sessionmaker, Depends(get_session)],
 ) -> None:
     """Request reset password."""
     message = task_message_bus
@@ -163,7 +162,7 @@ async def request_reset_password(
 async def reset_password(
     response_model: UserResponseResetPassword,
     token: str,
-    db: sessionmaker = Depends(get_session),
+    db: Annotated[sessionmaker, Depends(get_session)],
 ) -> None:
     """Reset password."""
     services.reset_password(token, db=db, data=response_model)
@@ -171,55 +170,56 @@ async def reset_password(
 
 @user.patch(
     '/{user_id}',
-    response_model=UserInDB,
     status_code=status.HTTP_200_OK,
 )
 async def update_user(
     user_id: int,
     user_update: UserUpdate,
-    token: str = Depends(oauth2_scheme),
-    db: sessionmaker = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[sessionmaker, Depends(get_async_session)],
 ) -> UserInDB:
     """Update user."""
     await services.verify_admin(
-        token=token, db=db,
+        token=token,
+        db=db,
     )
     return await services.update_user(
         user_id,
         update_user=user_update,
         db=db,
-
     )
+
 
 @user.get(
     '/{user_id}',
     status_code=status.HTTP_200_OK,
-    response_model=UserInDB,
 )
 async def get_user_by_id(
     user_id: int,
-    token: str = Depends(oauth2_scheme),
-    db: sessionmaker = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[sessionmaker, Depends(get_async_session)],
 ) -> UserInDB:
     """Get user."""
     await services.verify_admin(
-        token=token, db=db,
+        token=token,
+        db=db,
     )
     return await services.get_user_by_id(user_id, db=db)
+
 
 @users.get(
     '/',
     status_code=status.HTTP_200_OK,
-    response_model= UsersDBResponse,
 )
 async def get_users(
-    token: str = Depends(oauth2_scheme),
-    filters: UserFilters = Depends(UserFilters),
-    db: sessionmaker = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    filters: Annotated[UserFilters, Depends(UserFilters)],
+    db: Annotated[sessionmaker, Depends(get_async_session)],
 ) -> UsersDBResponse:
     """Get user."""
     await services.verify_admin(
-        token=token, db=db,
+        token=token,
+        db=db,
     )
     async with db().begin() as transaction:
         return await repository.get_users(
@@ -231,15 +231,15 @@ async def get_users(
 @users.get(
     '/affiliate',
     status_code=status.HTTP_200_OK,
-    response_model= UsersDBResponse,
 )
 async def get_affiliate_users(
-    token: str = Depends(oauth2_scheme),
-    db: sessionmaker = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[sessionmaker, Depends(get_async_session)],
 ) -> UsersDBResponse:
     """Get user."""
     await services.verify_admin(
-        token=token, db=db,
+        token=token,
+        db=db,
     )
     async with db().begin() as transaction:
         return await repository.get_affiliate_users(

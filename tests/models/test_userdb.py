@@ -1,11 +1,11 @@
+# ruff: noqa: I001
 from sqlalchemy import select
 from app.infra.models import UserDB
 from tests.factories_db import UserDBFactory
 
 
 def test_create_user(session):
-    """Must create valid user."""
-    # Arrange
+    # Setup
     new_user = UserDBFactory()
     session.add(new_user)
     session.commit()

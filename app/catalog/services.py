@@ -2,21 +2,21 @@ from collections.abc import Callable
 from typing import Any
 
 from fastapi import UploadFile
-from sqlalchemy import select, delete
+from loguru import logger
+from sqlalchemy import delete, select
 
+from app.catalog import repository as catalog_repository
 from app.entities.catalog import (
     Categories,
-     Category,
-      CategoryCreate,
-       CategoryResponse,
-        CategoryUpdate,
+    Category,
+    CategoryCreate,
+    CategoryResponse,
+    CategoryUpdate,
 )
-from app.catalog import repository as catalog_repository
 from app.entities.category import CategoryMediaNotFoundError, CategoryNotFoundError
 from app.infra import file_upload
 from app.infra.constants import MediaType
 from app.infra.models import CategoryMediaGalleryDB, UploadedMediaDB
-from loguru import logger
 
 
 async def get_categories_by_filter(

@@ -1,7 +1,8 @@
 from typing import Any
-from fastapi import Depends
 
+from fastapi import Depends
 from loguru import logger
+
 from app.entities.cart import CartPayment
 from app.infra.bootstrap.task_bootstrap import Command, bootstrap
 from app.infra.constants import PaymentGatewayAvailable
@@ -13,7 +14,7 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
-async def create_pending_payment( #Noqa: PLR0913
+async def create_pending_payment(  # Noqa: PLR0913
     order_id: int,
     *,
     cart: CartPayment,
@@ -37,7 +38,7 @@ async def create_pending_payment( #Noqa: PLR0913
     )
 
 
-async def update_payment( #Noqa: PLR0913
+async def update_payment(  # Noqa: PLR0913
     payment_id: int,
     payment_status: str,
     authorization: str,

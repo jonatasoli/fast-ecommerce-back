@@ -47,8 +47,8 @@ class InventoryDB(Base):
     inventory_id: Mapped[int] = mapped_column(primary_key=True)
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
     product: Mapped['ProductDB'] = relationship(
-        "ProductDB",
-        back_populates="inventory",
+        'ProductDB',
+        back_populates='inventory',
     )
     order_id: Mapped[int | None] = mapped_column(ForeignKey('order.order_id'))
     order = relationship(
@@ -86,7 +86,7 @@ class ProductDB(Base):
         uselist=False,
         lazy='joined',
     )
-    inventory = relationship("InventoryDB", back_populates="product")
+    inventory = relationship('InventoryDB', back_populates='product')
     showcase: Mapped[bool] = mapped_column(default=False)
     feature: Mapped[bool] = mapped_column(default=False, server_default='0')
     show_discount: Mapped[bool] = mapped_column(default=False)
@@ -211,12 +211,12 @@ class OrderDB(Base):
         cascade='all,delete',
         foreign_keys='OrderItemsDB.order_id',
         lazy='joined',
-        overlaps="order_items",
+        overlaps='order_items',
     )
     payment: Mapped['PaymentDB'] = relationship(
         'PaymentDB',
         foreign_keys=[PaymentDB.order_id],
-        back_populates="order",
+        back_populates='order',
         uselist=False,
         lazy='joined',
     )
@@ -229,11 +229,11 @@ class OrderItemsDB(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey('order.order_id'))
     order = relationship(
         'OrderDB',
-        backref=backref('order_items', overlaps="items,orders"),
+        backref=backref('order_items', overlaps='items,orders'),
         cascade='all,delete',
         foreign_keys=[order_id],
         lazy='joined',
-        overlaps="orders, items",
+        overlaps='orders, items',
     )
     product_id: Mapped[int] = mapped_column(ForeignKey('product.product_id'))
     product = relationship(
@@ -448,7 +448,7 @@ class SettingsDB(Base):
     value: Mapped[Json] = mapped_column(JSON)
     credentials: Mapped[str | None]
     description: Mapped[str | None]
-    is_active: Mapped[bool] =  mapped_column(default=True)
+    is_active: Mapped[bool] = mapped_column(default=True)
     is_default: Mapped[bool] = mapped_column(default=False)
 
 
@@ -462,6 +462,7 @@ class InformUserProductDB(Base):
     product_name: Mapped[str]
     sended: Mapped[bool]
 
+
 class FeeDB(Base):
     __tablename__ = 'fees'
 
@@ -470,6 +471,7 @@ class FeeDB(Base):
     fee_type: Mapped[str]
     value: Mapped[Decimal]
     active: Mapped[bool] = mapped_column(default=True)
+
 
 class CoProducerFeeDB(Base):
     __tablename__ = 'co_producer_fees'

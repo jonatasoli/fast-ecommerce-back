@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from collections.abc import Callable
 from fastapi import UploadFile
 from loguru import logger
@@ -21,6 +22,7 @@ def product_not_found_exception():
     """Product not found."""
     raise ProductNotFoundError
 
+
 async def upload_image(
     product_id: int,
     *,
@@ -39,11 +41,13 @@ async def upload_image(
         await transaction.session.commit()
     return db_product.image_path
 
+
 async def get_inventory(token, *, page, offset, db, verify_admin=verify_admin):
     """Get products inventory."""
     await verify_admin(token, db=db)
     async with db().begin() as transaction:
         return await repository.get_inventory(transaction, page=page, offset=offset)
+
 
 async def get_inventory_name(path, *, currency, page, offset, db):
     """Get products inventory."""
@@ -54,7 +58,8 @@ async def get_inventory_name(path, *, currency, page, offset, db):
             name=path,
             page=page,
             offset=offset,
-    )
+        )
+
 
 async def inventory_transaction(product_id: int, *, inventory, token, db):
     """Add product transaction."""
@@ -124,7 +129,7 @@ async def upload_media_gallery(
         db_media_upload = UploadedMediaDB(
             type=media_type,
             uri=media_path,
-            order= order,
+            order=order,
         )
         transaction.session.add(db_media_upload)
         await transaction.session.flush()
@@ -142,10 +147,10 @@ async def upload_media_gallery(
 
 
 async def delete_media_gallery(
-        product_id: int,
-        *,
-        media_id: int,
-        db,
+    product_id: int,
+    *,
+    media_id: int,
+    db,
 ) -> None:
     """Delete image galery."""
     async with db().begin() as transaction:
@@ -174,5 +179,3 @@ async def get_media_gallery(uri: str, *, db) -> list[UploadedMediaInDBResponse]:
         )
         adapter = TypeAdapter(list[UploadedMediaInDBResponse])
         return adapter.validate_python(media_db.all())
-
-

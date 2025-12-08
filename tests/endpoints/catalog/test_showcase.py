@@ -1,24 +1,28 @@
-
+# ruff: noqa: I001
 from fastapi import status
 import pytest
 
-from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, InventoryDBFactory, ProductDBFactory
+from tests.factories_db import (
+    CategoryFactory,
+    CreditCardFeeConfigFactory,
+    InventoryDBFactory,
+    ProductDBFactory,
+)
 
 
 URL = '/catalog'
 
 
 def test_empty_data_should_return_200(client):
-    """Must return empty list."""
     # Act
     response = client.get(f'{URL}/showcase/all')
 
     # Assert
     assert response.status_code == status.HTTP_200_OK
 
+
 def test_with_product_showcase_option_should_list(client, db):
-    """Must return product with showcase option."""
-    # Arrange
+    # Setup
     with db() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -58,5 +62,3 @@ def test_with_product_showcase_option_should_list(client, db):
     # Assert
     assert response.status_code == status.HTTP_200_OK
     assert response.json()[0].get('product_id') == product_db_1.product_id
-
-

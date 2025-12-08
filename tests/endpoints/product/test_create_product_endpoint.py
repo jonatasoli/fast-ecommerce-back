@@ -1,52 +1,54 @@
-from main import app
-from decimal import ROUND_HALF_UP, Decimal
-import random
-
-
-from fastapi import status
-from httpx import AsyncClient
-from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory
-from tests.fake_functions import fake, fake_url, fake_url_path
+# ruff: noqa: I001
 import pytest
+import json
+from decimal import Decimal
+from app.entities.product import ProductInDBResponse
+from tests.fake_functions import fake, fake_url, fake_url_path
 
 URL = '/product/'
 
 
-# @pytest.mark.asyncio
-@pytest.mark.skip
-async def test_given_valid_payload_should_create_product(asyncdb, admin_token):
-    """Must create product by payload."""
-    # Arrange
-    category_id = None
-    price = Decimal(
-        random.random() * 100).quantize(Decimal('.01'),
-        rounding=ROUND_HALF_UP,
+@pytest.mark.asyncio
+async def test_given_valid_payload_should_create_product(
+    async_client, mocker, async_admin_token,
+):
+    # Setup
+    product_id = 1
+    price = Decimal('99.99')
+    description_dict = {'content': 'test', 'description': 'test'}
+
+    mock_product = ProductInDBResponse(
+        product_id=product_id,
+        name=fake.name(),
+        uri=fake_url(),
+        price=price,
+        category_id=1,
+        description=json.dumps(description_dict),
+        image_path=fake_url_path(),
+        showcase=False,
     )
-    async with asyncdb() as db:
-        category = CategoryFactory()
-        config_fee = CreditCardFeeConfigFactory()
-        db.add_all([category, config_fee])
-        await db.commit()
-        category_id = category.category_id
+
+    mocker.patch('app.product.services.create_product', return_value=mock_product)
+    mocker.patch('app.user.services.verify_admin', return_value=True)
 
     product_data = {
-        'name': fake.name(),
-        'uri': fake_url(),
+        'name': mock_product.name,
+        'uri': mock_product.uri,
         'price': float(price),
-        'category_id': category_id,
-        'description': {'content': 'test', 'description': 'test'},
-        'image_path': fake_url_path(),
+        'category_id': mock_product.category_id,
+        'description': description_dict,
+        'image_path': mock_product.image_path,
         'sku': fake.pystr(),
     }
-    headers = { 'Authorization': f'Bearer {admin_token}' }
+    headers = {'Authorization': f'Bearer {async_admin_token}'}
 
     # Act
-    async with AsyncClient(app=app, base_url='http://test') as client:
-        response = await client.post(
-            URL,
-            json=product_data,
-            headers=headers,
-        )
+    response = await async_client.post(
+        URL,
+        json=product_data,
+        headers=headers,
+    )
 
     # Assert
-    assert response.status_code == status.HTTP_201_CREATED
+    assert response.status_code == 201
+    assert response.json()['product_id'] == product_id

@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from app.infra.database import get_async_session
 from loguru import logger
 from app.entities.payment import PaymentInDB, PaymentNotification, PaymentStatusResponse
@@ -9,6 +10,7 @@ from app.entities.payment import (
     ConfigCreditCardResponse,
 )
 from app.infra.bootstrap.payment_bootstrap import Command, bootstrap
+from typing import Annotated
 
 payment = APIRouter(
     prefix='/payment',
@@ -24,7 +26,6 @@ async def get_bootstrap() -> Command:
 @payment.post(
     '/create-config',
     status_code=status.HTTP_201_CREATED,
-    response_model=ConfigCreditCardResponse,
 )
 def create_config(
     *,
@@ -42,7 +43,7 @@ def create_config(
 )
 async def payment_callback(
     request: Request,
-    bootstrap: Command = Depends(get_bootstrap),
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
 ) -> None:
     """Payment notifications callback."""
     logger.info(request)
@@ -52,11 +53,10 @@ async def payment_callback(
 @payment.post(
     '/payment_status',
     status_code=status.HTTP_200_OK,
-    response_model=PaymentStatusResponse,
 )
 async def payment_status(
     gateway_payment_id: int | str,
-    bootstrap: Command = Depends(get_bootstrap),
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
 ) -> PaymentStatusResponse:
     """Payment status."""
     return await services.get_payment_status(
@@ -68,11 +68,10 @@ async def payment_status(
 @payment.get(
     '/{gateway_payment_id}',
     status_code=status.HTTP_200_OK,
-    response_model=PaymentInDB,
 )
 async def payment_status(
     gateway_payment_id: int | str,
-    db = Depends(get_async_session),
+    db=Depends(get_async_session),
 ) -> PaymentInDB:
     """Payment status."""
     return await services.get_payment(

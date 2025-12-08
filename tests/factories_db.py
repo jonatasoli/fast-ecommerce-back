@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from datetime import UTC, datetime
 from decimal import Decimal
 import factory
@@ -126,6 +127,7 @@ class OrderFactory(factory.Factory):
     checked = fake.pybool()
     customer_id = str(SelfAttribute('user.user_id'))
     discount = fake.pyint()
+
 
 class CustomerDBFactory(factory.Factory):
     class Meta:

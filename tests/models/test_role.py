@@ -1,11 +1,11 @@
+# ruff: noqa: I001
 from sqlalchemy.sql import select
 from app.infra.models import RoleDB
 from tests.factories_db import RoleDBFactory
 
 
 def test_create_role(session):
-    """Must create valid role."""
-    # Arrange
+    # Setup
     new_role = RoleDBFactory()
     session.add(new_role)
     session.commit()

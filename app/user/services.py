@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import re
 from datetime import UTC, datetime, timedelta
 import enum
@@ -100,9 +101,12 @@ def raise_credential_error() -> CredentialError:
 def check_existent_user(db: Session, document: str, password: str) -> UserDB:
     """Check if user exist."""
     with db:
-        user_query = select(UserDB).options(
-            selectinload(UserDB.addresses)).where(
-            UserDB.document == document,
+        user_query = (
+            select(UserDB)
+            .options(selectinload(UserDB.addresses))
+            .where(
+                UserDB.document == document,
+            )
         )
         db_user = db.execute(user_query).scalars().first()
     if not password:
@@ -170,6 +174,7 @@ async def get_affiliate_by_token(
         raise_credential_error()
     return user
 
+
 def get_affiliate_urls(
     user: UserDB,
     db: Session,
@@ -206,9 +211,11 @@ def get_current_user(
 
     with db() as session:
         user = session.scalar(
-            select(UserDB).options(
+            select(UserDB)
+            .options(
                 selectinload(UserDB.addresses),
-            ).where(UserDB.document == document),
+            )
+            .where(UserDB.document == document),
         )
     if not user:
         raise CredentialError
@@ -248,9 +255,13 @@ async def save_token_reset_password(
         expires_delta=access_token_expires,
     )
     with db() as session:
-        user_query = select(UserDB).options(
-            selectinload(UserDB.addresses),
-        ).where(UserDB.document == document)
+        user_query = (
+            select(UserDB)
+            .options(
+                selectinload(UserDB.addresses),
+            )
+            .where(UserDB.document == document)
+        )
         _user = session.scalar(user_query)
         db_reset = UserResetPasswordDB(user_id=_user.user_id, token=_token)
         session.add(db_reset)
@@ -272,9 +283,13 @@ def reset_password(
 ) -> None:
     """Reset password with token created."""
     with db() as session:
-        user_query = select(UserDB).options(
-            selectinload(UserDB.addresses),
-        ).where(UserDB.document == data.document)
+        user_query = (
+            select(UserDB)
+            .options(
+                selectinload(UserDB.addresses),
+            )
+            .where(UserDB.document == data.document)
+        )
         _user = session.scalar(user_query)
 
         used_token_query = select(UserResetPasswordDB).where(
@@ -290,9 +305,10 @@ def reset_password(
 
 def verify_admin_sync():
     """Get admin user."""
+
     def decorator(func):
         @wraps(func)
-        async def wrapper(*args, **kwargs): # noqa: ARG001
+        async def wrapper(*args, **kwargs):  # noqa: ARG001
             try:
                 payload = decode(
                     kwargs['token'],
@@ -309,12 +325,15 @@ def verify_admin_sync():
             if user is None or user.role_id != Roles.ADMIN.value:
                 raise CredentialError
             return user
+
         return wrapper
+
     return decorator
 
 
 def verify_admin_async():
     """Get admin user."""
+
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -336,9 +355,13 @@ def verify_admin_async():
                 raise_credential_error()
 
             async with kwargs['db']() as session:
-                user_query = select(UserDB).options(
-                    selectinload(UserDB.addresses),
-                ).where(UserDB.document == document)
+                user_query = (
+                    select(UserDB)
+                    .options(
+                        selectinload(UserDB.addresses),
+                    )
+                    .where(UserDB.document == document)
+                )
                 user_db = await session.scalar(user_query)
                 if not user_db:
                     raise CredentialError
@@ -346,7 +369,9 @@ def verify_admin_async():
             if user is None or user.role_id != Roles.ADMIN.value:
                 raise credentials_exception
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -370,9 +395,13 @@ async def verify_admin(token: str, *, db):
         raise_credential_error()
 
     async with db() as session:
-        user_query = select(UserDB).options(
-            selectinload(UserDB.addresses),
-        ).where(UserDB.document == document)
+        user_query = (
+            select(UserDB)
+            .options(
+                selectinload(UserDB.addresses),
+            )
+            .where(UserDB.document == document)
+        )
         user_db = await session.scalar(user_query)
         if not user_db:
             raise CredentialError
@@ -385,9 +414,13 @@ async def verify_admin(token: str, *, db):
 def _get_user_from_document(document: str, *, db: sessionmaker) -> UserSchema:
     """Get user from database."""
     with db() as session:
-        user_query = select(UserDB).options(
-            selectinload(UserDB.addresses),
-        ).where(UserDB.document == document)
+        user_query = (
+            select(UserDB)
+            .options(
+                selectinload(UserDB.addresses),
+            )
+            .where(UserDB.document == document)
+        )
         user_db = session.scalar(user_query)
         if not user_db:
             raise CredentialError
@@ -397,9 +430,13 @@ def _get_user_from_document(document: str, *, db: sessionmaker) -> UserSchema:
 async def _get_user_by_document(document: str, *, db) -> UserSchema:
     """Get user from database."""
     async with db as session:
-        user_query = select(UserDB).options(
-            selectinload(UserDB.addresses),
-        ).where(UserDB.document == document)
+        user_query = (
+            select(UserDB)
+            .options(
+                selectinload(UserDB.addresses),
+            )
+            .where(UserDB.document == document)
+        )
         user_db = await session.scalar(user_query)
         if not user_db:
             raise CredentialError

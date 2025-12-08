@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from io import BytesIO
 import pytest
 from fastapi import UploadFile, HTTPException
@@ -11,7 +12,8 @@ from app.catalog.services import (
     get_category_media_gallery,
 )
 from app.infra.constants import MediaType
-from app.infra.models import UploadedMediaDB, CategoryMediaGalleryDB
+from app.entities.category import CategoryMediaNotFoundError, CategoryNotFoundError
+from app.infra.models import CategoryMediaGalleryDB, UploadedMediaDB
 from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory
 from tests.fake_functions import fake_file
 
@@ -21,8 +23,7 @@ async def test_upload_category_image_should_update_image_path(
     mocker: MockerFixture,
     asyncdb,
 ):
-    """Should upload image and update category image_path."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -51,8 +52,7 @@ async def test_upload_category_image_not_found_should_raise_exception(
     mocker: MockerFixture,
     asyncdb,
 ):
-    """Should raise CategoryNotFoundError when category not found."""
-    # Arrange
+    # Setup
     from app.entities.category import CategoryNotFoundError
 
     async with asyncdb().begin() as transaction:
@@ -75,17 +75,15 @@ async def test_upload_category_image_not_found_should_raise_exception(
 
 @pytest.fixture
 def real_upload_file():
-    """Create a realistic UploadFile for testing."""
-    dummy_content = BytesIO(b"fake image content")
-    return UploadFile(file=dummy_content, filename="test.png")
+    dummy_content = BytesIO(b'fake image content')
+    return UploadFile(file=dummy_content, filename='test.png')
 
 
 @pytest.fixture
 def mock_optimize_image(mocker):
-    """Mock optimize_image function."""
     return mocker.patch(
-        "app.infra.file_upload.optimize_image",
-        return_value="/media/category-image.png",
+        'app.infra.file_upload.optimize_image',
+        return_value='/media/category-image.png',
     )
 
 
@@ -95,8 +93,7 @@ async def test_upload_category_media_gallery_should_upload_photo(
     mock_optimize_image,
     asyncdb,
 ):
-    """Should upload photo to category media gallery."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -116,13 +113,13 @@ async def test_upload_category_media_gallery_should_upload_photo(
     )
 
     # Assert
-    assert media_path == "/media/category-image.png"
+    assert media_path == '/media/category-image.png'
     mock_optimize_image.assert_called_once_with(real_upload_file)
 
     result = await asyncdb().execute(select(UploadedMediaDB))
     uploaded = result.scalar_one()
     assert uploaded.type == media_type
-    assert uploaded.uri == "/media/category-image.png"
+    assert uploaded.uri == '/media/category-image.png'
     assert uploaded.order == order
 
     result = await asyncdb().execute(select(CategoryMediaGalleryDB))
@@ -137,8 +134,7 @@ async def test_upload_category_media_gallery_should_upload_video(
     mocker,
     asyncdb,
 ):
-    """Should upload video to category media gallery."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -148,8 +144,8 @@ async def test_upload_category_media_gallery_should_upload_video(
     order = 1
     media_type = MediaType.video
     mock_upload_video = mocker.patch(
-        "app.infra.file_upload.upload_video",
-        return_value="/media/category-video.mp4",
+        'app.infra.file_upload.upload_video',
+        return_value='/media/category-video.mp4',
     )
 
     # Act
@@ -162,13 +158,13 @@ async def test_upload_category_media_gallery_should_upload_video(
     )
 
     # Assert
-    assert media_path == "/media/category-video.mp4"
+    assert media_path == '/media/category-video.mp4'
     mock_upload_video.assert_called_once_with(real_upload_file)
 
     result = await asyncdb().execute(select(UploadedMediaDB))
     uploaded = result.scalar_one()
     assert uploaded.type == media_type
-    assert uploaded.uri == "/media/category-video.mp4"
+    assert uploaded.uri == '/media/category-video.mp4'
     assert uploaded.order == order
 
     result = await asyncdb().execute(select(CategoryMediaGalleryDB))
@@ -183,8 +179,7 @@ async def test_upload_category_media_gallery_category_not_found_should_raise(
     mock_optimize_image,
     asyncdb,
 ):
-    """Should raise CategoryNotFoundError when category not found."""
-    # Arrange
+    # Setup
     from app.entities.category import CategoryNotFoundError
 
     async with asyncdb().begin() as transaction:
@@ -205,8 +200,7 @@ async def test_upload_category_media_gallery_category_not_found_should_raise(
 
 @pytest.mark.asyncio
 async def test_get_category_media_gallery_should_return_media_list(asyncdb):
-    """Should return list of media for category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -249,8 +243,7 @@ async def test_get_category_media_gallery_should_return_media_list(asyncdb):
 
 @pytest.mark.asyncio
 async def test_get_category_media_gallery_category_not_found_should_raise(asyncdb):
-    """Should raise CategoryNotFoundError when category not found."""
-    # Arrange
+    # Setup
     from app.entities.category import CategoryNotFoundError
 
     async with asyncdb().begin() as transaction:
@@ -265,8 +258,7 @@ async def test_get_category_media_gallery_category_not_found_should_raise(asyncd
 
 @pytest.mark.asyncio
 async def test_delete_category_media_gallery_should_delete_media(asyncdb):
-    """Should delete media from category gallery."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -302,8 +294,7 @@ async def test_delete_category_media_gallery_should_delete_media(asyncdb):
 
 @pytest.mark.asyncio
 async def test_delete_category_media_gallery_category_not_found_should_raise(asyncdb):
-    """Should raise CategoryNotFoundError when category not found."""
-    # Arrange
+    # Setup
     from app.entities.category import CategoryNotFoundError
 
     async with asyncdb().begin() as transaction:
@@ -318,8 +309,7 @@ async def test_delete_category_media_gallery_category_not_found_should_raise(asy
 
 @pytest.mark.asyncio
 async def test_delete_category_media_gallery_media_not_found_should_raise(asyncdb):
-    """Should raise CategoryMediaNotFoundError when media not found in gallery."""
-    # Arrange
+    # Setup
     from app.entities.category import CategoryMediaNotFoundError
 
     async with asyncdb().begin() as transaction:

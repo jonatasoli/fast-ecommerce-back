@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from decimal import Decimal
 
 from httpx import ASGITransport, AsyncClient
@@ -21,8 +22,7 @@ URL = '/cart'
 
 @pytest.mark.asyncio
 async def test_add_product_in_new_cart(asyncdb, redis_client, async_client) -> None:
-    """Must add product in new cart and return cart."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()

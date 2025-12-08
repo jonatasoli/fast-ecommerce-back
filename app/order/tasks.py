@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from typing import Any
 
 from fastapi import Depends

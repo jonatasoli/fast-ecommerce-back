@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from fastapi import status
 from app.user.services import gen_hash
 from app.infra.models import RoleDB
@@ -19,7 +20,6 @@ def test_roles(db):
 
 
 def test_signup(client) -> None:
-    """Must Sign up new user."""
     _name = fake.name()
     signup_data = {
         'name': _name,
@@ -52,7 +52,6 @@ def test_invalid_signup(client) -> None:
 
 
 def test_signup_new(client) -> None:
-    """Must Signup new user."""
     _name = fake.name()
 
     signup_data = {
@@ -71,7 +70,6 @@ def test_signup_new(client) -> None:
 
 
 def test_request_token(client, db):
-    """Must get token and validate."""
     _password = gen_hash('secret')
     _name = None
     with db().begin() as transaction:
@@ -86,7 +84,7 @@ def test_request_token(client, db):
         )
         transaction.session.add(user_db)
         transaction.session.commit()
-        #TODO Ajust factory to get correct role
+        # TODO Ajust factory to get correct role
         _name = role.role
     data = {
         'username': '12345678911',
@@ -105,7 +103,6 @@ def test_request_token(client, db):
 
 
 def test_get_current_user(client, db):
-    """Must get current user."""
     _password = gen_hash('secret')
     _document = '12345678911'
     with db().begin() as transaction:
@@ -134,12 +131,9 @@ def test_get_current_user(client, db):
     user_response = client.get(
         f'/user/{_document}',
         headers={
-            'Authorization': f"Bearer {response.get('access_token')}",
+            'Authorization': f'Bearer {response.get("access_token")}',
             'accept': 'application/json',
         },
     )
 
     assert user_response.status_code == status.HTTP_200_OK
-
-
-

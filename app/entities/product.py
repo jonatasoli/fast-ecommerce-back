@@ -1,8 +1,9 @@
 from decimal import Decimal
-
 from typing import Self
+
 from fastapi import UploadFile
 from pydantic import BaseModel, ConfigDict, Json
+
 from app.infra.constants import CurrencyType, InventoryOperation, MediaType
 
 
@@ -12,11 +13,13 @@ class CategoryInDB(BaseModel):
     path: str
     model_config = ConfigDict(from_attributes=True)
 
+
 class ProductSoldOutError(Exception):
     """Represent produt is Sold out."""
 
     def __init__(self: Self) -> None:
         super().__init__('There are products in not inventory.')
+
 
 class ProductNotCreatedError(Exception):
     """Represent product is not created."""
@@ -24,11 +27,13 @@ class ProductNotCreatedError(Exception):
     def __init__(self: Self) -> None:
         super().__init__('Product is not created')
 
+
 class ProductNotFoundError(Exception):
     """Represent product is not created."""
 
     def __init__(self: Self) -> None:
         super().__init__('Product not found')
+
 
 INSTALLMENT_CONFIG_DEFAULT = 1
 
@@ -132,8 +137,7 @@ class InventoryInDB(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ProductInventoryDB(ProductInDB, InventoryInDB):
-    ...
+class ProductInventoryDB(ProductInDB, InventoryInDB): ...
 
 
 class ProductCreateResponse(BaseModel):
@@ -250,8 +254,7 @@ class UploadedMediaCreate(UploadedMedia):
     media: UploadFile
 
 
-class UploadedMediaUpdate(UploadedMedia):
-    ...
+class UploadedMediaUpdate(UploadedMedia): ...
 
 
 class UploadedMediaInDBResponse(UploadedMedia):

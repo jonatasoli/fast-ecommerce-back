@@ -1,4 +1,4 @@
-
+# ruff: noqa: I001
 from fastapi.exceptions import HTTPException
 from app.entities.settings import MainSettings
 from app.entities.user import UserNotAdminError, UserNotFoundError
@@ -9,6 +9,7 @@ from app.infra.database import get_async_session
 from app.settings import repository
 from app.user import services as domain_user
 from app.user.services import verify_admin_async
+from typing import Annotated
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 
@@ -29,8 +30,8 @@ async def get_settings(
     *,
     field: str,
     locale: str,
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db=Depends(get_async_session),
 ):
     """Get Setting."""
     _ = token
@@ -54,8 +55,8 @@ async def update_settings(
     *,
     locale: str,
     setting: MainSettings,
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db=Depends(get_async_session),
 ):
     """Update Settings."""
     _ = token

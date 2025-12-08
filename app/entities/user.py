@@ -1,4 +1,5 @@
 import enum
+
 from pydantic import BaseModel, ConfigDict, SecretStr
 
 from app.infra.constants import Direction, UserOrderBy
@@ -22,6 +23,7 @@ class PasswordEmptyError(Exception):
 
 class UserNotAdminError(Exception):
     """Raise if user not admin."""
+
 
 class UserData(BaseModel):
     user_id: int

@@ -1,10 +1,11 @@
 import enum
 import math
+
 from pydantic import TypeAdapter
 from sqlalchemy import asc, func, select, update
-
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import desc
+
 from app.entities.user import Roles, UserFilters, UserInDB, UsersDBResponse
 from app.infra import models
 from app.infra.constants import Direction
@@ -25,10 +26,15 @@ async def get_user_by_id(
     transaction,
 ) -> models.UserDB:
     """Get an user by its id."""
-    user_query = select(models.UserDB).options(
-        selectinload(models.UserDB.addresses),
-    ).where(models.UserDB.user_id == user_id)
+    user_query = (
+        select(models.UserDB)
+        .options(
+            selectinload(models.UserDB.addresses),
+        )
+        .where(models.UserDB.user_id == user_id)
+    )
     return await transaction.session.scalar(user_query)
+
 
 async def get_user_by_username(
     username: str,
@@ -36,10 +42,14 @@ async def get_user_by_username(
     transaction,
 ) -> models.UserDB | None:
     """Get an user by its username."""
-    user_query = select(models.UserDB).options(
-        selectinload(models.UserDB.addresses),
-    ).where(
-        models.UserDB.username == username,
+    user_query = (
+        select(models.UserDB)
+        .options(
+            selectinload(models.UserDB.addresses),
+        )
+        .where(
+            models.UserDB.username == username,
+        )
     )
     async with transaction:
         return await transaction.session.scalar(user_query)
@@ -59,6 +69,7 @@ async def update_user(
     )
     async with transaction:
         return await transaction.session.execute(user_query)
+
 
 async def get_users(
     *,
@@ -83,8 +94,8 @@ async def get_users(
             asc(getattr(UsersOderByDB, filters.order_by)),
         )
     else:
-        query_users = query_users.order_by(desc(
-            getattr(UsersOderByDB, filters.order_by)),
+        query_users = query_users.order_by(
+            desc(getattr(UsersOderByDB, filters.order_by)),
         )
 
     total_records = await transaction.session.scalar(
@@ -111,10 +122,13 @@ async def get_affiliate_users(
     transaction,
 ):
     """Select all users."""
-    query_users = select(models.UserDB).options(
-        selectinload(models.UserDB.addresses),
-    ).where(models.UserDB.role_id == Roles.PARTNER.value)
-
+    query_users = (
+        select(models.UserDB)
+        .options(
+            selectinload(models.UserDB.addresses),
+        )
+        .where(models.UserDB.role_id == Roles.PARTNER.value)
+    )
 
     total_records = await transaction.session.scalar(
         select(func.count(models.UserDB.user_id)),
@@ -130,4 +144,3 @@ async def get_affiliate_users(
         total_pages=1,
         total_records=total_records if total_records else 0,
     )
-

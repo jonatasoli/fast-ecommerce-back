@@ -1,4 +1,4 @@
-
+# ruff: noqa: I001
 from contextlib import suppress
 import json
 from cryptography.fernet import InvalidToken
@@ -12,8 +12,7 @@ from app.entities.settings import MainSettings
 from app.infra.models import SettingsDB
 
 
-class SettingsInputError(Exception):
-    ...
+class SettingsInputError(Exception): ...
 
 
 async def get_settings(
@@ -23,23 +22,31 @@ async def get_settings(
     transaction,
 ):
     """Repository to get a setting for field and locale."""
-    query = select(SettingsDB).where(
-        SettingsDB.locale.like(locale),
-    ).where(
-        SettingsDB.field.like(field),
+    query = (
+        select(SettingsDB)
+        .where(
+            SettingsDB.locale.like(locale),
+        )
+        .where(
+            SettingsDB.field.like(field),
+        )
     )
     field = await transaction.scalar(query)
     if not field:
-        query = select(SettingsDB).where(
-            SettingsDB.field.like(field),
-        ).where(
-            SettingsDB.is_default.is_(True),
+        query = (
+            select(SettingsDB)
+            .where(
+                SettingsDB.field.like(field),
+            )
+            .where(
+                SettingsDB.is_default.is_(True),
+            )
         )
         field = await transaction.scalar(query)
     logger.debug(f' antes do encode {field.credentials}')
     message = field.credentials.encode('utf-8')
     logger.debug(f' depois do encode {message}')
-    logger.debug(f' depois do encode {message.decode('utf-8')}')
+    logger.debug(f' depois do encode {message.decode("utf-8")}')
     with suppress(ValueError, InvalidToken):
         logger.debug(f'step 1 {message}')
         field_decript = decrypt(
@@ -50,6 +57,7 @@ async def get_settings(
 
     return field
 
+
 def serialize_data(data: dict) -> dict:
     """Convert fields like 'Url' to strings for JSON serialization."""
     for key, value in data.items():
@@ -59,6 +67,7 @@ def serialize_data(data: dict) -> dict:
             data[key] = serialize_data(value)
     return data
 
+
 async def update_or_create_setting(
     *,
     setting: MainSettings,
@@ -67,9 +76,11 @@ async def update_or_create_setting(
 ):
     """Update or create a setting."""
     filled_fields = {
-        field: value for field, value in setting.dict(
+        field: value
+        for field, value in setting.dict(
             exclude_unset=True,
-        ).items() if field not in ['locale', 'is_default'] and value is not None
+        ).items()
+        if field not in ['locale', 'is_default'] and value is not None
     }
     if not filled_fields:
         raise SettingsInputError
@@ -77,7 +88,8 @@ async def update_or_create_setting(
     _, field_value = next(iter(filled_fields.items()))
     field_value = serialize_data(field_value)
     setting_db = await get_settings(
-        locale=locale, field=field_value.get('field'), transaction=transaction)
+        locale=locale, field=field_value.get('field'), transaction=transaction,
+    )
     key = settings.CAPI_SECRET
     logger.debug(field_value)
     credentials = encrypt(json.dumps(field_value).encode(), key.encode())
@@ -86,7 +98,7 @@ async def update_or_create_setting(
         setting_db = SettingsDB(
             locale=locale,
             is_default=setting.is_default,
-            provider=field_value.get("provider"),
+            provider=field_value.get('provider'),
             field=credentials,
             value=json.dumps(field_value),
             credentials=credentials.decode('utf-8'),
@@ -96,11 +108,10 @@ async def update_or_create_setting(
     setting_db.provider = field_value.get('provider')
     setting_db.value = json.dumps(field_value)
     setting_db.locale = locale
-    setting_db.credentials=credentials.decode('utf-8')
+    setting_db.credentials = credentials.decode('utf-8')
 
     transaction.add(setting_db)
     logger.debug(
         f'DECRIPT DB {decrypt(setting_db.credentials, key.encode())}',
     )
     return setting_db
-

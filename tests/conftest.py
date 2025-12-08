@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from datetime import timedelta
 import asyncio
 import redis
@@ -25,7 +26,6 @@ from app.infra.models import Base, UserDB
 
 
 class MockRabbitRouter:
-    """Mock RabbitRouter to avoid actual broker connections during tests."""
 
     def __init__(self, *args, **kwargs):
         self._broker = MagicMock()
@@ -56,34 +56,35 @@ class MockRabbitRouter:
         yield {}
 
     def subscriber(self, queue_name):
-        """Mock subscriber decorator."""
+
         def decorator(func):
             return func
+
         return decorator
 
     def __call__(self, *args, **kwargs):
         return self
 
+
 def pytest_configure(config):
-    """Configure pytest - mock RabbitRouter before any app modules are imported."""
     mock_faststream_module = types.ModuleType('faststream.rabbit.fastapi')
     mock_faststream_module.RabbitRouter = MockRabbitRouter
     sys.modules['faststream.rabbit.fastapi'] = mock_faststream_module
 
+
 @pytest.fixture(scope='session', autouse=True)
 def _set_test_settings() -> None:
-    """Force testing env."""
     settings.configure(FORCE_ENV_FOR_DYNACONF='testing')
+
 
 @pytest.fixture(scope='session')
 def postgres_container():
-    """Create single PostgreSQL container for all tests."""
     with PostgresContainer('postgres:17', driver='psycopg') as postgres:
         yield postgres
 
+
 @pytest.fixture(scope='session')
 def engine(postgres_container):
-    """Create test engine."""
     engine = create_engine(
         postgres_container.get_connection_url(),
         poolclass=StaticPool,
@@ -96,19 +97,17 @@ def engine(postgres_container):
 
 @pytest.fixture(scope='session')
 def redis_container():
-    """Create test Redis container."""
     with RedisContainer('redis:7-alpine') as redis:
         # Override settings for tests
         host = redis.get_container_host_ip()
         port = redis.get_exposed_port(6379)
-        settings.REDIS_URL = f"redis://{host}:{port}"
+        settings.REDIS_URL = f'redis://{host}:{port}'
         settings.REDIS_DB = 0
         yield redis
 
 
 @pytest.fixture(scope='session')
 def redis_client(redis_container):
-    """Get Redis client for tests."""
     pool = redis.ConnectionPool.from_url(
         url=settings.REDIS_URL,
         db=settings.REDIS_DB,
@@ -118,9 +117,9 @@ def redis_client(redis_container):
     client.close()
     pool.disconnect()
 
+
 @pytest.fixture
 async def async_engine(postgres_container, engine):
-    """Create test async engine using same PostgreSQL container."""
     connection_url = postgres_container.get_connection_url()
     async_url = connection_url.replace('postgresql+psycopg://', 'postgresql+asyncpg://')
 
@@ -136,13 +135,13 @@ async def async_engine(postgres_container, engine):
 
 
 def _truncate_tables(connection):
-    """Truncate all tables to clean data between tests."""
     for table in reversed(Base.metadata.sorted_tables):
         connection.execute(table.delete())
     connection.commit()
 
+
 async def _async_truncate_tables(connection):
-    """Async version to truncate all tables between tests."""
+
     def truncate(conn):
         for table in reversed(Base.metadata.sorted_tables):
             conn.execute(table.delete())
@@ -150,9 +149,9 @@ async def _async_truncate_tables(connection):
 
     await connection.run_sync(truncate)
 
+
 @pytest.fixture
 def db(engine, redis_container):
-    """Generate db session."""
     session = sessionmaker(
         autoflush=True,
         expire_on_commit=False,
@@ -176,10 +175,18 @@ def client(db, monkeypatch):
     async def mock_lifespan(app_instance):
         yield {}
 
-    monkeypatch.setattr(app.infra.worker.task_message_bus, 'lifespan_context', mock_lifespan)
-    monkeypatch.setattr(app.mail.tasks.task_message_bus, 'lifespan_context', mock_lifespan)
-    monkeypatch.setattr(app.cart.tasks.task_message_bus, 'lifespan_context', mock_lifespan)
-    monkeypatch.setattr(app.report.tasks.task_message_bus, 'lifespan_context', mock_lifespan)
+    monkeypatch.setattr(
+        app.infra.worker.task_message_bus, 'lifespan_context', mock_lifespan,
+    )
+    monkeypatch.setattr(
+        app.mail.tasks.task_message_bus, 'lifespan_context', mock_lifespan,
+    )
+    monkeypatch.setattr(
+        app.cart.tasks.task_message_bus, 'lifespan_context', mock_lifespan,
+    )
+    monkeypatch.setattr(
+        app.report.tasks.task_message_bus, 'lifespan_context', mock_lifespan,
+    )
 
     try:
         with TestClient(fastapi_app) as test_client:
@@ -209,10 +216,11 @@ def user(db):
     session.commit()
     session.refresh(user)
 
-    user.clean_password = 'testtest' # Noqa: S105
+    user.clean_password = 'testtest'  # Noqa: S105
 
     session.close()
     return user
+
 
 @pytest.fixture
 def token(user):
@@ -247,10 +255,11 @@ def admin_user(db):
     session.refresh(user)
     session.commit()
 
-    user.clean_password = 'testtest' # Noqa: S105
+    user.clean_password = 'testtest'  # Noqa: S105
 
     session.close()
     return user
+
 
 @pytest.fixture
 def admin_token(admin_user):
@@ -266,7 +275,6 @@ def admin_token(admin_user):
 
 @pytest.fixture
 async def asyncdb(async_engine, redis_container):
-    """Generate asyncdb session with data cleanup between tests."""
     async_session = async_sessionmaker(
         autoflush=True,
         expire_on_commit=False,
@@ -281,7 +289,6 @@ async def asyncdb(async_engine, redis_container):
 
 @pytest.fixture
 async def async_admin_user(asyncdb):
-    """Generate admin user in asyncdb."""
     new_role = RoleDBFactory(role_id=Roles.ADMIN.value)
     async with asyncdb.begin() as db:
         db.add(new_role)
@@ -301,7 +308,7 @@ async def async_admin_user(asyncdb):
         await db.refresh(user)
         await db.commit()
 
-        user.clean_password = 'testtest' # Noqa: S105
+        user.clean_password = 'testtest'  # Noqa: S105
 
         return user
 
@@ -317,9 +324,9 @@ def async_admin_token(async_admin_user):
         expires_delta=access_token_expires,
     )
 
+
 @pytest.fixture
 async def async_client(asyncdb):
-    """Generate async HTTP client for testing."""
     from httpx import ASGITransport, AsyncClient
     from app.infra.database import get_async_session
     from main import app as fastapi_app
@@ -330,7 +337,7 @@ async def async_client(asyncdb):
     try:
         async with AsyncClient(
             transport=ASGITransport(app=fastapi_app),
-            base_url="http://testserver",
+            base_url='http://testserver',
         ) as client:
             yield client
     finally:

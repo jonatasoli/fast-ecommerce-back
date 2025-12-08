@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import pytest
 from pytest_mock import MockerFixture
 
@@ -14,8 +15,7 @@ from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory
 
 @pytest.mark.asyncio
 async def test_create_category_should_return_category(asyncdb):
-    """Should create new category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         config_fee = CreditCardFeeConfigFactory()
         transaction.session.add(config_fee)
@@ -40,8 +40,7 @@ async def test_create_category_should_return_category(asyncdb):
 
 @pytest.mark.asyncio
 async def test_get_category_by_id_should_return_category(asyncdb):
-    """Should get category by ID."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -60,8 +59,7 @@ async def test_get_category_by_id_should_return_category(asyncdb):
 
 @pytest.mark.asyncio
 async def test_get_category_by_id_not_found_should_return_none(asyncdb):
-    """Should return None when category not found."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         config_fee = CreditCardFeeConfigFactory()
         transaction.session.add(config_fee)
@@ -76,8 +74,7 @@ async def test_get_category_by_id_not_found_should_return_none(asyncdb):
 
 @pytest.mark.asyncio
 async def test_update_category_should_return_updated_category(asyncdb):
-    """Should update category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -100,8 +97,7 @@ async def test_update_category_should_return_updated_category(asyncdb):
 
 @pytest.mark.asyncio
 async def test_update_category_not_found_should_return_none(asyncdb):
-    """Should return None when updating non-existent category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         config_fee = CreditCardFeeConfigFactory()
         transaction.session.add(config_fee)
@@ -116,8 +112,7 @@ async def test_update_category_not_found_should_return_none(asyncdb):
 
 @pytest.mark.asyncio
 async def test_delete_category_should_delete_category(asyncdb):
-    """Should delete category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -134,8 +129,7 @@ async def test_delete_category_should_delete_category(asyncdb):
 
 @pytest.mark.asyncio
 async def test_delete_category_not_found_should_raise_exception(asyncdb):
-    """Should raise CategoryNotFoundError when deleting non-existent category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         config_fee = CreditCardFeeConfigFactory()
         transaction.session.add(config_fee)

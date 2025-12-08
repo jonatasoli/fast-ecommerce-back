@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import factory
 from faker import Faker
 from decimal import Decimal
@@ -18,10 +19,16 @@ from app.entities.cart import (
     CreatePixPaymentMethod,
     AddressCreate,
 )
-from factory.declarations import SelfAttribute, SubFactory, LazyAttribute, RelatedFactoryList
+from factory.declarations import (
+    SelfAttribute,
+    SubFactory,
+    LazyAttribute,
+    RelatedFactoryList,
+)
 from tests.fake_functions import fake_cpf, fake_decimal, fake_email, fake_url
 
 fake = Faker()
+
 
 class ProductCartFactory(factory.Factory):
     class Meta:
@@ -65,7 +72,9 @@ class ProductInDBFactory(factory.Factory):
     direct_sales = factory.LazyFunction(lambda: fake.pybool())
     showcase = factory.LazyFunction(lambda: fake.pybool())
     show_discount = factory.LazyFunction(lambda: fake.pybool())
-    installments_config = factory.LazyFunction(lambda: fake.pyint(min_value=1, max_value=5))
+    installments_config = factory.LazyFunction(
+        lambda: fake.pyint(min_value=1, max_value=5),
+    )
     installments_list = None
     discount = None
     description = None
@@ -78,8 +87,12 @@ class CouponInDBFactory(factory.Factory):
 
     coupon_id = factory.LazyFunction(lambda: fake.pyint(min_value=1, max_value=1000))
     code = factory.LazyFunction(lambda: fake.bothify(text='COUPON-????').upper())
-    discount = factory.LazyFunction(lambda: fake_decimal(min_value=0, max_value=1, right_digits=2))
-    discount_price = factory.LazyFunction(lambda: fake_decimal(min_value=0, max_value=100))
+    discount = factory.LazyFunction(
+        lambda: fake_decimal(min_value=0, max_value=1, right_digits=2),
+    )
+    discount_price = factory.LazyFunction(
+        lambda: fake_decimal(min_value=0, max_value=100),
+    )
     limit_price = factory.LazyFunction(lambda: fake_decimal(min_value=0, max_value=500))
     active = True
 
@@ -127,7 +140,9 @@ class CartBaseFactory(factory.Factory):
 
     uuid = fake.uuid4()
     affiliate = None
-    cart_items = RelatedFactoryList(ProductCartFactory, size=lambda: random.randint(1, 5))
+    cart_items = RelatedFactoryList(
+        ProductCartFactory, size=lambda: random.randint(1, 5),
+    )
     coupon = None
     discount = Decimal('0')
     zipcode = fake.postcode()
@@ -143,6 +158,7 @@ class CartUserFactory(CartBaseFactory):
 
     user_data = factory.SubFactory(UserDataFactory)
 
+
 class AddressCreateFactory(factory.Factory):
     class Meta:
         model = AddressCreate
@@ -150,6 +166,7 @@ class AddressCreateFactory(factory.Factory):
     shipping_is_payment = fake.pybool()
     shipping_address = factory.SubFactory(ShippingAddressFactory)
     user_address = factory.SubFactory(UserAddressFactory)
+
 
 class CartShippingFactory(CartUserFactory):
     class Meta:
@@ -212,5 +229,3 @@ class CreatePixPaymentMethodFactory(factory.Factory):
         model = CreatePixPaymentMethod
 
     payment_gateway = 'mercadopago'
-
-

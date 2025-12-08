@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import json
 import math
 from loguru import logger
@@ -22,6 +23,7 @@ from app.infra.models import (
     UploadedMediaDB,
 )
 
+
 def create_product_not_found_exception() -> ProductNotCreatedError:
     """Shoud raise exception if product is not created."""
     raise ProductNotCreatedError
@@ -33,6 +35,7 @@ async def get_product_by_id(product_id: int, *, transaction):
         select(ProductDB).where(ProductDB.product_id == product_id),
     )
 
+
 async def get_product_by_uri(uri: str, *, transaction):
     """Get product by uri."""
     product_db = await transaction.session.scalar(
@@ -42,18 +45,23 @@ async def get_product_by_uri(uri: str, *, transaction):
         raise ProductNotFoundError
     return product_db
 
+
 async def get_media_by_product_id(
-        product_id: int,
-        *,
-        transaction,
+    product_id: int,
+    *,
+    transaction,
 ) -> list[UploadedMediaDB]:
     """Get all products in Media Gallery."""
-    query = select(UploadedMediaDB).join(
-        MediaGalleryDB,
-        MediaGalleryDB.media_id == UploadedMediaDB.media_id,
-    ).where(
-        MediaGalleryDB.product_id == product_id,
-        UploadedMediaDB.active.is_(True),
+    query = (
+        select(UploadedMediaDB)
+        .join(
+            MediaGalleryDB,
+            MediaGalleryDB.media_id == UploadedMediaDB.media_id,
+        )
+        .where(
+            MediaGalleryDB.product_id == product_id,
+            UploadedMediaDB.active.is_(True),
+        )
     )
     return await transaction.session.scalars(query)
 
@@ -65,14 +73,19 @@ async def get_media_by_media_id(
     transaction,
 ) -> MediaGalleryDB:
     """Get all products in Media Gallery."""
-    query = select(UploadedMediaDB).join(
-        MediaGalleryDB,
-        MediaGalleryDB.media_id == UploadedMediaDB.media_id,
-    ).where(
-        UploadedMediaDB.media_id == media_id,
-        MediaGalleryDB.product_id == product_id,
+    query = (
+        select(UploadedMediaDB)
+        .join(
+            MediaGalleryDB,
+            MediaGalleryDB.media_id == UploadedMediaDB.media_id,
+        )
+        .where(
+            UploadedMediaDB.media_id == media_id,
+            MediaGalleryDB.product_id == product_id,
+        )
     )
     return await transaction.session.scalar(query)
+
 
 async def get_gallery_by_media_id(
     media_id: int,
@@ -86,6 +99,7 @@ async def get_gallery_by_media_id(
         MediaGalleryDB.product_id == product_id,
     )
     return await transaction.session.scalar(query)
+
 
 async def get_inventory(transaction, *, page, offset, currency=None, name=None):
     """Get inventory products."""
@@ -140,8 +154,8 @@ async def get_inventory(transaction, *, page, offset, currency=None, name=None):
     else:
         total_records_query = select(
             func.count(ProductDB.product_id),
-        ).where(ProductDB.name.ilike(f"%{name}%"))
-        quantity_query = quantity_query.where(ProductDB.name.ilike(f"%{name}%"))
+        ).where(ProductDB.name.ilike(f'%{name}%'))
+        quantity_query = quantity_query.where(ProductDB.name.ilike(f'%{name}%'))
     total_records = await transaction.session.scalar(
         total_records_query,
     )
@@ -161,9 +175,9 @@ async def get_inventory(transaction, *, page, offset, currency=None, name=None):
 
 
 async def add_inventory_transaction(
-        product_id: int,
-        inventory: InventoryTransaction,
-        transaction,
+    product_id: int,
+    inventory: InventoryTransaction,
+    transaction,
 ) -> InventoryDB:
     """Add inventory in InventoryDB."""
     inventorydb = InventoryDB(
@@ -179,7 +193,7 @@ async def add_inventory_transaction(
 async def create_product(
     product_data: ProductCreate,
     transaction,
-    ):
+):
     """Create a new product in DB."""
     db_product = ProductDB(**product_data.model_dump(exclude={'description'}))
     db_product.description = json.dumps(product_data.description)
@@ -196,10 +210,10 @@ async def create_product(
 
 
 async def delete_product(
-        product_id: int,
-        *,
-        transaction,
-    ) -> None:
+    product_id: int,
+    *,
+    transaction,
+) -> None:
     """Delete product."""
     async with transaction:
         return await transaction.scalar(

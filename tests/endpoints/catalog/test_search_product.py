@@ -1,10 +1,16 @@
+# ruff: noqa: I001
 from fastapi import status
 from app.infra.database import get_async_session
 from main import app
 from httpx import ASGITransport, AsyncClient
 import pytest
 
-from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, InventoryDBFactory, ProductDBFactory
+from tests.factories_db import (
+    CategoryFactory,
+    CreditCardFeeConfigFactory,
+    InventoryDBFactory,
+    ProductDBFactory,
+)
 
 
 URL = '/catalog/'
@@ -12,7 +18,6 @@ URL = '/catalog/'
 
 @pytest.mark.asyncio
 async def test_empty_data_should_return_200(asyncdb):
-    """Must return empty list."""
     # Act
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -21,16 +26,16 @@ async def test_empty_data_should_return_200(asyncdb):
         app.dependency_overrides[get_async_session] = lambda: asyncdb
         response = await client.get(
             URL,
-            params={"offset": 1, "page": 1, "search": "" },
+            params={'offset': 1, 'page': 1, 'search': ''},
         )
 
     # Assert
     assert response.status_code == status.HTTP_200_OK
 
+
 @pytest.mark.asyncio
 async def test_with_product_list_only_activated(asyncdb):
-    """Must return with activate is true."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -71,11 +76,11 @@ async def test_with_product_list_only_activated(asyncdb):
         app.dependency_overrides[get_async_session] = lambda: asyncdb
         response = await client.get(
             URL,
-            params={"offset": 1, "page": 1, "search": f"{product_db_1.name}" },
+            params={'offset': 1, 'page': 1, 'search': f'{product_db_1.name}'},
         )
 
     # Assert
     assert response.status_code == status.HTTP_200_OK
-    assert response.json().get('products')[0].get('product_id') == product_db_1.product_id
-
-
+    assert (
+        response.json().get('products')[0].get('product_id') == product_db_1.product_id
+    )

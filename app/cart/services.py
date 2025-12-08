@@ -1,22 +1,21 @@
-# ruff: noqa: PLR1714
-from contextlib import suppress
-from decimal import Decimal
 import enum
 import re
-from app.campaign import repository as campaign_repository
+from contextlib import suppress
+from decimal import Decimal
 
 from fastapi import HTTPException
-from loguru import logger
 from faststream.rabbit import RabbitQueue
+from loguru import logger
 from pydantic import ValidationError
-from app.cart import repository as cart_repository
 
+from app.campaign import repository as campaign_repository
+from app.cart import repository as cart_repository
 from app.entities.address import CreateAddress
 from app.entities.cart import (
     CartBase,
-    CartUser,
-    CartShipping,
     CartPayment,
+    CartShipping,
+    CartUser,
     CheckoutProcessingError,
     CreateCheckoutResponse,
     CreateCreditCardPaymentMethod,
@@ -29,12 +28,12 @@ from app.entities.cart import (
 )
 from app.entities.coupon import (
     CouponDontMatchWithUserError,
-    CouponNotFoundError,
     CouponInDB,
+    CouponNotFoundError,
 )
 from app.entities.payment import CustomerNotFoundError, PaymentNotFoundError
 from app.entities.product import ProductCart, ProductSoldOutError
-from app.entities.user import UserDBGet, UserData
+from app.entities.user import UserData, UserDBGet
 from app.infra.bootstrap.cart_bootstrap import Command
 from app.infra.constants import PaymentGatewayAvailable, PaymentMethod
 from app.infra.crm.rd_station import send_abandonated_cart_to_crm
@@ -144,11 +143,9 @@ async def calculate_cart(
         )
     product_ids: list[int] = [item.product_id for item in cart.cart_items]
     async with session().begin() as transaction:
-        products_inventory = (
-            await cart_repository.get_products_quantity(
-                product_ids,
-                transaction=transaction,
-            )
+        products_inventory = await cart_repository.get_products_quantity(
+            product_ids,
+            transaction=transaction,
         )
     cart = consistency_inventory(
         cart,
@@ -199,7 +196,7 @@ async def calculate_freight(
 ) -> CartBase:
     """Calculate Freight."""
     async with session().begin() as transaction:
-        logger.debug("Search campaign")
+        logger.debug('Search campaign')
         campaign = await campaign_repository.get_campaign(
             free_shipping=True,
             transaction=transaction,
@@ -225,7 +222,7 @@ async def calculate_freight(
         logger.debug(f'Campaign: {campaign}')
         if campaign and cart.subtotal > campaign.min_purchase_value:
             logger.debug('Campaign')
-            freight.price = Decimal(0.01) # noqa: RUF032
+            freight.price = Decimal(0.01)  # noqa: RUF032
         cart.freight = freight
     return cart
 
@@ -278,7 +275,7 @@ async def add_user_to_cart(
     logger.debug(user_data)
     cart_user = CartUser(**cart.model_dump(), user_data=user_data)
     if cart_user.coupon and cart_user.coupon != 'null':
-        logger.debug("Coupon")
+        logger.debug('Coupon')
         logger.debug(cart_user.coupon)
         async with bootstrap.db() as session:
             coupon = await bootstrap.cart_repository.get_coupon_by_code(
@@ -291,7 +288,7 @@ async def add_user_to_cart(
             case _ if coupon.user_id and coupon.user_id != user_data.user_id:
                 raise CouponDontMatchWithUserError
     cache = bootstrap.cache
-    logger.debug("Antes do get UUID")
+    logger.debug('Antes do get UUID')
     cache.get(uuid)
     logger.debug(cache)
     cache.set(
@@ -299,7 +296,7 @@ async def add_user_to_cart(
         cart_user.model_dump_json(),
         ex=DEFAULT_CART_EXPIRE,
     )
-    logger.debug("set cache")
+    logger.debug('set cache')
     return cart_user
 
 
@@ -435,10 +432,10 @@ async def checkout(
     _qr_code = None
     _qr_code_base64 = None
 
-    if (
-        cache_cart.payment_method != PaymentMethod.CREDIT_CARD.value
-        and cache_cart.payment_method != PaymentMethod.PIX.value
-    ):
+    if cache_cart.payment_method not in {
+        PaymentMethod.CREDIT_CARD.value,
+        PaymentMethod.PIX.value,
+    }:
         raise HTTPException(
             status_code=400,
             detail='Payment method not found',
@@ -504,8 +501,7 @@ async def get_coupon(code: str, bootstrap: Command) -> CouponInDB:
     return coupon
 
 
-
-async def get_cart_and_send_to_crm(_cache = RedisCache) -> None:
+async def get_cart_and_send_to_crm(_cache=RedisCache) -> None:
     """Get all keys and set user data to CRM."""
     cache = _cache()
     cache_cart = None
@@ -513,13 +509,13 @@ async def get_cart_and_send_to_crm(_cache = RedisCache) -> None:
     for k in keys:
         cart = cache.redis.get(k)
         try:
-            logger.info("Start sending to CRM")
+            logger.info('Start sending to CRM')
             cache_cart = CartUser.model_validate_json(cart)
             logger.info(cache_cart.user_data)
             await send_abandonated_cart_to_crm(cache_cart.user_data)
             cache.redis.delete(k)
 
         except ValidationError:
-            logger.error(f"Cart not valid to send for CRM. {k}")
+            logger.error(f'Cart not valid to send for CRM. {k}')
             cache.redis.delete(k)
             cache_cart = None

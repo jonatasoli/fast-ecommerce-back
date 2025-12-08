@@ -35,7 +35,7 @@ class Command(BaseModel):
 
 
 async def bootstrap(  # noqa: PLR0913
-    db = get_session(),
+    db=get_session(),
     uow: uow.AbstractUnitOfWork = None,
     cart_uow: Any = uow,
     cart_repository: Any = cart_repository,

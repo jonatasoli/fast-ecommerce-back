@@ -4,7 +4,7 @@ from app.infra.models import PaymentDB
 
 from sqlalchemy.orm import SessionTransaction
 from app.entities.cart import CartPayment
-from app.entities.payment import CustomerInDB, PaymentDBUpdate,CustomerNotFoundError
+from app.entities.payment import CustomerInDB, PaymentDBUpdate, CustomerNotFoundError
 from app.infra.custom_decorators import database_uow
 from app.payment import repository as payment_repository
 

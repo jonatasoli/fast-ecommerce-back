@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 # ruff: noqa:  PLR0913
 from fastapi.security import OAuth2PasswordBearer
 from app.entities.address import CreateAddress
@@ -19,6 +20,7 @@ from app.infra.database import get_async_session, get_session
 from loguru import logger
 
 from app.cart import services
+from typing import Annotated, Any
 
 cart = APIRouter(
     prefix='/cart',
@@ -39,7 +41,6 @@ async def get_bootstrap() -> Command:
     description='Search coupon by code and return the coupon if exists',
     status_code=status.HTTP_200_OK,
     response_description='Search Coupon',
-    response_model=CouponInDB,
     #     status.HTTP_400_BAD_REQUEST: {
     #         "coupon is invalid",
     #     },
@@ -50,7 +51,7 @@ async def get_bootstrap() -> Command:
 async def get_coupon(
     coupon: str,
     *,
-    bootstrap: Command = Depends(get_bootstrap),
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
 ) -> CouponInDB:
     """Get coupon."""
     return await services.get_coupon(
@@ -59,10 +60,10 @@ async def get_coupon(
     )
 
 
-@cart.post('/', response_model=CartBase, status_code=status.HTTP_201_CREATED)
+@cart.post('/', status_code=status.HTTP_201_CREATED)
 def create_cart(
     *,
-    bootstrap: Command = Depends(get_bootstrap),
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
 ) -> CartBase:
     """Create or get cart."""
     return services.create_or_get_cart(
@@ -72,12 +73,12 @@ def create_cart(
     )
 
 
-@cart.get('/{uuid}', response_model=CartBase, status_code=201)
+@cart.get('/{uuid}', status_code=201)
 def get_cart(
     uuid: str | None = None,
     *,
-    token: str = Depends(oauth2_scheme),
-    bootstrap: Command = Depends(get_bootstrap),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
 ) -> CartBase:
     """Create or get cart."""
     return services.create_or_get_cart(
@@ -87,13 +88,13 @@ def get_cart(
     )
 
 
-@cart.post('/{uuid}/product', status_code=201, response_model=CartBase)
+@cart.post('/{uuid}/product', status_code=201)
 async def add_product_to_cart(  # noqa: ANN201
     uuid: str | None = None,
     *,
     product: ProductCart,
-    bootstrap: Command = Depends(get_bootstrap),
-    db = Depends(get_async_session),
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
+    db: Annotated[Any, Depends(get_async_session)],
 ):
     """Add product to cart."""
     # TODO: Implementar o retorno 404 caso o estoque tenha acabado
@@ -108,14 +109,13 @@ async def add_product_to_cart(  # noqa: ANN201
 @cart.post(
     '/{uuid}/estimate',
     status_code=status.HTTP_201_CREATED,
-    response_model=CartBase,
 )
 async def estimate(
     uuid: str,
     *,
     cart: CartBase,
-    bootstrap: Command = Depends(get_bootstrap),
-    session = Depends(get_async_session),
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
+    session: Annotated[Any, Depends(get_async_session)],
 ) -> CartBase:
     """Add product to cart."""
     return await services.calculate_cart(
@@ -127,17 +127,17 @@ async def estimate(
 
 
 @cart.get('/upsell/{id}', status_code=200)
-async def get_upsell_products():   # noqa: ANN201
+async def get_upsell_products(id):  # noqa: ANN201
     """Get products and upsell."""
 
 
-@cart.post('/{uuid}/user', status_code=201, response_model=CartUser)
+@cart.post('/{uuid}/user', status_code=201)
 async def add_user_to_cart(
     uuid: str,
     *,
     cart: CartBase,
-    token: str = Depends(oauth2_scheme),
-    bootstrap: Command = Depends(get_bootstrap),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
 ) -> CartUser:
     """Add user to cart."""
     return await services.add_user_to_cart(
@@ -148,14 +148,14 @@ async def add_user_to_cart(
     )
 
 
-@cart.post('/{uuid}/address', status_code=201, response_model=CartShipping)
+@cart.post('/{uuid}/address', status_code=201)
 async def add_address_to_cart(
     uuid: str,
     *,
     cart: CartUser,
     address: CreateAddress,
-    token: str = Depends(oauth2_scheme),
-    bootstrap: Command = Depends(get_bootstrap),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
 ) -> CartShipping:
     """Add user to cart."""
     return await services.add_address_to_cart(
@@ -170,7 +170,6 @@ async def add_address_to_cart(
 @cart.post(
     '/{uuid}/payment/{payment_method}',
     status_code=201,
-    response_model=CartPayment,
 )
 async def add_payment_information_to_cart(
     uuid: str,
@@ -180,8 +179,8 @@ async def add_payment_information_to_cart(
     payment: CreateCreditCardPaymentMethod
     | CreateCreditCardTokenPaymentMethod
     | CreatePixPaymentMethod,
-    token: str = Depends(oauth2_scheme),
-    bootstrap: Command = Depends(get_bootstrap),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
 ) -> CartPayment:
     """Add user to cart."""
     return await services.add_payment_information(
@@ -194,12 +193,12 @@ async def add_payment_information_to_cart(
     )
 
 
-@cart.get('/{uuid}/preview', status_code=200, response_model=CartPayment)
+@cart.get('/{uuid}/preview', status_code=200)
 async def preview_cart(
     uuid: str,
     *,
-    token: str = Depends(oauth2_scheme),
-    bootstrap: Command = Depends(get_bootstrap),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
 ) -> CartShipping:
     """Add user to cart."""
     return await services.preview(
@@ -212,14 +211,13 @@ async def preview_cart(
 @cart.post(
     '/{uuid}/checkout',
     status_code=202,
-    response_model=CreateCheckoutResponse,
 )
 async def checkout_cart(
     uuid: str,
     *,
     cart: CartPayment,
-    token: str = Depends(oauth2_scheme),
-    bootstrap: Command = Depends(get_bootstrap),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
 ) -> CreateCheckoutResponse:
     """Add user to cart."""
     return await services.checkout(
@@ -231,12 +229,12 @@ async def checkout_cart(
 
 
 @cart.get('/{uuid}/upsell/{id}', status_code=200)
-async def get_upsell_products(id):   # noqa: ANN201, ANN001
+async def get_upsell_products(id, uuid):  # noqa: ANN201, ANN001, ARG001
     """Get upsell products."""
     try:
         # TODO: Implementar o retorno dos produtos upsell
-        _ = id
-        return True   # noqa: TRY300
+        _ = id, uuid
+        return True  # noqa: TRY300
     except Exception as e:
         logger.error('Erro ao retornar upsell {e}')
-        raise e   # noqa: TRY201
+        raise e  # noqa: TRY201

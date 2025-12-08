@@ -6,13 +6,12 @@ from pydantic import TypeAdapter
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
-from app.entities.coupon import CouponInDB, CouponUpdate, CouponsResponse
+from app.entities.coupon import CouponInDB, CouponsResponse, CouponUpdate
 from app.infra.models import CouponsDB
 
 
 # TODO: implementar entity
-class Coupon:
-    ...
+class Coupon: ...
 
 
 # Abstração da classe de repositório
@@ -41,13 +40,13 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
 
-async def get_coupons(offset: int ,page: int, transaction):
+async def get_coupons(offset: int, page: int, transaction):
     """Get coupons."""
     async with transaction.begin():
-        quantity_query = (select(CouponsDB).options(
+        quantity_query = select(CouponsDB).options(
             joinedload(CouponsDB.user),
             joinedload(CouponsDB.product),
-        ))
+        )
         total_records = await transaction.scalar(
             select(func.count(CouponsDB.coupon_id)),
         )
@@ -69,10 +68,13 @@ async def get_coupons(offset: int ,page: int, transaction):
 async def get_coupon(coupon_id, transaction):
     """Get coupons."""
     async with transaction.begin():
-        quantity_query = (select(CouponsDB).options(
-            joinedload(CouponsDB.user),
-            joinedload(CouponsDB.product),
-            ).where(CouponsDB.coupon_id == coupon_id)
+        quantity_query = (
+            select(CouponsDB)
+            .options(
+                joinedload(CouponsDB.user),
+                joinedload(CouponsDB.product),
+            )
+            .where(CouponsDB.coupon_id == coupon_id)
         )
         coupon = await transaction.scalar(quantity_query)
         return CouponInDB.model_validate(coupon)
@@ -81,10 +83,13 @@ async def get_coupon(coupon_id, transaction):
 async def update_coupon(coupon_id: int, data_update: CouponUpdate, transaction):
     """Update Coupon."""
     async with transaction.begin():
-        quantity_query = (select(CouponsDB).options(
-            joinedload(CouponsDB.user),
-            joinedload(CouponsDB.product),
-            ).where(CouponsDB.coupon_id == coupon_id)
+        quantity_query = (
+            select(CouponsDB)
+            .options(
+                joinedload(CouponsDB.user),
+                joinedload(CouponsDB.product),
+            )
+            .where(CouponsDB.coupon_id == coupon_id)
         )
         coupon = await transaction.scalar(quantity_query)
 
@@ -97,13 +102,16 @@ async def update_coupon(coupon_id: int, data_update: CouponUpdate, transaction):
     return coupon
 
 
-async def delete_coupon(coupon_id:int, transaction):
+async def delete_coupon(coupon_id: int, transaction):
     """Delete Coupon."""
     async with transaction.begin():
-        quantity_query = (select(CouponsDB).options(
-            joinedload(CouponsDB.user),
-            joinedload(CouponsDB.product),
-            ).where(CouponsDB.coupon_id == coupon_id)
+        quantity_query = (
+            select(CouponsDB)
+            .options(
+                joinedload(CouponsDB.user),
+                joinedload(CouponsDB.product),
+            )
+            .where(CouponsDB.coupon_id == coupon_id)
         )
         coupons = await transaction.scalar(quantity_query)
         coupons.active = False

@@ -1,5 +1,6 @@
+# ruff: noqa: I001
 # ruff: noqa: ANN401 FBT002 TRY300 TRY301 PLR0913
-from typing import Any
+from typing import Any, Annotated
 
 from fastapi.security import OAuth2PasswordBearer
 from app.infra.constants import CurrencyType, MediaType
@@ -48,13 +49,13 @@ async def get_bootstrap() -> Command:
 def get_showcase(
     *,
     currency: CurrencyType = CurrencyType.BRL,
-    db = Depends(get_session),
+    db=Depends(get_session),
 ) -> Any:
     """Get showcase."""
     try:
         return services.get_showcase(currency=currency, db=db)
     except Exception as e:
-        logger.error(f'Erro em obter os produtos dentro do showcase - { e }')
+        logger.error(f'Erro em obter os produtos dentro do showcase - {e}')
         raise
 
 
@@ -63,14 +64,13 @@ def get_showcase(
     summary='Get all products',
     description='Return all products in ProductDB',
     status_code=status.HTTP_200_OK,
-    response_model=ProductsResponse,
 )
 async def get_products_all(
     *,
     offset: int = 10,
     page: int = 1,
     currency: CurrencyType = CurrencyType.BRL,
-    db = Depends(get_async_session),
+    db=Depends(get_async_session),
 ) -> ProductsResponse:
     """Get products all."""
     return await services.get_product_all(
@@ -86,13 +86,13 @@ async def get_products_all(
     summary='Get latest products',
     description='Return latest add products in ProductDB',
     status_code=status.HTTP_200_OK,
-    response_model=ProductsResponse,
 )
 async def get_latest_products(
+    *,
     offset: int = 10,
     page: int = 1,
     currency: CurrencyType = CurrencyType.BRL,
-    db: Session = Depends(get_async_session),
+    db: Annotated[Session, Depends(get_async_session)],
 ) -> ProductsResponse:
     """Get latest products."""
     return await services.get_latest_products(
@@ -108,13 +108,13 @@ async def get_latest_products(
     summary='Get featured products',
     description='Return products is flagged with ProductDB limited for offset',
     status_code=status.HTTP_200_OK,
-    response_model=ProductsResponse,
 )
 async def get_products_featured(
+    *,
     offset: int = 2,
     page: int = 1,
     currency: CurrencyType = CurrencyType.BRL,
-    db: Session = Depends(get_async_session),
+    db: Annotated[Session, Depends(get_async_session)],
 ) -> ProductsResponse:
     """Get products all."""
     return await services.get_featured_products(
@@ -130,14 +130,14 @@ async def get_products_featured(
     summary='Get searched term products',
     description='Return products with machted term in ProductDB',
     status_code=status.HTTP_200_OK,
-    response_model=ProductsResponse,
 )
 async def search_products(
     search: str,
+    *,
     offset: int = 2,
     page: int = 1,
     currency: CurrencyType = CurrencyType.BRL,
-    db: Session = Depends(get_async_session),
+    db: Annotated[Session, Depends(get_async_session)],
 ) -> ProductsResponse:
     """Get search term products."""
     return await services.search_products(
@@ -152,12 +152,11 @@ async def search_products(
 @catalog.get(
     '/categories',
     status_code=status.HTTP_200_OK,
-    response_model=Categories,
 )
 async def get_categories(
     menu: bool = False,
     showcase: bool = False,
-    db = Depends(get_async_session),
+    db=Depends(get_async_session),
 ) -> Categories:
     """GET categories."""
     try:
@@ -167,7 +166,7 @@ async def get_categories(
             db=db,
         )
     except Exception as e:
-        logger.error(f'Erro em obter as categorias - { e }')
+        logger.error(f'Erro em obter as categorias - {e}')
         raise
 
 
@@ -177,7 +176,7 @@ async def get_product_category(
     offset: int = 2,
     page: int = 1,
     currency: CurrencyType = CurrencyType.BRL,
-    db = Depends(get_async_session),
+    db=Depends(get_async_session),
 ) -> ProductsResponse:
     """Get product category."""
     try:
@@ -191,14 +190,14 @@ async def get_product_category(
     except Exception:
         raise
 
+
 @catalog.get(
     '/category/{category_id}',
     status_code=status.HTTP_200_OK,
-    response_model=CategoryResponse,
 )
 async def get_category_by_id(
     category_id: int,
-    db = Depends(get_async_session),
+    db=Depends(get_async_session),
 ) -> CategoryResponse:
     """Get category by ID."""
     category = await catalog_services.get_category_by_id(
@@ -214,13 +213,12 @@ async def get_category_by_id(
 @catalog.post(
     '/category',
     status_code=status.HTTP_201_CREATED,
-    response_model=CategoryResponse,
     tags=['admin'],
 )
 async def create_category(
     category_data: CategoryCreate,
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db=Depends(get_async_session),
 ) -> CategoryResponse:
     """Create new category."""
     _ = token
@@ -234,14 +232,13 @@ async def create_category(
 @catalog.patch(
     '/category/{category_id}',
     status_code=status.HTTP_200_OK,
-    response_model=CategoryResponse,
     tags=['admin'],
 )
 async def update_category(
     category_id: int,
     category_data: CategoryUpdate,
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db=Depends(get_async_session),
 ) -> CategoryResponse:
     """Update category."""
     _ = token
@@ -260,8 +257,8 @@ async def update_category(
 )
 async def delete_category(
     category_id: int,
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db=Depends(get_async_session),
 ) -> None:
     """Delete category."""
     _ = token
@@ -278,9 +275,9 @@ async def delete_category(
 )
 async def upload_category_image(
     category_id: int,
-    image: UploadFile = File(...),
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
+    image: Annotated[UploadFile, File()],
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db=Depends(get_async_session),
 ) -> str:
     """Upload image for category."""
     _ = token
@@ -301,9 +298,9 @@ async def upload_category_media_gallery(
     category_id: int,
     media_type: MediaType,
     order: int,
-    new_media: UploadFile = File(...),
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
+    new_media: Annotated[UploadFile, File()],
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db=Depends(get_async_session),
 ) -> str:
     """Upload media to category gallery."""
     _ = token
@@ -323,7 +320,7 @@ async def upload_category_media_gallery(
 )
 async def get_category_media_gallery(
     category_id: int,
-    db = Depends(get_async_session),
+    db=Depends(get_async_session),
 ):
     """Get category media gallery."""
     return await catalog_services.get_category_media_gallery(
@@ -341,8 +338,8 @@ async def get_category_media_gallery(
 async def delete_category_media_gallery(
     category_id: int,
     media_id: int,
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db=Depends(get_async_session),
 ) -> None:
     """Delete media from category gallery."""
     _ = token

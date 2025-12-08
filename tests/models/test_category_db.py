@@ -1,11 +1,11 @@
+# ruff: noqa: I001
 from sqlalchemy import select
 from app.infra.models import CategoryDB
 from tests.factories_db import CategoryFactory
 
 
 def test_create_category(session):
-    """Must create valid category."""
-    # Arrange
+    # Setup
     new_category = CategoryFactory()
     session.add(new_category)
     session.commit()
@@ -23,8 +23,7 @@ def test_create_category(session):
 
 
 def test_category_default_values(session):
-    """Must create category with default values."""
-    # Arrange
+    # Setup
     new_category = CategoryFactory(menu=False, showcase=False)
     session.add(new_category)
     session.commit()
@@ -40,8 +39,7 @@ def test_category_default_values(session):
 
 
 def test_category_with_image_path(session):
-    """Must create category with image_path."""
-    # Arrange
+    # Setup
     image_path = 'https://cdn.test.com/category.png'
     new_category = CategoryFactory(image_path=image_path)
     session.add(new_category)

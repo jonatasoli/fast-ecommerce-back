@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import pytest
 from uuid import UUID
 from decimal import Decimal
@@ -20,11 +21,15 @@ from app.entities.cart import (
 )
 from app.entities.product import ProductCart, ProductNotFoundError
 from tests.fake_functions import fake, fake_decimal
-from tests.factories import ProductCartFactory, ProductInDBFactory, CouponInDBFactory, FreightFactory
+from tests.factories import (
+    ProductCartFactory,
+    ProductInDBFactory,
+    CouponInDBFactory,
+    FreightFactory,
+)
 
 
 def test_create_uuid_to_cart() -> None:
-    """Must return a UUID."""
     # Act
     uuid = generate_cart_uuid()
 
@@ -33,8 +38,7 @@ def test_create_uuid_to_cart() -> None:
 
 
 def test_create_base_cart() -> None:
-    """Must create base cart."""
-    # Arrange
+    # Setup
     uuid = fake.uuid4()
     cart_items = [ProductCartFactory()]
     subtotal = fake_decimal()
@@ -49,8 +53,7 @@ def test_create_base_cart() -> None:
 
 
 def test_increase_product_to_cart() -> None:
-    """Must increase quantity in a product."""
-    # Arrange
+    # Setup
     product_id = fake.random_int()
     initial_quantity = fake.random_int(min=1, max=5)
     product = ProductCartFactory(product_id=product_id, quantity=initial_quantity)
@@ -65,8 +68,7 @@ def test_increase_product_to_cart() -> None:
 
 
 def test_decrease_product_to_cart() -> None:
-    """Must decrease quantity in a product."""
-    # Arrange
+    # Setup
     product_id = fake.random_int()
     initial_quantity = fake.random_int(min=2, max=10)
     product = ProductCartFactory(product_id=product_id, quantity=initial_quantity)
@@ -81,8 +83,7 @@ def test_decrease_product_to_cart() -> None:
 
 
 def test_set_product_quantity_to_cart() -> None:
-    """Must set quantity in a product."""
-    # Arrange
+    # Setup
     product_id = fake.random_int()
     new_quantity = fake.random_int(min=1, max=20)
     product = ProductCartFactory(product_id=product_id)
@@ -96,12 +97,13 @@ def test_set_product_quantity_to_cart() -> None:
 
 
 def test_add_product_to_cart() -> None:
-    """Must add a product to cart."""
-    # Arrange
+    # Setup
     existing_product = ProductCartFactory()
     new_product_id = fake.random_int()
     new_price = fake_decimal()
-    cart = CartBase(uuid=fake.uuid4(), cart_items=[existing_product], subtotal=fake_decimal())
+    cart = CartBase(
+        uuid=fake.uuid4(), cart_items=[existing_product], subtotal=fake_decimal(),
+    )
 
     # Act
     output = cart.add_product(
@@ -120,8 +122,7 @@ def test_add_product_to_cart() -> None:
 
 
 def test_add_duplicate_product_should_increase_quantity() -> None:
-    """Must add a product to cart."""
-    # Arrange
+    # Setup
     product_id = fake.random_int()
     initial_quantity = fake.random_int(min=1, max=5)
     product = ProductCartFactory(product_id=product_id, quantity=initial_quantity)
@@ -144,8 +145,7 @@ def test_add_duplicate_product_should_increase_quantity() -> None:
 
 
 def test_remove_product_to_cart() -> None:
-    """Must remove a product to cart."""
-    # Arrange
+    # Setup
     product_id = fake.random_int()
     product = ProductCartFactory(product_id=product_id)
     cart = CartBase(uuid=fake.uuid4(), cart_items=[product], subtotal=fake_decimal())
@@ -158,21 +158,21 @@ def test_remove_product_to_cart() -> None:
 
 
 def test_remove_product_to_cart_with_product_not_exists() -> None:
-    """Must remove a product to cart."""
-    # Arrange
+    # Setup
     product_id = fake.random_int()
     different_product_id = product_id + 1
     product = ProductCartFactory(product_id=product_id)
     cart = CartBase(uuid=fake.uuid4(), cart_items=[product], subtotal=fake_decimal())
 
     # Act / Assert
-    with pytest.raises(IndexError, match=f"Product id {different_product_id} don't exists in cart"):
+    with pytest.raises(
+        IndexError, match=f"Product id {different_product_id} don't exists in cart",
+    ):
         cart.remove_product(product_id=different_product_id)
 
 
 def test_add_product_price_to_cart() -> None:
-    """Must add a product price to cart."""
-    # Arrange
+    # Setup
     cart = CartBase(uuid=fake.uuid4(), cart_items=[], subtotal=Decimal(0))
     products_with_prices = []
 
@@ -182,10 +182,16 @@ def test_add_product_price_to_cart() -> None:
         quantity = fake.random_int(min=1, max=5)
 
         # Add to cart without price
-        cart.cart_items.append(ProductCartFactory(product_id=product_id, price=fake_decimal(), quantity=quantity))
+        cart.cart_items.append(
+            ProductCartFactory(
+                product_id=product_id, price=fake_decimal(), quantity=quantity,
+            ),
+        )
 
         # Create reference with correct price
-        products_with_prices.append(ProductCartFactory(product_id=product_id, price=price, quantity=quantity))
+        products_with_prices.append(
+            ProductCartFactory(product_id=product_id, price=price, quantity=quantity),
+        )
 
     # Act
     cart.add_product_price(products_with_prices)
@@ -196,8 +202,7 @@ def test_add_product_price_to_cart() -> None:
 
 
 def test_calculate_subtotal_to_cart() -> None:
-    """Must calculate subtotal to cart."""
-    # Arrange
+    # Setup
     cart_items = []
     expected_subtotal = Decimal(0)
 
@@ -217,19 +222,19 @@ def test_calculate_subtotal_to_cart() -> None:
 
 
 def test_calculate_subtotal_in_cart_without_prices_raise_cart_error() -> None:
-    """Must raise CartNotFoundPriceError."""
-    # Arrange
+    # Setup
     cart_items = [ProductCartFactory(price=None) for _ in range(10)]
     cart = CartBase(uuid=fake.uuid4(), cart_items=cart_items, subtotal=Decimal(0))
 
     # Act / Assert
-    with pytest.raises(CartNotFoundPriceError, match='Price or quantity not found in cart item'):
+    with pytest.raises(
+        CartNotFoundPriceError, match='Price or quantity not found in cart item',
+    ):
         cart.calculate_subtotal()
 
 
 def test_calculate_subtotal_in_cart_with_cart_items_empty_raise_value_error() -> None:
-    """Must raise ValueError."""
-    # Arrange
+    # Setup
     cart = CartBase(uuid=fake.uuid4(), cart_items=[], subtotal=Decimal(0))
 
     # Act / Assert
@@ -238,10 +243,11 @@ def test_calculate_subtotal_in_cart_with_cart_items_empty_raise_value_error() ->
 
 
 def test_calculate_subtotal_in_cart_with_coupon() -> None:
-    """Must calculate subtotal to cart with coupon."""
-    # Arrange
+    # Setup
     discount_percentage = Decimal(fake.random_number(digits=2, fix_len=True) / 100)
-    coupon = CouponInDBFactory(discount=discount_percentage, discount_price=Decimal(0), limit_price=None)
+    coupon = CouponInDBFactory(
+        discount=discount_percentage, discount_price=Decimal(0), limit_price=None,
+    )
 
     cart_items = []
     expected_subtotal = Decimal(0)
@@ -250,13 +256,22 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
     for _ in range(10):
         price = fake_decimal(min_value=10, max_value=100)
         quantity = fake.random_int(min=1, max=5)
-        cart_items.append(ProductCartFactory(price=price, quantity=quantity, discount_price=Decimal('0')))
+        cart_items.append(
+            ProductCartFactory(
+                price=price, quantity=quantity, discount_price=Decimal('0'),
+            ),
+        )
         expected_subtotal += quantity * price
         discount_price = price * discount_percentage
         expected_discount += discount_price * quantity
 
     expected_final_subtotal = expected_subtotal - expected_discount
-    cart = CartBase(uuid=fake.uuid4(), cart_items=cart_items, subtotal=Decimal(0), coupon=coupon.code)
+    cart = CartBase(
+        uuid=fake.uuid4(),
+        cart_items=cart_items,
+        subtotal=Decimal(0),
+        coupon=coupon.code,
+    )
 
     # Act
     cart.calculate_subtotal(coupon=coupon)
@@ -269,44 +284,43 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
 
 # Exception tests
 def test_cart_not_found_error_message():
-    """Must raise CartNotFoundError with correct message."""
     with pytest.raises(CartNotFoundError, match='Cart not found'):
         raise CartNotFoundError
 
 
 def test_invalid_cart_format_error_message():
-    """Must raise InvalidCartFormatError with correct message."""
     with pytest.raises(InvalidCartFormatError, match='Invalid cart format'):
         raise InvalidCartFormatError
 
 
 def test_invalid_cart_uuid_error_message():
-    """Must raise InvalidCartUUIDError with correct message."""
-    with pytest.raises(InvalidCartUUIDError, match='Cart uuid is not the same as the cache uuid'):
+    with pytest.raises(
+        InvalidCartUUIDError, match='Cart uuid is not the same as the cache uuid',
+    ):
         raise InvalidCartUUIDError
 
 
 def test_checkout_processing_error_message():
-    """Must raise CheckoutProcessingError with correct message."""
     with pytest.raises(CheckoutProcessingError, match='Checkout error processing'):
         raise CheckoutProcessingError
 
 
 def test_coupon_limit_price_error_message():
-    """Must raise CouponLimitPriceError with correct message."""
-    with pytest.raises(CouponLimitPriceError, match='The price limit is below for the subototal'):
+    with pytest.raises(
+        CouponLimitPriceError, match='The price limit is below for the subototal',
+    ):
         raise CouponLimitPriceError
 
 
 def test_cart_inconsistency_error_message():
-    """Must raise CartInconsistencyError with correct message."""
-    with pytest.raises(CartInconsistencyError, match='Cart is diferent to product list to check'):
+    with pytest.raises(
+        CartInconsistencyError, match='Cart is diferent to product list to check',
+    ):
         raise CartInconsistencyError
 
 
 # Edge case tests
 def test_increase_quantity_when_product_not_found_returns_cart():
-    """Must return cart unchanged when product not found."""
     product = ProductCartFactory()
     cart = CartBase(uuid=fake.uuid4(), cart_items=[product], subtotal=fake_decimal())
     original_quantity = cart.cart_items[0].quantity
@@ -319,7 +333,6 @@ def test_increase_quantity_when_product_not_found_returns_cart():
 
 
 def test_decrease_quantity_when_product_not_found_returns_cart():
-    """Must return cart unchanged when product not found."""
     product = ProductCartFactory()
     cart = CartBase(uuid=fake.uuid4(), cart_items=[product], subtotal=fake_decimal())
     original_quantity = cart.cart_items[0].quantity
@@ -332,7 +345,6 @@ def test_decrease_quantity_when_product_not_found_returns_cart():
 
 
 def test_set_product_quantity_when_product_not_found_returns_cart():
-    """Must return cart unchanged when product not found."""
     product = ProductCartFactory()
     cart = CartBase(uuid=fake.uuid4(), cart_items=[product], subtotal=fake_decimal())
     original_quantity = cart.cart_items[0].quantity
@@ -345,13 +357,12 @@ def test_set_product_quantity_when_product_not_found_returns_cart():
 
 
 def test_calculate_subtotal_with_coupon_limit_price_error():
-    """Must raise CouponLimitPriceError when subtotal below limit."""
     subtotal_value = fake_decimal(min_value=10, max_value=50)
     limit_price_value = fake_decimal(min_value=100, max_value=200)
 
     cart_items = [ProductCartFactory(price=subtotal_value, quantity=1)]
     coupon = CouponInDBFactory(
-        discount=Decimal("0"),
+        discount=Decimal('0'),
         discount_price=fake_decimal(min_value=5, max_value=20),
         limit_price=limit_price_value,
     )
@@ -362,7 +373,6 @@ def test_calculate_subtotal_with_coupon_limit_price_error():
 
 
 def test_calculate_subtotal_with_coupon_discount_price_success():
-    """Must apply coupon discount_price when limit_price is met."""
     discount_value = fake_decimal(min_value=10, max_value=30)
     price = fake_decimal(min_value=100, max_value=150)
     quantity = fake.random_int(min=2, max=5)
@@ -370,7 +380,7 @@ def test_calculate_subtotal_with_coupon_discount_price_success():
 
     cart_items = [ProductCartFactory(price=price, quantity=quantity)]
     coupon = CouponInDBFactory(
-        discount=Decimal("0"),
+        discount=Decimal('0'),
         discount_price=discount_value,
         limit_price=limit_price,
     )
@@ -383,14 +393,15 @@ def test_calculate_subtotal_with_coupon_discount_price_success():
 
 
 def test_calculate_subtotal_with_freight():
-    """Must calculate total with freight included."""
     price = fake_decimal(min_value=50, max_value=150)
     quantity = fake.random_int(min=1, max=5)
     freight_price = fake_decimal(min_value=10, max_value=50)
 
     cart_items = [ProductCartFactory(price=price, quantity=quantity)]
     freight = FreightFactory(price=freight_price)
-    cart = CartBase(uuid=fake.uuid4(), cart_items=cart_items, subtotal=Decimal(0), freight=freight)
+    cart = CartBase(
+        uuid=fake.uuid4(), cart_items=cart_items, subtotal=Decimal(0), freight=freight,
+    )
 
     cart.calculate_subtotal()
 
@@ -398,7 +409,6 @@ def test_calculate_subtotal_with_freight():
 
 
 def test_get_products_price_and_discounts_with_inconsistency():
-    """Must raise CartInconsistencyError when lists don't match."""
     cart_items = [
         ProductCartFactory(product_id=fake.random_int()),
         ProductCartFactory(product_id=fake.random_int()),
@@ -412,7 +422,6 @@ def test_get_products_price_and_discounts_with_inconsistency():
 
 # Utility function tests
 def test_convert_price_to_decimal():
-    """Must convert int price to decimal correctly."""
     int_price = fake.random_int(min=1000, max=100000)
     result = convert_price_to_decimal(int_price)
 
@@ -421,7 +430,6 @@ def test_convert_price_to_decimal():
 
 
 def test_generate_empty_cart():
-    """Must generate empty cart with UUID."""
     cart = generate_empty_cart()
 
     assert isinstance(cart.uuid, UUID)
@@ -430,13 +438,14 @@ def test_generate_empty_cart():
 
 
 def test_generate_new_cart_with_product():
-    """Must generate new cart with product."""
     product = ProductInDBFactory()
     price = fake_decimal(min_value=10, max_value=500)
     quantity = fake.random_int(min=1, max=10)
     available_quantity = fake.random_int(min=10, max=100)
 
-    cart = generate_new_cart(product, price=price, quantity=quantity, available_quantity=available_quantity)
+    cart = generate_new_cart(
+        product, price=price, quantity=quantity, available_quantity=available_quantity,
+    )
 
     assert isinstance(cart.uuid, UUID)
     assert len(cart.cart_items) == 1
@@ -445,24 +454,20 @@ def test_generate_new_cart_with_product():
 
 
 def test_generate_new_cart_without_product_raises_error():
-    """Must raise ProductNotFoundError when product is None."""
     with pytest.raises(ProductNotFoundError):
         generate_new_cart(None, price=fake_decimal(), quantity=1, available_quantity=10)
 
 
 def test_validate_cache_cart_with_none_raises_error():
-    """Must raise CartNotFoundError when cache is None."""
     with pytest.raises(CartNotFoundError):
         validate_cache_cart(None)
 
 
 def test_validate_cache_cart_with_non_bytes_raises_error():
-    """Must raise InvalidCartFormatError when cache is not bytes."""
     with pytest.raises(InvalidCartFormatError):
         validate_cache_cart(fake.word())
 
 
 def test_validate_cache_cart_with_invalid_json_raises_error():
-    """Must raise InvalidCartFormatError when JSON is invalid."""
     with pytest.raises(InvalidCartFormatError):
-        validate_cache_cart(b"invalid json{{{")
+        validate_cache_cart(b'invalid json{{{')

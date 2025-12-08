@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from fastapi import status
 from httpx import ASGITransport, AsyncClient
 import pytest
@@ -6,11 +7,11 @@ from main import app
 
 URL = '/report'
 
+
 @pytest.mark.asyncio
 async def test_empty_report_should_empy_list(asyncdb, async_admin_token):
-    """Should return empty list."""
-    # Arrange
-    headers = { 'Authorization': f'Bearer {async_admin_token}' }
+    # Setup
+    headers = {'Authorization': f'Bearer {async_admin_token}'}
 
     # Act
     async with AsyncClient(

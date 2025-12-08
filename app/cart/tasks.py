@@ -54,8 +54,8 @@ async def checkout(
     payment_gateway: str,
     user: Any,
     bootstrap: Any = Depends(get_bootstrap),
-    db = Depends(get_session),
-    async_db = Depends(get_async_session),
+    db=Depends(get_session),
+    async_db=Depends(get_async_session),
 ) -> dict:
     """Checkout cart with payment intent."""
     logger.info('Start checkout task')
@@ -104,19 +104,16 @@ async def checkout(
             coupon=coupon if cart.coupon else None,
         )
         match cart.payment_method:
-            case (PaymentMethod.CREDIT_CARD.value):
-
-                payment_response = (
-                    bootstrap.payment.create_credit_card_payment(
-                        payment_gateway=cart.gateway_provider,
-                        customer_id=cart.customer_id,
-                        amount=cart.total,
-                        card_token=cart.card_token,
-                        installments=cart.installments,
-                        customer_email=user['email'],
-                        payment_intent_id=cart.payment_intent,
-                        payment_method=cart.payment_method_id,
-                    )
+            case PaymentMethod.CREDIT_CARD.value:
+                payment_response = bootstrap.payment.create_credit_card_payment(
+                    payment_gateway=cart.gateway_provider,
+                    customer_id=cart.customer_id,
+                    amount=cart.total,
+                    card_token=cart.card_token,
+                    installments=cart.installments,
+                    customer_email=user['email'],
+                    payment_intent_id=cart.payment_intent,
+                    payment_method=cart.payment_method_id,
                 )
                 authorization_code = None
                 if payment_method == PaymentGatewayAvailable.STRIPE.value:
@@ -217,7 +214,7 @@ async def checkout(
                     f'Checkout cart {cart_uuid} with payment {payment_id} processed with success',
                 )
                 bootstrap.cache.delete(cart_uuid)
-            case (PaymentMethod.PIX.value):
+            case PaymentMethod.PIX.value:
                 logger.info('Start pix payment')
                 payment_id, order_id = await create_pending_payment_and_order(
                     cart=cart,
@@ -253,10 +250,9 @@ async def checkout(
                         queue=RabbitQueue('sales_commission'),
                     )
                 bootstrap.cache.delete(cart_uuid)
-            case (_):
+            case _:
                 msg = 'Payment method not found'
                 raise Exception(msg)
-
 
     except PaymentAcceptError:
         return PAYMENT_STATUS_ERROR_MESSAGE

@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -5,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.mail import services
 from app.infra import deps
 from app.entities.mail import MailFormCourses, MailTrackingNumber
+from typing import Annotated
 
 mail = APIRouter(
     prefix='/notification',
@@ -15,7 +17,7 @@ mail = APIRouter(
 @mail.post('/send-mail-tracking-number', status_code=201)
 async def send_mail_tracking_number(
     *,
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     mail_data: MailTrackingNumber,
 ) -> None:
     """Send mail tracking number."""
@@ -31,7 +33,7 @@ async def send_mail_tracking_number(
 @mail.post('/send-mail-form-courses', status_code=201)
 async def send_mail_form_courses(
     *,
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     mail_data: MailFormCourses,
 ) -> None:
     """Send mail form courses."""

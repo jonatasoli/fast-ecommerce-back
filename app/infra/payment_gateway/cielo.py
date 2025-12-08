@@ -1,4 +1,3 @@
-
 from decimal import Decimal
 
 
@@ -26,12 +25,12 @@ def accept_payment(
 
 
 def create_pix(
-        customer_id,
-        *,
-        customer_email: str,
-        amount: Decimal | float,
-        description: str,
-        client,
+    customer_id,
+    *,
+    customer_email: str,
+    amount: Decimal | float,
+    description: str,
+    client,
 ):
     """Create a pix payment."""
     raise NotImplementedError
@@ -43,6 +42,7 @@ def get_payment_status(
 ) -> dict:
     """Get payment status."""
     raise NotImplementedError
+
 
 def cancel_payment(
     payment_id,
@@ -60,6 +60,7 @@ def zero_auth_credit_card():
     """Check if credit card is valid."""
     raise NotImplementedError
 
+
 def create_customer(email):
     """Create customer - in cielo is dummy function."""
-    return { 'id': 'notimplemented' }
+    return {'id': 'notimplemented'}

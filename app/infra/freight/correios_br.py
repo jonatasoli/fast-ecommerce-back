@@ -87,7 +87,9 @@ def get_token(redis_client: redis.AbstractCache = redis.RedisCache()) -> str:
         data = jsonable_encoder(
             {'numero': str(settings.CORREIOSBR_POSTAL_CART)},
         )
-        basic_auth = f'{settings.CORREIOSBR_USER}:{settings.CORREIOSBR_API_SECRET}'.encode()
+        basic_auth = (
+            f'{settings.CORREIOSBR_USER}:{settings.CORREIOSBR_API_SECRET}'.encode()
+        )
         credenciais_base64 = base64.b64encode(basic_auth).decode('utf-8')
         headers = {
             'accept': 'application/json',
@@ -137,9 +139,7 @@ def calculate_delivery_time(
             raise TimeoutException(msg)
         _response = response.json()
         logger.info(_response)
-        if isinstance(_response, list) and (
-            api_error := _response[0].get('txErro')
-        ):
+        if isinstance(_response, list) and (api_error := _response[0].get('txErro')):
             raise CorreiosInvalidReturnError(api_error.split(':')[0])
 
         if not (delivery_time_response := _response[0]['prazoEntrega']):
@@ -156,7 +156,7 @@ def calculate_delivery_time(
     except Exception:
         return DeliveryParamsResponse(
             delivery_time=10,
-            max_date=datetime.now(tz=UTC) + timedelta(days = 15),
+            max_date=datetime.now(tz=UTC) + timedelta(days=15),
         )
 
 
@@ -187,9 +187,7 @@ def calculate_delivery_price(
         if isinstance(_response, dict) and (
             api_error := _response.get('txErro') or _response.get('msgs')
         ):
-            extracted_contents = [
-                error_code.split(':')[0] for error_code in api_error
-            ]
+            extracted_contents = [error_code.split(':')[0] for error_code in api_error]
             raise CorreiosInvalidReturnError(extracted_contents[0])
         if not (price := _response['pcFinal']):
             msg = 'Error to calculate delivery price'

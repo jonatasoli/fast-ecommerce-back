@@ -1,5 +1,6 @@
+# ruff: noqa: I001
 # ruff: noqa: ANN401 TRY301 TRY300
-from typing import Any
+from typing import Any, Annotated
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from app.infra.constants import CurrencyType, MediaType
 from app.user.services import verify_admin, verify_admin_sync
@@ -38,8 +39,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 async def upload_image(
     product_id: int,
     *,
-    db: Session = Depends(get_async_session),
-    image: UploadFile = File(...),
+    db: Annotated[Session, Depends(get_async_session)],
+    image: Annotated[UploadFile, File()],
 ) -> str:
     """Upload image."""
     try:
@@ -54,25 +55,28 @@ async def upload_image(
     tags=['admin'],
 )
 async def get_product_inventory(
+    *,
     page: int = 1,
     offset: int = 10,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Session, Depends(get_async_session)],
 ):
     """Get products inventory."""
     return await product_services.get_inventory(
-        token=token, page=page, offset=offset, db=db,
+        token=token,
+        page=page,
+        offset=offset,
+        db=db,
     )
 
 
 @product.get(
     '/{product_id}',
     status_code=status.HTTP_200_OK,
-    response_model=ProductInDB,
 )
 async def get_product_by_id(
-        product_id: int,
-        db = Depends(get_async_session),
+    product_id: int,
+    db=Depends(get_async_session),
 ) -> ProductInDB:
     """GET product by id."""
     product = await services.get_product_by_id(product_id, db=db)
@@ -87,9 +91,8 @@ async def get_product_by_id(
 @product.get(
     '/uri/{uri:path}',
     status_code=status.HTTP_200_OK,
-    response_model=ProductInDB,
 )
-def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
+def get_product_uri(uri: str, db: Annotated[Session, Depends(get_db)]) -> ProductInDB:
     """GET product uri."""
     product = services.get_product(db, uri)
     if not product:
@@ -102,18 +105,23 @@ def get_product_uri(uri: str, db: Session = Depends(get_db)) -> ProductInDB:
 
 
 @product.get('/products/{query_name}', status_code=status.HTTP_200_OK)
-async def get_product_by_name( # noqa: PLR0913
+async def get_product_by_name(  # noqa: PLR0913
     query_name: str,
+    *,
     offset: int = 2,
     page: int = 1,
     currency: CurrencyType = CurrencyType.BRL,
-    token: str = Depends(oauth2_scheme),
-    db = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Any, Depends(get_async_session)],
 ):
     """Get products inventory by name."""
     await verify_admin(token, db=db)
     return await product_services.get_inventory_name(
-        query_name, currency=currency, page=page, offset=offset, db=db,
+        query_name,
+        currency=currency,
+        page=page,
+        offset=offset,
+        db=db,
     )
 
 
@@ -125,8 +133,8 @@ async def get_product_by_name( # noqa: PLR0913
 async def product_inventory(
     product_id: int,
     inventory: InventoryTransaction,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Session, Depends(get_async_session)],
 ):
     """Get products inventory."""
     return await product_services.inventory_transaction(
@@ -136,17 +144,17 @@ async def product_inventory(
         db=db,
     )
 
+
 @product.post(
     '/',
     summary='[Admin] Create new product',
     status_code=status.HTTP_201_CREATED,
-    response_model=ProductInDBResponse,
     tags=['admin'],
 )
 async def create_product(
     *,
-    token: str = Depends(oauth2_scheme),
-    db= Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db=Depends(get_async_session),
     product_data: ProductCreate,
 ) -> ProductInDBResponse:
     """Create product."""
@@ -165,14 +173,14 @@ async def create_product(
     '/media/{product_id}',
     status_code=status.HTTP_201_CREATED,
 )
-async def upload_media_gallery( #noqa: PLR0913
+async def upload_media_gallery(  # noqa: PLR0913
     product_id: int,
     *,
     media_type: MediaType,
     order: int,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_async_session),
-    new_media: UploadFile = File(...),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Session, Depends(get_async_session)],
+    new_media: Annotated[UploadFile, File()],
 ):
     """Upload media in gallery."""
     _ = token
@@ -189,10 +197,10 @@ async def upload_media_gallery( #noqa: PLR0913
     '/media/{uri}',
     status_code=status.HTTP_200_OK,
     tags=['admin'],
- )
+)
 async def get_media_gallery(
-        uri: str,
-        db: Session = Depends(get_async_session),
+    uri: str,
+    db: Annotated[Session, Depends(get_async_session)],
 ):
     """Get media gallery."""
     try:
@@ -206,13 +214,13 @@ async def get_media_gallery(
 
 @product.delete(
     '/media/{product_id}',
-     status_code=status.HTTP_204_NO_CONTENT,
-     tags=['admin'],
- )
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=['admin'],
+)
 async def delete_image(
-        product_id: int,
-        media_id: int,
-        db: Session = Depends(get_async_session),
+    product_id: int,
+    media_id: int,
+    db: Annotated[Session, Depends(get_async_session)],
 ):
     """Delete image."""
     try:
@@ -235,8 +243,8 @@ async def delete_image(
 async def patch_product(
     product_id: int,
     columns_update: ProductPatchRequest,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_async_session),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Session, Depends(get_async_session)],
 ) -> None:
     """Patch product."""
     await verify_admin(token, db=db)
@@ -254,9 +262,9 @@ async def patch_product(
 )
 async def delete_product(
     id: int,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
- ) -> None:
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
     """Delete product."""
     try:
         _ = token
@@ -268,7 +276,7 @@ async def delete_product(
 @product.get('/cart/installments', status_code=200)
 def get_installments(
     *,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
     product_id: int,
 ) -> Any:
     """Get installments."""

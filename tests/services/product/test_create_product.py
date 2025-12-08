@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import pytest
 from app.entities.product import ProductCreate, ProductInDBResponse
 
@@ -10,7 +11,6 @@ from tests.fake_functions import fake, fake_decimal, fake_url, fake_url_path
 async def test_give_valid_product_payload_should_create_product(
     asyncdb,
 ) -> None:
-    """Must create valid product."""
     category = CategoryFactory()
     config_fee = CreditCardFeeConfigFactory()
     async with asyncdb() as db:

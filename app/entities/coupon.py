@@ -1,4 +1,5 @@
 from decimal import Decimal
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -29,8 +30,7 @@ class CouponCreate(CouponBase):
     limit_price: Decimal | None = None
 
 
-class CouponUpdate(CouponCreate):
-    ...
+class CouponUpdate(CouponCreate): ...
 
 
 class CouponInDB(CouponCreate):

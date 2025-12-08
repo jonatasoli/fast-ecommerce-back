@@ -28,7 +28,7 @@ class Command(BaseModel):
 
 
 async def bootstrap(
-    db = get_session(),
+    db=get_session(),
     cache: redis.AbstractCache = redis.RedisCache(),
     message: RabbitRouter = task_message_bus,
     payment_repository: Any = payment_repository,  # noqa: ANN401

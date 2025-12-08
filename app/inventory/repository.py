@@ -1,8 +1,10 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import SessionTransaction
-from app.infra.constants import InventoryOperation
+
 from app.infra import models
+from app.infra.constants import InventoryOperation
 
 
 async def increase_inventory(

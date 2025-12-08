@@ -16,8 +16,7 @@ def register_payment_address(db: Session, checkout_data: CheckoutSchema, user):
                 and_(
                     AddressDB.user_id == user.id,
                     AddressDB.zipcode == checkout_data.get('zip_code'),
-                    AddressDB.street_number
-                    == checkout_data.get('address_number'),
+                    AddressDB.street_number == checkout_data.get('address_number'),
                     AddressDB.address_complement
                     == checkout_data.get('address_complement'),
                     AddressDB.category == 'billing',
@@ -57,8 +56,7 @@ def register_shipping_address(
                 and_(
                     AddressDB.user_id == user.id,
                     AddressDB.zipcode == checkout_data.get('ship_zip'),
-                    AddressDB.street_number
-                    == checkout_data.get('ship_number'),
+                    AddressDB.street_number == checkout_data.get('ship_number'),
                     AddressDB.address_complement
                     == checkout_data.get('ship_address_complement'),
                     AddressDB.category == 'shipping',
@@ -124,7 +122,6 @@ def register_shipping_address(
 
 def address_by_postal_code(zipcode_data):
     try:
-
         postal_code = zipcode_data.get('postal_code')
 
         if not postal_code:

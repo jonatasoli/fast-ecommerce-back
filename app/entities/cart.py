@@ -3,16 +3,14 @@ import json
 from decimal import Decimal
 from typing import Self
 from uuid import UUID, uuid4
+
 from loguru import logger
-from app.entities.coupon import CouponInDB
-
-
-from app.entities.freight import ShippingAddress
-from app.entities.product import ProductCart, ProductInDB, ProductNotFoundError
-from app.entities.user import UserAddress, UserData
 from pydantic import BaseModel
 
-from app.entities.freight import Freight
+from app.entities.coupon import CouponInDB
+from app.entities.freight import Freight, ShippingAddress
+from app.entities.product import ProductCart, ProductInDB, ProductNotFoundError
+from app.entities.user import UserAddress, UserData
 
 
 class CartNotFoundPriceError(Exception):
@@ -55,6 +53,7 @@ class CheckoutProcessingError(Exception):
 
     def __init__(self: Self) -> None:
         super().__init__('Checkout error processing')
+
 
 class CouponLimitPriceError(Exception):
     """Raise when coupon limit is below the subtotal."""
@@ -126,7 +125,7 @@ class CartBase(BaseModel):
                 item.image_path = image_path
                 item.quantity += quantity
                 item.price += price
-                item.available_quantity=available_quantity
+                item.available_quantity = available_quantity
                 return self
 
         self.cart_items.append(
@@ -153,9 +152,7 @@ class CartBase(BaseModel):
 
     def add_product_price(self: Self, products: list[ProductCart]) -> Self:
         """Add a product price to cart."""
-        product_prices = {
-            product.product_id: product.price for product in products
-        }
+        product_prices = {product.product_id: product.price for product in products}
 
         self.cart_items = [
             item.update_price(new_price=product_prices.get(item.product_id))
@@ -187,9 +184,15 @@ class CartBase(BaseModel):
                 self.discount = coupon.discount_price
             self.subtotal = subtotal - self.discount
             logger.debug(f'Frete {self.freight}')
-            _freight_price = self.freight.price if getattr(
-                self.freight, 'price', 0,
-            ) else 0
+            _freight_price = (
+                self.freight.price
+                if getattr(
+                    self.freight,
+                    'price',
+                    0,
+                )
+                else 0
+            )
             logger.debug(f'Preco {_freight_price}')
             if self.freight and self.freight.price >= 0:
                 logger.debug('Sum freight')

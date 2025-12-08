@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from sqlalchemy import select
 
 from app.infra.constants import StepsOrder
@@ -10,8 +11,7 @@ from tests.factories_db import (
 
 
 def test_create_order(session):
-    """Must create valid order."""
-    # Arrange
+    # Setup
     user = UserDBFactory()
     session.add(user)
     session.flush()
@@ -31,8 +31,7 @@ def test_create_order(session):
 
 
 def test_order_status_steps(session):
-    """Must create valid order status steps."""
-    # Arrange
+    # Setup
     user = UserDBFactory()
     session.add(user)
     session.flush()

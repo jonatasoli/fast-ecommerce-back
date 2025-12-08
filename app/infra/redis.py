@@ -37,7 +37,12 @@ class RedisCache(AbstractCache):
     def get_all_keys_with_lower_ttl(self: Self, ttl_target: int) -> list[str]:
         """Get all keys with ttl lower to target ttl and return."""
         self._ensure_connection()
-        return [key.decode('utf-8') for key in self.redis.keys('*') if self.redis.ttl(key) < ttl_target]
+        return [
+            key.decode('utf-8')
+            for key in self.redis.keys('*')
+            if self.redis.ttl(key) < ttl_target
+        ]
+
 
 class MemoryClient:
     cache: ClassVar[dict[str, str]] = {}

@@ -1,31 +1,26 @@
 import enum
-from typing import Any, Self
-from pydantic import BaseModel, ConfigDict
 from decimal import Decimal
+from typing import Any, Self
+
+from pydantic import BaseModel, ConfigDict
 
 
-class PaymentAcceptError(Exception):
-    ...
+class PaymentAcceptError(Exception): ...
 
 
-class PaymentIntentError(Exception):
-    ...
+class PaymentIntentError(Exception): ...
 
 
-class CreatePaymentError(Exception):
-    ...
+class CreatePaymentError(Exception): ...
 
 
-class CustomerNotFoundError(Exception):
-    ...
+class CustomerNotFoundError(Exception): ...
 
 
-class PaymentNotFoundError(Exception):
-    ...
+class PaymentNotFoundError(Exception): ...
 
 
-class PaymentDataInvalidError(Exception):
-    ...
+class PaymentDataInvalidError(Exception): ...
 
 
 class CreditCardInformation(BaseModel):
@@ -118,6 +113,7 @@ def validate_payment(
         msg = 'Payment not succeeded'
         raise ValueError(msg)
     return 'succeeded'
+
 
 class CustomerInDB(BaseModel):
     """Cusotmer model."""

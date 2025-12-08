@@ -51,7 +51,7 @@ def create_payment_intent(
     _ = installments
     _init_stripe()
     return stripe.PaymentIntent.create(
-        amount=int(amount*100),
+        amount=int(amount * 100),
         currency=currency,
         customer=customer_id,
         payment_method=payment_method,

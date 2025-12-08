@@ -1,6 +1,7 @@
 from typing import Any
-from app.entities.catalog import Categories, Category
+
 from app.catalog import repository as catalog_repository
+from app.entities.catalog import Categories, Category
 
 
 async def get_categories(

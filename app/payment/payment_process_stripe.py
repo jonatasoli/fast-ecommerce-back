@@ -18,7 +18,7 @@ async def payment_process(
         bootstrap=bootstrap,
     )
     cart = None
-    if payment_method  == PaymentMethod.CREDIT_CARD.value:
+    if payment_method == PaymentMethod.CREDIT_CARD.value:
         cart = await create_payment_credit_card(
             payment,
             user=user,
@@ -39,12 +39,11 @@ async def create_payment_credit_card(
     customer,
     cache_cart,
     bootstrap,
-
 ):
     payment_method_id = None
     match payment:
         case CreateCreditCardPaymentMethod():
-            payment_method_id= bootstrap.payment.create_payment_method(
+            payment_method_id = bootstrap.payment.create_payment_method(
                 payment=payment,
             )
             payment_method_id = bootstrap.payment.attach_customer_in_payment_method(

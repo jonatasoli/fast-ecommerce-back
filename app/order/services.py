@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from datetime import UTC, datetime
 import math
 
@@ -11,7 +12,7 @@ from sqlalchemy import asc, func, select
 from sqlalchemy.orm import Session, joinedload, lazyload, selectinload
 from app.product import repository
 from app.payment import repository as repository_payment
-from app.order import repository as  repository_order
+from app.order import repository as repository_order
 from faststream.rabbit import RabbitQueue
 
 from app.entities.order import CancelOrder, OrderInDB, OrderNotFoundError, OrderResponse
@@ -136,7 +137,7 @@ async def complete_order(
 ) -> None:
     """Complete Order."""
     async with db().begin() as transaction:
-        order_query = select(OrderDB).where(OrderDB.order_id==order_id)
+        order_query = select(OrderDB).where(OrderDB.order_id == order_id)
         order = await transaction.session.scalar(order_query)
 
         if not order:
@@ -161,7 +162,7 @@ def delete_product(db: Session, product_id: int) -> None:
 def get_showcase(*, currency, db) -> list:
     """Get Products showcase."""
     with db() as transaction:
-        logger.debug(f"Currency {currency}")
+        logger.debug(f'Currency {currency}')
         showcases_query = (
             select(ProductDB)
             .where(ProductDB.showcase.is_(True))
@@ -173,6 +174,7 @@ def get_showcase(*, currency, db) -> list:
 
     return adapter.validate_python(showcases)
 
+
 async def get_product_by_id(product_id: int, db) -> ProductInDB:
     """Search product by id."""
     async with db().begin() as transaction:
@@ -183,12 +185,12 @@ async def get_product_by_id(product_id: int, db) -> ProductInDB:
     return ProductInDB.model_validate(product_db)
 
 
-
 def get_orders(page, offset, *, db):
     """Get Orders Paid."""
-    with db().begin() as db: # Noqa: PLR1704
+    with db().begin() as db:  # Noqa: PLR1704
         orders_query = (
-            select(OrderDB).options(
+            select(OrderDB)
+            .options(
                 joinedload(OrderDB.user),
                 joinedload(OrderDB.payment),
                 selectinload(OrderDB.items),
@@ -219,8 +221,7 @@ def get_user_order(db: Session, user_id: int) -> list[OrderUserListResponse]:
             .options(
                 joinedload(OrderDB.user),
                 joinedload(OrderDB.payment),
-                selectinload(OrderDB.items)
-                .joinedload(OrderItemsDB.product),
+                selectinload(OrderDB.items).joinedload(OrderItemsDB.product),
             )
             .where(OrderDB.user_id == user_id)
             .order_by(OrderDB.order_id.desc())
@@ -258,16 +259,20 @@ def get_order(db: Session, order_id: int) -> OrderInDB:
         order_query = (
             select(OrderDB)
             .options(
-            joinedload(OrderDB.user),
-            joinedload(OrderDB.payment),
-            joinedload(OrderDB.items).joinedload(OrderItemsDB.product),
-            joinedload(OrderDB.user).joinedload(UserDB.addresses.and_(
-                AddressDB.address_id == (
-                    select(func.max(AddressDB.address_id))
-                    .where(AddressDB.user_id == OrderDB.user_id)
+                joinedload(OrderDB.user),
+                joinedload(OrderDB.payment),
+                joinedload(OrderDB.items).joinedload(OrderItemsDB.product),
+                joinedload(OrderDB.user).joinedload(
+                    UserDB.addresses.and_(
+                        AddressDB.address_id
+                        == (
+                            select(func.max(AddressDB.address_id)).where(
+                                AddressDB.user_id == OrderDB.user_id,
+                            )
+                        ),
+                    ),
                 ),
-            )),
-        )
+            )
             .where(OrderDB.order_id == order_id)
         )
         order = db.scalar(order_query)
@@ -291,10 +296,11 @@ def delete_order(order_id: int, *, cancel: CancelOrder, db) -> None:
     """Soft delete order."""
     with db:
         order_query = (
-            select(OrderDB).options(
-            joinedload(OrderDB.user),
-            joinedload(OrderDB.payment),
-            selectinload(OrderDB.items),
+            select(OrderDB)
+            .options(
+                joinedload(OrderDB.user),
+                joinedload(OrderDB.payment),
+                selectinload(OrderDB.items),
             )
             .where(OrderDB.order_id == order_id)
         )
@@ -304,7 +310,7 @@ def delete_order(order_id: int, *, cancel: CancelOrder, db) -> None:
         order.order_status = PaymentStatus.CANCELLED
         order.checked = False
         order.cancelled_at = datetime.now(tz=UTC)
-        order.cancelled_reason=cancel.cancel_reason
+        order.cancelled_reason = cancel.cancel_reason
         db.add(order)
         db.commit()
 
@@ -336,12 +342,10 @@ async def put_tracking_number(
     )
 
 
-def checked_order(db: Session, order_id, check):
-    ...
+def checked_order(db: Session, order_id, check): ...
 
 
-def create_order(db: Session, order_data: OrderSchema):
-    ...
+def create_order(db: Session, order_data: OrderSchema): ...
 
 
 def get_category(db: Session) -> dict:
@@ -428,7 +432,6 @@ async def get_products_category(
         products_query = products_query.limit(offset)
         products = await transaction.session.execute(products_query)
         adapter = TypeAdapter(list[ProductInDB])
-
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,
@@ -559,7 +562,6 @@ async def get_latest_products(
         products = products.limit(offset)
         products = await transaction.session.execute(products)
         adapter = TypeAdapter(list[ProductInDB])
-
 
     return ProductsResponse(
         total_records=total_records if total_records else 0,

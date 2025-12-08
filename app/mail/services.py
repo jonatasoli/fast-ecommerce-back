@@ -1,18 +1,16 @@
+# ruff: noqa: I001
+import json
+
+import resend
 from fastapi import status
-from sqlalchemy import select
-from app.infra.constants import Locale, MailGateway
-from sendgrid.helpers.mail import Mail as SendgridMail
-from app.infra.crypto_tools import decrypt
-from app.infra.database import get_session
-from app.infra.models import SettingsDB
-from config import settings
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
-from sendgrid import SendGridAPIClient
-from app.order import repository as order_repository
 from mailjet_rest import Client
-import json
-import resend
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail as SendgridMail
+from sqlalchemy import select
+
+from config import settings
 
 from app.entities.mail import (
     MailFormCourses,
@@ -24,31 +22,42 @@ from app.entities.mail import (
     MailTrackingNumber,
     MailMessage,
 )
+from app.infra.constants import Locale, MailGateway
+from app.infra.crypto_tools import decrypt
+from app.infra.database import get_session
+from app.infra.models import SettingsDB
+from app.order import repository as order_repository
 
 file_loader = FileSystemLoader('email-templates')
 env = Environment(loader=file_loader, autoescape=True)
 
 
-class SendMailError(Exception):
-    ...
+class SendMailError(Exception): ...
 
 
 def send_mail(message: MailMessage, db=get_session) -> None:
     """Send email using mail gateway."""
     try:
         with db().begin() as session:
-
-            query = select(SettingsDB).where(
-                SettingsDB.locale.like(Locale.pt_br.value),
-            ).where(
-                SettingsDB.field.like('MAIL'),
+            query = (
+                select(SettingsDB)
+                .where(
+                    SettingsDB.locale.like(Locale.pt_br.value),
+                )
+                .where(
+                    SettingsDB.field.like('MAIL'),
+                )
             )
             field = session.scalar(query)
             if not field:
-                query = select(SettingsDB).where(
-                    SettingsDB.field.like('MAIL'),
-                ).where(
-                    SettingsDB.is_default.is_(True),
+                query = (
+                    select(SettingsDB)
+                    .where(
+                        SettingsDB.field.like('MAIL'),
+                    )
+                    .where(
+                        SettingsDB.is_default.is_(True),
+                    )
                 )
                 field = session.scalar(query)
             mail_settings = field.credentials.encode('utf-8')
@@ -75,14 +84,13 @@ def send_mail(message: MailMessage, db=get_session) -> None:
                     client_type=provider,
                 )
             elif provider in (
-                    MailGateway.mailjet,
-                    MailGateway.resend,
-                ):
-                logger.debug("RESEND")
+                MailGateway.mailjet,
+                MailGateway.resend,
+            ):
+                logger.debug('RESEND')
                 send_mail_provider(
-                    message=message,
-                    credentials=mail_settings,
-                    client_type=provider)
+                    message=message, credentials=mail_settings, client_type=provider,
+                )
             else:
                 send_mail_sendgrid_legacy(
                     message,
@@ -220,14 +228,15 @@ def send_mail_form_courses(mail_data: MailFormCourses):
     logger.debug(template)
     send_mail(course)
 
+
 def send_mail_from_inform_ask_product_by_user(
     mail_data: MailInformUserProduct,
 ):
     """Email inform ask product by user."""
     template = env.get_template('mail_inform_user_product.html').render(
-       product_name=mail_data.product_name,
-       user_mail=mail_data.user_mail,
-       user_phone=mail_data.user_phone,
+        product_name=mail_data.product_name,
+        user_mail=mail_data.user_mail,
+        user_phone=mail_data.user_phone,
     )
 
     inform = MailMessage(
@@ -254,10 +263,10 @@ def send_mail_provider(message, credentials, client_type):
         resend.api_key = credentials.get('secret')
         logger.debug(credentials.get('secret'))
         data: resend.Emails.SendParams = {
-            "from": message.from_email,
-            "to": [message.to_emails],
-            "subject": message.subject,
-            "html": message.html_content,
+            'from': message.from_email,
+            'to': [message.to_emails],
+            'subject': message.subject,
+            'html': message.html_content,
         }
         response = resend.Emails.send(data)
     elif client_type == MailGateway.mailjet:
@@ -265,17 +274,17 @@ def send_mail_provider(message, credentials, client_type):
         api_secret = credentials.get('secret')
         mailjet = Client(auth=(api_key, api_secret))
         data = {
-            "FromEmail": message.from_email,
-            "FromName": message.from_email,
-            "Subject": message.subject,
-            "Text-part": message.plain_text_content,
-            "Html-part": message.html_content,
-            "Recipients": [{"Email": message.to_emails}],
+            'FromEmail': message.from_email,
+            'FromName': message.from_email,
+            'Subject': message.subject,
+            'Text-part': message.plain_text_content,
+            'Html-part': message.html_content,
+            'Recipients': [{'Email': message.to_emails}],
         }
         result = mailjet.send.create(data=data)
         logger.info(result.status_code)
         logger.info(result.json())
-    logger.info(f"Mail Response {dir(response)}")
+    logger.info(f'Mail Response {dir(response)}')
     status_code = getattr(response, 'status_code', None)
     if not status_code and response:
         return

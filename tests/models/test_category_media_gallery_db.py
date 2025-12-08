@@ -1,11 +1,11 @@
+# ruff: noqa: I001
 from sqlalchemy import select
 from app.infra.models import CategoryMediaGalleryDB, CategoryDB, UploadedMediaDB
 from tests.factories_db import CategoryFactory, UploadedMediaFactory
 
 
 def test_create_category_media_gallery(session):
-    """Must create valid category media gallery."""
-    # Arrange
+    # Setup
     category = CategoryFactory()
     media = UploadedMediaFactory()
     session.add_all([category, media])
@@ -21,7 +21,8 @@ def test_create_category_media_gallery(session):
     # Act
     gallery = session.scalar(
         select(CategoryMediaGalleryDB).where(
-            CategoryMediaGalleryDB.category_media_gallery_id == new_gallery.category_media_gallery_id,
+            CategoryMediaGalleryDB.category_media_gallery_id
+            == new_gallery.category_media_gallery_id,
         ),
     )
 
@@ -32,8 +33,7 @@ def test_create_category_media_gallery(session):
 
 
 def test_category_media_gallery_foreign_keys(session):
-    """Must enforce foreign key constraints."""
-    # Arrange
+    # Setup
     category = CategoryFactory()
     media = UploadedMediaFactory()
     session.add_all([category, media])

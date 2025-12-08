@@ -1,44 +1,30 @@
-from httpx import AsyncClient
-from main import app
+# ruff: noqa: I001
 import pytest
-from tests.factories_db import (
-    CategoryFactory,
-    CreditCardFeeConfigFactory,
-    ProductDBFactory,
-)
-
+from io import BytesIO
 
 URL = '/product'
 
 
-@pytest.mark.skip('TODO: need create mock file upload')
+@pytest.mark.asyncio
 async def test_add_new_image_file_in_product(
-    asyncdb,
+    async_client,
+    mocker,
 ) -> None:
-    """Must add product in new cart and return cart."""
-    # Arrange
-    product_id = None
-    db = await asyncdb()
-    async with db().begin() as transaction:
-        category = CategoryFactory()
-        config_fee = CreditCardFeeConfigFactory()
-        transaction.add_all([category, config_fee])
-        await transaction.flush()
-        product_db = ProductDBFactory(
-            category=category,
-            installment_config=config_fee,
-        )
-        transaction.add(product_db)
-        await transaction.commit()
-        product_id = product_db.product_id
+    # Setup
+    product_id = 1
+    new_image_path = 'https://cdn.site.com/new_image_path'
+
+    mocker.patch('app.product.services.upload_image', return_value=new_image_path)
 
     # Act
-    async with AsyncClient(app=app, base_url='http://test') as client:
-        response = await client.post(
-            f'{URL}/upload-image/{product_id}',
-            headers={'Content-Type': 'multipart/form-data'},
-        )
+    dummy_image = BytesIO(b'fake image content')
+    files = {'image': ('test.png', dummy_image, 'image/png')}
+
+    response = await async_client.post(
+        f'{URL}/upload-image/{product_id}',
+        files=files,
+    )
 
     # Assert
     assert response.status_code == 200
-    assert response.json()
+    assert response.json() == new_image_path

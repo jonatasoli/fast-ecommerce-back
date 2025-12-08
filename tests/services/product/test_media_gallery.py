@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from io import BytesIO
 from faker_file.providers.png_file import GraphicPngFileProvider
 from fastapi import UploadFile
@@ -9,28 +10,34 @@ from app.infra.constants import MediaType
 from app.infra.file_upload import FileUploadBucketError
 from app.infra.models import MediaGalleryDB, UploadedMediaDB
 from app.product.services import upload_media_gallery
-from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory, ProductDBFactory
+from tests.factories_db import (
+    CategoryFactory,
+    CreditCardFeeConfigFactory,
+    ProductDBFactory,
+)
 
 fake = Faker()
 fake.add_provider(GraphicPngFileProvider)
 
+
 @pytest.fixture
 def real_upload_file():
-    """Retorna um UploadFile simulado realista usando BytesIO."""
-    dummy_content = BytesIO(b"fake image content")
-    return UploadFile(file=dummy_content, filename="test.png")
+    dummy_content = BytesIO(b'fake image content')
+    return UploadFile(file=dummy_content, filename='test.png')
 
 
 @pytest.fixture
 def mock_optimize_image(mocker):
     return mocker.patch(
-        "app.infra.file_upload.optimize_image",
-        return_value="/media/image.png",
+        'app.infra.file_upload.optimize_image',
+        return_value='/media/image.png',
     )
 
+
 @pytest.mark.asyncio
-async def test_image_in_gallery_must_upload(real_upload_file, mock_optimize_image, asyncdb):
-    """Must upload media with success."""
+async def test_image_in_gallery_must_upload(
+    real_upload_file, mock_optimize_image, asyncdb,
+):
     # Setup
     category = CategoryFactory()
     config_fee = CreditCardFeeConfigFactory()
@@ -47,7 +54,7 @@ async def test_image_in_gallery_must_upload(real_upload_file, mock_optimize_imag
     order = fake.random_int()
     media_type = MediaType.photo
 
-    #Act
+    # Act
     image_path = await upload_media_gallery(
         product_db.product_id,
         media_type=media_type,
@@ -57,14 +64,14 @@ async def test_image_in_gallery_must_upload(real_upload_file, mock_optimize_imag
     )
 
     # Assert
-    assert image_path == "/media/image.png"
+    assert image_path == '/media/image.png'
     mock_optimize_image.assert_called_once_with(real_upload_file)
 
     # Verify UploadedMediaDB persisted
     result = await asyncdb().execute(select(UploadedMediaDB))
     uploaded = result.scalar_one()
     assert uploaded.type == media_type
-    assert uploaded.uri == "/media/image.png"
+    assert uploaded.uri == '/media/image.png'
     assert uploaded.order == order
 
     # Verify MediaGalleryDB persisted
@@ -76,11 +83,10 @@ async def test_image_in_gallery_must_upload(real_upload_file, mock_optimize_imag
 
 @pytest.mark.asyncio
 async def test_media_with_invalid_product_should_raise_exception(
-        asyncdb,
-        real_upload_file,
-        mock_optimize_image,
+    asyncdb,
+    real_upload_file,
+    mock_optimize_image,
 ):
-    """Must raise Error."""
     # Setup
     category = CategoryFactory()
     config_fee = CreditCardFeeConfigFactory()
@@ -104,10 +110,9 @@ async def test_media_with_invalid_product_should_raise_exception(
 
 
 async def test_media_with_invalid_media_should_raise_exception(
-        asyncdb,
-        real_upload_file,
+    asyncdb,
+    real_upload_file,
 ):
-    """Must raise Error."""
     # Setup
     category = CategoryFactory()
     config_fee = CreditCardFeeConfigFactory()

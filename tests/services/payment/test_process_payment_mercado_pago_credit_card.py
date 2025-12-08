@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from decimal import Decimal
 import pytest
 from unittest.mock import AsyncMock, MagicMock
@@ -7,11 +8,21 @@ from faker import Faker
 from app.entities.cart import CartPayment
 from app.entities.payment import PaymentDataInvalidError, PaymentNotFoundError
 from app.infra.constants import PaymentMethod
-from tests.factories import AddressCreateFactory, CartPaymentFactory, CartShippingFactory, CreateCreditCardTokenPaymentMethodFactory, CreatePixPaymentMethodFactory
+from tests.factories import (
+    AddressCreateFactory,
+    CartPaymentFactory,
+    CartShippingFactory,
+    CreateCreditCardTokenPaymentMethodFactory,
+    CreatePixPaymentMethodFactory,
+)
 from tests.factories_db import CustomerDBFactory, UserDBFactory
-from app.payment.payment_process_mercado_pago import create_payment_pix, create_payment_credit_card
+from app.payment.payment_process_mercado_pago import (
+    create_payment_pix,
+    create_payment_credit_card,
+)
 
 fake = Faker()
+
 
 @pytest.fixture
 def mock_client(mocker):
@@ -29,9 +40,9 @@ def mock_client(mocker):
     client.attach_customer_in_payment_method.return_value = 'attached_method_id'
     return client
 
+
 @pytest.mark.asyncio
 async def test_create_payment_credit_card_success_method(mocker, mock_client, asyncdb):
-    """Must create sucess payment."""
     # Setup
     payment = CreateCreditCardTokenPaymentMethodFactory(payment_gateway='mercadopago')
     user = UserDBFactory()
@@ -41,8 +52,8 @@ async def test_create_payment_credit_card_success_method(mocker, mock_client, as
         min_installment_with_fee=2,
         fee=Decimal('0.05'),
     )
-    mocker.patch('app.cart.repository.get_installment_fee', return_value = fee)
-    mocker.patch('app.cart.repository.update_payment_method_to_user', return_value = user)
+    mocker.patch('app.cart.repository.get_installment_fee', return_value=fee)
+    mocker.patch('app.cart.repository.update_payment_method_to_user', return_value=user)
 
     # Act
     cart = await create_payment_credit_card(
@@ -59,9 +70,9 @@ async def test_create_payment_credit_card_success_method(mocker, mock_client, as
     assert cart.payment_method == PaymentMethod.CREDIT_CARD.value
     mock_client.attach_customer_in_payment_method.assert_called_once()
 
+
 @pytest.mark.asyncio
 async def test_create_payment_credit_card_token_success(mocker, mock_client, asyncdb):
-    """Must create payment with toekn sucessful."""
     # Setup
     payment = CreateCreditCardTokenPaymentMethodFactory(
         payment_gateway='mercadopago',
@@ -77,8 +88,8 @@ async def test_create_payment_credit_card_token_success(mocker, mock_client, asy
         min_installment_with_fee=2,
         fee=Decimal('0.05'),
     )
-    mocker.patch('app.cart.repository.get_installment_fee', return_value = fee)
-    mocker.patch('app.cart.repository.update_payment_method_to_user', return_value = user)
+    mocker.patch('app.cart.repository.get_installment_fee', return_value=fee)
+    mocker.patch('app.cart.repository.update_payment_method_to_user', return_value=user)
 
     # Act
     cart = await create_payment_credit_card(
@@ -95,9 +106,9 @@ async def test_create_payment_credit_card_token_success(mocker, mock_client, asy
     assert cart.payment_method == PaymentMethod.CREDIT_CARD.value
     mock_client.attach_customer_in_payment_method.assert_called_once()
 
+
 @pytest.mark.asyncio
 async def test_create_payment_credit_card_invalid_type(mocker, mock_client, asyncdb):
-    """Credit card invalid must raise exception."""
     # Setup
     invalid_payment = MagicMock()
     user = UserDBFactory()
@@ -107,8 +118,8 @@ async def test_create_payment_credit_card_invalid_type(mocker, mock_client, asyn
         min_installment_with_fee=2,
         fee=Decimal('0.05'),
     )
-    mocker.patch('app.cart.repository.get_installment_fee', return_value = fee)
-    mocker.patch('app.cart.repository.update_payment_method_to_user', return_value = user)
+    mocker.patch('app.cart.repository.get_installment_fee', return_value=fee)
+    mocker.patch('app.cart.repository.update_payment_method_to_user', return_value=user)
 
     # Act
     with pytest.raises(PaymentNotFoundError):
@@ -121,9 +132,11 @@ async def test_create_payment_credit_card_invalid_type(mocker, mock_client, asyn
             client=mock_client,
         )
 
+
 @pytest.mark.asyncio
-async def test_create_payment_credit_card_missing_method_id(mocker, mock_client, asyncdb):
-    """Patment without method_id must raise exception."""
+async def test_create_payment_credit_card_missing_method_id(
+    mocker, mock_client, asyncdb,
+):
     # Setup
     payment = CreateCreditCardTokenPaymentMethodFactory(payment_gateway='mercadopago')
     mock_client.attach_customer_in_payment_method.return_value = None
@@ -134,8 +147,8 @@ async def test_create_payment_credit_card_missing_method_id(mocker, mock_client,
         min_installment_with_fee=2,
         fee=Decimal('0.05'),
     )
-    mocker.patch('app.cart.repository.get_installment_fee', return_value = fee)
-    mocker.patch('app.cart.repository.update_payment_method_to_user', return_value = user)
+    mocker.patch('app.cart.repository.get_installment_fee', return_value=fee)
+    mocker.patch('app.cart.repository.update_payment_method_to_user', return_value=user)
 
     # Act
     with pytest.raises(PaymentNotFoundError):

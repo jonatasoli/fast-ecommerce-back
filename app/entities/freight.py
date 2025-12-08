@@ -1,12 +1,13 @@
-from pydantic import BaseModel
 from datetime import datetime
 from decimal import Decimal
-from app.entities.product import ProductInDB
+
 from loguru import logger
+from pydantic import BaseModel
+
+from app.entities.product import ProductInDB
 
 
-class MetricError(Exception):
-    ...
+class MetricError(Exception): ...
 
 
 MAX_WEIGHT = 30
@@ -43,14 +44,12 @@ def calculate_package(products: list[ProductInDB]) -> FreightPackage:
     for product in products:
         weight += product.weight
         _metric = (
-            product.length * product.width
-            if product.width > 0
-            else product.diameter
+            product.length * product.width if product.width > 0 else product.diameter
         )
         if not _metric:
-            logger.error("Error to calc freight!")
+            logger.error('Error to calc freight!')
             logger.error(product)
-            logger.error("products")
+            logger.error('products')
             logger.error(products)
             raise raise_metric_error()
         volume += product.height * _metric
@@ -77,6 +76,7 @@ def calculate_package(products: list[ProductInDB]) -> FreightPackage:
         height=str(_height),
         width=str(_width),
     )
+
 
 class ShippingAddress(BaseModel):
     ship_name: str | None = None

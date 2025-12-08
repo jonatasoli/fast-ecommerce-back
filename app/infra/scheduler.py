@@ -9,17 +9,19 @@ from app.order import services as order
 from config import settings
 from app.infra.database import get_async_session
 
-DEFAULT_TTL=172800
+DEFAULT_TTL = 172800
 
-broker = RabbitBroker(f"{settings.BROKER_URL}")
+broker = RabbitBroker(f'{settings.BROKER_URL}')
 
 taskiq_broker = BrokerWrapper(broker)
 taskiq_broker.task(
-    queue="in-queue",
-    schedule=[{
-        "cron": "0 */2 * * *",
-    }],
-    )
+    queue='in-queue',
+    schedule=[
+        {
+            'cron': '0 */2 * * *',
+        },
+    ],
+)
 
 scheduler = StreamScheduler(
     broker=taskiq_broker,
@@ -36,21 +38,21 @@ scheduler = StreamScheduler(
 #     return "Task: registered"
 
 
-@broker.subscriber("in-queue")
-@broker.publisher("out-queue")
+@broker.subscriber('in-queue')
+@broker.publisher('out-queue')
 async def update_pending_payments() -> str:
     """Task to get all pending payments and update."""
-    logger.info("Start payment task")
+    logger.info('Start payment task')
     await payment.update_pending_payments()
-    logger.info("Finish payment task")
-    return "Task: registered"
+    logger.info('Finish payment task')
+    return 'Task: registered'
 
-@broker.subscriber("in-queue")
-@broker.publisher("out-queue")
+
+@broker.subscriber('in-queue')
+@broker.publisher('out-queue')
 async def update_pending_orders() -> str:
     """Task to get all pending payments and update."""
-    logger.info("Start order task")
+    logger.info('Start order task')
     await order.update_pending_orders()
-    logger.info("Finish order task")
-    return "Task: registered"
-
+    logger.info('Finish order task')
+    return 'Task: registered'

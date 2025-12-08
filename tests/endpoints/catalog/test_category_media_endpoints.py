@@ -1,10 +1,15 @@
+# ruff: noqa: I001
 from io import BytesIO
 from fastapi import status
-from app.infra.database import get_async_session
-from main import app
-from httpx import ASGITransport, AsyncClient
-import pytest
+from io import BytesIO
 
+import pytest
+from fastapi import status
+from httpx import ASGITransport, AsyncClient
+
+from app.infra.database import get_async_session
+from app.infra.models import CategoryMediaGalleryDB, UploadedMediaDB
+from main import app
 from tests.factories_db import CategoryFactory, CreditCardFeeConfigFactory
 
 
@@ -14,8 +19,7 @@ URL_MEDIA = '/catalog/category/media'
 
 @pytest.mark.asyncio
 async def test_upload_category_image_should_return_200(asyncdb, admin_token, mocker):
-    """Should upload image for category."""
-    # Arrange
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -47,9 +51,10 @@ async def test_upload_category_image_should_return_200(asyncdb, admin_token, moc
 
 
 @pytest.mark.asyncio
-async def test_upload_category_image_not_found_should_return_404(asyncdb, admin_token, mocker):
-    """Should return 404 when category not found."""
-    # Arrange
+async def test_upload_category_image_not_found_should_return_404(
+    asyncdb, admin_token, mocker,
+):
+    # Setup
     async with asyncdb().begin() as transaction:
         config_fee = CreditCardFeeConfigFactory()
         transaction.session.add(config_fee)
@@ -79,9 +84,10 @@ async def test_upload_category_image_not_found_should_return_404(asyncdb, admin_
 
 
 @pytest.mark.asyncio
-async def test_upload_category_media_gallery_should_return_201(asyncdb, admin_token, mocker):
-    """Should upload media to category gallery."""
-    # Arrange
+async def test_upload_category_media_gallery_should_return_201(
+    asyncdb, admin_token, mocker,
+):
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -113,9 +119,10 @@ async def test_upload_category_media_gallery_should_return_201(asyncdb, admin_to
 
 
 @pytest.mark.asyncio
-async def test_get_category_media_gallery_should_return_200(asyncdb, admin_token, mocker):
-    """Should get media gallery for category."""
-    # Arrange
+async def test_get_category_media_gallery_should_return_200(
+    asyncdb, admin_token, mocker,
+):
+    # Setup
     async with asyncdb().begin() as transaction:
         category = CategoryFactory()
         config_fee = CreditCardFeeConfigFactory()
@@ -139,8 +146,7 @@ async def test_get_category_media_gallery_should_return_200(asyncdb, admin_token
 
 @pytest.mark.asyncio
 async def test_delete_category_media_should_return_204(asyncdb, admin_token, mocker):
-    """Should delete media from category gallery."""
-    # Arrange
+    # Setup
     from app.infra.models import UploadedMediaDB, CategoryMediaGalleryDB
 
     async with asyncdb().begin() as transaction:
