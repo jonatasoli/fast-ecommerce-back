@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from pytest_mock import MockerFixture
 from app.product import repository
 from app.product.services import upload_image

@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from io import BytesIO
 from pydantic import ValidationError
 import pytest
@@ -24,7 +23,7 @@ def test_uploaded_create_model_should_valid_data():
     headers = {'content-type': 'mime_type'}
 
     # Act
-    with open(image_path, 'wb') as file:  # noqa: PTH123
+    with open(image_path, 'wb') as file:
         media_file = UploadFile(
             file=file,
             filename='file',

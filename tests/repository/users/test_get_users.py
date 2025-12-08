@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import pytest
 
 from app.entities.user import UserFilters, UsersDBResponse

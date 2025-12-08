@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from collections.abc import Callable
 from fastapi import UploadFile
 from loguru import logger

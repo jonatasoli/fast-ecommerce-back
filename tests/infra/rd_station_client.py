@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from app.entities.user import UserData
 import pytest
 from unittest.mock import AsyncMock

@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from contextlib import suppress
 import json
 from cryptography.fernet import InvalidToken

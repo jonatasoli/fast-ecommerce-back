@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from fastapi import status
 from httpx import ASGITransport, AsyncClient
 import pytest

@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from sqlalchemy import select
 
 from app.infra.constants import StepsOrder

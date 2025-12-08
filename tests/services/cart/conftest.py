@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from typing import Any
 from pydantic import BaseModel, ConfigDict
 import pytest
@@ -23,7 +22,7 @@ class Command(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-async def bootstrap(  # noqa: PLR0913
+async def bootstrap(
     db: Any,
     uow: Any = None,
     cart_uow: Any = None,

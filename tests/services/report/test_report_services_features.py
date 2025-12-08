@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import pytest
 from decimal import Decimal
 from datetime import datetime, timedelta, UTC

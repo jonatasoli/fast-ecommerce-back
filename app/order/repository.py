@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from datetime import datetime, UTC
 from decimal import Decimal
 
@@ -107,7 +106,7 @@ async def create_order_status_step(
     return order_status_step.order_status_steps_id
 
 
-async def create_order_item(  # Noqa:  PLR0913
+async def create_order_item(  # noqa: PLR0913
     order_id: int,
     *,
     product_id: int,

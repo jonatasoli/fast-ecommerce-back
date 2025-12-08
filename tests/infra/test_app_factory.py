@@ -55,7 +55,7 @@ def test_create_app_error_handlers():
 
     @app.get('/test-error')
     async def test_route():
-        raise ProductNotFoundError()
+        raise ProductNotFoundError
 
     client = TestClient(app)
 

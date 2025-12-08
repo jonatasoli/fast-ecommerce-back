@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import pytest
 from pytest_mock import MockerFixture
 

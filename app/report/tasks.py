@@ -1,5 +1,4 @@
-# ruff: noqa: DTZ005
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -13,7 +12,7 @@ from app.report.services import create_sales_commission
 
 
 @task_message_bus.subscriber('sales_commission')
-async def task_create_sales_commission(  # Noqa: PLR0913
+async def task_create_sales_commission(
     order_id: int,
     user_id: int,
     subtotal: Decimal,
@@ -40,7 +39,7 @@ async def task_create_sales_commission(  # Noqa: PLR0913
 
 
 def update_sales_commission(db: sessionmaker = get_session()):
-    date_threshold = datetime.now() - timedelta(days=30)
+    date_threshold = datetime.now(tz=UTC) - timedelta(days=30)
     update_commissions(date_threshold, db)
 
 

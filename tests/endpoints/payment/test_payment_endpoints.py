@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from app.entities.payment import (

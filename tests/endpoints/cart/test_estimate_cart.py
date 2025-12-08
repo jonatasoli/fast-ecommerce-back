@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from app.infra.database import get_async_session
 from main import app
 from httpx import ASGITransport, AsyncClient

@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from fastapi import status
 from app.user.services import gen_hash
 from app.infra.models import RoleDB

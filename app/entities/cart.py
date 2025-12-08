@@ -1,4 +1,3 @@
-# ruff: noqa: PLR0913
 import json
 from decimal import Decimal
 from typing import Self

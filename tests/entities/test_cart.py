@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import pytest
 from uuid import UUID
 from decimal import Decimal

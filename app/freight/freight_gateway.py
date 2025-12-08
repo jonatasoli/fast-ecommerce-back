@@ -1,4 +1,4 @@
-from pydantic import BaseModel  # noqa: I001
+from pydantic import BaseModel
 
 from app.entities.freight import Freight, FreightPackage, calculate_package
 from app.entities.product import ProductInDB

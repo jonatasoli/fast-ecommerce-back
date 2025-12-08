@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from sqlalchemy.sql import select
 from app.infra.models import RoleDB
 from tests.factories_db import RoleDBFactory

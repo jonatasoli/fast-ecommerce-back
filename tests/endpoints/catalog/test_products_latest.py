@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from fastapi import status
 from app.infra.database import get_async_session
 from main import app

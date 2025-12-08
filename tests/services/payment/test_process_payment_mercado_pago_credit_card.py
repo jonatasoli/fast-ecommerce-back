@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from decimal import Decimal
 import pytest
 from unittest.mock import AsyncMock, MagicMock

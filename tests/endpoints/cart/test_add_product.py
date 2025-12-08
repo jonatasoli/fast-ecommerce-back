@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from decimal import Decimal
 
 from httpx import ASGITransport, AsyncClient

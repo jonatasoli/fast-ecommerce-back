@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from contextlib import asynccontextmanager
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock

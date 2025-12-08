@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import json
 import math
 from loguru import logger

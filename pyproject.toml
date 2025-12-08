@@ -74,6 +74,10 @@ dev-dependencies = [
     "pytest-timeout>=2.3.1",
 ]
 
+[[tool.uv.index]]
+name = "safety"
+url = "https://pkgs.safetycli.com/repository/singular-journey/project/fast-ecommerce-back/pypi/simple/"
+default = false
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["app*"]
@@ -82,6 +86,12 @@ exclude = ["tests*", "migrations*", "static*", "legacy*", "contrib*", "hurl_test
 [tool.poetry.group.otel.dependencies]
 opentelemetry-distro = "^0.45b0"
 opentelemetry-exporter-otlp = "^1.24.0"
+
+
+[[tool.poetry.source]]
+name = "safety"
+url = "https://pkgs.safetycli.com/repository/singular-journey/project/fast-ecommerce-back/pypi/simple/"
+priority = "primary"
 
 [tool.ruff]
 lint.select = ["A", "B", "C", "E", "F", "G", "I", "N", "S", "T", "W", "C4", "ARG", "BLE", "COM", "DTZ", "EM", "ERA", "FAST", "ICN", "ISC", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY"]
@@ -118,10 +128,12 @@ mypy-init-return = true
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "N999"]
-"/**/tests/*.py" = ["S101", "S106", "S311", "RUF012", "PLR2004", "B008", 'N806', 'F821', 'N999', 'E501', 'PT011', 'ARG001', 'EM101', 'TRY003', "F823", "F811", "F401", "PLC0415", "ARG002"]
+"/**/tests/*.py" = ["S101", "S105", "S106", "S311", "RUF012", "PLR2004", "B008", 'N806', 'F821', 'N999', 'E501', 'PT011', 'ARG001', 'EM101', 'TRY003', "F823", "F811", "F401", "PLC0415", "ARG002", "I001", "PLR0913", "B017", "PTH123"]
 "app/infra/*" = ["B008", "A002","A001", "A003", "RUF100","FBT001", "F811","F401","TRY302"]
+"app/*" = ["I001"]
+"app/report/*" = ["PLR0913", "TRY003", "EM101"]
 "main.py" =  ["ARG001"]
-"app/entities/*" = ["F821"]
+"app/entities/*" = ["F821", "PLR0913"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

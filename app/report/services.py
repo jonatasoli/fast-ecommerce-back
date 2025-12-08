@@ -52,7 +52,7 @@ async def get_sales_commissions(
     )
 
 
-async def create_sales_commission(  # noqa: PLR0913
+async def create_sales_commission(
     order_id: int,
     user_id: int,
     subtotal: Decimal,
@@ -82,7 +82,8 @@ async def create_sales_commission(  # noqa: PLR0913
                 total_with_fees -= total_with_fees * (co_producer_fee.percentage / 100)
 
         if not commission_percentage:
-            raise ValueError('Error with percentage in report')  # noqa: EM101 TRY003
+            msg = 'Error with percentage in report'
+            raise ValueError(msg)
 
         if campaign and subtotal > campaign.min_purchase_value:
             total_with_fees = total_with_fees - campaign.commission_fee_value

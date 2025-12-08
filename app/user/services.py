@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import re
 from datetime import UTC, datetime, timedelta
 import enum
@@ -308,7 +307,7 @@ def verify_admin_sync():
 
     def decorator(func):
         @wraps(func)
-        async def wrapper(*args, **kwargs):  # noqa: ARG001
+        async def wrapper(*_args, **kwargs):
             try:
                 payload = decode(
                     kwargs['token'],

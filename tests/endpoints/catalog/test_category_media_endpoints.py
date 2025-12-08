@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from io import BytesIO
 from fastapi import status
 from io import BytesIO

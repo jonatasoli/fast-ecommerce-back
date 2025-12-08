@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import pytest
 from unittest.mock import MagicMock
 from app.entities.mail import MailTrackingNumber, MailFormCourses

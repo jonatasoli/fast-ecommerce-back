@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import pytest
 from io import BytesIO
 

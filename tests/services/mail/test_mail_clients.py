@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from faker import Faker
 import pytest
 
@@ -121,5 +120,5 @@ def test_send_email_raises_on_failure(mocker):
     )
 
     # Act / Assert
-    with pytest.raises(Exception):  # noqa: B017
+    with pytest.raises(Exception):
         send_mail(message, db=mock_db)

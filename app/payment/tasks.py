@@ -14,7 +14,7 @@ async def get_bootstrap() -> Command:
     return await bootstrap()
 
 
-async def create_pending_payment(  # Noqa: PLR0913
+async def create_pending_payment(  # noqa: PLR0913
     order_id: int,
     *,
     cart: CartPayment,
@@ -38,7 +38,7 @@ async def create_pending_payment(  # Noqa: PLR0913
     )
 
 
-async def update_payment(  # Noqa: PLR0913
+async def update_payment(  # noqa: PLR0913
     payment_id: int,
     payment_status: str,
     authorization: str,

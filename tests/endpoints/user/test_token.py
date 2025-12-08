@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import pytest
 from unittest.mock import MagicMock
 from app.entities.user import UserInDB, Token
@@ -37,4 +36,4 @@ async def test_get_token(async_client, mocker):
     token = response.json()
     assert 'access_token' in token
     assert 'token_type' in token
-    assert token['token_type'] == 'bearer'  # noqa: S105
+    assert token['token_type'] == 'bearer'

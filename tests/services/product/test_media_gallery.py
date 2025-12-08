@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from io import BytesIO
 from faker_file.providers.png_file import GraphicPngFileProvider
 from fastapi import UploadFile

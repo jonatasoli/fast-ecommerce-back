@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import pytest
 from unittest.mock import AsyncMock
 from app.entities.coupon import CouponInDB, CouponCreate, CouponUpdate

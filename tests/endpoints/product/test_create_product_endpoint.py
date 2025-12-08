@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import pytest
 import json
 from decimal import Decimal

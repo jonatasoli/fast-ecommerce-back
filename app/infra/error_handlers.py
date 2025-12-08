@@ -16,8 +16,8 @@ from app.infra.freight.correios_br import CorreiosInvalidReturnError
 from app.infra.payment_gateway.mercadopago_gateway import CardAlreadyUseError
 
 
-def register_error_handlers(app) -> None:
-    """Register all error handlers for the FastAPI app."""
+def _register_product_not_found_handler(app) -> None:
+    """Register ProductNotFoundError handler."""
 
     @app.exception_handler(ProductNotFoundError)
     async def product_not_found_exception_handler(
@@ -25,10 +25,15 @@ def register_error_handlers(app) -> None:
         exc: ProductNotFoundError,
     ) -> JSONResponse:
         """Handle ProductNotFoundError."""
+        message = exc.args[0] if exc.args else 'Product not found'
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content={'message': f'{exc.args[0]}'},
+            content={'message': message},
         )
+
+
+def _register_card_already_use_handler(app) -> None:
+    """Register CardAlreadyUseError handler."""
 
     @app.exception_handler(CardAlreadyUseError)
     async def card_already_use_exception_handler(
@@ -40,6 +45,10 @@ def register_error_handlers(app) -> None:
             status_code=status.HTTP_409_CONFLICT,
             content={'message': f'{exc.args[0]}'},
         )
+
+
+def _register_credential_error_handler(app) -> None:
+    """Register CredentialError handler."""
 
     @app.exception_handler(CredentialError)
     async def credential_exception_handler(
@@ -54,19 +63,28 @@ def register_error_handlers(app) -> None:
             },
         )
 
+
+def _register_product_sold_out_handler(app) -> None:
+    """Register ProductSoldOutError handler."""
+
     @app.exception_handler(ProductSoldOutError)
     async def product_sold_out_exception_handler(
         _: Request,
         exc: ProductSoldOutError,
     ) -> JSONResponse:
         """Capture ProductSoldOut and raise status code 404."""
+        stackerror = exc.args[0] if exc.args else 'There are products in not inventory.'
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             content={
                 'detail': 'Product Sold Out.',
-                'stackerror': f'{exc.args[0]}',
+                'stackerror': stackerror,
             },
         )
+
+
+def _register_coupon_not_found_handler(app) -> None:
+    """Register CouponNotFoundError handler."""
 
     @app.exception_handler(CouponNotFoundError)
     async def coupon_not_found_handler(
@@ -80,6 +98,10 @@ def register_error_handlers(app) -> None:
                 'detail': 'Invalid Coupon.',
             },
         )
+
+
+def _register_correios_error_handler(app) -> None:
+    """Register CorreiosInvalidReturnError handler."""
 
     @app.exception_handler(CorreiosInvalidReturnError)
     async def correios_api_error_handler(
@@ -103,6 +125,10 @@ def register_error_handlers(app) -> None:
             },
         )
 
+
+def _register_user_duplicate_handler(app) -> None:
+    """Register UserDuplicateError handler."""
+
     @app.exception_handler(UserDuplicateError)
     async def user_already_signup(
         _: Request,
@@ -116,6 +142,10 @@ def register_error_handlers(app) -> None:
             },
         )
 
+
+def _register_coupon_dont_match_handler(app) -> None:
+    """Register CouponDontMatchWithUserError handler."""
+
     @app.exception_handler(CouponDontMatchWithUserError)
     async def user_dont_match_with_coupon(
         _: Request,
@@ -128,6 +158,10 @@ def register_error_handlers(app) -> None:
                 'detail': 'Coupon is invalid for this user.',
             },
         )
+
+
+def _register_coupon_limit_error_handler(app) -> None:
+    """Register CouponLimitPriceError handler."""
 
     @app.exception_handler(CouponLimitPriceError)
     async def coupon_limit_error(
@@ -143,6 +177,10 @@ def register_error_handlers(app) -> None:
             },
         )
 
+
+def _register_checkout_processing_error_handler(app) -> None:
+    """Register CheckoutProcessingError handler."""
+
     @app.exception_handler(CheckoutProcessingError)
     async def checkout_processor_error(
         _: Request,
@@ -155,6 +193,10 @@ def register_error_handlers(app) -> None:
                 'detail': 'Error with checkout service.',
             },
         )
+
+
+def _register_payment_not_found_handler(app) -> None:
+    """Register PaymentNotFoundError handler."""
 
     @app.exception_handler(PaymentNotFoundError)
     async def payment_not_found_error(
@@ -169,6 +211,10 @@ def register_error_handlers(app) -> None:
             },
         )
 
+
+def _register_invalid_cart_uuid_handler(app) -> None:
+    """Register InvalidCartUUIDError handler."""
+
     @app.exception_handler(InvalidCartUUIDError)
     async def cart_uuid_invalid(
         _: Request,
@@ -181,6 +227,10 @@ def register_error_handlers(app) -> None:
                 'detail': 'Cart UUID invalid or with conflict.',
             },
         )
+
+
+def _register_category_not_found_handler(app) -> None:
+    """Register CategoryNotFoundError handler."""
 
     @app.exception_handler(CategoryNotFoundError)
     async def category_not_found_handler(
@@ -195,6 +245,10 @@ def register_error_handlers(app) -> None:
             },
         )
 
+
+def _register_category_media_not_found_handler(app) -> None:
+    """Register CategoryMediaNotFoundError handler."""
+
     @app.exception_handler(CategoryMediaNotFoundError)
     async def category_media_not_found_handler(
         _: Request,
@@ -208,3 +262,20 @@ def register_error_handlers(app) -> None:
             },
         )
 
+
+def register_error_handlers(app) -> None:
+    """Register all error handlers for the FastAPI app."""
+    _register_product_not_found_handler(app)
+    _register_card_already_use_handler(app)
+    _register_credential_error_handler(app)
+    _register_product_sold_out_handler(app)
+    _register_coupon_not_found_handler(app)
+    _register_correios_error_handler(app)
+    _register_user_duplicate_handler(app)
+    _register_coupon_dont_match_handler(app)
+    _register_coupon_limit_error_handler(app)
+    _register_checkout_processing_error_handler(app)
+    _register_payment_not_found_handler(app)
+    _register_invalid_cart_uuid_handler(app)
+    _register_category_not_found_handler(app)
+    _register_category_media_not_found_handler(app)

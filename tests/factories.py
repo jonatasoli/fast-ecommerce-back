@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 import factory
 from faker import Faker
 from decimal import Decimal

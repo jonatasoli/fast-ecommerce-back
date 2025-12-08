@@ -14,7 +14,7 @@ from app.infra.database import get_session
 from app.infra.models import CreditCardFeeConfigDB, CustomerDB, PaymentDB
 
 
-async def create_payment(  # Noqa: PLR0913
+async def create_payment(  # noqa: PLR0913
     cart: CartPayment,
     *,
     user_id: int,
@@ -89,7 +89,7 @@ async def get_payment_by_order_id(
     return await transaction.session.scalar(payment_query)
 
 
-async def create_customer(  # Noqa: PLR0913
+async def create_customer(  # noqa: PLR0913
     *,
     user_id: int,
     customer_uuid: str,

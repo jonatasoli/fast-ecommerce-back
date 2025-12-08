@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from datetime import UTC, datetime
 import math
 
@@ -187,7 +186,7 @@ async def get_product_by_id(product_id: int, db) -> ProductInDB:
 
 def get_orders(page, offset, *, db):
     """Get Orders Paid."""
-    with db().begin() as db:  # Noqa: PLR1704
+    with db().begin() as transaction:
         orders_query = (
             select(OrderDB)
             .options(
@@ -197,12 +196,12 @@ def get_orders(page, offset, *, db):
             )
             .order_by(OrderDB.order_id.desc())
         )
-        total_records = db.session.scalar(select(func.count(OrderDB.order_id)))
+        total_records = transaction.session.scalar(select(func.count(OrderDB.order_id)))
         if page > 1:
             orders_query = orders_query.offset((page - 1) * offset)
         orders_query = orders_query.limit(offset)
 
-        orders_db = db.session.execute(orders_query).unique()
+        orders_db = transaction.session.execute(orders_query).unique()
         adapter = TypeAdapter(list[OrderInDB])
     return OrderResponse(
         orders=adapter.validate_python(orders_db.scalars().all()),

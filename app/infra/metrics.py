@@ -21,14 +21,17 @@ def setup_metrics(app) -> None:
 
     The TracerProvider is configured once and reused. The API stability
     is maintained by ensuring backward compatibility.
+
+    Only configures metrics and tracing in production environment.
     """
+    if not (hasattr(settings, 'ENVIRONMENT') and settings.ENVIRONMENT == 'production'):
+        return
+
     resource_attributes = {
         'service.name': 'api-gattorosa',
         'service.version': os.getenv('SERVICE_VERSION', '0.2.1'),
+        'deployment.environment': settings.ENVIRONMENT,
     }
-
-    if hasattr(settings, 'ENVIRONMENT') and settings.ENVIRONMENT:
-        resource_attributes['deployment.environment'] = settings.ENVIRONMENT
 
     resource = Resource.create(resource_attributes)
 
@@ -37,18 +40,16 @@ def setup_metrics(app) -> None:
         tracer_provider = TracerProvider(resource=resource)
         trace.set_tracer_provider(tracer_provider)
 
-    if hasattr(settings, 'ENVIRONMENT') and settings.ENVIRONMENT == 'production':
-        base_domain = getattr(settings, 'SENTRY_DSN', 'localhost')
-        
-        tempo_endpoint = f'https://tempo.{base_domain}/api/traces/v1/traces'
-        
-        jaeger_exporter = JaegerExporter(
-            collector_endpoint=tempo_endpoint,
-        )
-        logger.info(f'✅ Tempo HTTP exporter configured for Tempo: {tempo_endpoint}')
-        tracer_provider.add_span_processor(
-            BatchSpanProcessor(jaeger_exporter),
-        )
+    jaeger_host = getattr(settings, 'SENTRY_DSN', 'localhost')
+    jaeger_endpoint = f'http://{jaeger_host}:14268/api/traces'
+
+    jaeger_exporter = JaegerExporter(
+        collector_endpoint=jaeger_endpoint,
+    )
+    logger.info(f'✅ Jaeger HTTP exporter configured: {jaeger_endpoint}')
+    tracer_provider.add_span_processor(
+        BatchSpanProcessor(jaeger_exporter),
+    )
 
     FastAPIInstrumentor.instrument_app(app)
 

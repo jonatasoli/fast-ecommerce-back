@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from datetime import timedelta
 import asyncio
 import redis
@@ -216,7 +215,7 @@ def user(db):
     session.commit()
     session.refresh(user)
 
-    user.clean_password = 'testtest'  # Noqa: S105
+    user.clean_password = 'testtest'
 
     session.close()
     return user
@@ -255,7 +254,7 @@ def admin_user(db):
     session.refresh(user)
     session.commit()
 
-    user.clean_password = 'testtest'  # Noqa: S105
+    user.clean_password = 'testtest'
 
     session.close()
     return user
@@ -308,7 +307,7 @@ async def async_admin_user(asyncdb):
         await db.refresh(user)
         await db.commit()
 
-        user.clean_password = 'testtest'  # Noqa: S105
+        user.clean_password = 'testtest'
 
         return user
 

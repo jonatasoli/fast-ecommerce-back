@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from io import BytesIO
 import pytest
 from fastapi import UploadFile

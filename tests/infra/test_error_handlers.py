@@ -37,7 +37,7 @@ def test_product_not_found_handler(client, app_with_handlers):
     # Setup
     @app_with_handlers.get('/test')
     async def test_route():
-        raise ProductNotFoundError()
+        raise ProductNotFoundError
 
     # Act
     response = client.get('/test')
@@ -68,7 +68,7 @@ def test_credential_error_handler(client, app_with_handlers):
     # Setup
     @app_with_handlers.get('/test')
     async def test_route():
-        raise CredentialError()
+        raise CredentialError
 
     # Act
     response = client.get('/test')
@@ -83,7 +83,7 @@ def test_product_sold_out_handler(client, app_with_handlers):
     # Setup
     @app_with_handlers.get('/test')
     async def test_route():
-        raise ProductSoldOutError()
+        raise ProductSoldOutError
 
     # Act
     response = client.get('/test')
@@ -99,7 +99,7 @@ def test_coupon_not_found_handler(client, app_with_handlers):
     # Setup
     @app_with_handlers.get('/test')
     async def test_route():
-        raise CouponNotFoundError()
+        raise CouponNotFoundError
 
     # Act
     response = client.get('/test')
@@ -161,7 +161,7 @@ def test_user_duplicate_error_handler(client, app_with_handlers):
     # Setup
     @app_with_handlers.get('/test')
     async def test_route():
-        raise UserDuplicateError()
+        raise UserDuplicateError
 
     # Act
     response = client.get('/test')
@@ -176,7 +176,7 @@ def test_coupon_dont_match_error_handler(client, app_with_handlers):
     # Setup
     @app_with_handlers.get('/test')
     async def test_route():
-        raise CouponDontMatchWithUserError()
+        raise CouponDontMatchWithUserError
 
     # Act
     response = client.get('/test')
@@ -191,7 +191,7 @@ def test_coupon_limit_error_handler(client, app_with_handlers):
     # Setup
     @app_with_handlers.get('/test')
     async def test_route():
-        raise CouponLimitPriceError()
+        raise CouponLimitPriceError
 
     # Act
     response = client.get('/test')
@@ -206,7 +206,7 @@ def test_checkout_processing_error_handler(client, app_with_handlers):
     # Setup
     @app_with_handlers.get('/test')
     async def test_route():
-        raise CheckoutProcessingError()
+        raise CheckoutProcessingError
 
     # Act
     response = client.get('/test')
@@ -221,7 +221,7 @@ def test_payment_not_found_error_handler(client, app_with_handlers):
     # Setup
     @app_with_handlers.get('/test')
     async def test_route():
-        raise PaymentNotFoundError()
+        raise PaymentNotFoundError
 
     # Act
     response = client.get('/test')
@@ -236,7 +236,7 @@ def test_invalid_cart_uuid_error_handler(client, app_with_handlers):
     # Setup
     @app_with_handlers.get('/test')
     async def test_route():
-        raise InvalidCartUUIDError()
+        raise InvalidCartUUIDError
 
     # Act
     response = client.get('/test')

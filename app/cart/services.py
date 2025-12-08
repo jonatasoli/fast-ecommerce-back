@@ -222,7 +222,7 @@ async def calculate_freight(
         logger.debug(f'Campaign: {campaign}')
         if campaign and cart.subtotal > campaign.min_purchase_value:
             logger.debug('Campaign')
-            freight.price = Decimal(0.01)  # noqa: RUF032
+            freight.price = Decimal('0.01')
         cart.freight = freight
     return cart
 
