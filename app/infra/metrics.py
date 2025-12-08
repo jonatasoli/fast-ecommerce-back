@@ -37,18 +37,19 @@ def setup_metrics(app) -> None:
         tracer_provider = TracerProvider(resource=resource)
         trace.set_tracer_provider(tracer_provider)
 
-    # Configure exporter only in production
-    if settings.ENVIRONMENT == 'production':
+    if hasattr(settings, 'ENVIRONMENT') and settings.ENVIRONMENT == 'production':
+        base_domain = getattr(settings, 'SENTRY_DSN', 'localhost')
+        
+        tempo_endpoint = f'https://tempo.{base_domain}/api/traces/v1/traces'
+        
         jaeger_exporter = JaegerExporter(
-            collector_endpoint=f'http://{settings.SENTRY_DSN}:14268/api/tempo',
+            collector_endpoint=tempo_endpoint,
         )
-        logger.info('✅ Jaeger HTTP exporter configured for Tempo')
+        logger.info(f'✅ Tempo HTTP exporter configured for Tempo: {tempo_endpoint}')
         tracer_provider.add_span_processor(
             BatchSpanProcessor(jaeger_exporter),
         )
 
-    # Instrument FastAPI app
     FastAPIInstrumentor.instrument_app(app)
 
-    # Set opentelemetry logging level
     logging.getLogger('opentelemetry').setLevel(logging.DEBUG)
