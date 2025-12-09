@@ -56,16 +56,23 @@ def attach_customer_in_payment_method(
     card_brand: str | None = None,
     email: str | None = None,
     payment_method_id: str | None = None,
-) -> str:
+) -> str | dict:
     """Attach a customer in payment method in gateway."""
-    _ = email
+    _ = email, card_brand
+    if not payment_method_id:
+        raise Exception('payment_method_id is required')
     gateway = PaymentGatewayCommmand[payment_gateway].value
-    return gateway.attach_customer_in_payment_method(
+    result = gateway.attach_customer_in_payment_method(
         card_token=card_token,
         card_issuer=card_issuer,
-        payment_method_id=card_brand if card_brand else payment_method_id,
+        payment_method_id=payment_method_id,
         customer_uuid=customer_uuid,
     )
+    if hasattr(result, 'id'):
+        return result.id
+    if isinstance(result, dict) and 'id' in result:
+        return result['id']
+    return result
 
 
 def create_credit_card_payment(
@@ -121,7 +128,6 @@ def get_payment_status(
     )
 
 
-#!TODO - Refactor payment gateway and isolate gateway functions
 def create_payment_method(
     payment: CreateCreditCardPaymentMethod,
 ):

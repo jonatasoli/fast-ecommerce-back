@@ -1,5 +1,3 @@
-# ruff: noqa: I001
-# ruff: noqa:  PLR0913
 from fastapi.security import OAuth2PasswordBearer
 from app.entities.address import CreateAddress
 from app.entities.cart import (
@@ -41,12 +39,6 @@ async def get_bootstrap() -> Command:
     description='Search coupon by code and return the coupon if exists',
     status_code=status.HTTP_200_OK,
     response_description='Search Coupon',
-    #     status.HTTP_400_BAD_REQUEST: {
-    #         "coupon is invalid",
-    #     },
-    #     status.HTTP_500_INTERNAL_SERVER_ERROR: {
-    #     },
-    # },
 )
 async def get_coupon(
     coupon: str,
@@ -97,7 +89,6 @@ async def add_product_to_cart(  # noqa: ANN201
     db: Annotated[Any, Depends(get_async_session)],
 ):
     """Add product to cart."""
-    # TODO: Implementar o retorno 404 caso o estoque tenha acabado
     return await services.add_product_to_cart(
         cart_uuid=uuid,
         product=product,
@@ -171,7 +162,7 @@ async def add_address_to_cart(
     '/{uuid}/payment/{payment_method}',
     status_code=201,
 )
-async def add_payment_information_to_cart(
+async def add_payment_information_to_cart(  # noqa: PLR0913
     uuid: str,
     payment_method: str,
     *,
@@ -199,8 +190,8 @@ async def preview_cart(
     *,
     token: Annotated[str, Depends(oauth2_scheme)],
     bootstrap: Annotated[Command, Depends(get_bootstrap)],
-) -> CartShipping:
-    """Add user to cart."""
+) -> CartPayment:
+    """Preview cart with payment information."""
     return await services.preview(
         uuid=uuid,
         token=token,
@@ -232,7 +223,6 @@ async def checkout_cart(
 async def get_upsell_products(id, uuid):  # noqa: ANN201, ANN001, ARG001
     """Get upsell products."""
     try:
-        # TODO: Implementar o retorno dos produtos upsell
         _ = id, uuid
         return True  # noqa: TRY300
     except Exception as e:

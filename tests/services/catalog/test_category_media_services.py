@@ -62,7 +62,6 @@ async def test_upload_category_image_not_found_should_raise_exception(
     image_client_mock = mocker.Mock()
     image_client_mock.optimize_image.return_value = 'https://cdn.test.com/category.png'
 
-    # Act & Assert
     with pytest.raises(CategoryNotFoundError):
         await upload_category_image(
             999,
@@ -186,7 +185,6 @@ async def test_upload_category_media_gallery_category_not_found_should_raise(
         transaction.session.add(config_fee)
         await transaction.session.commit()
 
-    # Act & Assert
     with pytest.raises(CategoryNotFoundError):
         await upload_category_media_gallery(
             999,
@@ -219,7 +217,6 @@ async def test_get_category_media_gallery_should_return_media_list(asyncdb):
         transaction.session.add_all([media1, media2])
         await transaction.session.flush()
 
-        # Link media to category
         gallery1 = CategoryMediaGalleryDB(
             category_id=category.category_id,
             media_id=media1.media_id,
@@ -250,7 +247,6 @@ async def test_get_category_media_gallery_category_not_found_should_raise(asyncd
         transaction.session.add(config_fee)
         await transaction.session.commit()
 
-    # Act & Assert
     with pytest.raises(CategoryNotFoundError):
         await get_category_media_gallery(999, db=asyncdb)
 
@@ -286,7 +282,6 @@ async def test_delete_category_media_gallery_should_delete_media(asyncdb):
         db=asyncdb,
     )
 
-    # Assert - Gallery entry should be deleted
     result = await asyncdb().execute(select(CategoryMediaGalleryDB))
     assert result.scalar_one_or_none() is None
 
@@ -301,7 +296,6 @@ async def test_delete_category_media_gallery_category_not_found_should_raise(asy
         transaction.session.add(config_fee)
         await transaction.session.commit()
 
-    # Act & Assert
     with pytest.raises(CategoryNotFoundError):
         await delete_category_media_gallery(999, 1, db=asyncdb)
 
@@ -317,7 +311,6 @@ async def test_delete_category_media_gallery_media_not_found_should_raise(asyncd
         transaction.session.add_all([category, config_fee])
         await transaction.session.commit()
 
-    # Act & Assert
     with pytest.raises(CategoryMediaNotFoundError):
         await delete_category_media_gallery(
             category.category_id,

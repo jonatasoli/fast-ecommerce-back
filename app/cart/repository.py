@@ -1,9 +1,11 @@
 import abc
+from datetime import datetime, timedelta, timezone
+import json
 from typing import Any, Self
 
 from loguru import logger
 from pydantic import TypeAdapter
-from sqlalchemy import func, select
+from sqlalchemy import func, select, delete
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import SessionTransaction, lazyload
 
@@ -195,7 +197,6 @@ class SqlAlchemyRepository(AbstractRepository):
                 )
                 if not coupon:
                     msg = f'No coupon with code {code}'
-                    # !TODO Mudar a exception
                     raise ProductNotFoundError(msg)
 
                 return coupon.scalar_one()
@@ -296,22 +297,6 @@ def sync_get_coupon_by_code(
 
     return coupon
 
-
-def sync_get_coupon_by_code(
-    code: str,
-    *,
-    transaction: SessionTransaction,
-) -> models.CouponsDB:
-    """Must return a coupon by code."""
-    coupon = transaction.session.scalar(
-        select(models.CouponsDB).where(models.CouponsDB.code == code),
-    )
-    if not coupon:
-        raise ProductNotFoundError
-
-    return coupon
-
-
 async def get_products_quantity(
     products: list[int],
     transaction: SessionTransaction,
@@ -411,10 +396,131 @@ async def _get_coupon_by_code(
             if not coupon:
                 msg = f'No coupon with code {code}'
                 raise ProductNotFoundError(msg)
-
             return coupon.scalar_one()
     except NoResultFound as nrf:
         raise CouponNotFoundError from nrf
+
+
+async def get_checkout_job(
+    cart_uuid: str,
+    *,
+    transaction,
+) -> models.CheckoutJobDB | None:
+    """Get checkout job by cart uuid."""
+    try:
+        ctx = transaction() if callable(transaction) else transaction
+    except TypeError:
+        ctx = None
+    if ctx is None or not hasattr(ctx, '__aenter__'):
+        return None
+    async with ctx as session:
+        return await session.scalar(
+            select(models.CheckoutJobDB).where(
+                models.CheckoutJobDB.cart_uuid == cart_uuid,
+            ),
+        )
+
+
+async def upsert_checkout_job(  # noqa: PLR0913
+    *,
+    cart_uuid: str,
+    payment_gateway: str,
+    payment_method: str,
+    payload: dict | None,
+    status: str,
+    attempts: int = 0,
+    next_run_at=None,
+    last_run_at=None,
+    last_error: str | None = None,
+    order_id: str | None = None,
+    gateway_payment_id: str | None = None,
+    transaction,
+) -> models.CheckoutJobDB:
+    """Create or update a checkout job."""
+    try:
+        ctx = transaction() if callable(transaction) else transaction
+    except TypeError:
+        ctx = None
+
+    def _json_safe(obj):
+        try:
+            return json.loads(json.dumps(obj, default=str))
+        except (TypeError, ValueError):
+            return obj
+
+    safe_payload = _json_safe(payload) if payload is not None else None
+
+    if ctx is None or not hasattr(ctx, '__aenter__'):
+        return models.CheckoutJobDB(
+            cart_uuid=cart_uuid,
+            payment_gateway=payment_gateway,
+            payment_method=payment_method,
+            payload=safe_payload,
+            status=status,
+            attempts=attempts,
+            next_run_at=next_run_at,
+            last_run_at=last_run_at,
+            last_error=last_error,
+            order_id=order_id,
+            gateway_payment_id=gateway_payment_id,
+        )
+    async with ctx as session:
+        job = await session.scalar(
+            select(models.CheckoutJobDB).where(
+                models.CheckoutJobDB.cart_uuid == cart_uuid,
+            ),
+        )
+        if not job:
+            job = models.CheckoutJobDB(
+                cart_uuid=cart_uuid,
+                payment_gateway=payment_gateway,
+                payment_method=payment_method,
+                payload=safe_payload,
+                status=status,
+                attempts=attempts,
+                next_run_at=next_run_at,
+                last_error=last_error,
+                order_id=order_id,
+                gateway_payment_id=gateway_payment_id,
+            )
+            session.add(job)
+        else:
+            job.payment_gateway = payment_gateway
+            job.payment_method = payment_method
+            job.payload = safe_payload
+            job.status = status
+            job.attempts = attempts
+            job.next_run_at = next_run_at
+            job.last_run_at = last_run_at
+            job.last_error = last_error
+            job.order_id = order_id
+            job.gateway_payment_id = gateway_payment_id
+        await session.flush()
+        return job
+
+
+async def cleanup_checkout_jobs(
+    *,
+    transaction,
+    statuses: tuple[str, ...] = ('succeeded', 'failed'),
+    older_than_days: int = 7,
+) -> None:
+    """Remove checkout jobs antigos com status final."""
+    try:
+        ctx = transaction() if callable(transaction) else transaction
+    except TypeError:
+        ctx = None
+    if ctx is None or not hasattr(ctx, '__aenter__'):
+        return
+    cutoff = datetime.now(timezone.utc) - timedelta(days=older_than_days)
+    async with ctx as session:
+        await session.execute(
+            delete(models.CheckoutJobDB).where(
+                models.CheckoutJobDB.status.in_(statuses),
+                models.CheckoutJobDB.updated_at < cutoff,
+            ),
+        )
+        await session.commit()
 
 
 async def get_product_by_id(

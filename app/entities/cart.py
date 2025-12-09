@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from decimal import Decimal
 from typing import Self
 from uuid import UUID, uuid4
@@ -29,8 +30,8 @@ class CartInconsistencyError(Exception):
 class CartNotFoundError(Exception):
     """Raise when cart not found."""
 
-    def __init__(self: Self) -> None:
-        super().__init__('Cart not found')
+    def __init__(self: Self, message: str | None = None) -> None:
+        super().__init__(message or 'Cart not found')
 
 
 class InvalidCartFormatError(Exception):
@@ -169,13 +170,39 @@ class CartBase(BaseModel):
             logger.error(msg)
             raise ValueError(msg)
         try:
+            logger.debug(
+                'calculate_subtotal: calculando subtotal para %s itens',
+                len(self.cart_items),
+            )
             for item in self.cart_items:
-                subtotal += item.price * item.quantity
+                if (
+                    item.price is None
+                    or item.quantity is None
+                    or item.price == 0
+                    or item.quantity == 0
+                ):
+                    raise CartNotFoundPriceError
+                item_price = item.price
+                item_quantity = item.quantity
+                item_subtotal = item_price * item_quantity
+                logger.debug(
+                    '  Item %s: price=%s, quantity=%s, subtotal=%s',
+                    item.product_id,
+                    item_price,
+                    item_quantity,
+                    item_subtotal,
+                )
+                subtotal += item_subtotal
                 if item.discount_price > 0:
                     self.discount += item.discount_price * item.quantity
                 if coupon and coupon.discount > 0:
                     item.discount_price = item.price * coupon.discount
                     self.discount += item.discount_price * item.quantity
+            logger.debug(
+                'calculate_subtotal: subtotal calculado=%s, discount=%s',
+                subtotal,
+                self.discount,
+            )
 
             if coupon and coupon.discount_price and coupon.discount_price > 0:
                 if coupon.limit_price and subtotal < coupon.limit_price:
@@ -305,6 +332,8 @@ class CreateCheckoutResponse(BaseModel):
     gateway_payment_id: str | None
     qr_code: str | None
     qr_code_base64: str | None
+    job_status: str | None = None
+    next_retry_at: datetime | None = None
 
 
 def convert_price_to_decimal(price: int) -> Decimal:

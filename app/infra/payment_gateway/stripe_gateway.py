@@ -50,6 +50,11 @@ def create_payment_intent(
     """Must create a payment intent."""
     _ = installments
     _init_stripe()
+    if amount < 0.5:
+        logger.warning(
+            f'Amount inválido para PaymentIntent (amount={amount}), ajustando para 0.50 BRL',
+        )
+        amount = 0.5
     return stripe.PaymentIntent.create(
         amount=int(amount * 100),
         currency=currency,
@@ -71,6 +76,31 @@ def create_credit_card_payment(
     """Must confirm a payment intent in Stripe case."""
     try:
         _init_stripe()
+        if amount < 0.5:
+            logger.warning(
+                f'Valor do pagamento inválido (amount={amount}), usando mínimo de 0.50 BRL para criar PaymentIntent.',
+            )
+            amount = 0.5
+        if not payment_intent_id:
+            logger.debug(
+                f'PaymentIntent ausente, criando novo. amount={amount}, customer={customer_id}, payment_method={payment_method}',
+            )
+            intent = stripe.PaymentIntent.create(
+                amount=int(amount * 100),
+                currency='brl',
+                customer=customer_id,
+                payment_method=payment_method,
+                confirm=False,
+            )
+            payment_intent_id = intent.id
+        logger.info(
+            '🔄 Confirmando PaymentIntent Stripe | ID: %s | Método: %s',
+            payment_intent_id,
+            payment_method,
+        )
+        logger.debug(
+            f'Confirmando PaymentIntent id={payment_intent_id} payment_method={payment_method}',
+        )
         payment_accept = stripe.PaymentIntent.confirm(
             payment_intent_id,
             payment_method=payment_method,
@@ -78,10 +108,19 @@ def create_credit_card_payment(
             return_url=f'{settings.BASE_URL}/payment/callback',
         )
         if payment_accept.get('error'):
+            logger.error(
+                '❌ Erro ao confirmar PaymentIntent Stripe | Erro: %s',
+                payment_accept.get('error'),
+            )
             raise PaymentAcceptError(payment_accept['error'])
+        logger.info(
+            '✅ PaymentIntent Stripe confirmado | Status: %s | ID: %s',
+            payment_accept.get('status', 'unknown'),
+            payment_accept.get('id', 'unknown'),
+        )
         return payment_accept
     except InvalidRequestError as error:
-        logger.error(error)
+        logger.error('❌ Erro na requisição Stripe: %s', error)
         raise PaymentGatewayRequestError
 
 
@@ -90,14 +129,31 @@ def attach_customer_in_payment_method(
     payment_method_id: str,
     card_token: str | None = None,
     card_issuer: str | None = None,
-) -> stripe.PaymentMethod:
-    """Must attach a customer in payment method."""
+) -> str:
+    """Attach a customer to a payment method and return the method id."""
     _ = card_token, card_issuer
     _init_stripe()
-    return stripe.PaymentMethod.attach(
-        payment_method_id,
-        customer=customer_uuid,
-    )
+    try:
+        logger.debug(
+            f'Attaching payment_method_id={payment_method_id} to customer_uuid={customer_uuid}',
+        )
+        payment_method = stripe.PaymentMethod.attach(
+            payment_method_id,
+            customer=customer_uuid,
+        )
+        logger.debug(
+            f'Attach result id={getattr(payment_method, "id", None)} status={getattr(payment_method, "status", None)}',
+        )
+        return payment_method.id  # type: ignore[attr-defined]
+    except InvalidRequestError as error:
+        logger.error(f'Erro ao anexar PaymentMethod ao customer: {error}')
+        if 'already been attached' in str(error).lower() or 'already attached' in str(error).lower():
+            pm = stripe.PaymentMethod.retrieve(payment_method_id)
+            logger.debug(
+                f'PaymentMethod already attached, retrieved id={getattr(pm, "id", None)} status={getattr(pm, "status", None)}',
+            )
+            return pm.id  # type: ignore[attr-defined]
+        raise PaymentGatewayRequestError from error
 
 
 def create_credit_card(  # noqa: PLR0913

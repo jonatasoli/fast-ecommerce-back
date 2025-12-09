@@ -83,7 +83,6 @@ def test_request_token(client, db):
         )
         transaction.session.add(user_db)
         transaction.session.commit()
-        # TODO Ajust factory to get correct role
         _name = role.role
     data = {
         'username': '12345678911',

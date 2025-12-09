@@ -70,7 +70,6 @@ class OrderResponse(BaseModel):
     total_records: int
 
 
-#!TODO - Legacy
 class ProductSchema(BaseModel):
     name: str
     uri: str

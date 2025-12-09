@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from loguru import logger
 from app.cart import repository
 from app.entities.cart import (
@@ -19,16 +21,26 @@ async def payment_process(
     bootstrap,
 ):
     """Payment Process Mercado pago."""
-    logger.debug(payment.payment_gateway)
-    logger.debug(user.user_id)
-    logger.debug(payment.payment_gateway)
+    emoji = '📱' if payment_method.replace('_', '-') == PaymentMethod.PIX.value else '💳'
+    logger.info(
+        '%s Iniciando processamento de pagamento Mercado Pago | '
+        'Método: %s | Gateway: %s | Usuário: %s',
+        emoji,
+        payment_method,
+        payment.payment_gateway,
+        user.email,
+    )
+    logger.debug(f'payment_process MercadoPago: payment_method={payment_method}, payment_gateway={payment.payment_gateway}')
+    normalized_payment_method = payment_method.replace('_', '-')
+    logger.debug(f'normalized_payment_method={normalized_payment_method}, PIX.value={PaymentMethod.PIX.value}')
     customer = await bootstrap.cart_uow.get_customer(
         user.user_id,
         payment_gateway=payment.payment_gateway,
         bootstrap=bootstrap,
     )
+    logger.debug(f'Customer retrieved: {customer.customer_uuid if customer else None}')
     cart = None
-    if payment_method == PaymentMethod.PIX.value:
+    if normalized_payment_method == PaymentMethod.PIX.value:
         cart = await create_payment_pix(
             payment,
             payment_method=payment_method,
@@ -36,7 +48,7 @@ async def payment_process(
             customer=customer,
             cache_cart=cache_cart,
         )
-    elif payment_method == PaymentMethod.CREDIT_CARD.value:
+    elif normalized_payment_method == PaymentMethod.CREDIT_CARD.value:
         cart = await create_payment_credit_card(
             payment,
             user=user,
@@ -59,6 +71,7 @@ async def create_payment_pix(
     cache_cart,
     client=mercadopago_gateway,
 ):
+    logger.debug(f'create_payment_pix called: payment_method={payment_method}, payment_gateway={payment.payment_gateway}')
     if not isinstance(
         payment,
         CreatePixPaymentMethod,
@@ -66,18 +79,43 @@ async def create_payment_pix(
         raise PaymentDataInvalidError
 
     description = ' '.join(item.name for item in cache_cart.cart_items if item.name)
+    amount = cache_cart.total if cache_cart.total > 0 else cache_cart.subtotal
+    if not amount or amount <= 0:
+        amount = sum((item.price or 0) * item.quantity for item in cache_cart.cart_items)
+        cache_cart.subtotal = amount
+        cache_cart.total = amount
+    logger.debug(
+        f'Creating PIX payment: customer={customer.customer_uuid}, total={cache_cart.total}, subtotal={cache_cart.subtotal}, amount={amount}',
+    )
 
+    if not amount or amount <= 0:
+        logger.error(f'Amount inválido para PIX: total={cache_cart.total}, subtotal={cache_cart.subtotal}')
+        raise PaymentDataInvalidError('Amount must be greater than 0')
+
+    logger.info(
+        '📱 Criando pagamento PIX | Valor: R$ %s | Cliente: %s',
+        amount,
+        user.email,
+    )
     _payment = client.create_pix(
         customer.customer_uuid,
         customer_email=user.email,
         description=description,
-        amount=int(cache_cart.total),
+        amount=int(amount * 100),
     )
     qr_code = _payment.point_of_interaction.transaction_data.qr_code
     qr_code_base64 = _payment.point_of_interaction.transaction_data.qr_code_base64
     payment_id = _payment.id
-    return CartPayment(
-        **cache_cart.model_dump(),
+    logger.info(
+        '✅ Pagamento PIX criado com sucesso | Payment ID: %s | QR Code gerado',
+        payment_id,
+    )
+    logger.debug(f'PIX payment created: payment_id={payment_id}, qr_code length={len(qr_code) if qr_code else 0}')
+    cache_cart.subtotal = Decimal(str(amount))
+    cache_cart.total = Decimal(str(amount))
+    cart_dict = cache_cart.model_dump()
+    cart_payment = CartPayment(
+        **cart_dict,
         payment_method=payment_method,
         gateway_provider=payment.payment_gateway,
         customer_id=customer.customer_uuid,
@@ -86,6 +124,13 @@ async def create_payment_pix(
         pix_payment_id=payment_id,
         payment_method_id=str(payment_id),
     )
+    logger.info(
+        '✅ CartPayment PIX configurado | Gateway: %s | Valor: R$ %s',
+        cart_payment.gateway_provider,
+        cart_payment.total,
+    )
+    logger.debug(f'CartPayment created for PIX: payment_method={cart_payment.payment_method}, gateway_provider={cart_payment.gateway_provider}')
+    return cart_payment
 
 
 async def create_payment_credit_card(
@@ -114,6 +159,12 @@ async def create_payment_credit_card(
     if not payment_method_id:
         raise PaymentNotFoundError
 
+    logger.info(
+        '💳 Configurando pagamento cartão Mercado Pago | '
+        'PaymentMethod ID: %s | Parcelas: %s',
+        payment_method_id,
+        installments,
+    )
     cart = CartPayment(
         **cache_cart.model_dump(),
         payment_method=PaymentMethod.CREDIT_CARD.value,
@@ -135,4 +186,10 @@ async def create_payment_credit_card(
             payment_method_id,
             transaction=transaction,
         )
+    logger.info(
+        '✅ Pagamento cartão Mercado Pago configurado com sucesso | '
+        'Valor: R$ %s | Parcelas: %s',
+        cart.total,
+        installments,
+    )
     return cart

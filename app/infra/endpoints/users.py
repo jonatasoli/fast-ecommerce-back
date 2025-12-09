@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from datetime import timedelta
 from typing import Any, Annotated
 
@@ -58,7 +57,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='access_token')
 )
 async def get_affiliate_user(
     *,
-    # TODO : uncomment when remove the mock
     request: Request,
     token: Annotated[str, Depends(oauth2_scheme)],  # noqa: ERA001
     db: Annotated[Session, Depends(get_session)],

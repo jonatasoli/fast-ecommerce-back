@@ -67,7 +67,6 @@ async def delete_category(
     if not db_category:
         raise CategoryNotFoundError
 
-    # Delete associated media gallery entries
     delete_stmt = delete(CategoryMediaGalleryDB).where(
         CategoryMediaGalleryDB.category_id == category_id,
     )

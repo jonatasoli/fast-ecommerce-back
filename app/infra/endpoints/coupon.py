@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from pydantic import TypeAdapter
 from app.coupons import repository
 

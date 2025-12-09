@@ -105,6 +105,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env-test
 .venv
 env/
 venv/
@@ -148,3 +149,8 @@ images
 # Static
 ./static
 static
+
+# Test environment files with secrets
+.env.test
+
+frontend/

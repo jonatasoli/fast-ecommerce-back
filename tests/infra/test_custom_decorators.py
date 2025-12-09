@@ -48,7 +48,6 @@ async def test_database_uow_decorator_rollback_on_error(mocker):
         """Test function that raises error."""
         raise SQLAlchemyError('Database error')
 
-    # Act & Assert
     with pytest.raises(SQLAlchemyError):
         await test_function(bootstrap=mock_bootstrap)
 

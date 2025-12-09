@@ -16,12 +16,12 @@ def database_uow():
                     )
                     await (
                         inner_session.session.commit()
-                    )  # Comita a transação explicitamente
+                    )
                     logger.info('Transaction committed')
             except SQLAlchemyError as e:
                 logger.error(f'Error in transaction: {e}')
-                inner_session.rollback()  # Realiza um rollback em caso de exceção do SQLAlchemy
-                raise  # Re-raise a exceção para que possa ser tratada em níveis superiores
+                inner_session.rollback()
+                raise
 
             return result
 

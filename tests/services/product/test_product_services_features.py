@@ -145,7 +145,6 @@ async def test_update_product_not_found_should_raise(mocker, asyncdb):
     # Setup
     update_data = ProductPatchRequest(name='New Name')
 
-    # Act / Assert
     with pytest.raises(ProductNotFoundError):
         await update_product(999, update_data=update_data, db=asyncdb)
 
@@ -155,7 +154,6 @@ async def test_delete_product_should_delete(mocker, asyncdb):
     # Setup
     product_id = fake.random_int()
 
-    # Mock the transaction and db context
     mock_transaction = mocker.MagicMock()
     mock_transaction.commit = mocker.MagicMock()
     mock_context = mocker.MagicMock()
@@ -169,7 +167,6 @@ async def test_delete_product_should_delete(mocker, asyncdb):
         return_value=None,
     )
 
-    # Create a mock db callable
     mock_db = mocker.MagicMock(return_value=mock_db_instance)
 
     # Act

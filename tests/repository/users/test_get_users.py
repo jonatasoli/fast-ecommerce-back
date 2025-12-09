@@ -32,7 +32,6 @@ async def test_get_users_with_name_filter(mocker, db):
     # Assert
     transaction.session.scalars.assert_called_once()
 
-    # Check the query string
     query_str = str(transaction.session.scalars.call_args[0][0])
     assert 'LIKE' in query_str
     assert 'ORDER BY' in query_str

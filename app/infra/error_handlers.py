@@ -3,6 +3,7 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
 from app.entities.cart import (
+    CartNotFoundError,
     CheckoutProcessingError,
     CouponLimitPriceError,
     InvalidCartUUIDError,
@@ -229,6 +230,21 @@ def _register_invalid_cart_uuid_handler(app) -> None:
         )
 
 
+def _register_cart_not_found_handler(app) -> None:
+    """Register CartNotFoundError handler."""
+
+    @app.exception_handler(CartNotFoundError)
+    async def cart_not_found(
+        _: Request,
+        exc: CartNotFoundError,
+    ) -> JSONResponse:
+        """Cart not found in cache or database."""
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={'detail': 'Cart not found'},
+        )
+
+
 def _register_category_not_found_handler(app) -> None:
     """Register CategoryNotFoundError handler."""
 
@@ -277,5 +293,6 @@ def register_error_handlers(app) -> None:
     _register_checkout_processing_error_handler(app)
     _register_payment_not_found_handler(app)
     _register_invalid_cart_uuid_handler(app)
+    _register_cart_not_found_handler(app)
     _register_category_not_found_handler(app)
     _register_category_media_not_found_handler(app)

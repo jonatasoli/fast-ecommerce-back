@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from app.infra.database import get_async_session
 from loguru import logger
 from app.entities.payment import PaymentInDB, PaymentNotification, PaymentStatusResponse

@@ -10,11 +10,9 @@ from app.entities.coupon import CouponInDB, CouponsResponse, CouponUpdate
 from app.infra.models import CouponsDB
 
 
-# TODO: implementar entity
 class Coupon: ...
 
 
-# Abstração da classe de repositório
 class AbstractRepository(abc.ABC):
     """Abstract coupon repository."""
 

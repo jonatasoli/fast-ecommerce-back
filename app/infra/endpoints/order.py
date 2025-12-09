@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from fastapi import APIRouter, Depends, status
 from fastapi.routing import get_websocket_app
 from loguru import logger
@@ -198,7 +197,6 @@ def status_pending() -> None:
     logger.debug(data)
     db = get_session()
     _ = db.query(PaymentDB).filter_by(id=data.get('payment_id')).first()
-    # TODO create return payment from payment gateway
 
 
 def status_paid() -> None:

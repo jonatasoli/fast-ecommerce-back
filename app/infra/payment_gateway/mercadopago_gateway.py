@@ -140,6 +140,12 @@ def create_credit_card_payment(
     customer_email: str = '',
     client: SDK = get_payment_client(),
 ):
+    logger.info(
+        '🔄 Criando pagamento Mercado Pago | Valor: R$ %s | Parcelas: %s | Cliente: %s',
+        amount,
+        installments,
+        customer_email,
+    )
     payment_data = {
         'transaction_amount': float(amount),
         'token': card_token,
@@ -151,8 +157,13 @@ def create_credit_card_payment(
     logger.debug(f'Payment data {payment_data}')
     logger.debug(f'Payment response {payment_response}')
     if payment_response.get('error'):
+        logger.error('❌ Erro ao criar pagamento Mercado Pago: %s', payment_response)
         raise Exception(payment_response)
     if payment_response['status'] == 400:
+        logger.error(
+            '❌ Cartão já utilizado | Status: 400 | Mensagem: %s',
+            payment_response.get('response', {}).get('message'),
+        )
         raise CardAlreadyUseError(
             payment_response.get('response', {}).get('message'),
         )
@@ -164,17 +175,35 @@ def create_credit_card_payment(
         'authorized',
         'in_process',
     ]:
+        logger.error(
+            '❌ Status de pagamento inválido | Status: %s',
+            payment_response['response'].get('status'),
+        )
         logger.info(payment_response)
         logger.debug(payment_response['response'].get('status'))
         raise_payment_not_found()
+    status = payment_response['response'].get('status', 'unknown')
+    payment_id = payment_response['response'].get('id', 'unknown')
+    logger.info(
+        '✅ Pagamento Mercado Pago criado | Status: %s | Payment ID: %s',
+        status,
+        payment_id,
+    )
     return MercadoPagoPaymentResponse.model_validate(
         payment_response['response'],
     )
 
 
 def accept_payment(payment_id, client: SDK = get_payment_client()):
+    logger.info('🔄 Aceitando pagamento Mercado Pago | Payment ID: %s', payment_id)
     payment_data = {'capture': True}
     payment_response = client.payment().update(payment_id, payment_data)
+    status = payment_response['response'].get('status', 'unknown')
+    logger.info(
+        '✅ Pagamento Mercado Pago aceito | Status: %s | Payment ID: %s',
+        status,
+        payment_id,
+    )
     return MercadoPagoPaymentResponse.model_validate(
         payment_response['response'],
     )
@@ -201,7 +230,7 @@ def create_pix(
 ):
     """Create pix in mercado pago."""
     payment_data = {
-        'transaction_amount': amount,
+        'transaction_amount': float(amount),
         'payment_method_id': 'pix',
         'description': description,
         'installments': 1,
@@ -212,14 +241,22 @@ def create_pix(
     request_options.custom_headers = {
         'x-idempotency-key': f'{idenpotency_key}',
     }
-    logger.debug(f'Data -> {payment_data}')
-    payment_response = client.payment().create(payment_data, request_options)
-    if payment_response.get('status') not in [200, 201]:
-        logger.info(payment_response)
-        raise_payment_not_found()
-    return MercadoPagoPixPaymentResponse.model_validate(
-        payment_response['response'],
-    )
+    logger.debug(f'Creating PIX payment: customer_id={customer_id}, amount={amount}, description={description}')
+    logger.debug(f'Payment data: {payment_data}')
+    try:
+        payment_response = client.payment().create(payment_data, request_options)
+        logger.debug(f'Payment response status: {payment_response.get("status")}')
+        logger.debug(f'Payment response: {payment_response}')
+        if payment_response.get('status') not in [200, 201]:
+            error_msg = payment_response.get('response', {}).get('message', 'Unknown error')
+            logger.error(f'Erro ao criar PIX: status={payment_response.get("status")}, message={error_msg}, response={payment_response}')
+            raise_payment_not_found()
+        return MercadoPagoPixPaymentResponse.model_validate(
+            payment_response['response'],
+        )
+    except Exception as e:
+        logger.error(f'Exceção ao criar PIX: {e}')
+        raise
 
 
 def get_payment_status(

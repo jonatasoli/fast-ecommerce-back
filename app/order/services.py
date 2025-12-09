@@ -552,7 +552,6 @@ async def get_latest_products(
             .group_by(ProductDB.product_id, CategoryDB.category_id)
             .order_by(ProductDB.product_id.desc())
         )
-        #!TODO precisa criar um campo created_at
         total_records = await transaction.session.scalar(
             select(func.count(ProductDB.product_id)),
         )

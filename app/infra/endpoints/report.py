@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from requests.models import HTTPError
 from app.entities.user import UserNotAdminError
 from fastapi import APIRouter, Depends, status

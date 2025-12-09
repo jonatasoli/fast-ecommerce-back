@@ -43,11 +43,10 @@ def test_uploaded_create_model_should_valid_data():
 
 def test_uploaded_create_model_with_invalid_type_should_exception():
     # Setup
-    invalid_type = 'error'  # valor inválido
+    invalid_type = 'error'
     dummy_file = BytesIO(b'dummy image content')
     upload_file = UploadFile(file=dummy_file, filename='image.png')
 
-    # Act / Assert
     with pytest.raises(ValidationError) as exc_info:
         UploadedMediaCreate(
             media=upload_file,
@@ -59,7 +58,6 @@ def test_uploaded_create_model_with_invalid_type_should_exception():
 
 
 def test_product_sold_out_error_message():
-    # Act / Assert
     with pytest.raises(ProductSoldOutError) as exc_info:
         raise ProductSoldOutError
 
@@ -68,7 +66,6 @@ def test_product_sold_out_error_message():
 
 
 def test_product_not_created_error_message():
-    # Act / Assert
     with pytest.raises(ProductNotCreatedError) as exc_info:
         raise ProductNotCreatedError
 
@@ -77,7 +74,6 @@ def test_product_not_created_error_message():
 
 
 def test_product_not_found_error_message():
-    # Act / Assert
     with pytest.raises(ProductNotFoundError) as exc_info:
         raise ProductNotFoundError
 

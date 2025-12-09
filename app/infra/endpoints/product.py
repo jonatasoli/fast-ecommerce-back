@@ -1,5 +1,3 @@
-# ruff: noqa: I001
-# ruff: noqa: ANN401 TRY301 TRY300
 from typing import Any, Annotated
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from app.infra.constants import CurrencyType, MediaType

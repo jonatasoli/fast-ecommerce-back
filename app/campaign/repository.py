@@ -17,8 +17,6 @@ async def get_campaign(
     logger.debug(f'{today}')
     query = (
         select(CampaignDB)
-        # .where(CampaignDB.start_date >= today)
-        # .where(CampaignDB.end_date <= today)
         .where(CampaignDB.active.is_(True))
     )
     if free_shipping:

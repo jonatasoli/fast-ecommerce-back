@@ -33,7 +33,6 @@ def test_category_not_found_error_is_exception():
 
 
 def test_category_not_found_error_can_be_raised():
-    # Act & Assert
     with pytest.raises(CategoryNotFoundError) as exc_info:
         raise CategoryNotFoundError('Test error')
 
@@ -70,7 +69,6 @@ def test_category_media_not_found_error_is_exception():
 
 
 def test_category_media_not_found_error_can_be_raised():
-    # Act & Assert
     with pytest.raises(CategoryMediaNotFoundError) as exc_info:
         raise CategoryMediaNotFoundError('Test media error')
 

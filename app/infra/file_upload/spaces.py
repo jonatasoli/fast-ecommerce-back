@@ -14,8 +14,8 @@ def upload_image(image: UploadFile) -> None:
     )
 
     client.upload_file(
-        f'{image.filename}',  # Path to local file
-        f'{settings.BUCKET_NAME}',  # Name of Space
+        f'{image.filename}',
+        f'{settings.BUCKET_NAME}',
         f'{image.filename}',
         ExtraArgs={'ACL': 'public-read'},
-    )  # Name for remote file
+    )

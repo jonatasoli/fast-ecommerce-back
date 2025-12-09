@@ -18,13 +18,10 @@ class InterceptHandler(logging.Handler):
 
 def setup_logging() -> None:
     """Configure logging with loguru."""
-    # Set loguru format for root logger
     logging.getLogger().handlers = [InterceptHandler()]
 
-    # Remove default handler
     logger.remove()
 
-    # Add stdout handler
     logger.add(
         sys.stdout,
         colorize=True,
@@ -35,9 +32,7 @@ def setup_logging() -> None:
         diagnose=True,
     )
 
-    # Intercept uvicorn access logs
     logging.getLogger('uvicorn.access').handlers = [InterceptHandler()]
 
-    # Set opentelemetry logging level
     logging.getLogger('opentelemetry').setLevel(logging.DEBUG)
 

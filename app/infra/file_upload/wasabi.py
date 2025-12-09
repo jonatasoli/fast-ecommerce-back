@@ -7,7 +7,6 @@ from loguru import logger
 
 def upload_image(image: UploadFile, file_path) -> None:
     """Send image to wasabi."""
-    # Create connection to Wasabi / S3
     try:
         s3 = boto3.client(
             's3',
@@ -16,7 +15,6 @@ def upload_image(image: UploadFile, file_path) -> None:
             aws_secret_access_key=f'{settings.AWS_SECRET_ACCESS_KEY}',
         )
 
-        # Upload bucket file
         if not file_path:
             file_path = image.filename
         s3.upload_file(

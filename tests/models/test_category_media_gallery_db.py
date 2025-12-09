@@ -45,7 +45,6 @@ def test_category_media_gallery_foreign_keys(session):
     session.add(gallery)
     session.commit()
 
-    # Act - Query related objects
     result_gallery = session.scalar(
         select(CategoryMediaGalleryDB).where(
             CategoryMediaGalleryDB.category_id == category.category_id,

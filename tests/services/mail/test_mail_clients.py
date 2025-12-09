@@ -119,6 +119,5 @@ def test_send_email_raises_on_failure(mocker):
         html_content=fake.text(),
     )
 
-    # Act / Assert
     with pytest.raises(Exception):
         send_mail(message, db=mock_db)

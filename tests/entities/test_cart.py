@@ -163,7 +163,6 @@ def test_remove_product_to_cart_with_product_not_exists() -> None:
     product = ProductCartFactory(product_id=product_id)
     cart = CartBase(uuid=fake.uuid4(), cart_items=[product], subtotal=fake_decimal())
 
-    # Act / Assert
     with pytest.raises(
         IndexError, match=f"Product id {different_product_id} don't exists in cart",
     ):
@@ -180,14 +179,12 @@ def test_add_product_price_to_cart() -> None:
         price = fake_decimal()
         quantity = fake.random_int(min=1, max=5)
 
-        # Add to cart without price
         cart.cart_items.append(
             ProductCartFactory(
                 product_id=product_id, price=fake_decimal(), quantity=quantity,
             ),
         )
 
-        # Create reference with correct price
         products_with_prices.append(
             ProductCartFactory(product_id=product_id, price=price, quantity=quantity),
         )
@@ -225,7 +222,6 @@ def test_calculate_subtotal_in_cart_without_prices_raise_cart_error() -> None:
     cart_items = [ProductCartFactory(price=None) for _ in range(10)]
     cart = CartBase(uuid=fake.uuid4(), cart_items=cart_items, subtotal=Decimal(0))
 
-    # Act / Assert
     with pytest.raises(
         CartNotFoundPriceError, match='Price or quantity not found in cart item',
     ):
@@ -236,7 +232,6 @@ def test_calculate_subtotal_in_cart_with_cart_items_empty_raise_value_error() ->
     # Setup
     cart = CartBase(uuid=fake.uuid4(), cart_items=[], subtotal=Decimal(0))
 
-    # Act / Assert
     with pytest.raises(ValueError, match='Cart items is empty'):
         cart.calculate_subtotal()
 
@@ -281,7 +276,6 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
     assert cart.discount == expected_discount
 
 
-# Exception tests
 def test_cart_not_found_error_message():
     with pytest.raises(CartNotFoundError, match='Cart not found'):
         raise CartNotFoundError
@@ -318,7 +312,6 @@ def test_cart_inconsistency_error_message():
         raise CartInconsistencyError
 
 
-# Edge case tests
 def test_increase_quantity_when_product_not_found_returns_cart():
     product = ProductCartFactory()
     cart = CartBase(uuid=fake.uuid4(), cart_items=[product], subtotal=fake_decimal())
@@ -419,7 +412,6 @@ def test_get_products_price_and_discounts_with_inconsistency():
         cart.get_products_price_and_discounts(products)
 
 
-# Utility function tests
 def test_convert_price_to_decimal():
     int_price = fake.random_int(min=1000, max=100000)
     result = convert_price_to_decimal(int_price)

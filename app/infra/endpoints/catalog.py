@@ -1,5 +1,3 @@
-# ruff: noqa: I001
-# ruff: noqa: ANN401 FBT002 TRY300 TRY301 PLR0913
 from typing import Any, Annotated
 
 from fastapi.security import OAuth2PasswordBearer
@@ -294,7 +292,7 @@ async def upload_category_image(
     status_code=status.HTTP_201_CREATED,
     tags=['admin'],
 )
-async def upload_category_media_gallery(
+async def upload_category_media_gallery(  # noqa: PLR0913
     category_id: int,
     media_type: MediaType,
     order: int,

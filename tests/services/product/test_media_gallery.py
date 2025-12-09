@@ -66,14 +66,12 @@ async def test_image_in_gallery_must_upload(
     assert image_path == '/media/image.png'
     mock_optimize_image.assert_called_once_with(real_upload_file)
 
-    # Verify UploadedMediaDB persisted
     result = await asyncdb().execute(select(UploadedMediaDB))
     uploaded = result.scalar_one()
     assert uploaded.type == media_type
     assert uploaded.uri == '/media/image.png'
     assert uploaded.order == order
 
-    # Verify MediaGalleryDB persisted
     result = await asyncdb().execute(select(MediaGalleryDB))
     gallery = result.scalar_one()
     assert gallery.product_id == product_db.product_id

@@ -9,12 +9,10 @@ def get_cors_origins() -> list[str]:
     """Get CORS origins from environment variables."""
     origins = []
 
-    # Add CORS_ORIGINS from environment variable (comma-separated)
     if hasattr(settings, 'CORS_ORIGINS') and settings.CORS_ORIGINS:
         cors_origins = str(settings.CORS_ORIGINS).split(',')
         origins.extend([origin.strip() for origin in cors_origins if origin.strip()])
 
-    # Add FRONTEND_URL and ADMIN_URL if they exist
     if hasattr(settings, 'FRONTEND_URL') and settings.FRONTEND_URL:
         origins.append(settings.FRONTEND_URL)
 

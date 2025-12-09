@@ -97,7 +97,6 @@ def engine(postgres_container):
 @pytest.fixture(scope='session')
 def redis_container():
     with RedisContainer('redis:7-alpine') as redis:
-        # Override settings for tests
         host = redis.get_container_host_ip()
         port = redis.get_exposed_port(6379)
         settings.REDIS_URL = f'redis://{host}:{port}'
@@ -126,10 +125,8 @@ async def async_engine(postgres_container, engine):
         async_url,
         poolclass=StaticPool,
     )
-    # Don't create all tables here - they're already created by the sync engine fixture
     yield async_engine_instance
 
-    # Don't drop tables on teardown - sync tests may still need them
     await async_engine_instance.dispose()
 
 
@@ -330,7 +327,6 @@ async def async_client(asyncdb):
     from app.infra.database import get_async_session
     from main import app as fastapi_app
 
-    # Override returns the sessionmaker directly
     fastapi_app.dependency_overrides[get_async_session] = lambda: asyncdb
 
     try:

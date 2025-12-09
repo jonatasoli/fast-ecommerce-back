@@ -45,7 +45,7 @@ def test_create_app_cors():
     response = client.get('/docs')
 
     # Assert
-    assert response.status_code in [200, 404]  # Docs might not be available in test
+    assert response.status_code in [200, 404]
 
 
 def test_create_app_error_handlers():

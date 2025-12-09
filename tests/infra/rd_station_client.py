@@ -12,7 +12,6 @@ class MockRequestResponse(BaseModel):
 
 @pytest.mark.asyncio
 async def test_successful_send_to_crm(mocker):
-    # Mock data
     user_data = UserData(
         user_id=1,
         name='test',
@@ -29,7 +28,6 @@ async def test_successful_send_to_crm(mocker):
         },
     )
 
-    # Mock functions
     async def mock_get_settings(_, *, transaction):
         return crm_settings
 
@@ -40,7 +38,6 @@ async def test_successful_send_to_crm(mocker):
     # Act
     await send_abandonated_cart_to_crm(user_data, get_settings=mock_get_settings)
 
-    # Assertions
     mock_requests_post.spy(
         'https://api.example.com/deals?token=abc123',
         json=mocker.ANY,
@@ -57,7 +54,6 @@ async def test_successful_send_to_crm(mocker):
 
 @pytest.mark.asyncio
 async def test_send_to_crm_fails_with_bad_status_code(mocker):
-    # Mock data
     user_data = UserData(
         user_id=1,
         name='test',
@@ -74,7 +70,6 @@ async def test_send_to_crm_fails_with_bad_status_code(mocker):
         },
     )
 
-    # Mock functions
     async def mock_get_settings(_, *, transaction):
         return crm_settings
 
@@ -86,7 +81,6 @@ async def test_send_to_crm_fails_with_bad_status_code(mocker):
     with pytest.raises(NotSendToCRMError):
         await send_abandonated_cart_to_crm(user_data, get_settings=mock_get_settings)
 
-    # Assertions
     mock_requests_post.spy(
         'https://api.example.com/deals?token=abc123',
         json=mocker.ANY,
@@ -97,7 +91,6 @@ async def test_send_to_crm_fails_with_bad_status_code(mocker):
 
 @pytest.mark.asyncio
 async def test_get_settings_raises_exception(mocker):
-    # Mock data
     user_data = UserData(
         user_id=1,
         name='test',
@@ -106,12 +99,10 @@ async def test_get_settings_raises_exception(mocker):
         phone='1234567890',
     )
 
-    # Mock functions (raises exception)
     async def mock_get_settings(_, *, transaction):
         return crm_settings
 
     with pytest.raises(Exception) as exc:
         await send_abandonated_cart_to_crm(user_data, get_settings=mock_get_settings)
 
-    # Assertions
     assert exc

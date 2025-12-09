@@ -28,14 +28,7 @@ scheduler = StreamScheduler(
     sources=[LabelScheduleSource(taskiq_broker)],
 )
 
-# @broker.subscriber("in-queue")
-# @broker.publisher("out-queue")
-# async def get_abandoned_carts() -> str:
 #     """Task to get all carts abandoned in redis."""
-#     logger.info("Start cart task")
-#     await cart.get_cart_and_send_to_crm()
-#     logger.info("Finish cart task")
-#     return "Task: registered"
 
 
 @broker.subscriber('in-queue')

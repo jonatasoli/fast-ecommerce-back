@@ -146,7 +146,6 @@ class PaymentInDB(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-#!TODO - Legacy
 class CreditCardPayment(BaseModel):
     api_key: str
     amount: int

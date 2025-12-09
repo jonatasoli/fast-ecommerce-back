@@ -2,9 +2,12 @@ import enum
 import re
 from contextlib import suppress
 from decimal import Decimal
+from datetime import datetime, timezone
 
 from fastapi import HTTPException
 from faststream.rabbit import RabbitQueue
+import asyncio
+
 from loguru import logger
 from pydantic import ValidationError
 
@@ -16,6 +19,7 @@ from app.entities.cart import (
     CartPayment,
     CartShipping,
     CartUser,
+    CartNotFoundError,
     CheckoutProcessingError,
     CreateCheckoutResponse,
     CreateCreditCardPaymentMethod,
@@ -135,6 +139,9 @@ async def calculate_cart(
     cache = bootstrap.cache
     cache_cart = cache.get(uuid)
     logger.info(cache_cart)
+    if not cache_cart:
+        logger.error(f'calculate_cart: cart not found in cache for uuid={uuid}')
+        raise CartNotFoundError
     cache_cart = CartBase.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
         raise HTTPException(
@@ -180,10 +187,18 @@ async def calculate_cart(
         cart.calculate_subtotal(
             coupon=coupon if cart.coupon and coupon else None,
         )
+        logger.debug(
+            'calculate_cart: após calculate_subtotal, '
+            f'subtotal={cart.subtotal}, total={cart.total}',
+        )
     cache.set(
         str(cart.uuid),
         cart.model_dump_json(),
         ex=DEFAULT_CART_EXPIRE,
+    )
+    logger.debug(
+        'calculate_cart: carrinho salvo no cache '
+        f'com subtotal={cart.subtotal}, total={cart.total}',
     )
     return cart
 
@@ -362,14 +377,21 @@ async def add_payment_information(  # noqa: PLR0913
     bootstrap: Command,
 ) -> CartPayment:
     """Must add payment information and create token in payment gateway."""
+    logger.debug(
+        'add_payment_information: '
+        f'uuid={uuid}, payment_method={payment_method}, '
+        f'payment_type={type(payment)}',
+    )
     user = bootstrap.user.get_user(token)
     cache_cart = bootstrap.cache.get(uuid)
     cache_cart = CartShipping.model_validate_json(cache_cart)
     if cache_cart.uuid != cart.uuid:
         raise InvalidCartUUIDError
     if not payment.payment_gateway:
+        logger.error(f'payment_gateway is missing: {payment}')
         raise PaymentNotFoundError
 
+    logger.debug(f'Payment gateway: {payment.payment_gateway}, calling payment_process')
     _payment = PaymentGatewayProcess[payment.payment_gateway].value
     cart = await _payment.payment_process(
         payment_method,
@@ -377,6 +399,11 @@ async def add_payment_information(  # noqa: PLR0913
         cache_cart=cache_cart,
         payment=payment,
         bootstrap=bootstrap,
+    )
+    logger.debug(
+        'Saving cart to cache after payment: '
+        f'payment_method={cart.payment_method}, '
+        f'gateway_provider={cart.gateway_provider}, uuid={cart.uuid}',
     )
     bootstrap.cache.set(
         str(cart.uuid),
@@ -394,21 +421,57 @@ async def preview(
     """Must get address id and payment token to show in cart."""
     user = bootstrap.user.get_user(token)
     cart = bootstrap.cache.get(uuid)
-    cache_cart = CartPayment.model_validate_json(cart)
+    if not cart:
+        logger.error(f'Cart não encontrado no cache: uuid={uuid}')
+        raise CartNotFoundError
+    logger.debug(
+        'Preview: cart do cache (primeiros 200 chars): '
+        f'{str(cart)[:200] if cart else None}',
+    )
+    try:
+        cache_cart = CartPayment.model_validate_json(cart)
+        logger.debug(
+            'Preview: CartPayment validado, '
+            f'payment_method={cache_cart.payment_method}, '
+            f'gateway_provider={cache_cart.gateway_provider}',
+        )
+    except (TypeError, ValueError) as e:
+        logger.error(f'Erro ao validar cart do cache como CartPayment: {e}')
+        try:
+            _ = CartShipping.model_validate_json(cart)
+            logger.warning(
+                'Cart no cache é CartShipping, não CartPayment. '
+                f'UUID={uuid}. Pagamento ainda não adicionado.',
+            )
+        except (TypeError, ValueError) as e2:
+            logger.error(f'Erro ao validar como CartShipping: {e2}')
+            raise CartNotFoundError from e
+        msg = 'Payment method not added yet'
+        raise CartNotFoundError(msg) from None
     if cache_cart.gateway_provider == PaymentGatewayAvailable.STRIPE.name:
-        customer_stripe = await bootstrap.cart_uow.get_customer(
-            user.user_id,
-            payment_gateway=PaymentGatewayAvailable.STRIPE.name,
-            bootstrap=bootstrap,
-        )
-        payment_intent = bootstrap.payment.create_payment_intent(
-            amount=cache_cart.subtotal,
-            currency='brl',
-            customer_id=customer_stripe.customer_uuid,
-            payment_method=cache_cart.payment_method_id,
-            installments=cache_cart.installments,
-        )
-        cache_cart.payment_intent = payment_intent['id']
+        try:
+            customer_stripe = await bootstrap.cart_uow.get_customer(
+                user.user_id,
+                payment_gateway=PaymentGatewayAvailable.STRIPE.name,
+                bootstrap=bootstrap,
+            )
+            if customer_stripe and cache_cart.payment_method_id:
+                payment_intent = bootstrap.payment.create_payment_intent(
+                    amount=cache_cart.subtotal,
+                    currency='brl',
+                    customer_id=customer_stripe.customer_uuid,
+                    payment_method=cache_cart.payment_method_id,
+                    installments=cache_cart.installments,
+                )
+                cache_cart.payment_intent = payment_intent['id']
+            else:
+                logger.warning(
+                    'Customer/payment_method_id missing: cust=%s, method=%s',
+                    customer_stripe,
+                    cache_cart.payment_method_id,
+                )
+        except Exception as e:  # noqa: BLE001
+            logger.error(f'Erro ao criar payment intent: {e}')
     bootstrap.cache.set(
         str(cache_cart.uuid),
         cache_cart.model_dump_json(),
@@ -417,7 +480,7 @@ async def preview(
     return cache_cart
 
 
-async def checkout(
+async def checkout(  # noqa: C901, PLR0912, PLR0915
     uuid: str,
     cart: CartPayment,
     token: str,
@@ -442,6 +505,20 @@ async def checkout(
         )
 
     logger.info(f'{uuid}, {cache_cart.payment_intent} ')
+    now = datetime.now(timezone.utc)
+    await cart_repository.upsert_checkout_job(
+        cart_uuid=uuid,
+        payment_gateway=cache_cart.gateway_provider,
+        payment_method=cache_cart.payment_method,
+        payload=cache_cart.model_dump(),
+        status='pending',
+        attempts=0,
+        next_run_at=now,
+        last_error=None,
+        order_id=None,
+        gateway_payment_id=None,
+        transaction=bootstrap.db,
+    )
     user = UserDBGet.model_validate(user)
     logger.info('Service Checkout')
     logger.info(f'{uuid}')
@@ -457,31 +534,146 @@ async def checkout(
         },
         queue=RabbitQueue('checkout'),
     )
-    logger.info('Finish Checkout task')
-    order_id = None
-    _gateway_payment_id = None
-    if not isinstance(checkout_task, dict):
-        checkout_task = {}
-    else:
-        _order_id = checkout_task.get('order_id')
-        _gateway_payment_id = checkout_task.get('gateway_payment_id')
-        _qr_code = checkout_task.get('qr_code')
-        _qr_code_base64 = checkout_task.get('qr_code_base64')
-        if isinstance(_order_id, list):
-            order_id = str(_order_id.pop())
-        if isinstance(_gateway_payment_id, list):
-            _gateway_payment_id = str(_gateway_payment_id.pop())
-        if isinstance(_gateway_payment_id, int):
-            _gateway_payment_id = str(_gateway_payment_id)
-    if not order_id:
-        raise_checkout_error()
+    logger.info('Finish Checkout task publish')
+    direct_order_id = None
+    direct_gateway_payment_id = None
+    direct_qr_code = None
+    direct_qr_code_base64 = None
+    if isinstance(checkout_task, dict):
+        _order = checkout_task.get('order_id')
+        _gateway_payment = checkout_task.get('gateway_payment_id')
+        direct_qr_code = checkout_task.get('qr_code')
+        direct_qr_code_base64 = checkout_task.get('qr_code_base64')
+        if isinstance(_order, list):
+            direct_order_id = str(_order.pop()) if _order else None
+        elif _order:
+            direct_order_id = str(_order)
+        if isinstance(_gateway_payment, list):
+            if _gateway_payment:
+                direct_gateway_payment_id = str(_gateway_payment.pop())
+        elif _gateway_payment is not None:
+            direct_gateway_payment_id = str(_gateway_payment)
+        if direct_order_id:
+            await cart_repository.upsert_checkout_job(
+                cart_uuid=uuid,
+                payment_gateway=cache_cart.gateway_provider,
+                payment_method=cache_cart.payment_method,
+                payload=cache_cart.model_dump(),
+                status='succeeded',
+                attempts=0,
+                next_run_at=None,
+                last_run_at=now,
+                last_error=None,
+                order_id=direct_order_id,
+                gateway_payment_id=direct_gateway_payment_id,
+                transaction=bootstrap.db,
+            )
+            return CreateCheckoutResponse(
+                message=str(checkout_task.get('message', 'processed')),
+                status='processing',
+                order_id=direct_order_id,
+                gateway_payment_id=direct_gateway_payment_id or '',
+                qr_code=direct_qr_code,
+                qr_code_base64=direct_qr_code_base64,
+                job_status='succeeded',
+                next_retry_at=None,
+            )
+        if not direct_order_id:
+            logger.warning(
+                'checkout_task sem order_id (gateway=%s, cart_uuid=%s); '
+                'marcando job como failed e levantando erro.',
+                cache_cart.gateway_provider,
+                uuid,
+            )
+            await cart_repository.upsert_checkout_job(
+                cart_uuid=uuid,
+                payment_gateway=cache_cart.gateway_provider,
+                payment_method=cache_cart.payment_method,
+                payload=cache_cart.model_dump(),
+                status='failed',
+                attempts=0,
+                next_run_at=None,
+                last_run_at=now,
+                last_error='order_id missing from checkout task',
+                order_id=None,
+                gateway_payment_id=(
+                    direct_gateway_payment_id if direct_gateway_payment_id else None
+                ),
+                transaction=bootstrap.db,
+            )
+            raise CheckoutProcessingError
+    job = None
+    for attempt in range(10):
+        await asyncio.sleep(0.3)
+        job = await cart_repository.get_checkout_job(
+            cart_uuid=uuid,
+            transaction=bootstrap.db,
+        )
+        if job:
+            logger.info(
+                'Job encontrado após %s tentativas: status=%s, order_id=%s',
+                attempt + 1,
+                job.status,
+                job.order_id,
+            )
+            if job.status == 'succeeded' and job.order_id:
+                break
+            if job.status == 'failed' and job.next_run_at is None:
+                logger.warning(f'Job falhou permanentemente: {job.last_error}')
+                raise CheckoutProcessingError
+    if not job:
+        logger.warning(
+            'Job não encontrado após publish (gateway=%s, cart_uuid=%s)',
+            cache_cart.gateway_provider,
+            uuid,
+        )
+        return CreateCheckoutResponse(
+            message='processing',
+            status='processing',
+            order_id='',
+            gateway_payment_id='',
+            qr_code=_qr_code,
+            qr_code_base64=_qr_code_base64,
+            job_status='pending',
+            next_retry_at=None,
+        )
+    job_status = job.status if job else 'processing'
+    next_retry_at = job.next_run_at if job else None
+    order_id = job.order_id if job else None
+    gateway_payment_id = job.gateway_payment_id if job else None
+    _qr_code = None
+    _qr_code_base64 = None
+    if cache_cart.payment_method == PaymentMethod.PIX.value:
+        _qr_code = cache_cart.pix_qr_code
+        _qr_code_base64 = cache_cart.pix_qr_code_base64
+    if job_status == 'succeeded' and order_id:
+        return CreateCheckoutResponse(
+            message='processed',
+            status='processing',
+            order_id=str(order_id),
+            gateway_payment_id=str(gateway_payment_id) if gateway_payment_id else '',
+            qr_code=_qr_code,
+            qr_code_base64=_qr_code_base64,
+            job_status=job_status,
+            next_retry_at=next_retry_at,
+        )
+    if job_status == 'failed':
+        logger.warning(
+            'Job falhou (gateway=%s, cart_uuid=%s, error=%s)',
+            cache_cart.gateway_provider,
+            uuid,
+            job.last_error,
+        )
+        raise CheckoutProcessingError
     return CreateCheckoutResponse(
-        message=str(checkout_task.get('message')),
+        message='processing',
         status='processing',
-        order_id=order_id,
-        gateway_payment_id=_gateway_payment_id if _gateway_payment_id else '',
+        order_id=str(order_id) if order_id else '',
+        gateway_payment_id=str(gateway_payment_id) if gateway_payment_id else '',
         qr_code=_qr_code,
         qr_code_base64=_qr_code_base64,
+        job_status=job_status,
+        next_retry_at=next_retry_at,
     )
 
 

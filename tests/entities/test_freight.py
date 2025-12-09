@@ -15,7 +15,6 @@ from tests.factories import ProductInDBFactory
 
 
 def test_raise_metric_error_should_raise():
-    # Act / Assert
     with pytest.raises(MetricError):
         raise_metric_error()
 
@@ -87,6 +86,5 @@ def test_calculate_package_raises_metric_error_when_no_dimensions():
     product = ProductInDBFactory(weight=500, length=20, width=0, height=10, diameter=0)
     products = [product]
 
-    # Act / Assert
     with pytest.raises(MetricError):
         calculate_package(products)

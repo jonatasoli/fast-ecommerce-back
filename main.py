@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from app.infra.endpoints.cart import cart
 from app.infra.endpoints.catalog import catalog
 from app.infra.endpoints.coupon import coupon
+from app.infra.endpoints.crowdfunding import crowdfunding
 from app.infra.endpoints.default import (
     campaing,
     inventory,
@@ -24,6 +25,10 @@ from app.infra.cors import setup_cors
 from app.infra.logging import setup_logging
 from app.infra.metrics import setup_metrics
 from app.infra.worker import task_message_bus
+
+from app.mail.tasks import task_message_bus  # noqa: F401
+from app.cart.tasks import task_message_bus  # noqa: F811
+from app.report.tasks import task_message_bus  # noqa: F811
 
 
 def create_app() -> FastAPI:
@@ -62,6 +67,7 @@ def create_app() -> FastAPI:
     app.include_router(report)
     app.include_router(campaing)
     app.include_router(sales)
+    app.include_router(crowdfunding)
     app.include_router(task_message_bus)
     app.include_router(settingsconfig)
 

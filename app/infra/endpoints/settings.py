@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 from fastapi.exceptions import HTTPException
 from app.entities.settings import MainSettings
 from app.entities.user import UserNotAdminError, UserNotFoundError

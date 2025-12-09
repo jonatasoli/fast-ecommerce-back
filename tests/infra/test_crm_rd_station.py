@@ -26,7 +26,6 @@ async def test_send_abandonated_cart_to_crm_success(mocker):
     }
     mock_get_settings = mocker.AsyncMock(return_value=mock_settings)
     mock_session = mocker.AsyncMock()
-    # db.begin() returns an async context manager
     mock_begin_context = mocker.AsyncMock()
     mock_begin_context.__aenter__ = mocker.AsyncMock(return_value=mock_session)
     mock_begin_context.__aexit__ = mocker.AsyncMock(return_value=None)
@@ -76,7 +75,6 @@ async def test_send_abandonated_cart_to_crm_failure(mocker):
 
     mocker.patch('app.infra.crm.rd_station.requests.post', return_value=mock_response)
 
-    # Act & Assert
     with pytest.raises(NotSendToCRMError):
         await send_abandonated_cart_to_crm(
             user_data,

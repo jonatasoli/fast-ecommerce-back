@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any
 
 from pydantic import Json
-from sqlalchemy import JSON, ForeignKey, BIGINT, select, func
+from sqlalchemy import JSON, ForeignKey, BIGINT, Text, DateTime, select, func
 from sqlalchemy.orm import (
     DeclarativeBase,
     backref,
@@ -101,7 +101,7 @@ class ProductDB(Base):
     quantity = column_property(
         select(func.coalesce(func.sum(InventoryDB.quantity), 0))
         .where(InventoryDB.product_id == product_id)
-        .correlate_except(InventoryDB)  # Correlate the subquery
+        .correlate_except(InventoryDB)
         .scalar_subquery(),
     )
 
@@ -170,7 +170,7 @@ class PaymentDB(Base):
     order: Mapped['OrderDB'] = relationship(
         'OrderDB',
         back_populates='payment',
-        foreign_keys=[order_id],  # Verifique se essa linha está correta
+        foreign_keys=[order_id],
         uselist=False,
     )
 
@@ -204,7 +204,6 @@ class OrderDB(Base):
         ForeignKey('coupons.coupon_id'),
     )
 
-    # Virtual fields
     items: Mapped[list['OrderItemsDB']] = relationship(
         'OrderItemsDB',
         backref='orders',
@@ -429,7 +428,6 @@ class SalesCommissionDB(Base):
     cancelled: Mapped[bool] = mapped_column(default=False, server_default='0')
     cancelled_at: Mapped[datetime | None]
 
-    # Virtual relationship fields
     user: Mapped['UserDB'] = relationship(
         foreign_keys=[user_id],
         backref='sales_commission',
@@ -506,3 +504,207 @@ class CategoryMediaGalleryDB(Base):
     )
     media_id: Mapped[int] = mapped_column(ForeignKey('uploaded_media.media_id'))
     category_id: Mapped[int] = mapped_column(ForeignKey('category.category_id'))
+
+
+class ProjectDB(Base):
+    __tablename__ = 'crowdfunding_project'
+
+    project_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    creator: Mapped['UserDB'] = relationship(
+        foreign_keys=[user_id],
+        backref='crowdfunding_projects',
+        uselist=False,
+        lazy='joined',
+    )
+    title: Mapped[str]
+    slug: Mapped[str] = mapped_column(unique=True)
+    description: Mapped[Json] = mapped_column(JSON, nullable=True) 
+    short_description: Mapped[str | None]
+    story: Mapped[Json] = mapped_column(JSON, nullable=True)
+    risks_and_challenges: Mapped[Json] = mapped_column(JSON, nullable=True)
+    main_image: Mapped[str | None]
+    video_url: Mapped[str | None]
+    category: Mapped[str | None]
+    location: Mapped[str | None]
+    start_date: Mapped[datetime]
+    end_date: Mapped[datetime]
+    goal_amount: Mapped[Decimal]
+    current_amount: Mapped[Decimal] = mapped_column(default=Decimal('0'))
+    backers_count: Mapped[int] = mapped_column(default=0)
+    active: Mapped[bool] = mapped_column(default=True)
+    published: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
+
+    tiers: Mapped[list['TierDB']] = relationship(
+        'TierDB',
+        back_populates='project',
+        cascade='all,delete',
+        lazy='joined',
+    )
+    contributions: Mapped[list['ContributionDB']] = relationship(
+        'ContributionDB',
+        back_populates='project',
+        cascade='all,delete',
+        lazy='joined',
+    )
+    goals: Mapped[list['GoalDB']] = relationship(
+        'GoalDB',
+        back_populates='project',
+        cascade='all,delete',
+        lazy='joined',
+    )
+    monthly_goals: Mapped[list['MonthlyGoalDB']] = relationship(
+        'MonthlyGoalDB',
+        back_populates='project',
+        cascade='all,delete',
+        lazy='joined',
+    )
+
+
+class TierDB(Base):
+    __tablename__ = 'crowdfunding_tier'
+
+    tier_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey('crowdfunding_project.project_id'))
+    project: Mapped['ProjectDB'] = relationship(
+        'ProjectDB',
+        back_populates='tiers',
+        foreign_keys=[project_id],
+        uselist=False,
+        lazy='joined',
+    )
+    name: Mapped[str]
+    description: Mapped[str | None]
+    amount: Mapped[Decimal]
+    is_recurring: Mapped[bool] = mapped_column(default=False)
+    recurring_interval: Mapped[str | None]
+    max_backers: Mapped[int | None]
+    current_backers: Mapped[int] = mapped_column(default=0)
+    estimated_delivery: Mapped[date | None]
+    active: Mapped[bool] = mapped_column(default=True)
+    order: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
+
+    contributions: Mapped[list['ContributionDB']] = relationship(
+        'ContributionDB',
+        back_populates='tier',
+        cascade='all,delete',
+        lazy='joined',
+    )
+
+
+class ContributionDB(Base):
+    __tablename__ = 'crowdfunding_contribution'
+
+    contribution_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey('crowdfunding_project.project_id'))
+    project: Mapped['ProjectDB'] = relationship(
+        'ProjectDB',
+        back_populates='contributions',
+        foreign_keys=[project_id],
+        uselist=False,
+        lazy='joined',
+    )
+    tier_id: Mapped[int | None] = mapped_column(ForeignKey('crowdfunding_tier.tier_id'))
+    tier: Mapped['TierDB'] = relationship(
+        'TierDB',
+        back_populates='contributions',
+        foreign_keys=[tier_id],
+        uselist=False,
+        lazy='joined',
+    )
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    user: Mapped['UserDB'] = relationship(
+        foreign_keys=[user_id],
+        backref='crowdfunding_contributions',
+        uselist=False,
+        lazy='joined',
+    )
+    amount: Mapped[Decimal]
+    is_recurring: Mapped[bool] = mapped_column(default=False)
+    recurring_subscription_id: Mapped[str | None]
+    payment_id: Mapped[int | None] = mapped_column(ForeignKey('payment.payment_id'))
+    payment: Mapped['PaymentDB'] = relationship(
+        'PaymentDB',
+        foreign_keys=[payment_id],
+        uselist=False,
+        lazy='joined',
+    )
+    status: Mapped[str] = mapped_column(default='pending')
+    anonymous: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
+
+
+class GoalDB(Base):
+    __tablename__ = 'crowdfunding_goal'
+
+    goal_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey('crowdfunding_project.project_id'))
+    project: Mapped['ProjectDB'] = relationship(
+        'ProjectDB',
+        back_populates='goals',
+        foreign_keys=[project_id],
+        uselist=False,
+        lazy='joined',
+    )
+    title: Mapped[str]
+    description: Mapped[str | None]
+    target_amount: Mapped[Decimal]
+    current_amount: Mapped[Decimal] = mapped_column(default=Decimal('0'))
+    achieved: Mapped[bool] = mapped_column(default=False)
+    achieved_at: Mapped[datetime | None]
+    order: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
+
+
+class MonthlyGoalDB(Base):
+    __tablename__ = 'crowdfunding_monthly_goal'
+
+    monthly_goal_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey('crowdfunding_project.project_id'))
+    project: Mapped['ProjectDB'] = relationship(
+        'ProjectDB',
+        back_populates='monthly_goals',
+        foreign_keys=[project_id],
+        uselist=False,
+        lazy='joined',
+    )
+    month: Mapped[int]
+    year: Mapped[int]
+    target_amount: Mapped[Decimal]
+    current_amount: Mapped[Decimal] = mapped_column(default=Decimal('0'))
+    achieved: Mapped[bool] = mapped_column(default=False)
+    achieved_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
+
+
+class CheckoutJobDB(Base):
+    __tablename__ = 'checkout_jobs'
+
+    checkout_job_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    cart_uuid: Mapped[str] = mapped_column(unique=True, index=True)
+    payment_gateway: Mapped[str]
+    payment_method: Mapped[str]
+    payload: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    status: Mapped[str] = mapped_column(default='pending')
+    attempts: Mapped[int] = mapped_column(default=0)
+    next_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    order_id: Mapped[str | None] = mapped_column(nullable=True)
+    gateway_payment_id: Mapped[str | None] = mapped_column(nullable=True)
+    last_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )

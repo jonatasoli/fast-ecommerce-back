@@ -130,7 +130,6 @@ async def test_create_category_invalid_data_should_return_422(asyncdb, admin_tok
 
     category_data = {
         'name': 'Test Category',
-        # missing required 'path' field
     }
 
     # Act

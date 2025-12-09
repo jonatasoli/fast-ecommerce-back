@@ -116,13 +116,11 @@ async def test_calculate_freight_with_zipcode_should_calculate(
     )
     products_db = [ProductDBFactory()]
 
-    # Mock campaign
     mocker.patch(
         'app.campaign.repository.get_campaign',
         return_value=None,
     )
 
-    # Mock freight calculation
     freight_result = FreightFactory(price=Decimal('25.50'))
     bootstrap.freight.calculate_volume_weight = Mock(return_value={'weight': 1000})
     bootstrap.freight.get_freight = Mock(return_value=freight_result)
@@ -131,7 +129,7 @@ async def test_calculate_freight_with_zipcode_should_calculate(
     result = await calculate_freight(cart, products_db, bootstrap, asyncdb)
 
     # Assert
-    assert result.zipcode == '12345678'  # Cleaned zipcode
+    assert result.zipcode == '12345678'
     assert result.freight == freight_result
     bootstrap.freight.calculate_volume_weight.assert_called_once()
     bootstrap.freight.get_freight.assert_called_once()
@@ -152,7 +150,6 @@ async def test_calculate_freight_with_campaign_should_apply_free_shipping(
     )
     products_db = [ProductDBFactory()]
 
-    # Mock campaign with free shipping
     mock_campaign = Mock()
     mock_campaign.min_purchase_value = Decimal('100')
     mocker.patch(
@@ -160,7 +157,6 @@ async def test_calculate_freight_with_campaign_should_apply_free_shipping(
         return_value=mock_campaign,
     )
 
-    # Mock freight calculation
     freight_result = FreightFactory(price=Decimal('25.50'))
     bootstrap.freight.calculate_volume_weight = Mock(return_value={'weight': 1000})
     bootstrap.freight.get_freight = Mock(return_value=freight_result)
@@ -190,7 +186,6 @@ async def test_calculate_freight_without_freight_code_should_raise(
     mocker.patch('app.campaign.repository.get_campaign', return_value=None)
     bootstrap.freight.calculate_volume_weight = Mock(return_value={'weight': 1000})
 
-    # Act / Assert
     with pytest.raises(HTTPException, match='Freight product code not found'):
         await calculate_freight(cart, products_db, bootstrap, asyncdb)
 
@@ -204,7 +199,6 @@ def test_consistency_inventory_with_different_lengths_should_raise():
     )
     products_inventory = [ProductDBFactory()]
 
-    # Act / Assert
     with pytest.raises(ProductSoldOutError):
         consistency_inventory(cart, products_inventory=products_inventory)
 
@@ -218,10 +212,9 @@ def test_consistency_inventory_with_insufficient_quantity_should_raise():
         subtotal=Decimal('100'),
     )
     product_db = ProductDBFactory(product_id=1)
-    product_db.quantity = 5  # Less than requested
+    product_db.quantity = 5
     products_inventory = [product_db]
 
-    # Act / Assert
     with pytest.raises(ProductSoldOutError):
         consistency_inventory(cart, products_inventory=products_inventory)
 
@@ -265,7 +258,6 @@ async def test_add_user_to_cart_should_add_user_data(memory_bootstrap, mocker):
     bootstrap.cache.get = Mock(return_value=cart.model_dump_json())
     bootstrap.cache.set = Mock()
 
-    # Mock db - db() returns session, session.begin() returns async context manager
     mock_transaction = AsyncMock()
 
     @asynccontextmanager
@@ -276,14 +268,12 @@ async def test_add_user_to_cart_should_add_user_data(memory_bootstrap, mocker):
     mock_session.begin = lambda: mock_begin()
     bootstrap.db = lambda: mock_session
 
-    # Mock customer queries
     mocker.patch.object(
         bootstrap.cart_uow,
         'get_customer',
         side_effect=CustomerNotFoundError,
     )
 
-    # Mock cart repository
     mock_coupon = None
     mocker.patch.object(
         bootstrap.cart_repository,
@@ -291,7 +281,6 @@ async def test_add_user_to_cart_should_add_user_data(memory_bootstrap, mocker):
         return_value=mock_coupon,
     )
 
-    # Mock message broker
     bootstrap.message.broker.publish = AsyncMock()
 
     # Act
@@ -324,7 +313,6 @@ async def test_add_user_to_cart_with_invalid_coupon_should_raise(
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart.model_dump_json())
 
-    # Mock db - db() returns session, session.begin() returns async context manager
     mock_transaction = AsyncMock()
 
     @asynccontextmanager
@@ -335,13 +323,11 @@ async def test_add_user_to_cart_with_invalid_coupon_should_raise(
     mock_session.begin = lambda: mock_begin()
     bootstrap.db = lambda: mock_session
 
-    # Mock customer queries
     mocker.patch.object(
         bootstrap.cart_uow, 'get_customer', side_effect=CustomerNotFoundError,
     )
     bootstrap.message.broker.publish = AsyncMock()
 
-    # Mock coupon not found
     async def mock_get_coupon(*args, **kwargs):
         return None
 
@@ -351,7 +337,6 @@ async def test_add_user_to_cart_with_invalid_coupon_should_raise(
         side_effect=mock_get_coupon,
     )
 
-    # Act / Assert
     with pytest.raises(CouponNotFoundError):
         await add_user_to_cart(uuid, cart, token, bootstrap)
 
@@ -377,7 +362,6 @@ async def test_add_user_to_cart_with_coupon_user_mismatch_should_raise(
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart.model_dump_json())
 
-    # Mock db - db() returns session, session.begin() returns async context manager
     mock_transaction = AsyncMock()
 
     @asynccontextmanager
@@ -388,15 +372,13 @@ async def test_add_user_to_cart_with_coupon_user_mismatch_should_raise(
     mock_session.begin = lambda: mock_begin()
     bootstrap.db = lambda: mock_session
 
-    # Mock customer queries
     mocker.patch.object(
         bootstrap.cart_uow, 'get_customer', side_effect=CustomerNotFoundError,
     )
     bootstrap.message.broker.publish = AsyncMock()
 
-    # Mock coupon with different user
     mock_coupon = Mock()
-    mock_coupon.user_id = user.user_id + 999  # Different user
+    mock_coupon.user_id = user.user_id + 999
 
     async def mock_get_coupon(*args, **kwargs):
         return mock_coupon
@@ -407,7 +389,6 @@ async def test_add_user_to_cart_with_coupon_user_mismatch_should_raise(
         side_effect=mock_get_coupon,
     )
 
-    # Act / Assert
     with pytest.raises(CouponDontMatchWithUserError):
         await add_user_to_cart(uuid, cart, token, bootstrap)
 
@@ -463,7 +444,6 @@ async def test_add_address_to_cart_should_create_addresses(memory_bootstrap, moc
     bootstrap.cache.get = Mock(return_value=cart_user.model_dump_json())
     bootstrap.cache.set = Mock()
 
-    # Mock address creation
     user_address_id = fake.random_int()
     shipping_address_id = fake.random_int()
     bootstrap.uow.get_address_by_id = AsyncMock(return_value=None)
@@ -523,7 +503,6 @@ async def test_add_address_to_cart_with_existing_address_should_use_it(
     bootstrap.cache.get = Mock(return_value=cart_user.model_dump_json())
     bootstrap.cache.set = Mock()
 
-    # Mock existing address
     bootstrap.uow.get_address_by_id = AsyncMock(return_value=existing_address_id)
 
     # Act
@@ -563,10 +542,8 @@ async def test_add_payment_information_should_process_payment(memory_bootstrap, 
     bootstrap.cache.get = Mock(return_value=cart_shipping.model_dump_json())
     bootstrap.cache.set = Mock()
 
-    # Mock cart_uow.get_customer
     bootstrap.cart_uow.get_customer = AsyncMock(return_value=None)
 
-    # Mock payment processing
     cart_payment = CartPayment(
         **cart_shipping.model_dump(),
         payment_method_id=fake.uuid4(),
@@ -606,7 +583,7 @@ async def test_add_payment_information_without_gateway_should_raise(memory_boots
     )
 
     payment = CreatePixPaymentMethodFactory()
-    payment.payment_gateway = None  # Missing gateway
+    payment.payment_gateway = None
     payment_method = PaymentMethod.PIX.value
     token = fake.uuid4()
 
@@ -614,7 +591,6 @@ async def test_add_payment_information_without_gateway_should_raise(memory_boots
     bootstrap.user.get_user = Mock(return_value=user)
     bootstrap.cache.get = Mock(return_value=cart_shipping.model_dump_json())
 
-    # Act / Assert
     with pytest.raises(PaymentNotFoundError):
         await add_payment_information(
             uuid, payment_method, cart_shipping, payment, token, bootstrap,
@@ -659,7 +635,6 @@ async def test_preview_should_create_payment_intent_for_stripe(
     bootstrap.cache.get = Mock(return_value=cart_payment.model_dump_json().encode())
     bootstrap.cache.set = Mock()
 
-    # Mock customer and payment intent
     mock_customer = Mock()
     mock_customer.customer_uuid = fake.uuid4()
     bootstrap.cart_uow.get_customer = AsyncMock(return_value=mock_customer)
@@ -717,7 +692,6 @@ async def test_checkout_should_process_order(memory_bootstrap, mocker):
     bootstrap.user.get_user = Mock(return_value=user_db)
     bootstrap.cache.get = Mock(return_value=cart_payment.model_dump_json().encode())
 
-    # Mock checkout task
     order_id = fake.random_int()
     gateway_payment_id = fake.uuid4()
     checkout_result = {
@@ -776,11 +750,9 @@ async def test_checkout_without_order_id_should_raise(memory_bootstrap, mocker):
     bootstrap.user.get_user = Mock(return_value=user_db)
     bootstrap.cache.get = Mock(return_value=cart_payment.model_dump_json().encode())
 
-    # Mock checkout task without order_id
     checkout_result = {'message': 'Error', 'order_id': None}
     bootstrap.message.broker.publish = AsyncMock(return_value=checkout_result)
 
-    # Act / Assert
     with pytest.raises(CheckoutProcessingError):
         await checkout(uuid, cart_payment, token, bootstrap)
 
@@ -791,7 +763,6 @@ async def test_get_coupon_should_return_coupon(memory_bootstrap, mocker):
     bootstrap = memory_bootstrap
     code = 'DISCOUNT50'
 
-    # Mock db - db() returns session, session.begin() returns async context manager
     mock_transaction = AsyncMock()
 
     @asynccontextmanager
@@ -829,7 +800,6 @@ async def test_get_coupon_not_found_should_raise(memory_bootstrap, mocker):
     bootstrap = memory_bootstrap
     code = 'INVALID'
 
-    # Mock db - db() returns session, session.begin() returns async context manager
     mock_transaction = AsyncMock()
 
     @asynccontextmanager
@@ -849,7 +819,6 @@ async def test_get_coupon_not_found_should_raise(memory_bootstrap, mocker):
         side_effect=mock_get_coupon_none,
     )
 
-    # Act / Assert
     with pytest.raises(HTTPException, match='Coupon not found'):
         await get_coupon(code, bootstrap)
 
@@ -897,7 +866,7 @@ async def test_get_cart_and_send_to_crm_should_delete_invalid_carts(mocker):
 
     keys = [f'cart:{fake.uuid4()}']
     mock_cache.get_all_keys_with_lower_ttl = Mock(return_value=keys)
-    mock_redis.get = Mock(return_value='invalid json')  # Invalid cart data
+    mock_redis.get = Mock(return_value='invalid json')
     mock_redis.delete = Mock()
     mock_cache.redis = mock_redis
 

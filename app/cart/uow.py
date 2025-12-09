@@ -1,4 +1,3 @@
-# pylint: disable=attribute-defined-outside-init
 from __future__ import annotations
 import abc
 from decimal import Decimal
