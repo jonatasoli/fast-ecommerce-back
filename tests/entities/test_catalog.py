@@ -18,7 +18,6 @@ def test_category_create_valid():
         showcase=False,
     )
 
-    # Assert
     assert category.name == 'Test Category'
     assert category.path == 'test-category'
     assert category.menu is True
@@ -32,7 +31,6 @@ def test_category_create_with_defaults():
         path='test-category',
     )
 
-    # Assert
     assert category.menu is False
     assert category.showcase is False
     assert category.image_path is None
@@ -48,7 +46,6 @@ def test_category_create_missing_required_field():
 def test_category_update_partial():
     update = CategoryUpdate(name='Updated Name')
 
-    # Assert
     assert update.name == 'Updated Name'
     assert update.path is None
     assert update.menu is None
@@ -64,7 +61,6 @@ def test_category_update_all_fields():
         image_path='https://cdn.test.com/image.png',
     )
 
-    # Assert
     assert update.name == 'Updated Category'
     assert update.path == 'updated-path'
     assert update.menu is True
@@ -82,7 +78,6 @@ def test_category_response_valid():
         image_path=None,
     )
 
-    # Assert
     assert response.category_id == 1
     assert response.name == 'Test Category'
     assert response.path == 'test-category'
@@ -104,7 +99,6 @@ def test_category_model_validate():
     # Act
     category = Category.model_validate(db_category)
 
-    # Assert
     assert category.category_id == 1
     assert category.name == 'Test Category'
 
@@ -133,7 +127,6 @@ def test_categories_list():
     # Act
     categories = Categories(categories=category_list)
 
-    # Assert
     assert len(categories.categories) == 2
     assert categories.categories[0].name == 'Category 1'
     assert categories.categories[1].name == 'Category 2'

@@ -18,7 +18,6 @@ def test_get_db_yields_session(mocker):
     db_gen = get_db()
     db = next(db_gen)
 
-    # Assert
     assert db == mock_session
 
 
@@ -35,7 +34,6 @@ def test_get_db_closes_session(mocker):
     with contextlib.suppress(StopIteration):
         next(db_gen)
 
-    # Assert
     assert mock_session is not None
 
 
@@ -55,6 +53,5 @@ def test_get_db_raises_sqlalchemy_error(mocker):
 
     mock_session.some_operation = raise_error
 
-    # Assert
     with pytest.raises(SQLAlchemyError):
         db.some_operation()

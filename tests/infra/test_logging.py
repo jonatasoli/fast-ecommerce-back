@@ -24,7 +24,6 @@ def test_intercept_handler_emit(caplog):
     # Act
     handler.emit(record)
 
-    # Assert
     assert handler is not None
 
 
@@ -37,7 +36,6 @@ def test_setup_logging():
         # Act
         setup_logging()
 
-        # Assert
         root_handlers = logging.getLogger().handlers
         assert any(isinstance(h, InterceptHandler) for h in root_handlers)
 

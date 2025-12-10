@@ -25,7 +25,6 @@ async def test_database_uow_decorator_success(mocker):
     # Act
     result = await test_function(bootstrap=mock_bootstrap)
 
-    # Assert
     assert result == 'success'
     mock_inner_session.session.commit.assert_called_once()
 
@@ -51,7 +50,6 @@ async def test_database_uow_decorator_rollback_on_error(mocker):
     with pytest.raises(SQLAlchemyError):
         await test_function(bootstrap=mock_bootstrap)
 
-    # Assert
     mock_inner_session.rollback.assert_called_once()
 
 
@@ -76,5 +74,4 @@ async def test_database_uow_decorator_passes_transaction(mocker):
     # Act
     result = await test_function(bootstrap=mock_bootstrap)
 
-    # Assert
     assert result == 'success'

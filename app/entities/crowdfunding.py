@@ -73,6 +73,7 @@ class TierBase(BaseModel):
     recurring_interval: str | None = None
     max_backers: int | None = None
     estimated_delivery: date | None = None
+    rewards: list[str] | None = None  # Lista de recompensas/benefícios
     active: bool = True
     order: int = 0
 
@@ -93,6 +94,7 @@ class TierUpdate(BaseModel):
     recurring_interval: str | None = None
     max_backers: int | None = None
     estimated_delivery: date | None = None
+    rewards: list[str] | None = None
     active: bool | None = None
     order: int | None = None
 
@@ -176,6 +178,7 @@ class GoalInDB(GoalBase):
     current_amount: Decimal
     achieved: bool
     achieved_at: datetime | None
+    progress_percentage: Decimal | None = None  # Calculated field
     created_at: datetime
     updated_at: datetime
 
@@ -212,6 +215,7 @@ class MonthlyGoalInDB(MonthlyGoalBase):
     current_amount: Decimal
     achieved: bool
     achieved_at: datetime | None
+    progress_percentage: Decimal | None = None  # Calculated field
     created_at: datetime
     updated_at: datetime
 
@@ -250,3 +254,34 @@ class MonthlyGoalSummary(BaseModel):
     target_amount: Decimal
     progress_percentage: Decimal
     total_paid_in_month: Decimal
+
+
+class UserTierNotification(BaseModel):
+    """User tier notification model."""
+
+    notification_id: int
+    user_id: int
+    project_id: int
+    project_title: str
+    old_tier_id: int | None
+    old_tier_name: str | None
+    new_tier_id: int
+    new_tier_name: str
+    total_contributed: Decimal
+    notification_date: datetime
+    read: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserProjectTier(BaseModel):
+    """User current tier in a project."""
+
+    user_id: int
+    project_id: int
+    tier_id: int | None
+    tier_name: str | None
+    total_contributed: Decimal
+    last_updated: datetime
+
+    model_config = ConfigDict(from_attributes=True)

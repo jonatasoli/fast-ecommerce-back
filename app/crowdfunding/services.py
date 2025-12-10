@@ -1,10 +1,10 @@
 """Crowdfunding services."""
-from datetime import datetime
+import json
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
 from fastapi import HTTPException, status
-from loguru import logger
 from sqlalchemy.orm import SessionTransaction
 
 from app.crowdfunding import repository
@@ -26,7 +26,6 @@ from app.entities.crowdfunding import (
     TierUpdate,
 )
 from app.infra.custom_decorators import database_uow
-from app.infra.database import get_async_session
 
 
 @database_uow()
@@ -149,6 +148,11 @@ async def create_tier(
         tier,
         transaction=transaction,
     )
+    if _tier.rewards and isinstance(_tier.rewards, str):
+        try:
+            _tier.rewards = json.loads(_tier.rewards)
+        except json.JSONDecodeError:
+            _tier.rewards = []
     return TierInDB.model_validate(_tier)
 
 
@@ -169,6 +173,11 @@ async def get_tier(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Tier not found',
         )
+    if _tier.rewards and isinstance(_tier.rewards, str):
+        try:
+            _tier.rewards = json.loads(_tier.rewards)
+        except json.JSONDecodeError:
+            _tier.rewards = []
     return TierInDB.model_validate(_tier)
 
 
@@ -186,7 +195,15 @@ async def list_tiers(
         transaction=transaction,
         active_only=active_only,
     )
-    return [TierInDB.model_validate(t) for t in tiers]
+    result = []
+    for t in tiers:
+        if t.rewards and isinstance(t.rewards, str):
+            try:
+                t.rewards = json.loads(t.rewards)
+            except json.JSONDecodeError:
+                t.rewards = []
+        result.append(TierInDB.model_validate(t))
+    return result
 
 
 @database_uow()
@@ -208,6 +225,11 @@ async def update_tier(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Tier not found',
         )
+    if _tier.rewards and isinstance(_tier.rewards, str):
+        try:
+            _tier.rewards = json.loads(_tier.rewards)
+        except json.JSONDecodeError:
+            _tier.rewards = []
     return TierInDB.model_validate(_tier)
 
 
@@ -294,13 +316,18 @@ async def process_contribution(
             transaction=transaction,
         )
         if contribution.tier_id:
-            pass
+            await repository.update_tier_backers(
+                contribution.tier_id,
+                increment=True,
+                transaction=transaction,
+            )
+
         await _update_goals_amounts(
             contribution.project_id,
             contribution.amount,
             transaction=transaction,
         )
-        now = datetime.now()
+        now = datetime.now(UTC)
         await _update_monthly_goal_amount(
             contribution.project_id,
             contribution.amount,
@@ -308,6 +335,37 @@ async def process_contribution(
             now.year,
             transaction=transaction,
         )
+
+        old_tier_id, new_tier_id = await _update_user_tier(
+            contribution.user_id,
+            contribution.project_id,
+            transaction=transaction,
+        )
+
+        await _send_contribution_approved_email(
+            contribution.user_id,
+            contribution.project_id,
+            contribution.amount,
+            bootstrap=bootstrap,
+        )
+
+        if old_tier_id != new_tier_id and new_tier_id:
+            old_tier = await repository.get_tier_by_id(
+                old_tier_id,
+                transaction=transaction,
+            ) if old_tier_id else None
+            new_tier = await repository.get_tier_by_id(
+                new_tier_id,
+                transaction=transaction,
+            )
+            if new_tier:
+                await _send_tier_upgrade_email(
+                    contribution.user_id,
+                    contribution.project_id,
+                    old_tier.name if old_tier else None,
+                    new_tier.name,
+                    bootstrap=bootstrap,
+                )
     return ContributionInDB.model_validate(_contribution)
 
 
@@ -451,7 +509,17 @@ async def list_goals(
         project_id,
         transaction=transaction,
     )
-    return [GoalInDB.model_validate(g) for g in goals]
+    result = []
+    for g in goals:
+        goal_dict = GoalInDB.model_validate(g).model_dump()
+        if g.target_amount > 0:
+            goal_dict['progress_percentage'] = (
+                g.current_amount / g.target_amount * 100
+            )
+        else:
+            goal_dict['progress_percentage'] = Decimal('0')
+        result.append(GoalInDB(**goal_dict))
+    return result
 
 
 @database_uow()
@@ -486,7 +554,14 @@ async def create_monthly_goal(
         monthly_goal,
         transaction=transaction,
     )
-    return MonthlyGoalInDB.model_validate(_monthly_goal)
+    monthly_goal_dict = MonthlyGoalInDB.model_validate(_monthly_goal).model_dump()
+    if _monthly_goal.target_amount > 0:
+        monthly_goal_dict['progress_percentage'] = (
+            _monthly_goal.current_amount / _monthly_goal.target_amount * 100
+        )
+    else:
+        monthly_goal_dict['progress_percentage'] = Decimal('0')
+    return MonthlyGoalInDB(**monthly_goal_dict)
 
 
 @database_uow()

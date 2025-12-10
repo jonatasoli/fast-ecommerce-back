@@ -34,7 +34,6 @@ async def test_get_category_by_id_should_return_200(asyncdb, admin_token):
             f'{URL_BASE}/{category.category_id}',
         )
 
-    # Assert
     assert response.status_code == status.HTTP_200_OK
     assert response.json().get('category_id') == category.category_id
     assert response.json().get('name') == category.name
@@ -53,7 +52,6 @@ async def test_get_category_by_id_not_found_should_return_404(asyncdb):
             f'{URL_BASE}/999',
         )
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -84,7 +82,6 @@ async def test_create_category_should_return_201(asyncdb, admin_token):
             headers={'Authorization': f'Bearer {admin_token}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json().get('name') == category_data['name']
     assert response.json().get('path') == category_data['path']
@@ -116,7 +113,6 @@ async def test_create_category_without_auth_should_return_401(asyncdb):
             json=category_data,
         )
 
-    # Assert
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
@@ -144,7 +140,6 @@ async def test_create_category_invalid_data_should_return_422(asyncdb, admin_tok
             headers={'Authorization': f'Bearer {admin_token}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
@@ -174,7 +169,6 @@ async def test_update_category_should_return_200(asyncdb, admin_token):
             headers={'Authorization': f'Bearer {admin_token}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_200_OK
     assert response.json().get('name') == update_data['name']
     assert response.json().get('menu') is True
@@ -204,7 +198,6 @@ async def test_update_category_not_found_should_return_404(asyncdb, admin_token)
             headers={'Authorization': f'Bearer {admin_token}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -228,7 +221,6 @@ async def test_delete_category_should_return_204(asyncdb, admin_token):
             headers={'Authorization': f'Bearer {admin_token}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
@@ -251,5 +243,4 @@ async def test_delete_category_not_found_should_return_404(asyncdb, admin_token)
             headers={'Authorization': f'Bearer {admin_token}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND

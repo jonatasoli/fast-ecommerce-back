@@ -22,7 +22,6 @@ def test_get_cors_origins_with_cors_origins_env(monkeypatch):
         # Act
         origins = get_cors_origins()
 
-        # Assert
         assert 'http://localhost:3000' in origins
         assert 'http://localhost:5173' in origins
         assert 'https://frontend.com' in origins
@@ -54,7 +53,6 @@ def test_get_cors_origins_without_cors_origins_env(monkeypatch):
         # Act
         origins = get_cors_origins()
 
-        # Assert
         assert 'https://frontend.com' in origins
         assert 'https://admin.com' in origins
     finally:
@@ -81,7 +79,6 @@ def test_get_cors_origins_empty(monkeypatch):
         # Act
         origins = get_cors_origins()
 
-        # Assert
         assert origins == []
     finally:
         if original_cors is not None:
@@ -109,5 +106,4 @@ def test_setup_cors():
     client = TestClient(app)
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == 200

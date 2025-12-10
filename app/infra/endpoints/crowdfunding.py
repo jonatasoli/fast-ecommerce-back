@@ -21,6 +21,8 @@ from app.entities.crowdfunding import (
     TierCreate,
     TierInDB,
     TierUpdate,
+    UserProjectTier,
+    UserTierNotification,
 )
 from app.infra.bootstrap.cart_bootstrap import Command, bootstrap
 from app.infra.database import get_async_session
@@ -245,6 +247,78 @@ async def get_project_summary(
 ) -> ProjectSummary:
     """Get project summary with total contributions."""
     return await services.get_project_summary(
+        project_id,
+        bootstrap=bootstrap,
+    )
+
+
+@crowdfunding.get(
+    '/projects/{project_id}/goals',
+    status_code=status.HTTP_200_OK,
+)
+async def list_goals(
+    project_id: int,
+    *,
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
+) -> list[GoalInDB]:
+    """List goals for a project with progress percentage."""
+    return await services.list_goals(
+        project_id,
+        bootstrap=bootstrap,
+    )
+
+
+@crowdfunding.get(
+    '/projects/{project_id}/monthly-goals',
+    status_code=status.HTTP_200_OK,
+)
+async def list_monthly_goals(
+    project_id: int,
+    *,
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
+) -> list[MonthlyGoalSummary]:
+    """List monthly goals for a project with progress percentage."""
+    return await services.list_monthly_goals(
+        project_id,
+        bootstrap=bootstrap,
+    )
+
+
+@crowdfunding.get(
+    '/user/tier-notifications',
+    status_code=status.HTTP_200_OK,
+)
+async def get_user_tier_notifications(
+    *,
+    token: Annotated[str, Depends(oauth2_scheme)],
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
+    read: bool | None = None,
+    limit: int = 50,
+) -> list[UserTierNotification]:
+    """Get user's tier notifications."""
+    user = bootstrap.user.get_user(token)
+    return await services.get_user_tier_notifications(
+        user.user_id,
+        bootstrap=bootstrap,
+        read=read,
+        limit=limit,
+    )
+
+
+@crowdfunding.get(
+    '/projects/{project_id}/user-tier',
+    status_code=status.HTTP_200_OK,
+)
+async def get_user_project_tier(
+    project_id: int,
+    *,
+    token: Annotated[str, Depends(oauth2_scheme)],
+    bootstrap: Annotated[Command, Depends(get_bootstrap)],
+) -> UserProjectTier | None:
+    """Get user's current tier in a project."""
+    user = bootstrap.user.get_user(token)
+    return await services.get_user_project_tier(
+        user.user_id,
         project_id,
         bootstrap=bootstrap,
     )

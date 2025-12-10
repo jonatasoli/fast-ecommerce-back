@@ -12,7 +12,6 @@ def test_create_app():
     # Act
     app = create_app()
 
-    # Assert
     assert isinstance(app, FastAPI)
 
 
@@ -21,7 +20,6 @@ def test_create_app_has_routers():
     # Act
     app = create_app()
 
-    # Assert
     assert len(app.routes) > 0
 
 
@@ -30,7 +28,6 @@ def test_create_app_static_files():
     # Act
     app = create_app()
 
-    # Assert
     static_mounts = [route for route in app.routes if hasattr(route, 'path') and route.path == '/static']
     assert len(static_mounts) > 0
 
@@ -44,7 +41,6 @@ def test_create_app_cors():
     # Act
     response = client.get('/docs')
 
-    # Assert
     assert response.status_code in [200, 404]
 
 
@@ -62,7 +58,6 @@ def test_create_app_error_handlers():
     # Act
     response = client.get('/test-error')
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
     data = response.json()
     assert 'message' in data or 'detail' in data

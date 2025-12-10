@@ -67,7 +67,7 @@ async def create_payment_credit_card(
         case CreateCreditCardPaymentMethod():
             raise PaymentNotFoundError(
                 'Stripe now requires PaymentMethod token. '
-                'Use CreateCreditCardTokenPaymentMethod com o PaymentMethod ID do Stripe Elements.'
+                'Use CreateCreditCardTokenPaymentMethod com o PaymentMethod ID do Stripe Elements.',
             )
         case CreateCreditCardTokenPaymentMethod():
             _payment_method_id = payment.card_token

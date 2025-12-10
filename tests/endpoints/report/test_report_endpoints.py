@@ -19,7 +19,6 @@ async def test_get_user_sales_commissions(async_client, mocker, async_admin_toke
         headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 200
     assert response.json()['commissions'] == []
 
@@ -38,7 +37,6 @@ async def test_get_sales_commissions(async_client, mocker, async_admin_token):
         '/report/commissions', headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 200
     assert 'commissions' in response.json()
 
@@ -66,5 +64,4 @@ async def test_inform_product_user(async_client, mocker, async_admin_token):
         headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 204

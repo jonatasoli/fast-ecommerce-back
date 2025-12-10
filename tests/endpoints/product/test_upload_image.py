@@ -24,6 +24,5 @@ async def test_add_new_image_file_in_product(
         files=files,
     )
 
-    # Assert
     assert response.status_code == 200
     assert response.json() == new_image_path

@@ -31,7 +31,6 @@ async def test_get_token(async_client, mocker):
         data={'username': mock_user.document, 'password': 'testtest'},
     )
 
-    # Assert
     assert response.status_code == 200
     token = response.json()
     assert 'access_token' in token

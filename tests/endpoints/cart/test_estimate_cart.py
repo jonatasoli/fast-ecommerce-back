@@ -90,7 +90,6 @@ async def test_estimate_products_in_cart(asyncdb, redis_client) -> None:
             json=jsonable_encoder(cart.model_dump()),
         )
 
-    # Assert
     assert response.status_code == 201
     return_uuid = response.json()['uuid']
     return_cart_items = response.json()['cart_items']

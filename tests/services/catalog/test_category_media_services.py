@@ -41,7 +41,6 @@ async def test_upload_category_image_should_update_image_path(
         image_client=image_client_mock,
     )
 
-    # Assert
     assert result == new_image_path
     image_client_mock.optimize_image.assert_called_once()
 
@@ -110,7 +109,6 @@ async def test_upload_category_media_gallery_should_upload_photo(
         db=asyncdb,
     )
 
-    # Assert
     assert media_path == '/media/category-image.png'
     mock_optimize_image.assert_called_once_with(real_upload_file)
 
@@ -155,7 +153,6 @@ async def test_upload_category_media_gallery_should_upload_video(
         db=asyncdb,
     )
 
-    # Assert
     assert media_path == '/media/category-video.mp4'
     mock_upload_video.assert_called_once_with(real_upload_file)
 
@@ -231,7 +228,6 @@ async def test_get_category_media_gallery_should_return_media_list(asyncdb):
     # Act
     result = await get_category_media_gallery(category.category_id, db=asyncdb)
 
-    # Assert
     assert len(result) == 2
     assert result[0].uri == 'https://cdn.test.com/photo1.png'
     assert result[1].uri == 'https://cdn.test.com/photo2.png'

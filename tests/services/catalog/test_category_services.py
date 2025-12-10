@@ -30,7 +30,6 @@ async def test_create_category_should_return_category(asyncdb):
     # Act
     result = await create_category(category_data, db=asyncdb)
 
-    # Assert
     assert result.name == category_data.name
     assert result.path == category_data.path
     assert result.menu is True
@@ -49,7 +48,6 @@ async def test_get_category_by_id_should_return_category(asyncdb):
     # Act
     result = await get_category_by_id(category.category_id, db=asyncdb)
 
-    # Assert
     assert result is not None
     assert result.category_id == category.category_id
     assert result.name == category.name
@@ -67,7 +65,6 @@ async def test_get_category_by_id_not_found_should_return_none(asyncdb):
     # Act
     result = await get_category_by_id(999, db=asyncdb)
 
-    # Assert
     assert result is None
 
 
@@ -88,7 +85,6 @@ async def test_update_category_should_return_updated_category(asyncdb):
     # Act
     result = await update_category(category.category_id, update_data, db=asyncdb)
 
-    # Assert
     assert result is not None
     assert result.name == 'Updated Category'
     assert result.menu is True
@@ -121,7 +117,6 @@ async def test_delete_category_should_delete_category(asyncdb):
     # Act
     await delete_category(category.category_id, db=asyncdb)
 
-    # Assert
     result = await get_category_by_id(category.category_id, db=asyncdb)
     assert result is None
 

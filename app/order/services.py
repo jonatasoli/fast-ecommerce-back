@@ -168,7 +168,7 @@ def get_showcase(*, currency, db) -> list:
             .where(ProductDB.currency.like(currency))
             .where(ProductDB.active.is_(True))
         )
-        showcases = transaction.execute(showcases_query).scalars().all()
+        showcases = transaction.execute(showcases_query).scalars().unique().all()
         adapter = TypeAdapter(list[ProductCategoryInDB])
 
     return adapter.validate_python(showcases)
@@ -352,7 +352,7 @@ def get_category(db: Session) -> dict:
     categorys = None
     with db:
         categorys_query = select(CategoryDB)
-        categorys = db.execute(categorys_query).scalars().all()
+        categorys = db.execute(categorys_query).scalars().unique().all()
 
     category_list = []
 

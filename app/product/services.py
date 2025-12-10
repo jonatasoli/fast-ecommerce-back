@@ -177,4 +177,4 @@ async def get_media_gallery(uri: str, *, db) -> list[UploadedMediaInDBResponse]:
             transaction=transaction,
         )
         adapter = TypeAdapter(list[UploadedMediaInDBResponse])
-        return adapter.validate_python(media_db.all())
+        return adapter.validate_python(media_db.unique().all())

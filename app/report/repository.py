@@ -134,10 +134,10 @@ async def save_user_inform(
 def get_fees(transaction):
     """Get active fees."""
     query = select(FeeDB).where(FeeDB.active.is_(True))
-    return transaction.scalars(query).all()
+    return transaction.scalars(query).unique().all()
 
 
 def get_coproducer(transaction):
     """Get co producers."""
     query = select(CoProducerFeeDB).where(CoProducerFeeDB.active.is_(True))
-    return transaction.scalars(query).all()
+    return transaction.scalars(query).unique().all()

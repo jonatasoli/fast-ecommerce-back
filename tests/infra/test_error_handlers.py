@@ -42,7 +42,6 @@ def test_product_not_found_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
     data = response.json()
     assert 'message' in data or 'detail' in data
@@ -58,7 +57,6 @@ def test_card_already_use_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_409_CONFLICT
     assert 'message' in response.json()
 
@@ -73,7 +71,6 @@ def test_credential_error_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json()['detail'] == 'Incorrect username or password'
 
@@ -88,7 +85,6 @@ def test_product_sold_out_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
     data = response.json()
     assert data.get('detail') == 'Product Sold Out.' or 'Product Sold Out' in str(data.get('detail', ''))
@@ -104,7 +100,6 @@ def test_coupon_not_found_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json()['detail'] == 'Invalid Coupon.'
 
@@ -119,7 +114,6 @@ def test_correios_error_handler_prc_101(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert 'ZipCode invalid' in response.json()['detail']
     assert response.json()['code'] == 'PRC-101'
@@ -135,7 +129,6 @@ def test_correios_error_handler_prz_101(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert 'ZipCode invalid' in response.json()['detail']
     assert response.json()['code'] == 'PRZ-101'
@@ -151,7 +144,6 @@ def test_correios_error_handler_other(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json()['code'] == 'OTHER-ERROR'
 
@@ -166,7 +158,6 @@ def test_user_duplicate_error_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json()['detail'] == 'User already sign up.'
 
@@ -181,7 +172,6 @@ def test_coupon_dont_match_error_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json()['detail'] == 'Coupon is invalid for this user.'
 
@@ -196,7 +186,6 @@ def test_coupon_limit_error_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == 439
     assert 'Coupon is not accepable' in response.json()['detail']
 
@@ -211,7 +200,6 @@ def test_checkout_processing_error_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
     assert response.json()['detail'] == 'Error with checkout service.'
 
@@ -226,7 +214,6 @@ def test_payment_not_found_error_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json()['detail'] == 'Payment not found in gateway system.'
 
@@ -241,7 +228,6 @@ def test_invalid_cart_uuid_error_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()['detail'] == 'Cart UUID invalid or with conflict.'
 
@@ -256,7 +242,6 @@ def test_category_not_found_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json()['detail'] == 'Category not found'
 
@@ -271,6 +256,5 @@ def test_category_media_not_found_handler(client, app_with_handlers):
     # Act
     response = client.get('/test')
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json()['detail'] == 'Media not found'

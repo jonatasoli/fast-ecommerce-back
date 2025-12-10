@@ -30,7 +30,6 @@ async def test_give_valid_product_payload_should_create_product(
     # Act
     product_response = await create_product(product_data, db=asyncdb)
 
-    # Assert
     assert product_response
     assert isinstance(product_response, ProductInDBResponse)
     assert product_response.product_id is not None

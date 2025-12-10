@@ -71,7 +71,6 @@ async def test_estimate_cart_with_product(
         session=asyncdb,
     )
 
-    # Assert
     assert cart.uuid
     assert len(cart.cart_items) == 2
     assert isinstance(cart.uuid, UUID)
@@ -144,7 +143,6 @@ async def test_estimate_cart_with_coupon_discount(
         session=asyncdb,
     )
 
-    # Assert
     assert cart.uuid
     assert len(cart.cart_items) == 2
     assert isinstance(cart.uuid, UUID)

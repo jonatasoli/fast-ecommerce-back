@@ -7,9 +7,23 @@ from tests.fake_functions import fake
 @pytest.mark.asyncio
 async def test_get_settings(async_client, mocker, async_admin_token):
     # Setup
-    site_name = fake.company()
-    mock_settings = {'site_name': site_name}
-    mocker.patch('app.settings.repository.get_settings', return_value=mock_settings)
+    from app.infra.models import SettingsDB
+    from app.entities.settings import SettingsResponse
+    mock_setting_db = SettingsDB(
+        settings_id=1,
+        locale='en',
+        provider='test',
+        field='main',
+        value={'site_name': 'Test Company'},
+        credentials=None,
+        description=None,
+        is_active=True,
+        is_default=False,
+    )
+    mocker.patch(
+        'app.settings.repository.list_settings',
+        return_value=([mock_setting_db], 1),
+    )
 
     # Act
     response = await async_client.get(
@@ -17,33 +31,39 @@ async def test_get_settings(async_client, mocker, async_admin_token):
         headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 200
-    assert response.json() == mock_settings
+    data = response.json()
+    assert 'settings' in data
+    assert 'total' in data
+    assert data['total'] == 1
+    assert len(data['settings']) == 1
+    assert data['settings'][0]['field'] == 'main'
 
 
 @pytest.mark.asyncio
 async def test_update_settings(async_client, mocker, async_admin_token):
     # Setup
+    from app.infra.models import SettingsDB
     locale = 'en'
-    mock_setting_response = MainSettings(
+    mock_setting_db = SettingsDB(
+        settings_id=1,
         locale=locale,
-        payment=None,
-        logistics=None,
-        notification=None,
-        cdn=None,
-        company=None,
-        crm=None,
-        mail=None,
+        provider='test',
+        field='main',
+        value={},
+        credentials=None,
+        description=None,
+        is_active=True,
+        is_default=False,
     )
     mocker.patch(
         'app.settings.repository.update_or_create_setting',
-        return_value=mock_setting_response,
+        return_value=mock_setting_db,
     )
-    mocker.patch('app.user.services.verify_admin', return_value=True)
 
     payload = {
         'locale': locale,
+        'is_default': False,
         'payment': None,
         'logistics': None,
         'notification': None,
@@ -51,15 +71,16 @@ async def test_update_settings(async_client, mocker, async_admin_token):
         'company': None,
         'crm': None,
         'mail': None,
+        'bucket': None,
     }
 
     # Act
     response = await async_client.patch(
-        f'/settings/?locale={locale}',
+        f'/settings/legacy?locale={locale}',
         json=payload,
         headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 200
-    assert response.json()['locale'] == locale
+    data = response.json()
+    assert data['locale'] == locale

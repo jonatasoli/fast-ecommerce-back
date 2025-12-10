@@ -15,7 +15,7 @@ class PaymentConfig(ConfigDefault):
 
 
 class LogisticsConfig(ConfigDefault):
-    field: str = 'LOGISTIC'
+    field: str = 'LOGISTICS'
     name: str
     logistics_user: str
     logistics_pass: str
@@ -56,17 +56,65 @@ class CRMConfig(ConfigDefault):
 
 class MailGateway(ConfigDefault):
     field: str = 'MAIL'
-    key: str | None
+    key: str | None = None
     secret: str
+
+
+class BucketConfig(ConfigDefault):
+    field: str = 'BUCKET'
+    provider: str
+    secret: str
+    key: str
 
 
 class MainSettings(BaseModel):
     locale: str
     is_default: bool = False
-    payment: PaymentConfig | None
-    logistics: LogisticsConfig | None
-    notification: NotificationConfig | None
-    cdn: CDNConfig | None
-    company: CompanyConfig | None
-    crm: CRMConfig | None
-    mail: MailGateway | None
+    payment: PaymentConfig | None = None
+    logistics: LogisticsConfig | None = None
+    notification: NotificationConfig | None = None
+    cdn: CDNConfig | None = None
+    company: CompanyConfig | None = None
+    crm: CRMConfig | None = None
+    mail: MailGateway | None = None
+    bucket: BucketConfig | None = None
+
+
+class SettingsResponse(BaseModel):
+    """Settings response with obfuscated sensitive fields."""
+    settings_id: int
+    locale: str
+    provider: str
+    field: str
+    value: dict
+    description: str | None
+    is_active: bool
+    is_default: bool
+
+
+class SettingsCreate(BaseModel):
+    """Settings create request."""
+    locale: str
+    provider: str
+    field: str
+    value: dict
+    description: str | None = None
+    is_active: bool = True
+    is_default: bool = False
+
+
+class SettingsUpdate(BaseModel):
+    """Settings update request."""
+    locale: str | None = None
+    provider: str | None = None
+    field: str | None = None
+    value: dict | None = None
+    description: str | None = None
+    is_active: bool | None = None
+    is_default: bool | None = None
+
+
+class SettingsListResponse(BaseModel):
+    """List of settings."""
+    settings: list[SettingsResponse]
+    total: int

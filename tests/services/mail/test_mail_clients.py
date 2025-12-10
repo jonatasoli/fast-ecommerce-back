@@ -46,7 +46,6 @@ def test_send_email_with_sendgrid(mocker):
     # Act
     send_mail(message, db=mock_db)
 
-    # Assert
     mock_send.assert_called_once()
 
 
@@ -85,7 +84,6 @@ def test_send_email_fallback_legacy(mocker):
     # Act
     send_mail(message, db=mock_db)
 
-    # Assert
     mock_send.assert_called_once()
 
 

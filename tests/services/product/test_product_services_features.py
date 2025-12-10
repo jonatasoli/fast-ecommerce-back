@@ -62,7 +62,6 @@ async def test_get_inventory_should_verify_admin_and_return_inventory(mocker, as
         token, page=page, offset=offset, db=asyncdb, verify_admin=mock_verify,
     )
 
-    # Assert
     mock_verify.assert_called_once_with(token, db=asyncdb)
     mock_repo.assert_called_once()
     assert result == {'products': [], 'total': 0}
@@ -85,7 +84,6 @@ async def test_get_inventory_name_should_return_inventory_by_name(mocker, asyncd
         path, currency=currency, page=page, offset=offset, db=asyncdb,
     )
 
-    # Assert
     mock_repo.assert_called_once()
     assert result == {'products': [], 'total': 0}
 
@@ -106,7 +104,6 @@ async def test_inventory_transaction_should_add_transaction(mocker, asyncdb):
         product_id, inventory=inventory, token=token, db=asyncdb,
     )
 
-    # Assert
     mock_repo.assert_called_once()
     assert result is True
 
@@ -134,7 +131,6 @@ async def test_update_product_should_update_fields(mocker, asyncdb):
     # Act
     await update_product(product_db.product_id, update_data=update_data, db=asyncdb)
 
-    # Assert
     async with asyncdb().begin() as transaction:
         updated = await transaction.session.get(type(product_db), product_db.product_id)
         assert updated.name == 'New Name'
@@ -172,7 +168,6 @@ async def test_delete_product_should_delete(mocker, asyncdb):
     # Act
     await delete_product(product_id, db=mock_db)
 
-    # Assert
     mock_repo.assert_called_once()
 
 
@@ -211,7 +206,6 @@ async def test_upload_media_gallery_should_upload_video(
         db=asyncdb,
     )
 
-    # Assert
     assert media_path == '/media/video.mp4'
     mock_upload_video.assert_called_once_with(real_upload_file)
 
@@ -258,7 +252,6 @@ async def test_delete_media_gallery_should_delete_media(mocker, asyncdb):
         product_db.product_id, media_id=media.media_id, db=asyncdb,
     )
 
-    # Assert
     result = await asyncdb().execute(select(MediaGalleryDB))
     assert result.scalar_one_or_none() is None
 
@@ -308,7 +301,6 @@ async def test_get_media_gallery_should_return_media_list(mocker, asyncdb):
     # Act
     result = await get_media_gallery(product_db.uri, db=asyncdb)
 
-    # Assert
     assert len(result) == 2
     assert result[0].uri == '/media/photo1.png'
     assert result[1].uri == '/media/photo2.png'

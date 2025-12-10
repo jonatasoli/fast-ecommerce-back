@@ -14,6 +14,5 @@ def test_create_role(session):
         select(RoleDB).where(RoleDB.role_id == new_role.role_id),
     )
 
-    # Assert
     assert role.role_id is not None
     assert role == new_role

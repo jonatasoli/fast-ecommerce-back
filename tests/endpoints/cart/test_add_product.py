@@ -55,6 +55,5 @@ async def test_add_product_in_new_cart(asyncdb, redis_client, async_client) -> N
         json=product.model_dump(),
     )
 
-    # Assert
     assert response.status_code == 201
     assert response.json()

@@ -21,7 +21,6 @@ def test_setup_metrics_development(monkeypatch):
     # Act
     setup_metrics(app)
 
-    # Assert
     assert app is not None
     assert trace.get_tracer_provider() == original_provider
 
@@ -36,7 +35,6 @@ def test_setup_metrics_testing(monkeypatch):
     # Act
     setup_metrics(app)
 
-    # Assert
     assert app is not None
     assert trace.get_tracer_provider() == original_provider
 
@@ -52,7 +50,6 @@ def test_setup_metrics_no_environment(monkeypatch):
     # Act
     setup_metrics(app)
 
-    # Assert
     assert app is not None
     assert trace.get_tracer_provider() == original_provider
 
@@ -67,7 +64,6 @@ def test_setup_metrics_production(monkeypatch):
     # Act
     setup_metrics(app)
 
-    # Assert
     assert app is not None
     tracer_provider = trace.get_tracer_provider()
     assert isinstance(tracer_provider, TracerProvider)
@@ -85,7 +81,6 @@ def test_setup_metrics_production_with_default_version(monkeypatch):
     # Act
     setup_metrics(app)
 
-    # Assert
     assert app is not None
     tracer_provider = trace.get_tracer_provider()
     assert isinstance(tracer_provider, TracerProvider)
@@ -106,7 +101,6 @@ def test_setup_metrics_production_with_custom_version(monkeypatch):
     # Act
     setup_metrics(app)
 
-    # Assert
     assert app is not None
     tracer_provider = trace.get_tracer_provider()
     assert isinstance(tracer_provider, TracerProvider)

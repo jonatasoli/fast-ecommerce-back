@@ -44,7 +44,6 @@ async def test_upload_category_image_should_return_200(asyncdb, admin_token, moc
             headers={'Authorization': f'Bearer {admin_token}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_200_OK
     assert 'https://cdn.test.com/category.png' in response.json()
 
@@ -78,7 +77,6 @@ async def test_upload_category_image_not_found_should_return_404(
             headers={'Authorization': f'Bearer {admin_token}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -112,7 +110,6 @@ async def test_upload_category_media_gallery_should_return_201(
             headers={'Authorization': f'Bearer {admin_token}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_201_CREATED
     assert 'https://cdn.test.com/gallery.png' in response.json()
 
@@ -138,7 +135,6 @@ async def test_get_category_media_gallery_should_return_200(
             f'{URL_MEDIA}/{category.category_id}',
         )
 
-    # Assert
     assert response.status_code == status.HTTP_200_OK
     assert isinstance(response.json(), list)
 
@@ -180,5 +176,4 @@ async def test_delete_category_media_should_return_204(asyncdb, admin_token, moc
             headers={'Authorization': f'Bearer {admin_token}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_204_NO_CONTENT

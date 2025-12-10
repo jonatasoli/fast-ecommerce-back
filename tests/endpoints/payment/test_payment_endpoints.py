@@ -35,7 +35,6 @@ async def test_create_config(async_client, mocker):
     # Act
     response = await async_client.post('/payment/create-config', json=payload)
 
-    # Assert
     assert response.status_code == 201
     assert response.json()['max_installments'] == max_installments
 
@@ -49,7 +48,6 @@ async def test_payment_callback(async_client, mocker):
     # Act
     response = await async_client.post('/payment/callback', json={'status': 'approved'})
 
-    # Assert
     assert response.status_code == 201
 
 
@@ -71,7 +69,6 @@ async def test_payment_status_post(async_client, mocker):
         f'/payment/payment_status?gateway_payment_id={gateway_payment_id}',
     )
 
-    # Assert
     assert response.status_code == 200
     assert response.json()['status'] == 'approved'
 
@@ -102,6 +99,5 @@ async def test_get_payment(async_client, mocker):
     # Act
     response = await async_client.get(f'/payment/{gateway_payment_id}')
 
-    # Assert
     assert response.status_code == 200
     assert response.json()['gateway_payment_id'] == gateway_payment_id

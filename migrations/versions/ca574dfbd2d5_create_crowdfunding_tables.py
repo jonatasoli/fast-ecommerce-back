@@ -11,7 +11,6 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-# revision identifiers, used by Alembic.
 revision: str = 'ca574dfbd2d5'
 down_revision: Union[str, None] = '2c29e17bf5b3'
 branch_labels: Union[str, Sequence[str], None] = None
@@ -19,7 +18,6 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Create crowdfunding_project table
     op.create_table(
         'crowdfunding_project',
         sa.Column('project_id', sa.Integer(), autoincrement=True, nullable=False),
@@ -48,7 +46,6 @@ def upgrade() -> None:
         sa.UniqueConstraint('slug'),
     )
 
-    # Create crowdfunding_tier table
     op.create_table(
         'crowdfunding_tier',
         sa.Column('tier_id', sa.Integer(), autoincrement=True, nullable=False),
@@ -69,7 +66,6 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('tier_id'),
     )
 
-    # Create crowdfunding_contribution table
     op.create_table(
         'crowdfunding_contribution',
         sa.Column('contribution_id', sa.Integer(), autoincrement=True, nullable=False),
@@ -91,7 +87,6 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('contribution_id'),
     )
 
-    # Create crowdfunding_goal table
     op.create_table(
         'crowdfunding_goal',
         sa.Column('goal_id', sa.Integer(), autoincrement=True, nullable=False),
@@ -109,7 +104,6 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('goal_id'),
     )
 
-    # Create crowdfunding_monthly_goal table
     op.create_table(
         'crowdfunding_monthly_goal',
         sa.Column('monthly_goal_id', sa.Integer(), autoincrement=True, nullable=False),

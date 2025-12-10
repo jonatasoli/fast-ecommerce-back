@@ -62,7 +62,6 @@ async def test_image_in_gallery_must_upload(
         db=asyncdb,
     )
 
-    # Assert
     assert image_path == '/media/image.png'
     mock_optimize_image.assert_called_once_with(real_upload_file)
 

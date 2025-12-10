@@ -24,6 +24,7 @@ from app.entities.user import (
     UserUpdate,
 )
 from app.infra.models import RoleDB, UserDB, CouponsDB, UserResetPasswordDB
+from app.infra.recaptcha import verify_recaptcha_enterprise
 from jwt import DecodeError, encode, decode
 from app.user import repository
 from config import settings
@@ -44,13 +45,25 @@ def gen_hash(password: str) -> str:
     return password_hash.hash(password)
 
 
-def create_user(db, obj_in: SignUp) -> SignUpResponse:
+async def create_user(
+    db,
+    obj_in: SignUp,
+    remote_ip: str | None = None,
+) -> SignUpResponse:
     """Create User."""
     try:
         logger.info(obj_in)
         logger.debug(Roles.USER.value)
         if not obj_in.password:
             raise_password_empty_error()
+
+        recaptcha_valid = await verify_recaptcha_enterprise(
+            obj_in.recaptcha_token,
+            expected_action='signup',
+            remote_ip=remote_ip,
+        )
+        if not recaptcha_valid:
+            raise_credential_error('reCAPTCHA verification failed')
 
         with db() as session:
             db_user = UserDB(
@@ -92,9 +105,9 @@ def raise_user_not_found_error() -> UserNotFoundError:
     raise UserNotFoundError
 
 
-def raise_credential_error() -> CredentialError:
+def raise_credential_error(message: str = '') -> CredentialError:
     """User with credentials wrong error raise."""
-    raise CredentialError
+    raise CredentialError(message)
 
 
 def check_existent_user(db: Session, document: str, password: str) -> UserDB:

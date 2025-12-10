@@ -23,7 +23,6 @@ def test_create_order(session):
         select(OrderDB).where(OrderDB.order_id == new_order.order_id),
     )
 
-    # Assert
     assert order.order_id == 1
     assert order.order_status == StepsOrder.PAYMENT_PENDING.value
     assert order == new_order
@@ -48,6 +47,5 @@ def test_order_status_steps(session):
         ),
     )
 
-    # assert
     assert order_status_steps.order_id == 1
     assert order_status_steps == new_order_status_steps

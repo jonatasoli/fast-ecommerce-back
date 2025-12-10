@@ -1,17 +1,16 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jonatasoli_fast-ecommerce-back&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jonatasoli_fast-ecommerce-back)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jonatasoli_fast-ecommerce-back&metric=coverage)](https://sonarcloud.io/summary/new_code?id=jonatasoli_fast-ecommerce-back)
 # Capicart Backend
-## ApiRest in development
 
  [Pre-requirements](#pre-requirements)
  [Install](#install)
  [Technologies](#technologies)
 
 ## Pre-requirements
-+ Dcoker and docker-compose
++ Docker and docker-compose
 + Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
 ```bash
-icurl -LsSf https://astral.sh/uv/install.sh | sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 + Repository clone
 ```bash
@@ -19,7 +18,6 @@ git clone https://github.com/jonatasoli/fast-ecommerce-back.git
 ```
 ```bash
 cd fast-ecommerce-back
-cd app
 ```
 + Start docker-compose file in [main project](https://github.com/jonatasoli/capi-cart)
 ```bash
@@ -31,9 +29,50 @@ docker-compose up -d
 uv python install
 ```
 Create Virtualenv and install requirements
-````bash
+```bash
 uv sync
-````
+```
+
+## Required Environment Variables
+
+Before starting the project, configure the following environment variables in the `.secrets.toml` file:
+
+### Minimum Required Configuration
+
+```toml
+[default]
+# Database (required)
+DATABASE_URL="postgresql+psycopg://user:password@localhost/database_name"
+DATABASE_URI="postgresql+asyncpg://user:password@localhost/database_name"
+
+# Security (required)
+SECRET_KEY="your_random_secret_key_here"  # Use a strong random key
+CONFIRMATION_KEY="your_random_confirmation_key_here"  # Use a strong random key
+CAPI_SECRET="your_base64_encryption_key_here"  # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+# Redis (required if using cache/sessions)
+REDIS_URL="redis://:@localhost:6379"
+REDIS_DB=0
+
+# Message Broker (required if using queues)
+BROKER_URL="amqp://guest:guest@localhost:5672//"
+
+# Environment
+ENVIRONMENT="development"  # or "production", "testing"
+```
+
+### Additional Configuration (Optional)
+
+The following variables can be configured later or left with default values:
+
+- **Upload/Storage**: `ENDPOINT_UPLOAD_CLIENT`, `BUCKET_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- **Payments**: `STRIPE_SECRET_KEY`, `MERCADO_PAGO_ACCESS_TOKEN`, `PAYMENT_GATEWAY`
+- **Logistics**: `CORREIOSBR_USER`, `CORREIOSBR_PASS`, `CORREIOSBR_API_SECRET`
+- **Notifications**: `SENDGRID_API_KEY`, `EMAIL_FROM`
+- **reCAPTCHA**: `RECAPTCHA_PROJECT_ID`, `RECAPTCHA_SITE_KEY`, `RECAPTCHA_SCORE_THRESHOLD`
+- **Frontend/CORS**: `FRONTEND_URL`, `CORS_ORIGINS`
+
+> **Note**: The system has fallback to environment variables when it doesn't find configurations in the database. Configurations can be managed via the admin panel after the first initialization.
 
 ## Install
 ````bash
@@ -75,6 +114,8 @@ make test
 * Reports: Provides reporting and analytics capabilities, allowing stakeholders to gain insights into sales, customer behavior, and other relevant metrics.
 * Sales: Handles integrations with sales tools and platforms, facilitating processes such as order synchronization, inventory management, and sales data analysis.
 * Campaign: Manages integrations with marketing tools and platforms, enabling targeted marketing campaigns, customer segmentation, and automation.
+* Crowdfunding: Manages crowdfunding projects, tiers, contributions, goals, and leaderboards. Handles project creation, backer contributions, payment processing, and project statistics tracking.
+* Settings: Manages system-wide configuration settings stored in the database, including payment gateways, CDN, logistics, notifications, mail, and bucket configurations. Provides admin interface for dynamic settings management with encryption for sensitive data.
 
 ## Getting Started
 

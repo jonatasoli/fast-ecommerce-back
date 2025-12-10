@@ -26,32 +26,25 @@ from app.infra.logging import setup_logging
 from app.infra.metrics import setup_metrics
 from app.infra.worker import task_message_bus
 
-from app.mail.tasks import task_message_bus  # noqa: F401
+from app.mail.tasks import task_message_bus
 from app.cart.tasks import task_message_bus  # noqa: F811
 from app.report.tasks import task_message_bus  # noqa: F811
 
 
 def create_app() -> FastAPI:
     """Create and configure FastAPI application."""
-    # Setup logging first
     setup_logging()
 
-    # Create FastAPI app
     app = FastAPI()
 
-    # Mount static files
     app.mount('/static', StaticFiles(directory='static'), name='static')
 
-    # Setup CORS
     setup_cors(app)
 
-    # Register error handlers
     register_error_handlers(app)
 
-    # Setup metrics and OpenTelemetry
     setup_metrics(app)
 
-    # Include routers
     app.include_router(user)
     app.include_router(users)
     app.include_router(payment)

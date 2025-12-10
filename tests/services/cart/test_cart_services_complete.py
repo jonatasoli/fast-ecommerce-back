@@ -63,7 +63,6 @@ def test_create_or_get_cart_with_token_should_return_cart(memory_bootstrap):
     # Act
     result = create_or_get_cart(uuid=None, token=token, bootstrap=bootstrap)
 
-    # Assert
     assert result is not None
     if isinstance(result, str):
         result = CartBase.model_validate_json(result)
@@ -80,7 +79,6 @@ def test_create_or_get_cart_with_uuid_should_return_cart(memory_bootstrap):
     # Act
     result = create_or_get_cart(uuid=uuid, token=None, bootstrap=bootstrap)
 
-    # Assert
     assert result is not None
     if isinstance(result, str):
         result = CartBase.model_validate_json(result)
@@ -94,7 +92,6 @@ def test_create_or_get_cart_without_token_or_uuid_should_create_new(memory_boots
     # Act
     result = create_or_get_cart(uuid=None, token=None, bootstrap=bootstrap)
 
-    # Assert
     assert result is not None
     assert isinstance(result, CartBase)
     assert isinstance(result.uuid, (UUID, str))
@@ -128,7 +125,6 @@ async def test_calculate_freight_with_zipcode_should_calculate(
     # Act
     result = await calculate_freight(cart, products_db, bootstrap, asyncdb)
 
-    # Assert
     assert result.zipcode == '12345678'
     assert result.freight == freight_result
     bootstrap.freight.calculate_volume_weight.assert_called_once()
@@ -164,7 +160,6 @@ async def test_calculate_freight_with_campaign_should_apply_free_shipping(
     # Act
     result = await calculate_freight(cart, products_db, bootstrap, asyncdb)
 
-    # Assert
     assert result.freight.price.quantize(Decimal('0.01')) == Decimal('0.01')
 
 
@@ -234,7 +229,6 @@ def test_consistency_inventory_with_valid_quantities_should_update_available():
     # Act
     result = consistency_inventory(cart, products_inventory=products_inventory)
 
-    # Assert
     assert result.cart_items[0].available_quantity == 10
 
 
@@ -286,7 +280,6 @@ async def test_add_user_to_cart_should_add_user_data(memory_bootstrap, mocker):
     # Act
     result = await add_user_to_cart(uuid, cart, token, bootstrap)
 
-    # Assert
     assert isinstance(result, CartUser)
     assert result.user_data.user_id == user.user_id
     bootstrap.message.broker.publish.assert_called_once()
@@ -454,7 +447,6 @@ async def test_add_address_to_cart_should_create_addresses(memory_bootstrap, moc
     # Act
     result = await add_address_to_cart(uuid, cart_user, address, token, bootstrap)
 
-    # Assert
     assert isinstance(result, CartShipping)
     assert result.user_address_id == user_address_id
     assert result.shipping_address_id == shipping_address_id
@@ -508,7 +500,6 @@ async def test_add_address_to_cart_with_existing_address_should_use_it(
     # Act
     result = await add_address_to_cart(uuid, cart_user, address, token, bootstrap)
 
-    # Assert
     assert isinstance(result, CartShipping)
     assert result.user_address_id == existing_address_id
     assert result.shipping_is_payment
@@ -562,7 +553,6 @@ async def test_add_payment_information_should_process_payment(memory_bootstrap, 
         uuid, payment_method, cart_shipping, payment, token, bootstrap,
     )
 
-    # Assert
     assert isinstance(result, CartPayment)
 
 
@@ -647,7 +637,6 @@ async def test_preview_should_create_payment_intent_for_stripe(
     # Act
     result = await preview(uuid, token, bootstrap)
 
-    # Assert
     assert result.payment_intent == payment_intent_id
     bootstrap.payment.create_payment_intent.assert_called_once()
 
@@ -704,7 +693,6 @@ async def test_checkout_should_process_order(memory_bootstrap, mocker):
     # Act
     result = await checkout(uuid, cart_payment, token, bootstrap)
 
-    # Assert
     assert result.order_id == str(order_id)
     assert result.gateway_payment_id == str(gateway_payment_id)
     assert result.status == 'processing'
@@ -790,7 +778,6 @@ async def test_get_coupon_should_return_coupon(memory_bootstrap, mocker):
     # Act
     result = await get_coupon(code, bootstrap)
 
-    # Assert
     assert result == mock_coupon
 
 
@@ -853,7 +840,6 @@ async def test_get_cart_and_send_to_crm_should_process_carts(mocker):
     # Act
     await get_cart_and_send_to_crm(_cache=mock_cache_class)
 
-    # Assert
     assert mock_send_crm.call_count == 2
     assert mock_redis.delete.call_count == 2
 
@@ -875,5 +861,4 @@ async def test_get_cart_and_send_to_crm_should_delete_invalid_carts(mocker):
     # Act
     await get_cart_and_send_to_crm(_cache=mock_cache_class)
 
-    # Assert
     mock_redis.delete.assert_called_once_with(keys[0])

@@ -152,12 +152,18 @@ class CartBase(BaseModel):
 
     def add_product_price(self: Self, products: list[ProductCart]) -> Self:
         """Add a product price to cart."""
-        product_prices = {product.product_id: product.price for product in products}
-
+        product_prices = {
+            product.product_id: product.price
+            for product in products
+            if product.price is not None
+        }
         self.cart_items = [
-            item.update_price(new_price=product_prices.get(item.product_id))
+            item.update_price(
+                new_price=product_prices.get(item.product_id, item.price),
+            )
             for item in self.cart_items
         ]
+        return self
 
     def calculate_subtotal(
         self: Self,

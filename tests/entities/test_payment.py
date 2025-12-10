@@ -22,7 +22,6 @@ def test_validate_payment_with_succeeded_status():
     # Act
     result = validate_payment(payment_accept)
 
-    # Assert
     assert result == 'succeeded'
 
 

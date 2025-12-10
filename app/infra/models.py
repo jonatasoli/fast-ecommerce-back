@@ -519,7 +519,7 @@ class ProjectDB(Base):
     )
     title: Mapped[str]
     slug: Mapped[str] = mapped_column(unique=True)
-    description: Mapped[Json] = mapped_column(JSON, nullable=True) 
+    description: Mapped[Json] = mapped_column(JSON, nullable=True)
     short_description: Mapped[str | None]
     story: Mapped[Json] = mapped_column(JSON, nullable=True)
     risks_and_challenges: Mapped[Json] = mapped_column(JSON, nullable=True)
@@ -561,6 +561,20 @@ class ProjectDB(Base):
         cascade='all,delete',
         lazy='joined',
     )
+    user_tiers: Mapped[list['UserProjectTierDB']] = relationship(
+        'UserProjectTierDB',
+        back_populates='project',
+        foreign_keys='UserProjectTierDB.project_id',
+        cascade='all,delete',
+        lazy='joined',
+    )
+    tier_notifications: Mapped[list['UserTierNotificationDB']] = relationship(
+        'UserTierNotificationDB',
+        back_populates='project',
+        foreign_keys='UserTierNotificationDB.project_id',
+        cascade='all,delete',
+        lazy='joined',
+    )
 
 
 class TierDB(Base):
@@ -583,6 +597,7 @@ class TierDB(Base):
     max_backers: Mapped[int | None]
     current_backers: Mapped[int] = mapped_column(default=0)
     estimated_delivery: Mapped[date | None]
+    rewards: Mapped[Json] = mapped_column(JSON, nullable=True)
     active: Mapped[bool] = mapped_column(default=True)
     order: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(default=func.now())
@@ -591,6 +606,13 @@ class TierDB(Base):
     contributions: Mapped[list['ContributionDB']] = relationship(
         'ContributionDB',
         back_populates='tier',
+        cascade='all,delete',
+        lazy='joined',
+    )
+    tier_notifications: Mapped[list['UserTierNotificationDB']] = relationship(
+        'UserTierNotificationDB',
+        foreign_keys='UserTierNotificationDB.new_tier_id',
+        back_populates='new_tier',
         cascade='all,delete',
         lazy='joined',
     )
@@ -682,6 +704,80 @@ class MonthlyGoalDB(Base):
     achieved_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(default=func.now())
     updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
+
+
+class UserProjectTierDB(Base):
+    __tablename__ = 'crowdfunding_user_project_tier'
+
+    user_project_tier_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    project_id: Mapped[int] = mapped_column(ForeignKey('crowdfunding_project.project_id'))
+    tier_id: Mapped[int | None] = mapped_column(ForeignKey('crowdfunding_tier.tier_id'))
+    total_contributed: Mapped[Decimal] = mapped_column(default=Decimal('0'))
+    last_updated: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+
+    user: Mapped['UserDB'] = relationship(
+        'UserDB',
+        foreign_keys=[user_id],
+        backref='user_project_tiers',
+        uselist=False,
+        lazy='joined',
+    )
+    project: Mapped['ProjectDB'] = relationship(
+        'ProjectDB',
+        foreign_keys=[project_id],
+        back_populates='user_tiers',
+        uselist=False,
+        lazy='joined',
+    )
+    tier: Mapped['TierDB | None'] = relationship(
+        'TierDB',
+        foreign_keys=[tier_id],
+        uselist=False,
+        lazy='joined',
+    )
+
+
+class UserTierNotificationDB(Base):
+    __tablename__ = 'crowdfunding_user_tier_notification'
+
+    notification_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.user_id'))
+    project_id: Mapped[int] = mapped_column(ForeignKey('crowdfunding_project.project_id'))
+    old_tier_id: Mapped[int | None] = mapped_column(ForeignKey('crowdfunding_tier.tier_id'))
+    new_tier_id: Mapped[int] = mapped_column(ForeignKey('crowdfunding_tier.tier_id'))
+    total_contributed: Mapped[Decimal]
+    read: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+
+    user: Mapped['UserDB'] = relationship(
+        'UserDB',
+        foreign_keys=[user_id],
+        backref='tier_notifications',
+        uselist=False,
+        lazy='joined',
+    )
+    project: Mapped['ProjectDB'] = relationship(
+        'ProjectDB',
+        foreign_keys=[project_id],
+        back_populates='tier_notifications',
+        uselist=False,
+        lazy='joined',
+    )
+    old_tier: Mapped['TierDB | None'] = relationship(
+        'TierDB',
+        foreign_keys=[old_tier_id],
+        uselist=False,
+        lazy='joined',
+    )
+    new_tier: Mapped['TierDB'] = relationship(
+        'TierDB',
+        foreign_keys=[new_tier_id],
+        back_populates='tier_notifications',
+        uselist=False,
+        lazy='joined',
+    )
 
 
 class CheckoutJobDB(Base):

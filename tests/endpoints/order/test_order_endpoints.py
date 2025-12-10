@@ -23,7 +23,6 @@ async def test_get_orders(async_client, mocker):
     # Act
     response = await async_client.get('/order/orders')
 
-    # Assert
     assert response.status_code == 200
     assert response.json() == []
 
@@ -37,7 +36,6 @@ async def test_get_user_order(async_client, mocker):
     # Act
     response = await async_client.get('/order/user/1')
 
-    # Assert
     assert response.status_code == 200
     assert response.json() == []
 
@@ -73,7 +71,6 @@ async def test_get_order(async_client, mocker):
     # Act
     response = await async_client.get(f'/order/{mock_order.order_id}')
 
-    # Assert
     assert response.status_code == 200
     assert response.json()['order_id'] == mock_order.order_id
 
@@ -95,7 +92,6 @@ async def test_create_order(async_client, mocker):
     # Act
     response = await async_client.post('/order/create_order', json=payload)
 
-    # Assert
     assert response.status_code == 200
 
 
@@ -109,5 +105,4 @@ async def test_delete_order(async_client, mocker):
     # Act
     response = await async_client.request('DELETE', '/order/1', json=payload)
 
-    # Assert
     assert response.status_code == 204

@@ -76,13 +76,15 @@ async def get_affiliate_user(
     '/signup',
     status_code=status.HTTP_201_CREATED,
 )
-def signup(
+async def signup(
     *,
+    request: Request,
     db=Depends(get_session),
     user_in: SignUp,
 ) -> SignUpResponse:
     """Signup."""
-    return services.create_user(db, obj_in=user_in)
+    remote_ip = request.client.host if request.client else None
+    return await services.create_user(db, obj_in=user_in, remote_ip=remote_ip)
 
 
 @user.post('/token')

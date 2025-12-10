@@ -50,7 +50,6 @@ async def test_add_product_to_new_cart(
     # Act
     cart_response = await add_product_to_cart(None, product, bootstrap, asyncdb)
 
-    # Assert
     assert cart_response.uuid
     assert len(cart_response.cart_items) == 1
     assert isinstance(cart_response.uuid, UUID)
@@ -80,7 +79,6 @@ async def test_add_product_to_new_cart_should_set_in_cache(
     # Act
     cart_response = await add_product_to_cart(None, product, bootstrap, asyncdb)
 
-    # Assert
     cache_spy.assert_called_once_with(
         str(cart_response.uuid),
         cart_response.model_dump_json(),
@@ -139,7 +137,6 @@ async def test_add_product_to_current_cart_should_add_new_product_should_calcula
         asyncdb,
     )
 
-    # Assert
     assert str(cart_response.uuid) == str(uuid)
     assert cart_response.cart_items[0].product_id == current_product.product_id
     assert cart_response.cart_items[0].quantity == current_product.quantity
@@ -226,7 +223,6 @@ async def test_given_cart_with_items_with_discount_need_calculate_to_preview(
         session=asyncdb,
     )
 
-    # Assert
     assert str(cart_response.uuid) == str(uuid)
     assert cart_response.subtotal == Decimal('100')
     assert cart_response.discount == Decimal('100')

@@ -29,7 +29,6 @@ async def test_get_users_with_name_filter(mocker, db):
     # Act
     response = await get_users(filters=filters, transaction=transaction)
 
-    # Assert
     transaction.session.scalars.assert_called_once()
 
     query_str = str(transaction.session.scalars.call_args[0][0])
@@ -66,7 +65,6 @@ async def test_get_users_with_document_filter(mocker, db):
     # Act
     response = await get_users(filters=filters, transaction=transaction)
 
-    # Assert
     transaction.session.scalars.assert_called_once()
     query_str = str(transaction.session.scalars.call_args[0][0])
     assert 'LIKE' in query_str
@@ -103,7 +101,6 @@ async def test_get_users_with_ordering_and_pagination(mocker, db):
     # Act
     response = await get_users(filters=filters, transaction=transaction)
 
-    # Assert
     transaction.session.scalars.assert_called_once()
     query_str = str(transaction.session.scalars.call_args[0][0])
     assert 'DESC' in query_str
@@ -142,7 +139,6 @@ async def test_get_users_no_filters(mocker, db):
     # Act
     response = await get_users(filters=filters, transaction=transaction)
 
-    # Assert
     transaction.session.scalars.assert_called_once()
     query_str = str(transaction.session.scalars.call_args[0][0])
     assert 'ORDER BY' in query_str

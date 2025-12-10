@@ -28,7 +28,6 @@ async def test_empty_data_should_return_200(asyncdb):
             params={'offset': 1, 'page': 1, 'search': ''},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_200_OK
 
 
@@ -78,7 +77,6 @@ async def test_with_product_list_only_activated(asyncdb):
             params={'offset': 1, 'page': 1, 'search': f'{product_db_1.name}'},
         )
 
-    # Assert
     assert response.status_code == status.HTTP_200_OK
     assert (
         response.json().get('products')[0].get('product_id') == product_db_1.product_id

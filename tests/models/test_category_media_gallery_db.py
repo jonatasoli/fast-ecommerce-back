@@ -25,7 +25,6 @@ def test_create_category_media_gallery(session):
         ),
     )
 
-    # Assert
     assert gallery.category_media_gallery_id is not None
     assert gallery.category_id == category.category_id
     assert gallery.media_id == media.media_id
@@ -57,7 +56,6 @@ def test_category_media_gallery_foreign_keys(session):
         select(UploadedMediaDB).where(UploadedMediaDB.media_id == media.media_id),
     )
 
-    # Assert
     assert result_gallery is not None
     assert result_category is not None
     assert result_media is not None

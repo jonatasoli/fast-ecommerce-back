@@ -33,7 +33,6 @@ async def test_signup(async_client, mocker):
     # Act
     response = await async_client.post('/user/signup', json=payload)
 
-    # Assert
     assert response.status_code == 201
     assert response.json()['name'] == name
 
@@ -59,7 +58,6 @@ async def test_get_user(async_client, mocker, async_admin_token):
         headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 200
     assert response.json()['email'] == user_data.email
 
@@ -78,7 +76,6 @@ async def test_get_users(async_client, mocker, async_admin_token):
         '/users/', headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 200
     assert response.json()['total_records'] == 0
 
@@ -110,6 +107,5 @@ async def test_update_user(async_client, mocker, async_admin_token):
         headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 200
     assert response.json()['name'] == updated_name

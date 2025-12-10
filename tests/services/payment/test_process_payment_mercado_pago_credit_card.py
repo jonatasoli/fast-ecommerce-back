@@ -64,7 +64,6 @@ async def test_create_payment_credit_card_success_method(mocker, mock_client, as
         client=mock_client,
     )
 
-    # Assert
     assert isinstance(cart, CartPayment)
     assert cart.payment_method == PaymentMethod.CREDIT_CARD.value
     mock_client.attach_customer_in_payment_method.assert_called_once()
@@ -100,7 +99,6 @@ async def test_create_payment_credit_card_token_success(mocker, mock_client, asy
         client=mock_client,
     )
 
-    # Assert
     assert isinstance(cart, CartPayment)
     assert cart.payment_method == PaymentMethod.CREDIT_CARD.value
     mock_client.attach_customer_in_payment_method.assert_called_once()

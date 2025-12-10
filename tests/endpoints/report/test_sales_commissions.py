@@ -23,6 +23,5 @@ async def test_empty_report_should_empy_list(asyncdb, async_admin_token):
             headers=headers,
         )
 
-    # Assert
 
     assert response.status_code == status.HTTP_200_OK

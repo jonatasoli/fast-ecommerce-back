@@ -76,7 +76,6 @@ async def test_input_to_user_admin(mocker, asyncdb):
         broker=mock_broker_publish,
     )
 
-    # Assert
     mock_get_admins.assert_called_once()
     mock_get_product.assert_called_once()
     mock_broker_publish.publish.assert_called_once_with(

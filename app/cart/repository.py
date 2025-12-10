@@ -181,7 +181,7 @@ class SqlAlchemyRepository(AbstractRepository):
                 )
                 await _check_products_db(products_db, products)
 
-                return products_db.scalars().all()
+                return products_db.scalars().unique().all()
         except Exception as e:
             logger.error(f'Error in _get_products: {e}')
             raise

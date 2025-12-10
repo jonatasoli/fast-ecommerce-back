@@ -21,7 +21,6 @@ async def test_give_no_orders_should_return_empty_list(db) -> None:
             f'{URL}/orders',
         )
 
-    # Assert
     assert response.json().get('orders') == []
     assert response.status_code == status.HTTP_200_OK
     assert response.request.method == 'GET'
@@ -51,7 +50,6 @@ async def test_get_all_orders(db) -> None:
             f'{URL}/orders',
         )
 
-    # Assert
     assert response.json().get('orders')
     assert response.status_code == status.HTTP_200_OK
     assert response.request.method == 'GET'

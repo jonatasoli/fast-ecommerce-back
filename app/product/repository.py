@@ -165,7 +165,7 @@ async def get_inventory(transaction, *, page, offset, currency=None, name=None):
     products_db = await transaction.session.execute(quantity_query)
     adapter = TypeAdapter(list[ProductInDB])
     return InventoryResponse(
-        inventory=adapter.validate_python(products_db.all()),
+        inventory=adapter.validate_python(products_db.unique().all()),
         page=page,
         offset=offset,
         total_pages=math.ceil(total_records / offset) if total_records else 1,

@@ -14,7 +14,6 @@ def test_create_category(session):
         select(CategoryDB).where(CategoryDB.category_id == new_category.category_id),
     )
 
-    # Assert
     assert category.category_id is not None
     assert category.name == new_category.name
     assert category.path == new_category.path
@@ -32,7 +31,6 @@ def test_category_default_values(session):
         select(CategoryDB).where(CategoryDB.category_id == new_category.category_id),
     )
 
-    # Assert
     assert category.menu is False
     assert category.showcase is False
 
@@ -49,5 +47,4 @@ def test_category_with_image_path(session):
         select(CategoryDB).where(CategoryDB.category_id == new_category.category_id),
     )
 
-    # Assert
     assert category.image_path == image_path

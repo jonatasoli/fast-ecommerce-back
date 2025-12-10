@@ -220,4 +220,4 @@ async def get_category_media_gallery(
             .order_by(UploadedMediaDB.order)
         )
         result = await transaction.session.execute(query)
-        return list(result.scalars().all())
+        return list(result.scalars().unique().all())

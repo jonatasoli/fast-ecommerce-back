@@ -16,5 +16,4 @@ def test_create_media(session):
         ),
     )
 
-    # Assert
     assert image.media_id == new_image.media_id

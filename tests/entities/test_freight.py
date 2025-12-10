@@ -30,7 +30,6 @@ def test_calculate_package_with_valid_products():
     # Act
     package = calculate_package(products)
 
-    # Assert
     assert isinstance(package, FreightPackage)
     assert package.weight == '1500'
     assert float(package.length) >= MIN_LENGTH
@@ -46,7 +45,6 @@ def test_calculate_package_with_minimum_dimensions():
     # Act
     package = calculate_package(products)
 
-    # Assert
     assert int(float(package.length)) == MIN_LENGTH
     assert int(float(package.width)) == MIN_WIDTH
     assert int(float(package.height)) == MIN_HEIGHT
@@ -62,7 +60,6 @@ def test_calculate_package_with_maximum_dimensions():
     # Act
     package = calculate_package(products)
 
-    # Assert
     assert int(float(package.length)) == MAX_LENGTH
     assert int(float(package.width)) == MAX_WIDTH
     assert int(float(package.height)) == MAX_HEIGHT
@@ -76,7 +73,6 @@ def test_calculate_package_with_diameter_when_no_width():
     # Act
     package = calculate_package(products)
 
-    # Assert
     assert isinstance(package, FreightPackage)
     assert package.weight == '800'
 

@@ -1,4 +1,5 @@
 import enum
+import io
 import shutil
 from pathlib import Path
 from fastapi import UploadFile
@@ -17,18 +18,47 @@ class FileUploadBucketError(Exception): ...
 
 
 def optimize_image(image: UploadFile) -> str:
-    """Optimize images."""
+    """Optimize images and convert to WebP."""
     try:
         img = Image.open(image.file)
+
+        if img.mode in ('RGBA', 'LA', 'P'):
+            rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            rgb_img.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+            img = rgb_img
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        max_size = 1920
+        if max(img.size) > max_size:
+            ratio = max_size / max(img.size)
+            new_size = (int(img.size[0] * ratio), int(img.size[1] * ratio))
+            img = img.resize(new_size, Image.Resampling.LANCZOS)
+
+        original_name = Path(image.filename).stem if image.filename else 'image'
+        webp_filename = f'{original_name}.webp'
+
+        webp_buffer = io.BytesIO()
+        img.save(webp_buffer, format='WEBP', quality=85, method=6)
+        webp_buffer.seek(0)
+
+        image.file = webp_buffer
+        image.filename = webp_filename
+
         if settings.ENVIRONMENT == 'development':
-            img.save(f'./static/images/{image.filename}')
-            return f'{settings.FILE_UPLOAD_PATH}{image.filename}'
-        img.save(f'{image.filename}')
+            output_path = Path('./static/images') / webp_filename
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, 'wb') as f:
+                f.write(webp_buffer.getvalue())
+            return f'{settings.FILE_UPLOAD_PATH}{webp_filename}'
+
         _upload_file(image)
     except UnidentifiedImageError as err:
         raise FileUploadBucketError from err
     else:
-        return f'{settings.FILE_UPLOAD_PATH}{settings.ENVIRONMENT}/{image.filename}'
+        return f'{settings.FILE_UPLOAD_PATH}{settings.ENVIRONMENT}/{webp_filename}'
 
 
 async def upload_video(video: UploadFile) -> str:

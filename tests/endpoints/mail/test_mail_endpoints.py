@@ -19,7 +19,6 @@ async def test_send_mail_tracking_number(async_client, mocker):
         '/notification/send-mail-tracking-number', json=payload,
     )
 
-    # Assert
     assert response.status_code in [200, 201]
     assert response.json()['message'] == 'Mail Sended'
 
@@ -41,6 +40,5 @@ async def test_send_mail_form_courses(async_client, mocker):
         '/notification/send-mail-form-courses', json=payload,
     )
 
-    # Assert
     assert response.status_code in [200, 201]
     assert response.json()['message'] == 'Mail Sended'

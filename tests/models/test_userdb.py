@@ -14,7 +14,6 @@ def test_create_user(session):
         select(UserDB).where(UserDB.user_id == new_user.user_id),
     )
 
-    # Assert
     assert user.user_id == 1
     assert user.role_id == 2
     assert user == new_user

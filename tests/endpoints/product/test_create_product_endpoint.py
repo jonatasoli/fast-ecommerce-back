@@ -48,6 +48,5 @@ async def test_given_valid_payload_should_create_product(
         headers=headers,
     )
 
-    # Assert
     assert response.status_code == 201
     assert response.json()['product_id'] == product_id

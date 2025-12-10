@@ -16,7 +16,6 @@ def test_base_class_tablename():
     # Act
     tablename = UserModel.__tablename__
 
-    # Assert
     assert tablename == 'usermodel'
 
 
@@ -31,7 +30,6 @@ def test_base_class_inheritance():
     # Act
     instance = ProductModel()
 
-    # Assert
     assert isinstance(instance, Base)
     assert hasattr(instance, '__tablename__')
 
@@ -48,6 +46,5 @@ def test_base_class_custom_tablename():
     # Act
     tablename = CustomModel.__tablename__
 
-    # Assert
     assert tablename == 'custom_table'
 

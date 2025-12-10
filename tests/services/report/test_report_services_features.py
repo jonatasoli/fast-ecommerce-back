@@ -66,7 +66,6 @@ async def test_get_user_sales_commissions_should_return_commissions(mocker, asyn
         user, paid=paid, released=released, db=asyncdb,
     )
 
-    # Assert
     mock_repo.assert_called_once()
     assert len(result) == len(expected_commissions)
 
@@ -113,7 +112,6 @@ async def test_get_sales_commissions_should_return_all_commissions(mocker, async
     # Act
     result = await get_sales_commissions(paid=paid, released=released, db=asyncdb)
 
-    # Assert
     mock_repo.assert_called_once()
     assert isinstance(result, UserSalesCommissions)
     assert len(result.commissions) > 0
@@ -179,7 +177,6 @@ async def test_create_sales_commission_with_percentage_fees(mocker, asyncdb):
         async_db=mock_async_db,
     )
 
-    # Assert
     assert isinstance(result, SalesCommissionDB)
     assert result.order_id == order_id
     assert result.user_id == user_id
@@ -245,7 +242,6 @@ async def test_create_sales_commission_with_fixed_fees(mocker, asyncdb):
         async_db=mock_async_db,
     )
 
-    # Assert
     assert isinstance(result, SalesCommissionDB)
 
 
@@ -308,7 +304,6 @@ async def test_create_sales_commission_with_coproducers(mocker, asyncdb):
         async_db=mock_async_db,
     )
 
-    # Assert
     assert isinstance(result, SalesCommissionDB)
 
 
@@ -415,5 +410,4 @@ async def test_create_sales_commission_with_campaign(mocker, asyncdb):
         async_db=mock_async_db,
     )
 
-    # Assert
     assert isinstance(result, SalesCommissionDB)

@@ -45,7 +45,6 @@ async def test_send_abandonated_cart_to_crm_success(mocker):
         db=mock_db,
     )
 
-    # Assert
     mock_get_settings.assert_called_once()
     mock_db.begin.assert_called_once()
 
@@ -119,7 +118,6 @@ async def test_send_abandonated_cart_to_crm_payload_format(mocker):
         db=mock_db,
     )
 
-    # Assert
     mock_post.assert_called_once()
     call_args = mock_post.call_args
     assert 'json' in call_args.kwargs

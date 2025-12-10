@@ -83,6 +83,7 @@ class SignUp(BaseModel):
     document: str
     phone: str
     terms: bool = False
+    recaptcha_token: str | None = None
 
 
 class Roles(enum.Enum):

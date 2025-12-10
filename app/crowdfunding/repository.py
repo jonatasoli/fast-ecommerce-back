@@ -1,5 +1,6 @@
 """Crowdfunding repository."""
-from datetime import date, datetime
+import json
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import func, select, update
@@ -93,7 +94,7 @@ async def list_projects(
     if limit:
         query = query.limit(limit).offset(offset)
     result = await transaction.session.scalars(query)
-    return list(result.all())
+    return list(result.unique().all())
 
 
 async def update_project(
@@ -105,7 +106,7 @@ async def update_project(
     """Update project."""
     update_data = project_update.model_dump(exclude_unset=True)
     if update_data:
-        update_data['updated_at'] = datetime.now()
+        update_data['updated_at'] = datetime.now(UTC)
         stmt = (
             update(ProjectDB)
             .where(ProjectDB.project_id == project_id)
@@ -131,6 +132,7 @@ async def create_tier(
         recurring_interval=tier.recurring_interval,
         max_backers=tier.max_backers,
         estimated_delivery=tier.estimated_delivery,
+        rewards=json.dumps(tier.rewards) if tier.rewards else None,
         active=tier.active,
         order=tier.order,
         current_backers=0,
@@ -162,7 +164,7 @@ async def list_tiers_by_project(
         query = query.where(TierDB.active.is_(True))
     query = query.order_by(TierDB.order.asc(), TierDB.amount.asc())
     result = await transaction.session.scalars(query)
-    return list(result.all())
+    return list(result.unique().all())
 
 
 async def update_tier(
@@ -174,7 +176,9 @@ async def update_tier(
     """Update tier."""
     update_data = tier_update.model_dump(exclude_unset=True)
     if update_data:
-        update_data['updated_at'] = datetime.now()
+        if 'rewards' in update_data and update_data['rewards'] is not None:
+            update_data['rewards'] = json.dumps(update_data['rewards'])
+        update_data['updated_at'] = datetime.now(UTC)
         stmt = (
             update(TierDB)
             .where(TierDB.tier_id == tier_id)
@@ -183,6 +187,26 @@ async def update_tier(
         await transaction.session.execute(stmt)
         await transaction.session.flush()
     return await get_tier_by_id(tier_id, transaction=transaction)
+
+
+async def update_tier_backers(
+    tier_id: int,
+    increment: bool = True,
+    *,
+    transaction: SessionTransaction,
+) -> TierDB | None:
+    """Update tier backers count."""
+    tier = await get_tier_by_id(tier_id, transaction=transaction)
+    if not tier:
+        return None
+    if increment:
+        tier.current_backers += 1
+    else:
+        tier.current_backers = max(0, tier.current_backers - 1)
+    tier.updated_at = datetime.now(UTC)
+    transaction.session.add(tier)
+    await transaction.session.flush()
+    return tier
 
 
 async def create_contribution(
@@ -233,7 +257,7 @@ async def list_contributions_by_project(
         query = query.where(ContributionDB.status == status)
     query = query.order_by(ContributionDB.created_at.desc())
     result = await transaction.session.scalars(query)
-    return list(result.all())
+    return list(result.unique().all())
 
 
 async def update_contribution_status(
@@ -245,7 +269,7 @@ async def update_contribution_status(
     transaction: SessionTransaction,
 ) -> ContributionDB | None:
     """Update contribution status."""
-    update_data = {'status': status, 'updated_at': datetime.now()}
+    update_data = {'status': status, 'updated_at': datetime.now(UTC)}
     if payment_id:
         update_data['payment_id'] = payment_id
     if subscription_id:
@@ -278,7 +302,7 @@ async def update_project_amounts(
         .values(
             current_amount=new_amount,
             backers_count=new_backers,
-            updated_at=datetime.now(),
+            updated_at=datetime.now(UTC),
         )
     )
     await transaction.session.execute(stmt)
@@ -327,7 +351,7 @@ async def list_goals_by_project(
         .order_by(GoalDB.order.asc())
     )
     result = await transaction.session.scalars(query)
-    return list(result.all())
+    return list(result.unique().all())
 
 
 async def update_goal_amount(
@@ -344,11 +368,11 @@ async def update_goal_amount(
     achieved = new_amount >= goal.target_amount
     update_data = {
         'current_amount': new_amount,
-        'updated_at': datetime.now(),
+        'updated_at': datetime.now(UTC),
     }
     if achieved and not goal.achieved:
         update_data['achieved'] = True
-        update_data['achieved_at'] = datetime.now()
+        update_data['achieved_at'] = datetime.now(UTC)
     stmt = (
         update(GoalDB)
         .where(GoalDB.goal_id == goal_id)
@@ -418,7 +442,7 @@ async def list_monthly_goals_by_project(
         .order_by(MonthlyGoalDB.year.desc(), MonthlyGoalDB.month.desc())
     )
     result = await transaction.session.scalars(query)
-    return list(result.all())
+    return list(result.unique().all())
 
 
 async def update_monthly_goal_amount(
@@ -438,11 +462,11 @@ async def update_monthly_goal_amount(
     achieved = new_amount >= monthly_goal.target_amount
     update_data = {
         'current_amount': new_amount,
-        'updated_at': datetime.now(),
+        'updated_at': datetime.now(UTC),
     }
     if achieved and not monthly_goal.achieved:
         update_data['achieved'] = True
-        update_data['achieved_at'] = datetime.now()
+        update_data['achieved_at'] = datetime.now(UTC)
     stmt = (
         update(MonthlyGoalDB)
         .where(MonthlyGoalDB.monthly_goal_id == monthly_goal_id)

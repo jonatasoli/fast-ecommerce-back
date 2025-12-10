@@ -61,7 +61,6 @@ def test_product_sold_out_error_message():
     with pytest.raises(ProductSoldOutError) as exc_info:
         raise ProductSoldOutError
 
-    # Assert
     assert str(exc_info.value) == 'There are products in not inventory.'
 
 
@@ -69,7 +68,6 @@ def test_product_not_created_error_message():
     with pytest.raises(ProductNotCreatedError) as exc_info:
         raise ProductNotCreatedError
 
-    # Assert
     assert str(exc_info.value) == 'Product is not created'
 
 
@@ -77,5 +75,4 @@ def test_product_not_found_error_message():
     with pytest.raises(ProductNotFoundError) as exc_info:
         raise ProductNotFoundError
 
-    # Assert
     assert str(exc_info.value) == 'Product not found'

@@ -33,7 +33,6 @@ async def test_get_coupons_should_return_list(async_client, mocker, async_admin_
         '/coupon/', headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 200
     assert len(response.json()) == 2
     assert response.json()[0]['code'] == 'TEST1'
@@ -58,7 +57,6 @@ async def test_get_coupon_should_return_coupon(async_client, mocker, async_admin
         '/coupon/1', headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 200
     assert response.json()['code'] == 'TEST1'
 
@@ -81,7 +79,6 @@ async def test_create_coupon_should_create(async_client, mocker, async_admin_tok
         headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 201
     assert response.json()['code'] == 'NEWCOUPON'
 
@@ -108,7 +105,6 @@ async def test_update_coupon_should_update(async_client, mocker, async_admin_tok
         headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 200
     assert response.json()['code'] == 'UPDATED'
 
@@ -124,5 +120,4 @@ async def test_delete_coupon_should_delete(async_client, mocker, async_admin_tok
         '/coupon/1', headers={'Authorization': f'Bearer {async_admin_token}'},
     )
 
-    # Assert
     assert response.status_code == 204

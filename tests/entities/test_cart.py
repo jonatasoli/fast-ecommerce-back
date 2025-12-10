@@ -32,7 +32,6 @@ def test_create_uuid_to_cart() -> None:
     # Act
     uuid = generate_cart_uuid()
 
-    # Assert
     assert isinstance(uuid, UUID)
 
 
@@ -45,7 +44,6 @@ def test_create_base_cart() -> None:
     # Act
     cart = CartBase(uuid=uuid, cart_items=cart_items, subtotal=subtotal)
 
-    # Assert
     assert cart is not None
     assert isinstance(cart, CartBase)
     assert isinstance(cart.uuid, UUID)
@@ -62,7 +60,6 @@ def test_increase_product_to_cart() -> None:
     # Act
     output = cart.increase_quantity(product_id=product_id)
 
-    # Assert
     assert output.cart_items[0].quantity == expected_quantity
 
 
@@ -77,7 +74,6 @@ def test_decrease_product_to_cart() -> None:
     # Act
     output = cart.decrease_quantity(product_id=product_id)
 
-    # Assert
     assert output.cart_items[0].quantity == expected_quantity
 
 
@@ -91,7 +87,6 @@ def test_set_product_quantity_to_cart() -> None:
     # Act
     output = cart.set_product_quantity(product_id=product_id, quantity=new_quantity)
 
-    # Assert
     assert output.cart_items[0].quantity == new_quantity
 
 
@@ -114,7 +109,6 @@ def test_add_product_to_cart() -> None:
         available_quantity=fake.random_int(min=1, max=100),
     )
 
-    # Assert
     assert len(output.cart_items) == 2
     assert output.cart_items[1].product_id == new_product_id
     assert output.cart_items[1].quantity == 1
@@ -138,7 +132,6 @@ def test_add_duplicate_product_should_increase_quantity() -> None:
         available_quantity=fake.random_int(min=10, max=100),
     )
 
-    # Assert
     assert output.cart_items[0].quantity == expected_quantity
     assert len(output.cart_items) == 1
 
@@ -152,7 +145,6 @@ def test_remove_product_to_cart() -> None:
     # Act
     output = cart.remove_product(product_id=product_id)
 
-    # Assert
     assert output.cart_items == []
 
 
@@ -192,7 +184,6 @@ def test_add_product_price_to_cart() -> None:
     # Act
     cart.add_product_price(products_with_prices)
 
-    # Assert
     for index, product in enumerate(products_with_prices):
         assert cart.cart_items[index].price == product.price
 
@@ -213,7 +204,6 @@ def test_calculate_subtotal_to_cart() -> None:
     # Act
     cart.calculate_subtotal(coupon=None)
 
-    # Assert
     assert cart.subtotal == expected_subtotal
 
 
@@ -270,7 +260,6 @@ def test_calculate_subtotal_in_cart_with_coupon() -> None:
     # Act
     cart.calculate_subtotal(coupon=coupon)
 
-    # Assert
     assert cart.subtotal == expected_final_subtotal
     assert cart.coupon == coupon.code
     assert cart.discount == expected_discount
